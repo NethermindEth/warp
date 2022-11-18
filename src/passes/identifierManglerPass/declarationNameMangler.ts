@@ -4,6 +4,7 @@ import {
   EventDefinition,
   ForStatement,
   FunctionDefinition,
+  Identifier,
   SourceUnit,
   StructDefinition,
   VariableDeclaration,
@@ -120,8 +121,24 @@ export class DeclarationNameMangler extends ASTMapper {
     return `${MANGLED_WARP}${this.nameCounter++}${existingName !== '' ? `_${existingName}` : ''}`;
   }
 
+  checkCollision(node: VariableDeclaration): boolean {
+    const parentContract = node.getClosestParentByType(ContractDefinition);
+    const parentScope = node.vScope;
+
+    if (parentContract !== undefined) {
+      return (
+        parentContract.name === node.name ||
+        parentScope
+          .getChildrenByType(Identifier, true)
+          .some((identifier) => identifier.name === node.name)
+      );
+    }
+
+    return false;
+  }
+
   mangleVariableDeclaration(node: VariableDeclaration): void {
-    if (reservedTerms.has(node.name) || node.name === '')
+    if (reservedTerms.has(node.name) || node.name === '' || this.checkCollision(node))
       node.name = this.createNewVariableName(node.name);
     checkSourceTerms(node.name, node);
   }
