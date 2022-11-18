@@ -134,16 +134,14 @@ function cliCompile(
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
-  const includePathOptions =
-    options === undefined || options.includePaths === undefined
-      ? ''
-      : `--include-path ${options.includePaths.join(' --include-path ')}`;
-  const basePathOption =
-    options === undefined || options.basePath === undefined
-      ? ''
-      : `--base-path ${options.basePath}`;
 
-  const commandOptions = `--standard-json ${allowedPaths} ${includePathOptions} ${basePathOption}`;
+  const includePathOptions =
+    options?.includePaths === undefined || nethersolcVersion === '7'
+      ? ``
+      : `--include-path ${options.includePaths.join(' --include-path ')}`;
+  const basePathOption = options?.basePath === undefined ? `` : `--base-path ${options.basePath}`;
+
+  const commandOptions = `--standard-json ${allowedPaths} ${basePathOption} ${includePathOptions}`;
 
   return {
     result: JSON.parse(

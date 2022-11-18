@@ -53,3 +53,4 @@ export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
 export * from './warnSupportedFeatures';
+export * from './sourceUnitPathFixer';

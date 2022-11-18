@@ -20,6 +20,7 @@ import { runTests } from './testing';
 
 import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
+import { defaultBasePathAndIncludePath } from './utils/utils';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -83,8 +84,19 @@ program
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
 
+    const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+
+    if (defaultBasePath !== null && defaultIncludePath !== null) {
+      options.includePaths =
+        options.includePaths === undefined
+          ? [defaultIncludePath]
+          : options.includePaths.concat(defaultIncludePath);
+      options.basePath = options.basePath || defaultBasePath;
+    }
+
     const ast = compileSolFiles(files, options);
     const contractToHashMap = new Map<string, string>();
+
     try {
       transpile(ast, options)
         .map(([name, cairo, abi]) => {
@@ -133,6 +145,17 @@ program
   .option('--base-path <path>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
+
+    const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+
+    if (defaultBasePath !== null && defaultIncludePath !== null) {
+      options.includePaths =
+        options.includePaths === undefined
+          ? [defaultIncludePath]
+          : options.includePaths.concat(defaultIncludePath);
+      options.basePath = options.basePath || defaultBasePath;
+    }
+
     try {
       const ast = compileSolFiles([file], options);
       transform(ast, options).map(([name, solidity, _]) => {
