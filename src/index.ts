@@ -94,7 +94,12 @@ program
       options.basePath = options.basePath || defaultBasePath;
     }
 
-    const ast = compileSolFiles(files, options);
+    // map file location relative to current working directory
+    const mFiles = files.map((file) => {
+      return path.relative(process.cwd(), file);
+    });
+
+    const ast = compileSolFiles(mFiles, options);
     const contractToHashMap = new Map<string, string>();
 
     try {
@@ -157,7 +162,8 @@ program
     }
 
     try {
-      const ast = compileSolFiles([file], options);
+      const mFile = path.relative(process.cwd(), file);
+      const ast = compileSolFiles([mFile], options);
       transform(ast, options).map(([name, solidity, _]) => {
         outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
       });
