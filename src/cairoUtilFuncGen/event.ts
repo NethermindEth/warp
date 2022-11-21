@@ -26,7 +26,7 @@ import keccak from 'keccak';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 
 const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+  '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
@@ -89,14 +89,18 @@ export class EventFunction extends StringIndexedFuncGenWithAuxiliar {
     const code = [
       `func _emit_${key}${IMPLICITS}(${cairoParams}){`,
       `   alloc_locals;`,
+      `   let keys_len: felt = 0;`,
+      `   let data_len: felt = 0;`,
       `   let (keys: felt*) = alloc();`,
-      this.genTopicCode(node, 0),
       `   let (data: felt*) = alloc();`,
+      this.genTopicCode(node, 0),
       ...insertions,
+      `   emit_event(keys_len, keys, data_len, data);`,
       `   return ();`,
       `}`,
     ].join('\n');
 
+    this.requireImport('starkware.starknet.common.syscalls', 'emit_event');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
 
@@ -109,7 +113,7 @@ export class EventFunction extends StringIndexedFuncGenWithAuxiliar {
     this.requireImport('warplib.dynamic_arrays_util', 'memory_array_to_felt_array');
     return [
       `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
-      `   memory_array_to_felt_array(mem_encode, ${arrayName}, 0);`,
+      `   let (${arrayName}_len: felt) = memory_array_to_felt_array(mem_encode, ${arrayName}, ${arrayName}_len);`,
     ].join('\n');
   }
 

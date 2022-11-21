@@ -1,9 +1,8 @@
-import { EmitStatement, EventDefinition, VariableDeclaration } from 'solc-typed-ast';
-import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
+import { EmitStatement, EventDefinition, FunctionCall } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 
-import keccak from 'keccak';
+import { createExpressionStatement } from '../export';
 
 /**
  * Generates a cairo function that emits an event
@@ -20,12 +19,10 @@ export class Events extends ASTMapper {
   }
 
   visitEmitStatement(node: EmitStatement, ast: AST): void {
-    ast.replaceNode(
-      node,
-      ast
-        .getUtilFuncGen(node)
-        .event.gen(node, node.vEventCall.vReferencedDeclaration as EventDefinition),
-    );
+    const replacement: FunctionCall = ast
+      .getUtilFuncGen(node)
+      .event.gen(node, node.vEventCall.vReferencedDeclaration as EventDefinition);
+    ast.replaceNode(node, createExpressionStatement(ast, replacement));
     this.commonVisit(node, ast);
   }
 }

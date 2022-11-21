@@ -238,7 +238,7 @@ func bytes_upper_bound{range_check_ptr: felt}(number: felt) -> (upper_bound: fel
 // ---- mem_loc: warp memory location of the array
 // ---- array: felt array to write to
 // ---- index : the location at which to start writing to array
-func memory_array_to_felt_array{syscall_ptr: felt*, range_check_ptr: felt, warp_memory: DictAccess*}(
+func memory_array_to_felt_array{range_check_ptr: felt, warp_memory: DictAccess*}(
     mem_loc: felt, array: felt*, index: felt
 ) -> (new_index: felt) {
     alloc_locals;
@@ -248,7 +248,7 @@ func memory_array_to_felt_array{syscall_ptr: felt*, range_check_ptr: felt, warp_
     return (new_index=index + len_felt);
 }
 
-func memory_array_to_felt_array_util{syscall_ptr: felt*, range_check_ptr: felt, warp_memory: DictAccess*}(
+func memory_array_to_felt_array_util{range_check_ptr: felt, warp_memory: DictAccess*}(
     mem_len: felt, mem_loc: felt, array: felt*, index: felt
 ) -> () {
     alloc_locals;
