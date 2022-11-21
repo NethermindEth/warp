@@ -95,9 +95,7 @@ program
     }
 
     // map file location relative to current working directory
-    const mFiles = files.map((file) => {
-      return path.relative(process.cwd(), file);
-    });
+    const mFiles = files.map((file) => path.relative(process.cwd(), file));
 
     const ast = compileSolFiles(mFiles, options);
     const contractToHashMap = new Map<string, string>();
