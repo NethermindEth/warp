@@ -15,6 +15,7 @@ export * from './enumConverter';
 export * from './expressionSplitter';
 export * from './externalArgModifier';
 export * from './externalContractHandler';
+export * from './events';
 export * from './freeFunctionInliner';
 export * from './functionModifierHandler';
 export * from './functionPruner';

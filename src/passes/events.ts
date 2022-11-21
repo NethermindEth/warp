@@ -1,5 +1,6 @@
-import { EmitStatement, EventDefinition } from 'solc-typed-ast';
-import { AST, ASTMapper } from '../export';
+import { EmitStatement, EventDefinition, VariableDeclaration } from 'solc-typed-ast';
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
 
 /**
  * Generates a cairo function that emits an event
@@ -16,11 +17,12 @@ export class Events extends ASTMapper {
   }
 
   visitEmitStatement(node: EmitStatement, ast: AST): void {
-    const refEventDef = node.vEventCall.vReferencedDeclaration;
-    if (refEventDef === undefined || !(refEventDef instanceof EventDefinition)) {
-      return;
-    }
-    ast.replaceNode(node, ast.getUtilFuncGen(node).event.gen(node, refEventDef));
+    ast.replaceNode(
+      node,
+      ast
+        .getUtilFuncGen(node)
+        .event.gen(node, node.vEventCall.vReferencedDeclaration as EventDefinition),
+    );
     this.commonVisit(node, ast);
   }
 }
