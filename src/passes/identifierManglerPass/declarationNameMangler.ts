@@ -125,16 +125,12 @@ export class DeclarationNameMangler extends ASTMapper {
     const parentContract = node.getClosestParentByType(ContractDefinition);
     const parentScope = node.vScope;
 
-    if (parentContract !== undefined) {
-      return (
-        parentContract.name === node.name ||
-        parentScope
-          .getChildrenByType(Identifier, true)
-          .some((identifier) => identifier.name === node.name)
-      );
-    }
-
-    return false;
+    return (
+      parentContract?.name === node.name ||
+      parentScope
+        .getChildrenByType(Identifier, true)
+        .some((identifier) => identifier.name === node.name)
+    );
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
