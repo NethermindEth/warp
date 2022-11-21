@@ -11,13 +11,16 @@ import {
 import {
   AbiEncode,
   AST,
+  CairoType,
   createCairoFunctionStub,
   createCallToFunction,
   isValueType,
+  mapRange,
   safeGetNodeType,
+  TypeConversionContext,
   typeNameFromTypeNode,
 } from '../export';
-import { StringIndexedFuncGen } from './base';
+import { StringIndexedFuncGenWithAuxiliar } from './base';
 
 import keccak from 'keccak';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
@@ -29,7 +32,7 @@ const IMPLICITS =
  * Generates a cairo function that emits an event through a cairo syscall.
  * Then replace the emit statement with a call to the generated function.
  */
-export class EventFunction extends StringIndexedFuncGen {
+export class EventFunction extends StringIndexedFuncGenWithAuxiliar {
   private abiEncode: AbiEncode;
 
   constructor(abiEncode: AbiEncode, ast: AST, sourceUint: SourceUnit) {
@@ -42,7 +45,7 @@ export class EventFunction extends StringIndexedFuncGen {
       (arg) => generalizeType(safeGetNodeType(arg, this.ast.compilerVersion))[0],
     );
 
-    const funcName = this.getOrCreate(refEventDef, argsTypes);
+    const funcName = this.getOrCreate(refEventDef);
 
     const functionStub = createCairoFunctionStub(
       funcName,
@@ -60,7 +63,7 @@ export class EventFunction extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, node.vEventCall.vArguments, this.ast);
   }
 
-  private getOrCreate(node: EventDefinition, _argsTypes: TypeNode[]): string {
+  private getOrCreate(node: EventDefinition): string {
     const key = node.name;
     const existing = this.generatedFunctions.get(key);
 
@@ -68,19 +71,87 @@ export class EventFunction extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    const topic = keccak('keccak256')
-      .update(node.canonicalSignature(ABIEncoderVersion.V2))
-      .digest('utf-8');
+    const [params, insertions] = node.vParameters.vParameters.reduce(
+      ([params, insertions], param, index) => {
+        const paramType = generalizeType(safeGetNodeType(param, this.ast.compilerVersion))[0];
+        const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
+        params.push({ name: `param${index}`, type: cairoType.toString() });
+        insertions.push(
+          this.generateInsertionCode(paramType, param.indexed ? 'keys' : 'data', `param${index}`),
+        );
+        return [params, insertions];
+      },
+      [new Array<{ name: string; type: string }>(), new Array<string>()],
+    );
+
+    const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
     const code = [
-      `func _emit_${key}${IMPLICITS}(){`,
+      `func _emit_${key}${IMPLICITS}(${cairoParams}){`,
       `   alloc_locals;`,
-      `   let (data_array: felt*) = alloc();`,
-      `   let (keys_array: felt*) = alloc();`,
+      `   let (keys: felt*) = alloc();`,
+      this.genTopicCode(node, 0),
+      `   let (data: felt*) = alloc();`,
+      ...insertions,
       `   return ();`,
       `}`,
-    ];
+    ].join('\n');
 
-    return '';
+    this.requireImport('starkware.cairo.common.alloc', 'alloc');
+    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
+
+    this.generatedFunctions.set(key, { name: `_emit_${key}`, code: code });
+    return `_emit_${key}`;
+  }
+
+  private generateInsertionCode(type: TypeNode, arrayName: string, argName: string): string {
+    const abiFunc = this.abiEncode.getOrCreate([type]);
+    this.requireImport('warplib.dynamic_arrays_util', 'memory_array_to_felt_array');
+    return [
+      `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
+      `   memory_array_to_felt_array(mem_encode, ${arrayName}, 0);`,
+    ].join('\n');
+  }
+
+  private genTopicCode(node: EventDefinition, index: number): string {
+    const topic: string = keccak('keccak256')
+      .update(node.canonicalSignature(ABIEncoderVersion.V2))
+      .digest('hex');
+
+    const topicLength = topic.length / 2;
+    const topicFelts = mapRange(topicLength, (n) => parseInt(topic.slice(2 * n, 2 * n + 2), 16));
+
+    return `   let (keys_len: felt) = ${this.getOrCreateTopic(
+      topicLength,
+    )}(keys, ${index}, ${topicFelts.join(',')});`;
+  }
+
+  private getOrCreateTopic(length: number): string {
+    const existing = this.auxiliarGeneratedFunctions.get(`TP_${length}`);
+
+    if (existing !== undefined) {
+      return existing.name;
+    }
+
+    const code = [
+      `func TP_${length}${IMPLICITS}(keys: felt*, index: felt${length ? ', ' : ''}${mapRange(
+        length,
+        (n) => `e${n}: felt`,
+      )}) -> (new_index: felt){`,
+      `   alloc_locals;`,
+      ...mapRange(length, (n) => `   assert keys[${n}] = e${n};`),
+      `   return (new_index = index + ${length});`,
+      `}`,
+    ].join('\n');
+
+    this.auxiliarGeneratedFunctions.set(`TP_${length}`, {
+      name: `TP_${length}`,
+      code: code,
+    });
+
+    this.requireImport('starkware.cairo.common.alloc', 'alloc');
+    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
+
+    return `TP_${length}`;
   }
 }

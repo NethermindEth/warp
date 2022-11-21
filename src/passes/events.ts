@@ -1,6 +1,9 @@
 import { EmitStatement, EventDefinition, VariableDeclaration } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+
+import keccak from 'keccak';
 
 /**
  * Generates a cairo function that emits an event

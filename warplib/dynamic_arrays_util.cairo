@@ -6,7 +6,7 @@ from starkware.cairo.common.math_cmp import is_le_felt
 from warplib.maths.pow2 import pow2
 from warplib.maths.utils import felt_to_uint256, narrow_safe
 from warplib.maths.bytes_access import byte256_at_index, byte_at_index
-from warplib.memory import wm_index_dyn, wm_read_felt, wm_write_felt
+from warplib.memory import wm_index_dyn, wm_read_felt, wm_write_felt, wm_read_256
 
 // ----------------------- WARP Memory Dynamic Arrays Utils ----------------------------------
 func dynamic_array_copy_felt{range_check_ptr, warp_memory: DictAccess*}(
@@ -230,4 +230,33 @@ func bytes_upper_bound{range_check_ptr: felt}(number: felt) -> (upper_bound: fel
     }
     let (result) = bytes_upper_bound(number - 32);
     return (32 + result,);
+}
+
+// Utility functions for indexed events
+
+// Memory felt array to felt array copy
+// ---- mem_loc: warp memory location of the array
+// ---- array: felt array to write to
+// ---- index : the location at which to start writing to array
+func memory_array_to_felt_array{syscall_ptr: felt*, range_check_ptr: felt, warp_memory: DictAccess*}(
+    mem_loc: felt, array: felt*, index: felt
+) -> (new_index: felt) {
+    alloc_locals;
+    let (len_256) = wm_read_256(mem_loc);
+    let (len_felt) = narrow_safe(len_256);
+    memory_array_to_felt_array_util(len_felt, mem_loc + 2, array, index);
+    return (new_index=index + len_felt);
+}
+
+func memory_array_to_felt_array_util{syscall_ptr: felt*, range_check_ptr: felt, warp_memory: DictAccess*}(
+    mem_len: felt, mem_loc: felt, array: felt*, index: felt
+) -> () {
+    alloc_locals;
+    if (mem_len == 0) {
+        return ();
+    }
+    let (mem_read0) = wm_read_felt(mem_loc);
+    assert array[index] = mem_read0;
+    memory_array_to_felt_array_util(mem_len=mem_len - 1, mem_loc=mem_loc + 1, array=array + 1, index=index + 1);
+    return ();
 }
