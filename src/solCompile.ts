@@ -18,7 +18,7 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(files: string[]): SolcOutput {
+function compileSolFilesCommon(files: string[], options: CompilationOptions): SolcOutput {
   const sources = files.map((file) => {
     return getSolFileVersion(file);
   });
@@ -36,13 +36,13 @@ function compileSolFilesCommon(files: string[]): SolcOutput {
     throw new TranspileFailedError(`All solidity files should be the same major version`);
   }
 
-  const solcOutput = cliCompile(formatInput(files), sources[0]);
+  const solcOutput = cliCompile(formatInput(files), sources[0], options);
   return solcOutput;
 }
 
 export function compileSolFiles(files: string[], options: CompilationOptions): AST {
-  const solcOutput = compileSolFilesCommon(files);
-  printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
+  const solcOutput = compileSolFilesCommon(files, options);
+  printErrors(solcOutput.result, options.warnings || false, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
@@ -134,16 +134,14 @@ function cliCompile(
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
-  const includePathOptions =
-    options === undefined || options.includePaths === undefined
-      ? ''
-      : `--include-path ${options.includePaths.join(' --include-path ')}`;
-  const basePathOption =
-    options === undefined || options.basePath === undefined
-      ? ''
-      : `--base-path ${options.basePath}`;
 
-  const commandOptions = `--standard-json ${allowedPaths} ${includePathOptions} ${basePathOption}`;
+  const includePathOptions =
+    options?.includePaths === undefined || nethersolcVersion === '7'
+      ? ``
+      : `--include-path ${options.includePaths.join(' --include-path ')}`;
+  const basePathOption = options?.basePath === undefined ? `` : `--base-path ${options.basePath}`;
+
+  const commandOptions = `--standard-json ${allowedPaths} ${basePathOption} ${includePathOptions}`;
 
   return {
     result: JSON.parse(
