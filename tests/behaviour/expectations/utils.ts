@@ -1,4 +1,6 @@
 import { Dir, Value, File, EventItem } from './types';
+import createKeccakHash from 'keccak';
+import { MASK_250 } from '../../../src/export';
 
 export function flatten(test: Dir | File): File[] {
   if (test instanceof Dir) {
@@ -74,6 +76,58 @@ export function toCairoUint256(val: number | bigint): [string, string] {
 }
 
 export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
-  //TODO: implement
-  return eventsLog;
+  // flat number to hex string with rjust 62
+  const flatNumberToHexString = (num: number | bigint | string): string => {
+    return `${BigInt(num).toString(16).padStart(62, '0')}`;
+  };
+
+  // decode number from raw hex input string
+  const byte32numbers = (hexArray: string[]): bigint[] => {
+    const raw_hex_input = hexArray.reduce((pv, cv) => {
+      return `${pv}${flatNumberToHexString(cv)}`;
+    }, '');
+
+    console.log(raw_hex_input);
+
+    // get number from every 64 hex digits chunk
+    const numbers: bigint[] = [];
+    for (let i = 0; i + 64 < raw_hex_input.length; i += 64) {
+      numbers.push(BigInt(`0x${raw_hex_input.slice(i, i + 64)}`));
+    }
+
+    return numbers;
+  };
+
+  const events: EventItem[] = eventsLog.map((event) => {
+    return {
+      order: event.order,
+      keys: [event.keys[0], ...byte32numbers(event.keys.slice(1)).map((num) => num.toString())],
+      data: byte32numbers(event.data).map((num) => num.toString()),
+    };
+  });
+  return events;
+}
+
+export type argType = string | argType[];
+
+// NOTE: argTypes must not contain `uint` , it should be `uint256` instead
+export function warpEventCanonicalSignaturehash(eventName: string, argTypes: argType[]): string {
+  const getArgStringRepresentation = (arg: argType): string => {
+    if (typeof arg === 'string') return arg;
+    return `(${arg.map(getArgStringRepresentation).join(',')})`;
+  };
+
+  const funcSignature = `${eventName}(${argTypes.map(getArgStringRepresentation).join(',')})`;
+  const funcSignatureHash = createKeccakHash('keccak256')
+    .update(funcSignature)
+    .digest('hex')
+    .slice(0, 8);
+  const functionSignatureWarp = `${eventName}_${funcSignatureHash}(${argTypes
+    .map(getArgStringRepresentation)
+    .join(',')})`;
+
+  return (
+    BigInt(`0x${createKeccakHash('keccak256').update(functionSignatureWarp).digest('hex')}`) &
+    MASK_250
+  ).toString();
 }

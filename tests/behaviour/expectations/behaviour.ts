@@ -1,5 +1,11 @@
 import { Dir, Expect, File } from './types';
-import { getByte32Array, flatten, getByteXArray, toCairoUint256 } from './utils';
+import {
+  getByte32Array,
+  flatten,
+  getByteXArray,
+  toCairoUint256,
+  warpEventCanonicalSignaturehash,
+} from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -2183,78 +2189,228 @@ export const expectations = flatten(
         new Dir('events', [
           File.Simple('simple', [
             new Expect('add', [
-              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+              [
+                'add',
+                ['34', '0', '35', '0'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['69'],
+                    keys: [warpEventCanonicalSignaturehash('uintEvent', ['uint256'])],
+                    order: 0,
+                  },
+                ],
+              ],
             ]),
-            new Expect('add', [
-              ['array', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-            new Expect('nestedArray', [
-              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-            new Expect('structComplex', [
-              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-          ]),
-          File.Simple('indexed', [
-            new Expect('add', [
-              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-            new Expect('add', [
-              ['array', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-            new Expect('nestedArray', [
-              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-            new Expect('structComplex', [
-              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-          ]),
-          File.Simple('misc', [
-            new Expect('allString', [
-              ['add', ['2', '65', '66'], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
-            ]),
-            new Expect('allStringMisc', [
+            new Expect('array', [
               [
                 'array',
-                ['2', '65', '66'],
-                [],
-                '0',
-                undefined,
-                [{ data: [], keys: [], order: '0' }],
-              ],
-            ]),
-            new Expect('allUint', [
-              [
-                'add',
-                ['1', '0', '2', '0'],
-                [],
-                '0',
-                undefined,
-                [{ data: [], keys: [], order: '0' }],
-              ],
-            ]),
-            new Expect('allIndexed', [
-              [
-                'add',
-                ['1', '0', '2', '0'],
-                [],
-                '0',
-                undefined,
-                [{ data: [], keys: [], order: '0' }],
-              ],
-            ]),
-            new Expect('allEventsAtOnce', [
-              [
-                'add',
                 [],
                 [],
                 '0',
                 undefined,
                 [
-                  { data: [], keys: [], order: '0' },
-                  { data: [], keys: [], order: '1' },
-                  { data: [], keys: [], order: '2' },
-                  { data: [], keys: [], order: '3' },
+                  {
+                    data: ['32', '3', '2', '3', '5'],
+                    keys: [warpEventCanonicalSignaturehash('arrayEvent', ['uint256[]'])],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('nestedArray', [
+              [
+                'nestedArray',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['32', '2', '64', '192', '3', '2', '3', '5', '2', '7', '11'],
+                    keys: [warpEventCanonicalSignaturehash('nestedArrayEvent', ['uint256[][]'])],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('structComplex', [
+              [
+                'structComplex',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['32', '128', '7', '11', '13', '3', '2', '3', '5'],
+                    keys: [
+                      warpEventCanonicalSignaturehash('structEvent', [['uint8[]', 'uint256[3]']]),
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+          ]),
+          File.Simple('indexed', [
+            new Expect('add', [
+              [
+                'add',
+                ['34', '0', '35', '0'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [warpEventCanonicalSignaturehash('uintEvent', ['uint256']), '69'],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('array', [
+              [
+                'array',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('arrayEvent', ['uint256[]']),
+                      '32',
+                      '3',
+                      '2',
+                      '3',
+                      '5',
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('nestedArray', [
+              [
+                'nestedArray',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('nestedArrayEvent', ['uint256[][]']),
+                      '32',
+                      '2',
+                      '64',
+                      '192',
+                      '3',
+                      '2',
+                      '3',
+                      '5',
+                      '2',
+                      '7',
+                      '11',
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('structComplex', [
+              [
+                'structComplex',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('structEvent', [['uint8[]', 'uint256[3]']]),
+                      '32',
+                      '128',
+                      '7',
+                      '11',
+                      '13',
+                      '3',
+                      '2',
+                      '3',
+                      '5',
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+          ]),
+          File.Simple('misc', [
+            new Expect('allString', [
+              [
+                'allString',
+                ['2', '65', '66', '2', '66', '67'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [warpEventCanonicalSignaturehash('allStringEvent', ['string', 'string'])],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('allStringMisc', [
+              [
+                'allStringMisc',
+                ['2', '65', '66', '2', '66', '67'],
+                [],
+                '0',
+                undefined,
+                [{ data: [], keys: [], order: 0 }],
+              ],
+            ]),
+            new Expect('allUint', [
+              [
+                'allUint',
+                ['1', '0', '2', '0'],
+                [],
+                '0',
+                undefined,
+                [{ data: [], keys: [], order: 0 }],
+              ],
+            ]),
+            new Expect('allIndexed', [
+              [
+                'allIndexed',
+                ['1', '0', '2', '0'],
+                [],
+                '0',
+                undefined,
+                [{ data: [], keys: [], order: 0 }],
+              ],
+            ]),
+            new Expect('allEventsAtOnce', [
+              [
+                'allEventsAtOnce',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  { data: [], keys: [], order: 0 },
+                  { data: [], keys: [], order: 1 },
+                  { data: [], keys: [], order: 2 },
+                  { data: [], keys: [], order: 3 },
                 ],
               ],
             ]),
