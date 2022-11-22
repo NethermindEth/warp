@@ -26,7 +26,9 @@ func warp_keccak{
     return (res,);
 }
 
-func pack_bytes_felt{range_check_ptr}(packing_bytes: felt, input_len: felt, input: felt*) -> (output_len : felt, output: felt*) {
+func pack_bytes_felt{range_check_ptr}(packing_bytes: felt, input_len: felt, input: felt*) -> (
+    output_len: felt, output: felt*
+) {
     alloc_locals;
     let (bytes_buffer: felt*) = alloc();
     let (output_len: felt) = pack_bytes_felt_loop(packing_bytes, 0, bytes_buffer, input_len, input);
@@ -35,7 +37,7 @@ func pack_bytes_felt{range_check_ptr}(packing_bytes: felt, input_len: felt, inpu
 
 func pack_bytes_felt_loop{range_check_ptr}(
     packing_bytes: felt, index: felt, bytes_buffer: felt*, input_len: felt, input: felt*
-) -> (output_len : felt) {
+) -> (output_len: felt) {
     alloc_locals;
     let (chunk_size) = get_min(input_len, packing_bytes);
 
@@ -45,7 +47,7 @@ func pack_bytes_felt_loop{range_check_ptr}(
     let chunk_unaligned = is_le_felt(input_len, packing_bytes);
 
     if (chunk_unaligned == 1) {
-        return (index+1,);
+        return (index + 1,);
     } else {
         return pack_bytes_felt_loop(
             packing_bytes, index + 1, bytes_buffer, input_len - packing_bytes, &input[packing_bytes]
@@ -72,16 +74,14 @@ func pack_bytes_in_felt{range_check_ptr}(
 }
 
 func felt_array_concat{range_check_ptr}(
-    src_len: felt, src_index : felt, src: felt*, dest_index: felt, dest: felt*
+    src_len: felt, src_index: felt, src: felt*, dest_index: felt, dest: felt*
 ) -> (dest_len: felt) {
     alloc_locals;
-    
+
     let src_index_pos = is_le_felt(src_len, src_index);
     if (src_index_pos == 1) {
         return (dest_index,);
     }
     assert dest[dest_index] = src[src_index];
-    return felt_array_concat(
-        src_len, src_index + 1, src, dest_index + 1, dest
-    );
+    return felt_array_concat(src_len, src_index + 1, src, dest_index + 1, dest);
 }
