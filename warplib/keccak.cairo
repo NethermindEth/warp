@@ -19,36 +19,36 @@ func warp_keccak{
 }(loc: felt) -> (output: Uint256) {
     alloc_locals;
     let (input_len, input) = wm_to_felt_array(loc);
-    let (packed_bytes) = pack_bytes_felt(input_len, input);
+    let (packed_bytes_len, packed_bytes) = pack_bytes_felt(BYTES_IN_FELT, input_len, input);
 
     let (res: Uint256) = keccak_bigend{keccak_ptr=keccak_ptr}(packed_bytes, input_len);
 
     return (res,);
 }
 
-func pack_bytes_felt{range_check_ptr}(input_len: felt, input: felt*) -> (output: felt*) {
+func pack_bytes_felt{range_check_ptr}(packing_bytes: felt, input_len: felt, input: felt*) -> (output_len : felt, output: felt*) {
     alloc_locals;
     let (bytes_buffer: felt*) = alloc();
-    pack_bytes_felt_loop(0, bytes_buffer, input_len, input);
-    return (bytes_buffer,);
+    let (output_len: felt) = pack_bytes_felt_loop(packing_bytes, 0, bytes_buffer, input_len, input);
+    return (output_len, bytes_buffer,);
 }
 
 func pack_bytes_felt_loop{range_check_ptr}(
-    index: felt, bytes_buffer: felt*, input_len: felt, input: felt*
-) -> () {
+    packing_bytes: felt, index: felt, bytes_buffer: felt*, input_len: felt, input: felt*
+) -> (output_len : felt) {
     alloc_locals;
-    let (chunk_size) = get_min(input_len, BYTES_IN_FELT);
+    let (chunk_size) = get_min(input_len, packing_bytes);
 
     let (packed_words) = pack_bytes_in_felt(0, chunk_size, input, 0);
     assert bytes_buffer[index] = packed_words;
 
-    let chunk_unaligned = is_le_felt(input_len, BYTES_IN_FELT);
+    let chunk_unaligned = is_le_felt(input_len, packing_bytes);
 
     if (chunk_unaligned == 1) {
-        return ();
+        return (index+1,);
     } else {
         return pack_bytes_felt_loop(
-            index + 1, bytes_buffer, input_len - BYTES_IN_FELT, &input[BYTES_IN_FELT]
+            packing_bytes, index + 1, bytes_buffer, input_len - packing_bytes, &input[packing_bytes]
         );
     }
 }
@@ -69,4 +69,19 @@ func pack_bytes_in_felt{range_check_ptr}(
     let byte_buffer = byte_buffer + shifted_val;
 
     return pack_bytes_in_felt(byte_index + 1, chunk_size, input, byte_buffer);
+}
+
+func felt_array_concat{range_check_ptr}(
+    src_len: felt, src_index : felt, src: felt*, dest_index: felt, dest: felt*
+) -> (dest_len: felt) {
+    alloc_locals;
+    
+    let src_index_pos = is_le_felt(src_len, src_index);
+    if (src_index_pos == 1) {
+        return (dest_index,);
+    }
+    assert dest[dest_index] = src[src_index];
+    return felt_array_concat(
+        src_len, src_index + 1, src, dest_index + 1, dest
+    );
 }

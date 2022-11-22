@@ -15,15 +15,17 @@ import {
   createCairoFunctionStub,
   createCallToFunction,
   isValueType,
-  mapRange,
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
 } from '../export';
-import { StringIndexedFuncGenWithAuxiliar } from './base';
+import { StringIndexedFuncGen } from './base';
 
 import keccak from 'keccak';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
+
+const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+const BYTES_IN_FELT_PACKING = 31;
 
 const IMPLICITS =
   '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -32,7 +34,7 @@ const IMPLICITS =
  * Generates a cairo function that emits an event through a cairo syscall.
  * Then replace the emit statement with a call to the generated function.
  */
-export class EventFunction extends StringIndexedFuncGenWithAuxiliar {
+export class EventFunction extends StringIndexedFuncGen {
   private abiEncode: AbiEncode;
 
   constructor(abiEncode: AbiEncode, ast: AST, sourceUint: SourceUnit) {
@@ -86,14 +88,21 @@ export class EventFunction extends StringIndexedFuncGenWithAuxiliar {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
+    const topic: BigInt =
+      BigInt(
+        `0x${keccak('keccak256')
+          .update(node.canonicalSignature(ABIEncoderVersion.V2))
+          .digest('hex')}`,
+      ) & BigInt(MASK_250);
+
     const code = [
       `func _emit_${key}${IMPLICITS}(${cairoParams}){`,
       `   alloc_locals;`,
-      `   let keys_len: felt = 0;`,
+      `   let keys_len: felt = 1;`,
       `   let data_len: felt = 0;`,
       `   let (keys: felt*) = alloc();`,
       `   let (data: felt*) = alloc();`,
-      this.genTopicCode(node, 0),
+      `   assert keys[0] = ${topic}; // keccak of event signature`,
       ...insertions,
       `   emit_event(keys_len, keys, data_len, data);`,
       `   return ();`,
@@ -110,52 +119,16 @@ export class EventFunction extends StringIndexedFuncGenWithAuxiliar {
 
   private generateInsertionCode(type: TypeNode, arrayName: string, argName: string): string {
     const abiFunc = this.abiEncode.getOrCreate([type]);
-    this.requireImport('warplib.dynamic_arrays_util', 'memory_array_to_felt_array');
+
+    this.requireImport('warplib.memory', 'wm_to_felt_array');
+    this.requireImport('warplib.keccak', 'pack_bytes_felt');
+    this.requireImport('warplib.keccak', 'felt_array_concat');
+
     return [
       `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
-      `   let (${arrayName}_len: felt) = memory_array_to_felt_array(mem_encode, ${arrayName}, ${arrayName}_len);`,
+      `   let (encode_bytes_len: felt, encode_bytes: felt*) = wm_to_felt_array(mem_encode);`,
+      `   let (encode_packed_len: felt, encode_packed: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, encode_bytes_len, encode_bytes);`,
+      `   let (${arrayName}_len: felt) = felt_array_concat(encode_packed_len, 0, encode_packed, ${arrayName}_len, ${arrayName});`,
     ].join('\n');
-  }
-
-  private genTopicCode(node: EventDefinition, index: number): string {
-    const topic: string = keccak('keccak256')
-      .update(node.canonicalSignature(ABIEncoderVersion.V2))
-      .digest('hex');
-
-    const topicLength = topic.length / 2;
-    const topicFelts = mapRange(topicLength, (n) => parseInt(topic.slice(2 * n, 2 * n + 2), 16));
-
-    return `   let (keys_len: felt) = ${this.getOrCreateTopic(
-      topicLength,
-    )}(keys, ${index}, ${topicFelts.join(',')});`;
-  }
-
-  private getOrCreateTopic(length: number): string {
-    const existing = this.auxiliarGeneratedFunctions.get(`TP_${length}`);
-
-    if (existing !== undefined) {
-      return existing.name;
-    }
-
-    const code = [
-      `func TP_${length}${IMPLICITS}(keys: felt*, index: felt${length ? ', ' : ''}${mapRange(
-        length,
-        (n) => `e${n}: felt`,
-      )}) -> (new_index: felt){`,
-      `   alloc_locals;`,
-      ...mapRange(length, (n) => `   assert keys[${n}] = e${n};`),
-      `   return (new_index = index + ${length});`,
-      `}`,
-    ].join('\n');
-
-    this.auxiliarGeneratedFunctions.set(`TP_${length}`, {
-      name: `TP_${length}`,
-      code: code,
-    });
-
-    this.requireImport('starkware.cairo.common.alloc', 'alloc');
-    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
-
-    return `TP_${length}`;
   }
 }
