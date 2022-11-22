@@ -1,5 +1,4 @@
 export * from './abiBuiltins';
-export * from './abiExtractor';
 export * from './annotateImplicits';
 export * from './argBoundChecker';
 export * from './builtinHandler/export';
@@ -12,6 +11,9 @@ export * from './deleteHandler';
 export * from './dropUnusedSourceUnit';
 export * from './enumConverter';
 export * from './expressionSplitter';
+export * from './conditionalSplitter/export';
+export * from './shortCircuitToConditional';
+export * from './freeFunctionInliner';
 export * from './externalArgModifier/export';
 export * from './externalContractHandler/export';
 export * from './freeFunctionInliner';

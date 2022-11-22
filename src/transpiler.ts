@@ -1,11 +1,10 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { CompilationOptions, PrintOptions, TranspilationOptions } from '.';
+import { PrintOptions, TranspilationOptions } from '.';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
   ABIBuiltins,
-  ABIExtractor,
   AnnotateImplicits,
   ArgBoundChecker,
   BuiltinHandler,
@@ -16,7 +15,6 @@ import {
   ConstantHandler,
   DeleteHandler,
   DropUnusedSourceUnits,
-  dumpABI,
   EnumConverter,
   ExpressionSplitter,
   ExternalArgModifier,
@@ -47,7 +45,6 @@ import {
   ReturnInserter,
   ReturnVariableInitializer,
   ShortCircuitToConditional,
-  SourceUnitPathFixer,
   SourceUnitSplitter,
   StaticArrayIndexer,
   StorageAllocator,
@@ -70,29 +67,19 @@ import { TranspilationAbandonedError, TranspileFailedError } from './utils/error
 import { error, removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
 
-type CairoSource = [file: string, source: string, solABI: string];
+type CairoSource = [file: string, source: string];
 
-export function transpile(
-  ast: AST,
-  options: TranspilationOptions & PrintOptions & CompilationOptions,
-): CairoSource[] {
+export function transpile(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
     new PrettyFormatter(4, 0),
     ast.compilerVersion,
   );
-  return cairoAST.roots.map((sourceUnit) => [
-    sourceUnit.absolutePath,
-    writer.write(sourceUnit),
-    dumpABI(sourceUnit, cairoAST),
-  ]);
+  return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
-export function transform(
-  ast: AST,
-  options: TranspilationOptions & PrintOptions & CompilationOptions,
-): CairoSource[] {
+export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
@@ -102,14 +89,10 @@ export function transform(
   return cairoAST.roots.map((sourceUnit) => [
     sourceUnit.absolutePath,
     removeExcessNewlines(writer.write(sourceUnit), 2),
-    dumpABI(sourceUnit, cairoAST),
   ]);
 }
 
-function applyPasses(
-  ast: AST,
-  options: TranspilationOptions & PrintOptions & CompilationOptions,
-): AST {
+function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
@@ -117,7 +100,6 @@ function applyPasses(
     ['Wa', WarnSupportedFeatures],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
-    ['Ae', ABIExtractor],
     ['Idi', ImportDirectiveIdentifier],
     ['L', LiteralExpressionEvaluator],
     ['Na', NamedArgsRemover],
@@ -180,8 +162,6 @@ function applyPasses(
   printPassName('Input', options);
   printAST(ast, options);
 
-  // Fix absolutePath in source unit
-  ast = SourceUnitPathFixer.map_(ast, options.includePaths || []);
   // Reject code that contains identifiers starting with certain patterns
   RejectPrefix.map(ast);
 
