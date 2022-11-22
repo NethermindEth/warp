@@ -4,6 +4,7 @@ import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
 import { stringFlatten } from './utils';
 
 export const OUTPUT_DIR = 'warp_output';
+export type EventItem = { data: string[]; keys: string[]; order: string };
 
 export class AsyncTest {
   constructor(
@@ -61,6 +62,7 @@ export class Expect {
     returns: string[] | null,
     caller_address: string,
     error_message?: string,
+    events?: EventItem[],
   ][];
   constructor(
     public name: string,
@@ -70,6 +72,7 @@ export class Expect {
       returns: Value[] | null,
       caller_address: string,
       error_message?: string,
+      events?: { data: string[]; keys: string[]; order: string }[],
     ][],
   ) {
     this.steps = steps.map(([func, inputs, returns, caller_address, error_message]) => {

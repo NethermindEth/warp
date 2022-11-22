@@ -26,6 +26,7 @@ import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 
 const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 const BYTES_IN_FELT_PACKING = 31;
+const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
 
 const IMPLICITS =
   '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -102,7 +103,9 @@ export class EventFunction extends StringIndexedFuncGen {
       `   let data_len: felt = 0;`,
       `   let (keys: felt*) = alloc();`,
       `   let (data: felt*) = alloc();`,
-      `   assert keys[0] = ${topic}; // keccak of event signature`,
+      `   assert keys[0] = ${topic}; // keccak of event signature: ${node.canonicalSignature(
+        ABIEncoderVersion.V2,
+      )}`,
       ...insertions,
       `   emit_event(keys_len, keys, data_len, data);`,
       `   return ();`,
@@ -127,7 +130,7 @@ export class EventFunction extends StringIndexedFuncGen {
     return [
       `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
       `   let (encode_bytes_len: felt, encode_bytes: felt*) = wm_to_felt_array(mem_encode);`,
-      `   let (encode_packed_len: felt, encode_packed: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, encode_bytes_len, encode_bytes);`,
+      `   let (encode_packed_len: felt, encode_packed: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, ${BIG_ENDIAN}, encode_bytes_len, encode_bytes);`,
       `   let (${arrayName}_len: felt) = felt_array_concat(encode_packed_len, 0, encode_packed, ${arrayName}_len, ${arrayName});`,
     ].join('\n');
   }

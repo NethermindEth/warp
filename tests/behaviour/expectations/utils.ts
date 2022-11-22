@@ -1,4 +1,4 @@
-import { Dir, Value, File } from './types';
+import { Dir, Value, File, EventItem } from './types';
 
 export function flatten(test: Dir | File): File[] {
   if (test instanceof Dir) {
@@ -57,7 +57,7 @@ export function getByteXArray(...val: { byteSize: number; value: number | bigint
 }
 
 function numToByteX(val: bigint, byteSize: number): string[] {
-  const byteArray = [];
+  const byteArray: string[] = [];
   for (let i = 0; i < byteSize; i++) {
     const byte = val & BigInt(0xff);
     byteArray[i] = `${byte}`;
@@ -71,4 +71,9 @@ export function toCairoUint256(val: number | bigint): [string, string] {
   const low = val & ((1n << 128n) - 1n);
   const high = val >> 128n;
   return [low.toString(), high.toString()];
+}
+
+export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
+  //TODO: implement
+  return eventsLog;
 }

@@ -135,6 +135,13 @@ async def invoke():
                     "threw": False,
                     "return_data": [str(x) for x in execution_info.retdata],
                 },
+                "events" : [
+                    {
+                        "order" : event.order,
+                        "keys" : [str(x) for x in event.keys],
+                        "data" : [str(x) for x in event.data],
+                    } for event in execution_info.events
+                ],
             }
         )
     except StarkException as err:

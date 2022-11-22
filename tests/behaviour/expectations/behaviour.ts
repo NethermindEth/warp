@@ -2180,6 +2180,86 @@ export const expectations = flatten(
             new Expect('require should fail', [['shouldFail', [], null, '0', 'why is x not 2???']]),
           ]),
         ]),
+        new Dir('events', [
+          File.Simple('simple', [
+            new Expect('add', [
+              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+            new Expect('add', [
+              ['array', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+            new Expect('nestedArray', [
+              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+            new Expect('structComplex', [
+              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+          ]),
+          File.Simple('indexed', [
+            new Expect('add', [
+              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+            new Expect('add', [
+              ['array', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+            new Expect('nestedArray', [
+              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+            new Expect('structComplex', [
+              ['add', [], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+          ]),
+          File.Simple('misc', [
+            new Expect('allString', [
+              ['add', ['2', '65', '66'], [], '0', undefined, [{ data: [], keys: [], order: '0' }]],
+            ]),
+            new Expect('allStringMisc', [
+              [
+                'array',
+                ['2', '65', '66'],
+                [],
+                '0',
+                undefined,
+                [{ data: [], keys: [], order: '0' }],
+              ],
+            ]),
+            new Expect('allUint', [
+              [
+                'add',
+                ['1', '0', '2', '0'],
+                [],
+                '0',
+                undefined,
+                [{ data: [], keys: [], order: '0' }],
+              ],
+            ]),
+            new Expect('allIndexed', [
+              [
+                'add',
+                ['1', '0', '2', '0'],
+                [],
+                '0',
+                undefined,
+                [{ data: [], keys: [], order: '0' }],
+              ],
+            ]),
+            new Expect('allEventsAtOnce', [
+              [
+                'add',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  { data: [], keys: [], order: '0' },
+                  { data: [], keys: [], order: '1' },
+                  { data: [], keys: [], order: '2' },
+                  { data: [], keys: [], order: '3' },
+                ],
+              ],
+            ]),
+          ]),
+        ]),
         new Dir('expressions', [
           File.Simple('assign_split', [
             Expect.Simple('plusEqual', [], ['60', '0']),
