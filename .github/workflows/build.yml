@@ -32,7 +32,7 @@ jobs:
         run: |
           yarn
           pipx install black[colors]
-          pipx install cairo-lang=="$CAIRO_LANG_VERSION"
+          pip install cairo-lang=="$CAIRO_LANG_VERSION"
 
       - name: Build warplib
         run: yarn warplib
