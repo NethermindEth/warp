@@ -104,12 +104,13 @@ export class EventFunction extends StringIndexedFuncGen {
       `   // keys arrays`,
       `   let keys_wt_len: felt = 0;`,
       `   let (keys_wt: felt*) = alloc();`, // keys array without topic
-      // `   assert keys[0] = ${topic}; // keccak of event signature: ${node.canonicalSignature(
-      //   ABIEncoderVersion.V2,
-      // )}`,
       ...keysInsertions,
       `   let (keys_wt_len: felt, keys_wt: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, ${BIG_ENDIAN}, keys_wt_len, keys_wt);`,
-      this.generateAnonymizeCode(node.anonymous, topic),
+      this.generateAnonymizeCode(
+        node.anonymous,
+        topic,
+        node.canonicalSignature(ABIEncoderVersion.V2),
+      ),
       `   // data arrays`,
       `   let data_len: felt = 0;`,
       `   let (data: felt*) = alloc();`,
@@ -128,14 +129,14 @@ export class EventFunction extends StringIndexedFuncGen {
     return `_emit_${key}`;
   }
 
-  private generateAnonymizeCode(isAnonymous: boolean, topic: BigInt): string {
+  private generateAnonymizeCode(isAnonymous: boolean, topic: BigInt, eventSig: string): string {
     this.requireImport('warplib.keccak', 'felt_array_concat');
     if (isAnonymous) {
       return [`    let keys_len = keys_wt_len;`, `    let keys = keys_wt;`].join('\n');
     }
     return [
       `    let keys_len = 1;`,
-      `    let (keys: felt*) = alloc();`,
+      `    let (keys: felt*) = alloc();// keccak of event signature: ${eventSig}`,
       `    assert keys[0] = ${topic};`,
       `    let (keys_len: felt) = felt_array_concat(keys_wt_len, 0, keys_wt, keys_len, keys);`,
     ].join('\n');
