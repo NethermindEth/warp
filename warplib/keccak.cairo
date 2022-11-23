@@ -26,20 +26,32 @@ func warp_keccak{
     return (res,);
 }
 
-func pack_bytes_felt{range_check_ptr}(packing_bytes: felt, big_endian : felt,  input_len: felt, input: felt*) -> (
-    output_len: felt, output: felt*
-) {
+func pack_bytes_felt{range_check_ptr}(
+    packing_bytes: felt, big_endian: felt, input_len: felt, input: felt*
+) -> (output_len: felt, output: felt*) {
     alloc_locals;
     let (bytes_buffer: felt*) = alloc();
-    let (output_len: felt) = pack_bytes_felt_loop(packing_bytes, big_endian, 0, bytes_buffer, input_len, input);
+    let (output_len: felt) = pack_bytes_felt_loop(
+        packing_bytes, big_endian, 0, bytes_buffer, input_len, input
+    );
     return (output_len, bytes_buffer,);
 }
 
 func pack_bytes_felt_loop{range_check_ptr}(
-    packing_bytes: felt, big_endian : felt,  index: felt, bytes_buffer: felt*, input_len: felt, input: felt*
+    packing_bytes: felt,
+    big_endian: felt,
+    index: felt,
+    bytes_buffer: felt*,
+    input_len: felt,
+    input: felt*,
 ) -> (output_len: felt) {
     alloc_locals;
+
     let (chunk_size) = get_min(input_len, packing_bytes);
+
+    if (chunk_size == 0) {
+        return (index,);
+    }
 
     let (packed_words) = pack_bytes_in_felt(packing_bytes, big_endian, 0, chunk_size, input, 0);
     assert bytes_buffer[index] = packed_words;
@@ -50,13 +62,23 @@ func pack_bytes_felt_loop{range_check_ptr}(
         return (index + 1,);
     } else {
         return pack_bytes_felt_loop(
-            packing_bytes, big_endian, index + 1, bytes_buffer, input_len - packing_bytes, &input[packing_bytes]
+            packing_bytes,
+            big_endian,
+            index + 1,
+            bytes_buffer,
+            input_len - packing_bytes,
+            &input[packing_bytes],
         );
     }
 }
 
 func pack_bytes_in_felt{range_check_ptr}(
-    packing_bytes : felt, big_endian : felt, byte_index: felt, chunk_size: felt, input: felt*, byte_buffer: felt
+    packing_bytes: felt,
+    big_endian: felt,
+    byte_index: felt,
+    chunk_size: felt,
+    input: felt*,
+    byte_buffer: felt,
 ) -> (packed_byte: felt) {
     alloc_locals;
 
@@ -66,9 +88,9 @@ func pack_bytes_in_felt{range_check_ptr}(
 
     let byte = input[byte_index];
 
-    if (big_endian == 1){
-        let (shift_offset) = pow2(BITS_IN_BYTE * (packing_bytes-byte_index-1));
-    }else{
+    if (big_endian == 1) {
+        let (shift_offset) = pow2(BITS_IN_BYTE * (packing_bytes - byte_index - 1));
+    } else {
         let (shift_offset) = pow2(BITS_IN_BYTE * byte_index);
     }
 
@@ -76,7 +98,9 @@ func pack_bytes_in_felt{range_check_ptr}(
 
     let byte_buffer = byte_buffer + shifted_val;
 
-    return pack_bytes_in_felt(packing_bytes, big_endian, byte_index + 1, chunk_size, input, byte_buffer);
+    return pack_bytes_in_felt(
+        packing_bytes, big_endian, byte_index + 1, chunk_size, input, byte_buffer
+    );
 }
 
 func felt_array_concat{range_check_ptr}(

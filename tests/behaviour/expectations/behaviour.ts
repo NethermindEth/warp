@@ -2362,7 +2362,14 @@ export const expectations = flatten(
                 undefined,
                 [
                   {
-                    data: [],
+                    data: [
+                      '32',
+                      '2',
+                      `${(BigInt(0x41) << BigInt(248)) | (BigInt(0x42) << BigInt(240))}`,
+                      '32',
+                      '2',
+                      `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
+                    ],
                     keys: [warpEventCanonicalSignaturehash('allStringEvent', ['string', 'string'])],
                     order: 0,
                   },
@@ -2376,7 +2383,22 @@ export const expectations = flatten(
                 [],
                 '0',
                 undefined,
-                [{ data: [], keys: [], order: 0 }],
+                [
+                  {
+                    data: [
+                      '32',
+                      '2',
+                      `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
+                    ],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allStringMiscEvent', ['string', 'string']),
+                      '32',
+                      '2',
+                      `${(BigInt(0x41) << BigInt(248)) | (BigInt(0x42) << BigInt(240))}`,
+                    ],
+                    order: 0,
+                  },
+                ],
               ],
             ]),
             new Expect('allUint', [
@@ -2386,7 +2408,16 @@ export const expectations = flatten(
                 [],
                 '0',
                 undefined,
-                [{ data: [], keys: [], order: 0 }],
+                [
+                  {
+                    data: ['1'],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allUintMiscEvent', ['uint256', 'uint256']),
+                      '2',
+                    ],
+                    order: 0,
+                  },
+                ],
               ],
             ]),
             new Expect('allIndexed', [
@@ -2396,7 +2427,17 @@ export const expectations = flatten(
                 [],
                 '0',
                 undefined,
-                [{ data: [], keys: [], order: 0 }],
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allIndexedEvent', ['uint256', 'uint256']),
+                      '1',
+                      '2',
+                    ],
+                    order: 0,
+                  },
+                ],
               ],
             ]),
             new Expect('allEventsAtOnce', [
@@ -2407,10 +2448,51 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  { data: [], keys: [], order: 0 },
-                  { data: [], keys: [], order: 1 },
-                  { data: [], keys: [], order: 2 },
-                  { data: [], keys: [], order: 3 },
+                  {
+                    data: [
+                      '32',
+                      '1',
+                      `${BigInt(0x61) << BigInt(248)}`,
+                      '32',
+                      '1',
+                      `${BigInt(0x62) << BigInt(248)}`,
+                    ],
+                    keys: [warpEventCanonicalSignaturehash('allStringEvent', ['string', 'string'])],
+                    order: 0,
+                  },
+                  {
+                    data: ['32', '1', `${BigInt(0x62) << BigInt(248)}`],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allStringMiscEvent', ['string', 'string']),
+                      '32',
+                      '1',
+                      `${BigInt(0x61) << BigInt(248)}`,
+                    ],
+                    order: 1,
+                  },
+                  {
+                    data: ['1'],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allUintMiscEvent', ['uint256', 'uint256']),
+                      '2',
+                    ],
+                    order: 2,
+                  },
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allIndexedEvent', ['uint256', 'uint256']),
+                      '1',
+                      '2',
+                    ],
+                    order: 3,
+                  },
+                  {
+                    data: ['1'],
+                    keys: ['2'],
+                    order: 4,
+                    anonymous: true,
+                  },
                 ],
               ],
             ]),
