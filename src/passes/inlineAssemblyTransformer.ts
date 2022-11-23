@@ -22,11 +22,39 @@ import {
   Literal,
   Statement,
   ASTContext,
+  FunctionCall,
+  FunctionCallKind,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { getErrorMessage, WillNotSupportError } from '../utils/errors';
 
-const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
+/* 
+TODO: Research the difference between div, sdiv, mod, smod, shr, sar
+One scenario when the result is different:
+int8 r;
+int8 a = -1;
+int8 b = 2;
+assembly {
+  r := div(a, b)
+}
+
+div returns -1 while sdiv returns 0 
+*/
+const binaryOps: { [name: string]: string } = {
+  add: '+',
+  mul: '*',
+  div: '/',
+  sub: '-',
+  shr: '>>',
+  shl: '<<',
+  mod: '%',
+  exp: '**',
+};
+// Consider grouping functions by number of arguments. They probbably all use uint256 with the only difference being number of args.
+const solidityEquivalents: { [name: string]: string } = {
+  addmod: 'function (uint256,uint256,uint256) pure returns (uint256)',
+  mulmod: 'function (uint256,uint256,uint256) pure returns (uint256)',
+};
 
 function generateTransformerName(nodeType: string) {
   return `transform${nodeType}`;
@@ -49,7 +77,10 @@ class YulVerifier {
   }
 
   checkYulFunctionCall(node: YulNode) {
-    if (binaryOps[node.functionName.name] === undefined)
+    if (
+      binaryOps[node.functionName.name] === undefined &&
+      solidityEquivalents[node.functionName.name] === undefined
+    )
       this.errors.push(`${node.functionName.name} is not supported`);
     node.arguments.forEach((arg: YulNode) => this.verifyNode(arg));
   }
@@ -93,9 +124,41 @@ class YulTransformer {
     return createIdentifier(variableDeclaration, this.ast);
   }
 
-  transformYulFunctionCall(node: YulNode, typeString: string): BinaryOperation {
-    const leftExpr = this.toSolidityExpr(node.arguments[0], typeString);
-    const rightExpr = this.toSolidityExpr(node.arguments[1], typeString);
+  getBinaryOpsArgs(
+    functionName: string,
+    functionArguments: [Expression, Expression],
+  ): [Expression, Expression] {
+    if (functionName === 'shl' || functionName === 'shr') {
+      const [right, left] = functionArguments;
+      return [left, right];
+    }
+    return functionArguments;
+  }
+
+  transformYulFunctionCall(node: YulNode, typeString: string): BinaryOperation | FunctionCall {
+    const args = node.arguments.map((argument: YulNode) =>
+      this.toSolidityExpr(argument, typeString),
+    );
+
+    if (solidityEquivalents[node.functionName.name] !== undefined) {
+      const func = new Identifier(
+        this.ast.reserveId(),
+        node.src,
+        solidityEquivalents[node.functionName.name],
+        node.functionName.name,
+        -1,
+      );
+      return new FunctionCall(
+        this.ast.reserveId(),
+        node.src,
+        typeString,
+        FunctionCallKind.FunctionCall,
+        func,
+        args,
+      );
+    }
+    const [leftExpr, rightExpr] = this.getBinaryOpsArgs(node.functionName.name, args);
+
     return new BinaryOperation(
       this.ast.reserveId(),
       node.src,

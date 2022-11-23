@@ -1031,7 +1031,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int32_v2.sol', // irrelevant: tests abicoder
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_garbled_signed_v1.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/bitwise_shifting_constantinople_combined.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/bitwise_shifting_constants_constantinople.sol', // WILL NOT SUPPORT yul
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/bitwise_shifting_constants_constantinople.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shifts.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_bytes_cleanup.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_cleanup_garbled.sol', // WILL NOT SUPPORT yul
@@ -1431,7 +1431,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/byte_optimization_bug.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/code_access_padding.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/code_access_runtime.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/code_access_create.sol', // WILL NOT SUPPORT yul
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/code_access_create.sol', // Access to runtimeCode is not supported
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/codehash_assembly.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/iszero_bnot_correct.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/code_length.sol', // WILL NOT SUPPORT yul
