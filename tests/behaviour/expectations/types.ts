@@ -4,7 +4,7 @@ import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
 import { stringFlatten } from './utils';
 
 export const OUTPUT_DIR = 'warp_output';
-export type EventItem = { data: string[]; keys: string[]; order: number; anonymous?: boolean };
+export type EventItem = { data: string[]; keys: string[]; order: number };
 
 export class AsyncTest {
   constructor(

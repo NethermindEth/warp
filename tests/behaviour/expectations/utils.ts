@@ -75,7 +75,7 @@ export function toCairoUint256(val: number | bigint): [string, string] {
   return [low.toString(), high.toString()];
 }
 
-export function decodeEventLog(eventsLog: EventItem[], eventsExpected: EventItem[]): EventItem[] {
+export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
   // flat number to hex string with rjust 62
   const flatNumberToHexString = (num: number | bigint | string): string => {
     return `${BigInt(num).toString(16).padStart(62, '0')}`;
@@ -87,27 +87,32 @@ export function decodeEventLog(eventsLog: EventItem[], eventsExpected: EventItem
       return `${pv}${flatNumberToHexString(cv)}`;
     }, '');
 
+    // pad '0' to the end of the string to make it a multiple of 64
+    const padded_hex_input = raw_hex_input.padEnd(
+      raw_hex_input.length + (64 - (raw_hex_input.length % 64)),
+      '0',
+    );
+
     // get number from every 64 hex digits chunk
     const numbers: bigint[] = [];
-    for (let i = 0; i + 64 < raw_hex_input.length; i += 64) {
-      numbers.push(BigInt(`0x${raw_hex_input.slice(i, i + 64)}`));
+    for (let i = 0; i < padded_hex_input.length; i += 64) {
+      numbers.push(BigInt(`0x${padded_hex_input.slice(i, i + 64)}`));
+    }
+
+    //remove trailing zero
+    if (padded_hex_input.length != raw_hex_input.length && numbers[numbers.length - 1] === 0n) {
+      numbers.pop();
     }
 
     return numbers;
   };
 
   const events: EventItem[] = eventsLog.map((event, index) => {
-    const res: EventItem = {
+    return {
       order: event.order,
-      keys: eventsExpected[index].anonymous
-        ? byte32numbers(event.keys).map((num) => num.toString())
-        : [event.keys[0], ...byte32numbers(event.keys.slice(1)).map((num) => num.toString())],
+      keys: event.keys,
       data: byte32numbers(event.data).map((num) => num.toString()),
     };
-    if (eventsExpected[index].anonymous) {
-      res.anonymous = eventsExpected[index].anonymous;
-    }
-    return res;
   });
   return events;
 }

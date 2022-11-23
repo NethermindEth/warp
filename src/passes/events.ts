@@ -21,7 +21,7 @@ export class Events extends ASTMapper {
   visitEmitStatement(node: EmitStatement, ast: AST): void {
     const replacement: FunctionCall = ast
       .getUtilFuncGen(node)
-      .event.gen(node, node.vEventCall.vReferencedDeclaration as EventDefinition);
+      .events.event.gen(node, node.vEventCall.vReferencedDeclaration as EventDefinition);
     ast.replaceNode(node, createExpressionStatement(ast, replacement));
     this.commonVisit(node, ast);
   }

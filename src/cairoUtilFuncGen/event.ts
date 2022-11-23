@@ -15,6 +15,7 @@ import {
   createCairoFunctionStub,
   createCallToFunction,
   isValueType,
+  IndexEncode,
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
@@ -29,18 +30,21 @@ export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
 
 const IMPLICITS =
-  '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+  '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*, keccak_ptr: felt*}';
 
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
  * Then replace the emit statement with a call to the generated function.
  */
 export class EventFunction extends StringIndexedFuncGen {
+  private funcName = '_emit_';
   private abiEncode: AbiEncode;
+  private indexEncode: IndexEncode;
 
-  constructor(abiEncode: AbiEncode, ast: AST, sourceUint: SourceUnit) {
+  constructor(abiEncode: AbiEncode, indexEcnode: IndexEncode, ast: AST, sourceUint: SourceUnit) {
     super(ast, sourceUint);
     this.abiEncode = abiEncode;
+    this.indexEncode = indexEcnode;
   }
 
   public gen(node: EmitStatement, refEventDef: EventDefinition): FunctionCall {
@@ -58,7 +62,7 @@ export class EventFunction extends StringIndexedFuncGen {
           : [`param${index}`, typeNameFromTypeNode(argT, this.ast), DataLocation.Memory],
       ),
       [],
-      ['bitwise_ptr', 'range_check_ptr', 'warp_memory'],
+      ['bitwise_ptr', 'range_check_ptr', 'warp_memory', 'keccak_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -80,9 +84,16 @@ export class EventFunction extends StringIndexedFuncGen {
         const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
         params.push({ name: `param${index}`, type: cairoType.toString() });
         if (param.indexed) {
-          keysInsertions.push(this.generateInsertionCode(paramType, 'keys_wt', `param${index}`));
+          if (isValueType(paramType))
+            keysInsertions.push(
+              this.generateSimpleEncodingCode(paramType, 'keys_wt', `param${index}`),
+            );
+          else
+            keysInsertions.push(
+              this.generateComplexEncodingCode(paramType, 'keys_wt', `param${index}`),
+            );
         } else {
-          dataInsertions.push(this.generateInsertionCode(paramType, 'data', `param${index}`));
+          dataInsertions.push(this.generateSimpleEncodingCode(paramType, 'data', `param${index}`));
         }
         return [params, keysInsertions, dataInsertions];
       },
@@ -99,13 +110,12 @@ export class EventFunction extends StringIndexedFuncGen {
       ) & BigInt(MASK_250);
 
     const code = [
-      `func _emit_${key}${IMPLICITS}(${cairoParams}){`,
+      `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
       `   alloc_locals;`,
       `   // keys arrays`,
       `   let keys_wt_len: felt = 0;`,
       `   let (keys_wt: felt*) = alloc();`, // keys array without topic
       ...keysInsertions,
-      `   let (keys_wt_len: felt, keys_wt: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, ${BIG_ENDIAN}, keys_wt_len, keys_wt);`,
       this.generateAnonymizeCode(
         node.anonymous,
         topic,
@@ -115,6 +125,7 @@ export class EventFunction extends StringIndexedFuncGen {
       `   let data_len: felt = 0;`,
       `   let (data: felt*) = alloc();`,
       ...dataInsertions,
+      // pack 31 bytes felts into a single 248 bits felt
       `   let (data_len: felt, data: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, ${BIG_ENDIAN}, data_len, data);`,
       `   emit_event(keys_len, keys, data_len, data);`,
       `   return ();`,
@@ -125,8 +136,8 @@ export class EventFunction extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
 
-    this.generatedFunctions.set(key, { name: `_emit_${key}`, code: code });
-    return `_emit_${key}`;
+    this.generatedFunctions.set(key, { name: `${this.funcName}${key}`, code: code });
+    return `${this.funcName}${key}`;
   }
 
   private generateAnonymizeCode(isAnonymous: boolean, topic: BigInt, eventSig: string): string {
@@ -142,7 +153,7 @@ export class EventFunction extends StringIndexedFuncGen {
     ].join('\n');
   }
 
-  private generateInsertionCode(type: TypeNode, arrayName: string, argName: string): string {
+  private generateSimpleEncodingCode(type: TypeNode, arrayName: string, argName: string): string {
     const abiFunc = this.abiEncode.getOrCreate([type]);
 
     this.requireImport('warplib.memory', 'wm_to_felt_array');
@@ -153,6 +164,22 @@ export class EventFunction extends StringIndexedFuncGen {
       `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
       `   let (encode_bytes_len: felt, encode_bytes: felt*) = wm_to_felt_array(mem_encode);`,
       `   let (${arrayName}_len: felt) = felt_array_concat(encode_bytes_len, 0, encode_bytes, ${arrayName}_len, ${arrayName});`,
+    ].join('\n');
+  }
+
+  private generateComplexEncodingCode(type: TypeNode, arrayName: string, argName: string): string {
+    const abiFunc = this.indexEncode.getOrCreate([type]);
+
+    this.requireImport('warplib.memory', 'wm_to_felt_array');
+    this.requireImport('warplib.keccak', 'pack_bytes_felt');
+    this.requireImport('warplib.keccak', 'felt_array_concat');
+    this.requireImport('warplib.keccak', 'warp_keccak_felt');
+    this.requireImport('warplib.keccak', 'append_felt_to_felt_array');
+
+    return [
+      `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
+      `   let (keccak_hash: felt) = warp_keccak_felt(mem_encode);`,
+      `   let (${arrayName}_len: felt) = append_felt_to_felt_array(keccak_hash, ${arrayName}_len, ${arrayName});`,
     ].join('\n');
   }
 }

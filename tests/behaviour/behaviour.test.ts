@@ -243,7 +243,7 @@ async function behaviourTest(
         ).to.deep.equal(replaced_expectedResult);
         if (events !== undefined) {
           expect(
-            decodeEventLog(response.events as EventItem[], events),
+            decodeEventLog(response.events as EventItem[]),
             `${name} - Events should match events expectation`,
           ).to.deep.equal(events);
         }
