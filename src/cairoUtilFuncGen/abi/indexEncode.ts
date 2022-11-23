@@ -12,7 +12,6 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import {
-  getByteSize,
   getElementType,
   getPackedByteSize,
   isAddressType,
@@ -95,7 +94,7 @@ export class IndexEncode extends AbiBase {
    * @param type type to encode
    * @returns the name of the generated function
    */
-  public getOrCreateEncoding(type: TypeNode, padding: boolean = true): string {
+  public getOrCreateEncoding(type: TypeNode, padding = true): string {
     const unexpectedType = () => {
       throw new TranspileFailedError(`Encoding ${printTypeNode(type)} is not supported yet`);
     };
@@ -133,7 +132,7 @@ export class IndexEncode extends AbiBase {
     type: TypeNode,
     newIndexVar: string,
     varToEncode: string,
-    padding: boolean = true,
+    padding = true,
   ): string {
     const funcName = this.getOrCreateEncoding(type, padding);
     if (isDynamicallySized(type, this.ast.compilerVersion) || isStruct(type)) {
@@ -339,18 +338,6 @@ export class IndexEncode extends AbiBase {
     if (existing !== undefined) return existing.name;
 
     const inlineEncoding = this.createStructInlineEncoding(type, def);
-    // Get the size of all it's members
-    const typeByteSize = def.vMembers.reduce(
-      (sum, varDecl) =>
-        sum +
-        BigInt(
-          getByteSize(
-            generalizeType(safeGetNodeType(varDecl, this.ast.compilerVersion))[0],
-            this.ast.compilerVersion,
-          ),
-        ),
-      0n,
-    );
 
     const name = `${this.functionName}_head_spl_${def.name}`;
     const code = [
