@@ -2294,8 +2294,22 @@ export const expectations = flatten(
                       // 2,
                       // 3,
                       // 5,
-                      // `${BigInt(`0x${createKeccakHash('keccak256').update(((BigInt(2) << BigInt(32*8*2)) | (BigInt(3) << BigInt(32*8*1)) | BigInt(5)).toString(16), 'hex').digest('hex')}`) & MASK_250}`,
-                      '997476638346146269032800075268287779724722622955667740667693005374094712788',
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              (
+                                (BigInt(2) << BigInt(32 * 8 * 2)) |
+                                (BigInt(3) << BigInt(32 * 8 * 1)) |
+                                BigInt(5)
+                              )
+                                .toString(16)
+                                .padStart(32 * 3 * 2, '0'),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
                     ],
                     order: 0,
                   },
@@ -2319,8 +2333,24 @@ export const expectations = flatten(
                       // 5,
                       // 7,
                       // 11,
-                      // `${BigInt(`0x${createKeccakHash('keccak256').update(((BigInt(2) << BigInt(32*8*4)) | (BigInt(3) << BigInt(32*8*3)) | (BigInt(5) << BigInt(32*8*2)) | (BigInt(7) << BigInt(32*8*1)) | BigInt(11)).toString(16), 'hex').digest('hex')}`) & MASK_250}`,
-                      '1772308663975579809016378550014259137939735330298565849379556905625984606359',
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              (
+                                (BigInt(2) << BigInt(32 * 8 * 4)) |
+                                (BigInt(3) << BigInt(32 * 8 * 3)) |
+                                (BigInt(5) << BigInt(32 * 8 * 2)) |
+                                (BigInt(7) << BigInt(32 * 8 * 1)) |
+                                BigInt(11)
+                              )
+                                .toString(16)
+                                .padStart(32 * 5 * 2, '0'),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
                     ],
                     order: 0,
                   },
@@ -2345,8 +2375,25 @@ export const expectations = flatten(
                       // '7',
                       // '11',
                       // '13',
-                      // `${BigInt(`0x${createKeccakHash('keccak256').update(((BigInt(2) << BigInt(32*8*5)) | (BigInt(3) << BigInt(32*8*4)) | (BigInt(5) << BigInt(32*8*3)) | (BigInt(7) << BigInt(32*8*2)) | (BigInt(11) << BigInt(32*8*1)) | BigInt(13)).toString(16), 'hex').digest('hex')}`) & MASK_250}`,
-                      '1369819124440170737670793294765260966603090406915187357653952749695068102376',
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              (
+                                (BigInt(2) << BigInt(32 * 8 * 5)) |
+                                (BigInt(3) << BigInt(32 * 8 * 4)) |
+                                (BigInt(5) << BigInt(32 * 8 * 3)) |
+                                (BigInt(7) << BigInt(32 * 8 * 2)) |
+                                (BigInt(11) << BigInt(32 * 8 * 1)) |
+                                BigInt(13)
+                              )
+                                .toString(16)
+                                .padStart(32 * 6 * 2, '0'),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
                     ],
                     order: 0,
                   },
