@@ -107,10 +107,10 @@ export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
     return numbers;
   };
 
-  const events: EventItem[] = eventsLog.map((event, index) => {
+  const events: EventItem[] = eventsLog.map((event) => {
     return {
       order: event.order,
-      keys: event.keys,
+      keys: byte32numbers(event.keys).map((num) => num.toString()),
       data: byte32numbers(event.data).map((num) => num.toString()),
     };
   });

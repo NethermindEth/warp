@@ -2269,11 +2269,7 @@ export const expectations = flatten(
                 [
                   {
                     data: [],
-                    keys: [
-                      warpEventCanonicalSignaturehash('uintEvent', ['uint256']),
-                      ...mapRange(31, (_) => '0'),
-                      '69',
-                    ],
+                    keys: [warpEventCanonicalSignaturehash('uintEvent', ['uint256']), '69'],
                     order: 0,
                   },
                 ],
@@ -2469,7 +2465,6 @@ export const expectations = flatten(
                     data: ['1'],
                     keys: [
                       warpEventCanonicalSignaturehash('allUintMiscEvent', ['uint256', 'uint256']),
-                      ...mapRange(31, (_) => '0'),
                       '2',
                     ],
                     order: 0,
@@ -2489,9 +2484,7 @@ export const expectations = flatten(
                     data: [],
                     keys: [
                       warpEventCanonicalSignaturehash('allIndexedEvent', ['uint256', 'uint256']),
-                      ...mapRange(31, (_) => '0'),
                       '1',
-                      ...mapRange(31, (_) => '0'),
                       '2',
                     ],
                     order: 0,
@@ -2537,7 +2530,6 @@ export const expectations = flatten(
                     data: ['1'],
                     keys: [
                       warpEventCanonicalSignaturehash('allUintMiscEvent', ['uint256', 'uint256']),
-                      ...mapRange(31, (_) => '0'),
                       '2',
                     ],
                     order: 2,
@@ -2546,16 +2538,14 @@ export const expectations = flatten(
                     data: [],
                     keys: [
                       warpEventCanonicalSignaturehash('allIndexedEvent', ['uint256', 'uint256']),
-                      ...mapRange(31, (_) => '0'),
                       '1',
-                      ...mapRange(31, (_) => '0'),
                       '2',
                     ],
                     order: 3,
                   },
                   {
                     data: ['1'],
-                    keys: [...mapRange(31, (_) => '0'), '2'],
+                    keys: ['2'],
                     order: 4,
                   },
                 ],
