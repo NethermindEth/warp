@@ -82,19 +82,30 @@ export class EventFunction extends StringIndexedFuncGen {
       ([params, keysInsertions, dataInsertions], param, index) => {
         const paramType = generalizeType(safeGetNodeType(param, this.ast.compilerVersion))[0];
         const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
+
         params.push({ name: `param${index}`, type: cairoType.toString() });
+
         if (param.indexed) {
-          if (isValueType(paramType))
+          // An indexed parameter should go to the keys array
+          if (isValueType(paramType)) {
+            // If the parameter is a value type, we can just add it to the keys array
+            // as it is, as we do regular abi encoding
             keysInsertions.push(
               this.generateSimpleEncodingCode(paramType, 'keys', `param${index}`),
             );
-          else
+          } else {
+            // If the parameter is a reference type, we hash the with special encoding
+            // function: more at:
+            //   https://docs.soliditylang.org/en/v0.8.14/abi-spec.html#encoding-of-indexed-event-parameters
             keysInsertions.push(
               this.generateComplexEncodingCode(paramType, 'keys', `param${index}`),
             );
+          }
         } else {
+          // A non-indexed parameter should go to the data array
           dataInsertions.push(this.generateSimpleEncodingCode(paramType, 'data', `param${index}`));
         }
+
         return [params, keysInsertions, dataInsertions];
       },
       [new Array<{ name: string; type: string }>(), new Array<string>(), new Array<string>()],
