@@ -14,7 +14,6 @@
   "ignorePatterns": ["build", "src/utils/functionSignatureParser.ts"],
   "rules": {
     "no-unused-vars": "off",
-    "eqeqeq": ["error", "always"],
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }]
   }
