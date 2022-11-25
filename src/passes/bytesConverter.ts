@@ -6,7 +6,6 @@ import {
   generalizeType,
   IntType,
   PointerType,
-  typeNameToTypeNode,
   TupleType,
   VariableDeclaration,
   FunctionType,
@@ -32,6 +31,7 @@ import {
   createArrayTypeName,
 } from '../utils/nodeTemplates';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { infer } from '../utils/inference';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
     This pass does not handle dynamically-sized bytes arrays (i.e. bytes).
@@ -59,7 +59,7 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
-    const typeNode = typeNameToTypeNode(node);
+    const typeNode = infer.typeNameToTypeNode(node);
     if (typeNode instanceof StringType || typeNode instanceof BytesType) {
       ast.replaceNode(node, createArrayTypeName(createUint8TypeName(ast), ast));
       return;
@@ -151,6 +151,7 @@ function replaceBytesType(type: TypeNode): TypeNode {
       type.returns.map(replaceBytesType),
       type.visibility,
       type.mutability,
+      type.implicitFirstArg,
       type.src,
     );
   } else if (type instanceof MappingType) {

@@ -77,7 +77,7 @@
     "keccak": "^3.0.2",
     "peggy": "^1.2.0",
     "prompts": "^2.4.2",
-    "solc-typed-ast": "^9.1.2",
+    "solc-typed-ast": "^11.0.2",
     "ts-pegjs": "^1.2.2",
     "web3": "^1.7.3"
   }

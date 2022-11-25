@@ -10,7 +10,6 @@ import {
   PointerType,
   TupleType,
   TypeName,
-  typeNameToTypeNode,
   TypeNameType,
   TypeNode,
   UserDefinedType,
@@ -23,6 +22,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { infer } from '../utils/inference';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
   visitUserDefinedValueTypeDefinition(node: UserDefinedValueTypeDefinition, _ast: AST): void {
@@ -115,6 +115,7 @@ function replaceUserDefinedType(type: TypeNode): TypeNode {
       type.returns.map(replaceUserDefinedType),
       type.visibility,
       type.mutability,
+      type.implicitFirstArg,
       type.src,
     );
   } else if (type instanceof MappingType) {
@@ -131,7 +132,7 @@ function replaceUserDefinedType(type: TypeNode): TypeNode {
     return new TypeNameType(replaceUserDefinedType(type.type), type.src);
   } else if (type instanceof UserDefinedType) {
     if (type.definition instanceof UserDefinedValueTypeDefinition) {
-      return typeNameToTypeNode(type.definition.underlyingType);
+      return infer.typeNameToTypeNode(type.definition.underlyingType);
     } else return type;
   } else {
     return type;

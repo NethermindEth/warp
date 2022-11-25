@@ -47,6 +47,7 @@ export class FunctionTypeStringMatcher extends ASTMapper {
       outputTypes,
       funcType.visibility,
       funcType.mutability,
+      funcType.implicitFirstArg,
       funcType.src,
     );
 

@@ -18,6 +18,7 @@ import { WillNotSupportError } from '../../utils/errors';
 import { MANGLED_WARP } from '../../utils/nameModifiers';
 import { isNameless } from '../../utils/utils';
 import { safeCanonicalHash } from '../../utils/nodeTypeProcessing';
+import { infer } from '../../utils/inference';
 // Terms grabbed from here
 // https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/lang/compiler/cairo.ebnf
 export const reservedTerms = new Set<string>([
@@ -149,7 +150,7 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleEventDefinition(node: EventDefinition): void {
-    node.name = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
+    node.name = `${node.name}_${infer.signatureHash(node, ABIEncoderVersion.V2)}`;
   }
 
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {

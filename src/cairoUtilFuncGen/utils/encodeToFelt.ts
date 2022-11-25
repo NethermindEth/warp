@@ -10,7 +10,6 @@ import {
   StringType,
   StructDefinition,
   TypeName,
-  typeNameToTypeNode,
   TypeNode,
   UserDefinedType,
 } from 'solc-typed-ast';
@@ -160,9 +159,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       }
     });
 
-    const resultStruct = this.externalArrayGen.getOrCreate(
-      typeNameToTypeNode(createBytesTypeName(this.ast)),
-    );
+    const resultStruct = this.externalArrayGen.getOrCreate(new BytesType());
 
     const cairoParams = parameters.join(',');
     const funcName = `encode_as_felt${this.generatedFunctions.size}`;

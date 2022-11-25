@@ -25,12 +25,10 @@ import {
   StructDefinition,
   TupleType,
   TypeName,
-  typeNameToTypeNode,
   TypeNameType,
   TypeNode,
   UserDefinedType,
   VariableDeclaration,
-  variableDeclarationToTypeNode,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import createKeccakHash from 'keccak';
@@ -39,6 +37,7 @@ import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
 import { error } from './formatting';
 import { getContainingSourceUnit } from './utils';
+import { infer } from './inference';
 
 /*
 Normal function calls and struct constructors require different methods for
@@ -73,7 +72,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
       );
       const structDef = functionType.type.to.definition;
       assert(structDef instanceof StructDefinition);
-      return structDef.vMembers.map(variableDeclarationToTypeNode);
+      return structDef.vMembers.map(infer.variableDeclarationToTypeNode.bind(infer));
     }
 
     case FunctionCallKind.TypeConversion:
@@ -86,7 +85,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
 }
 
 export function typeNameToSpecializedTypeNode(typeName: TypeName, loc: DataLocation): TypeNode {
-  return specializeType(typeNameToTypeNode(typeName), loc);
+  return specializeType(infer.typeNameToTypeNode(typeName), loc);
 }
 
 export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode {
@@ -314,7 +313,7 @@ export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
       .slice(0, 4);
     return hash;
   } else {
-    return f.canonicalSignatureHash(ABIEncoderVersion.V2);
+    return infer.signatureHash(f, ABIEncoderVersion.V2);
   }
 }
 
