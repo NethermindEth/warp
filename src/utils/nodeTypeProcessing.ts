@@ -15,8 +15,7 @@ import {
   FunctionDefinition,
   FunctionType,
   generalizeType,
-  getNodeType,
-  getNodeTypeInCtx,
+  InferType,
   IntType,
   MappingType,
   PackedArrayType,
@@ -38,6 +37,24 @@ import { TranspileFailedError } from './errors';
 import { error } from './formatting';
 import { getContainingSourceUnit } from './utils';
 import { infer } from './inference';
+import { parse } from 'solc-typed-ast/dist/compile/inference/file_level_definitions_parser';
+
+export function getNodeTypeInCtx(
+  arg: Expression | VariableDeclaration | string,
+  inference: InferType,
+  ctx: ASTNode,
+): TypeNode {
+  const typeString = typeof arg === 'string' ? arg : arg.typeString;
+
+  return parse(typeString, { ctx, inference }) as TypeNode;
+}
+
+export function getNodeType(
+  node: Expression | VariableDeclaration,
+  inference: InferType,
+): TypeNode {
+  return parse(node.typeString, { ctx: node, inference }) as TypeNode;
+}
 
 /*
 Normal function calls and struct constructors require different methods for
@@ -288,7 +305,7 @@ export function isStorageSpecificType(
 
 export function safeGetNodeType(node: Expression | VariableDeclaration, version: string): TypeNode {
   getContainingSourceUnit(node);
-  return getNodeType(node, version);
+  return getNodeType(node, infer);
 }
 
 export function safeGetNodeTypeInCtx(
@@ -297,7 +314,7 @@ export function safeGetNodeTypeInCtx(
   ctx: ASTNode,
 ): TypeNode {
   getContainingSourceUnit(ctx);
-  return getNodeTypeInCtx(arg, version, ctx);
+  return getNodeTypeInCtx(arg, infer, ctx);
 }
 
 export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
@@ -360,7 +377,7 @@ export function getPackedByteSize(type: TypeNode, version: string): number | big
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
     assert(version !== undefined, 'Struct byte size calculation requires compiler version');
     return type.definition.vMembers
-      .map((varDecl) => getNodeType(varDecl, version))
+      .map((varDecl) => getNodeType(varDecl, infer))
       .reduce(sumMemberSize, 0n);
   }
 

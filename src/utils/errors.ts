@@ -13,6 +13,8 @@ export class CLIError extends Error {
   }
 }
 
+export class InsaneASTError extends Error {}
+
 export class TranspilationAbandonedError extends Error {
   constructor(message: string, node?: ASTNode, highlight = true) {
     message = highlight ? `${error(message)}${`\n\n${getSourceCode(node)}\n`}` : message;

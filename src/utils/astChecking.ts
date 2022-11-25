@@ -34,7 +34,6 @@ import {
   IndexRangeAccess,
   InheritanceSpecifier,
   InlineAssembly,
-  InsaneASTError,
   Literal,
   Mapping,
   MemberAccess,
@@ -68,6 +67,7 @@ import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
+import { InsaneASTError } from './errors';
 import { safeGetNodeType } from './nodeTypeProcessing';
 import { isNameless } from './utils';
 
