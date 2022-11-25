@@ -1,4 +1,6 @@
-## Interface Call Forwarder
+---
+title: Interface Call Forwarder
+---
 
 This is a feature for the Warp transpiler to enable interaction between non-warped cairo contracts with a warped cairo contract _(cairo file generated after transpilation of a solidity contract)_.
 
@@ -29,7 +31,7 @@ The cairo contract `a.cairo` has been deployed at address `addr`. And, we want t
 
 ### Step 1.
 
-Run command with appropriate cairo file name and it's address at which it has been deployed
+Run the following command with appropriate cairo file name and it's address at which it has been deployed
 
 ```sh
 bin/warp gen_interface a.cairo --contract-address `${addr}` --class_hash `${cairo_contract_class_hash}`
@@ -55,6 +57,8 @@ namespace Forwarder {
     ) -> (res:felt){
     }
 }
+
+....(omitted code in between)....
 
 @view
 func add_771602f7 {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
@@ -132,13 +136,7 @@ from warplib.maths.external_input_check_ints import warp_external_input_check_in
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
-func WS0_READ_felt{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-    loc: felt
-) -> (val: felt) {
-    alloc_locals;
-    let (read0) = WARP_STORAGE.read(loc);
-    return (read0,);
-}
+....(omitted code in between)....
 
 // Contract Def WARP
 
@@ -171,16 +169,7 @@ func useAdd_99bd125f{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     return (__warp_pse_0,);
 }
 
-@view
-func itr_2dd658c7{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}() -> (
-    __warp_usrid_04_: felt
-) {
-    alloc_locals;
-
-    let (__warp_se_1) = WS0_READ_felt(WARP.__warp_usrid_00_itr);
-
-    return (__warp_se_1,);
-}
+....(omitted code in between)....
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}() {
