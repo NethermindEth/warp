@@ -39,7 +39,7 @@ import { getContainingSourceUnit } from './utils';
 import { infer } from './inference';
 import { parse } from 'solc-typed-ast/dist/compile/inference/file_level_definitions_parser';
 
-export function getNodeTypeInCtx(
+function getNodeTypeInCtx(
   arg: Expression | VariableDeclaration | string,
   inference: InferType,
   ctx: ASTNode,
@@ -49,10 +49,7 @@ export function getNodeTypeInCtx(
   return parse(typeString, { ctx, inference }) as TypeNode;
 }
 
-export function getNodeType(
-  node: Expression | VariableDeclaration,
-  inference: InferType,
-): TypeNode {
+function getNodeType(node: Expression | VariableDeclaration, inference: InferType): TypeNode {
   return parse(node.typeString, { ctx: node, inference }) as TypeNode;
 }
 
