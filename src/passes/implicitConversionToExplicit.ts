@@ -23,7 +23,6 @@ import {
   IntType,
   Literal,
   MappingType,
-  ModuleType,
   PointerType,
   RationalLiteralType,
   Return,
@@ -385,8 +384,6 @@ export function insertConversionIfNecessary(
       insertConversion(expression, generalisedTargetType, context, ast);
     }
   } else if (currentType instanceof MappingType) {
-    return;
-  } else if (currentType instanceof ModuleType) {
     return;
   } else if (currentType instanceof StringType) {
     if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {

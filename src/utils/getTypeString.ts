@@ -21,7 +21,6 @@ import {
   IntType,
   LiteralKind,
   MappingType,
-  ModuleType,
   PointerType,
   specializeType,
   StringLiteralType,
@@ -181,7 +180,6 @@ function instanceOfNonRecursivePP(type: TypeNode): boolean {
     type instanceof ImportRefType ||
     type instanceof IntLiteralType ||
     type instanceof IntType ||
-    type instanceof ModuleType ||
     type instanceof RationalLiteral ||
     type instanceof StringLiteralType ||
     type instanceof StringType ||
