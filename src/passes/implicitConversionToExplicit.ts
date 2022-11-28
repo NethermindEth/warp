@@ -612,8 +612,9 @@ function handleConcatArgs(node: FunctionCall, ast: AST) {
   node.vArguments.forEach((arg) => {
     const type = safeGetNodeType(arg, ast.compilerVersion);
     if (type instanceof StringLiteralType) {
-      if (type.literal.length < 32 && type.literal.length > 0) {
-        insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), node, ast);
+      const literal = (arg as Literal).value;
+      if (literal.length < 32 && literal.length > 0) {
+        insertConversionIfNecessary(arg, new FixedBytesType(literal.length), node, ast);
       } else {
         insertConversionIfNecessary(arg, new BytesType(), node, ast);
       }
