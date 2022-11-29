@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { PrintOptions, TranspilationOptions } from '.';
+import { CompilationOptions, PrintOptions, TranspilationOptions } from '.';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -45,6 +45,7 @@ import {
   ReturnInserter,
   ReturnVariableInitializer,
   ShortCircuitToConditional,
+  SourceUnitPathFixer,
   SourceUnitSplitter,
   StaticArrayIndexer,
   StorageAllocator,
@@ -92,7 +93,10 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
   ]);
 }
 
-function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
+function applyPasses(
+  ast: AST,
+  options: TranspilationOptions & PrintOptions & CompilationOptions,
+): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
@@ -162,6 +166,8 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
   printPassName('Input', options);
   printAST(ast, options);
 
+  // Fix absolutePath in source unit
+  ast = SourceUnitPathFixer.map_(ast, options.includePaths || []);
   // Reject code that contains identifiers starting with certain patterns
   RejectPrefix.map(ast);
 
