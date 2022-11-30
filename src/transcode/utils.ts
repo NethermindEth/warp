@@ -13,14 +13,14 @@ export type solAbiFunctionType = {
   inputs: solAbiFuncArgType[];
   name: string;
   outputs: solAbiFuncArgType[];
-  stateMutability: string;
-  type: string;
+  stateMutability: 'payable' | 'pure' | 'view';
+  type: 'funtion';
 };
 
 export type solAbiConstructorType = {
   inputs: solAbiFuncArgType[];
-  stateMutability: string;
-  type: string;
+  stateMutability: 'payable' | 'pure' | 'view';
+  type: 'constructor';
 };
 
 export type solAbiItemType = solAbiFunctionType | solAbiConstructorType;
