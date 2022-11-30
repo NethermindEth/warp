@@ -14,7 +14,7 @@ export type solAbiFunctionType = {
   name: string;
   outputs: solAbiFuncArgType[];
   stateMutability: 'payable' | 'pure' | 'view';
-  type: 'funtion';
+  type: 'function';
 };
 
 export type solAbiConstructorType = {
@@ -191,7 +191,7 @@ export async function selectSignature(
     type: 'select',
     name: 'func',
     message: `Multiple function definitions found for ${funcName}. Please select one now:`,
-    choices: matches.map((func) => ({ title: JSON.stringify(func), value: func })),
+    choices: matches.map((func) => ({ title: func.name, value: func })),
   });
 
   return choice.func;
