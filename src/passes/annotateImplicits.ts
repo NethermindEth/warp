@@ -19,7 +19,9 @@ import { getDocString, isCairoStub } from './cairoStubProcessor';
 export class AnnotateImplicits extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      'Tic', // Type builtins are not handled at this stage
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
