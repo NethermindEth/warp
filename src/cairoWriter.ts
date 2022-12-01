@@ -392,10 +392,14 @@ class SourceUnitWriter extends CairoASTNodeWriter {
 function writeContractInterface(node: ContractDefinition, writer: ASTWriter): SrcDesc {
   const documentation = getDocumentation(node.documentation, writer);
   const functions = node.vFunctions.map((v) => {
-    const resultLines = writer.write(v).split('\n');
+    const resultLines = writer
+      .write(v)
+      // remove all content between any two pairing curly braces
+      .replace(/\{[^]*\}/g, '')
+      .split('\n');
     const funcLineIndex = resultLines.findIndex((line) => line.startsWith('func'));
     resultLines.splice(0, funcLineIndex);
-    return resultLines.join('\n');
+    return resultLines.join('\n') + '{\n}';
   });
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
