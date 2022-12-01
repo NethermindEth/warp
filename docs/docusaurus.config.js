@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
@@ -27,7 +28,12 @@ const config = {
   // to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'vi'],
+    localeConfigs: {
+      en: {
+        htmlLang: 'en-GB',
+      },
+    },
   },
 
   presets: [
@@ -74,6 +80,10 @@ const config = {
           {
             href: 'https://github.com/NethermindEth/warp',
             label: 'GitHub',
+            position: 'right',
+          },
+          {
+            type: 'localeDropdown',
             position: 'right',
           },
         ],
