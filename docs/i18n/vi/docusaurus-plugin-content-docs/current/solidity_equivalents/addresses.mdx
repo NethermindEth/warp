@@ -1,0 +1,12 @@
+---
+title: Addresses
+---
+
+An Ethereum address has a width of 160 bits, while a StarkNet address has a width of 251 bits. To support this change in address size, we had to modified the solc compiler. As a result, Warp's flavour of Solidity uses 256 bits for addresses instead of 160.
+
+This modification means there are some things to consider when using the address type in Warp.
+
+First, the bounds of an address are not checked at compile time, which can introduce strange behaviour.
+The expression `address(uint256(MAX_UINT256))` will not cause any compile time or runtime errors even though the maximum value for addresses is `2**251 - 1`.
+
+Second, the `ecrecover` precompile now returns uint160 and not an address type. The`ecrecover` function does not work with StarkNet's curve, using it to try return a StarkNet address will cause errors. The function will only work when recovering an Ethereum address and returns a `uint160` type and not an `address` type.

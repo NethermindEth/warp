@@ -1,0 +1,109 @@
+---
+title: Inputs and Outputs
+---
+
+## Inputs
+
+The transpiled Cairo contracts have a different ABI than their Solidity counterparts. Warp allows the use of either
+the Cairo ABI or the Solidity ABI for passing constructor arguments or function parameters. By default, the Solidity ABI
+is used.
+
+### Using Solidity ABI
+
+The Solidity ABI lets you pass in arguments in a schema similar to what users would use on L1.
+This is supported in Warp's `deploy`, `invoke` and `call` commands.
+Warp takes these inputs and transcodes them into Cairo to forward them onto the desired network.
+
+```
+warp invoke <Cario Contract> --inputs \"ExampleString\",\[1,2,3,4\],-1,100.
+```
+
+### Using Cairo ABI
+
+To use the Cairo ABI to pass inputs, add the `--use_cairo_abi` flag to the `deploy`, `invoke` or `call` command.
+
+Note that there are some nuances that come with using the Cairo ABI:
+
+- StarkNet does not support Solidity-style strings, so Warp represents strings as dynamic arrays of bytes.
+  In Cairo ABI, each dynamic array is represented in two parts, the length of the string, and the values of the array
+  `<arr_len>,<arr[0],arr[1]...arr[n-1]>`.
+  e.g `ExampleString` -> `13,0x45,0x78,0x61,0x6d,0x70,0x6c,0x65,0x53,0x74,0x72,0x69,0x6e,0x67`
+- Negative numbers will need to be transformed into their twos complement. e.g to pass
+  `-1` into a function that takes `int8`, `-1` needs to be converted to `255` and then passed.
+- Data types that are more than 248 bits wide (`int256`/`uint256`/`bytes32`) will need to be split into their lower and
+  upper 128 bits e.g `0x10000000000000000000000000000000f` as a `uint256` -> `15,1`.
+
+```
+warp invoke <Cario Contract> --use_cairo_abi --inputs 13,0x45,0x78,0x61,0x6d,0x70,0x6c,0x65,0x53,0x74,0x72,0x69,0x6e,0x67,4,1,2,3,4,255,100.
+```
+
+### Passing values of different types in both ABIs
+
+The following table represents the ABI for each type in both Solidity and Cairo.
+
+| Type                                   |            Solidity ABI             |                               Cairo ABI                               |
+| -------------------------------------- | :---------------------------------: | :-------------------------------------------------------------------: |
+| Signed ints (positive)                 |                7,56                 |                                 7,56                                  |
+| Signed ints (negative <8bits, 16bits>) |                -1,-8                |                               255,65528                               |
+| Unsigned ints                          |               8,7,56                |                                8,7,56                                 |
+| Strings                                |              \"test\"               |                         4,0x74,0x65,0x73,0x74                         |
+| Boolean                                |                 0,1                 |                                  0,1                                  |
+| Address                                |              0x000...               |                               0x000...                                |
+| uint256 (above 128 bits)               | 0x10000000000000000000000000000000f |                                 15,1                                  |
+| uint256 (below 128 bits)               |                 10                  |                                 10,0                                  |
+| int256                                 |                -257                 | 0xfffffffffffffffffffffffffffffeff,0xffffffffffffffffffffffffffffffff |
+| Fixed Size Array (ex: uint8[6])        |           \[0,1,2,3,4,5\]           |                              0,1,2,3,4,5                              |
+| Dynamic Array (ex: uint8[])            |             \[1,2,3,4\]             |                               4,1,2,3,4                               |
+| Struct (ex: {uint, uint})              |               \[1,2\]               |                                  1,2                                  |
+
+Note: In both Solidity and Cairo ABI, numbers can also be passed as hex values
+
+## Outputs
+
+The outputs will always be in Cairo ABI.
+
+The following Solidity contract named example.sol will be used to illustrate the feature:
+
+```
+pragma solidity ^0.8;
+
+contract foo {
+  uint256 public x;
+
+  string public y;
+
+  constructor(uint256 _x, string memory _y) {
+    x = _x;
+    y = _y;
+  }
+}
+```
+
+Transpile the contract:
+
+```
+warp transpile example.sol
+```
+
+Deploy the contract:
+
+```
+warp deploy warp_output/example__WC__foo.cairo --inputs 5,\"test\"
+```
+
+`call` the contract to get the outputs:
+
+```
+$: warp call warp_output/example__WC__foo.cairo --function x --address 0x01563072fb9a5ce43c5610d205dd815051714d9949104db009a0bbd3ff71c75f
+5 0
+
+$: warp call warp_output/example__WC__foo.cairo --function y --address 0x01563072fb9a5ce43c5610d205dd815051714d9949104db009a0bbd3ff71c75f
+4 116 101 115 116
+```
+
+## Dynamic Array as Inputs and Outputs
+
+Dynamic arrays are fully supported as inputs and outputs to transpiled contracts.
+The only limitation on using this data type as an input or output is that dynamic
+arrays cannot be used in another reference type. e.g A struct where a member is a
+dynamic array or an array of dynamic arrays.
