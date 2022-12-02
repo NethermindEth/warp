@@ -45,6 +45,7 @@ import assert from 'assert';
 import { AST } from '../../../src/ast/ast';
 import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
 import { safeGetNodeType } from '../../../src/utils/nodeTypeProcessing';
+import { infer } from '../../../src/utils/inference';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -96,8 +97,13 @@ const validTests = Object.entries(tests).reduce(
 // asynchronously
 const initialRun: Promise<CompileResult> =
   validTests.length > 0
-    ? compileSol(validTests[0][0], 'auto', [])
-    : Promise.resolve({ data: null, files: new Map(), inferredRemappings: new Map() });
+    ? compileSol(validTests[0][0], 'auto')
+    : Promise.resolve({
+        data: null,
+        files: new Map(),
+        inferredRemappings: new Map(),
+        resolvedFileNames: new Map(),
+      });
 
 export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTest => {
   try {
@@ -188,11 +194,11 @@ function transcodeTest(
   const inputTypeNodes =
     funcDef instanceof FunctionDefinition
       ? funcDef.vParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
-      : funcDef.getterFunType().parameters;
+      : infer.getterFunType(funcDef).parameters;
   const outputTypeNodes =
     funcDef instanceof FunctionDefinition
       ? funcDef.vReturnParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
-      : funcDef.getterFunType().returns;
+      : infer.getterFunType(funcDef).returns;
 
   let removePrefix = 10;
   if (signature.startsWith('constructor(')) {
@@ -211,10 +217,7 @@ function transcodeTest(
     ? null
     : encode(funcAbi.outputs, outputTypeNodes, expectations, compilerVersion);
 
-  const functionHash =
-    funcDef instanceof FunctionDefinition
-      ? funcDef.canonicalSignatureHash(ABIEncoderVersion.V2)
-      : funcDef.getterCanonicalSignatureHash(ABIEncoderVersion.V2);
+  const functionHash = infer.signatureHash(funcDef, ABIEncoderVersion.V2);
 
   return Expect.Simple(`${functionName}_${functionHash}`, input, output);
 }
@@ -427,16 +430,12 @@ function getFunctionAbiAndDefinition(
 ): [FunABI, FunctionDefinition | VariableDeclaration] {
   let defs: (FunctionDefinition | VariableDeclaration)[];
   if (functionName !== 'constructor') {
-    defs = Array.from(resolveAny(functionName, contractDef, compilerVersion, true)).filter(
-      (def) => {
-        if (def instanceof FunctionDefinition) {
-          return def.canonicalSignature(ABIEncoderVersion.V2) === signature;
-        } else if (def instanceof VariableDeclaration) {
-          return def.getterCanonicalSignature(ABIEncoderVersion.V2) === signature;
-        }
-        return false;
-      },
-    ) as (FunctionDefinition | VariableDeclaration)[];
+    defs = Array.from(resolveAny(functionName, contractDef, infer, true)).filter((def) => {
+      if (def instanceof FunctionDefinition || def instanceof VariableDeclaration) {
+        return infer.signature(def, ABIEncoderVersion.V2) === signature;
+      }
+      return false;
+    }) as (FunctionDefinition | VariableDeclaration)[];
   } else {
     if (contractDef.vConstructor === undefined) {
       // Need to create a default constructor and its abi
@@ -452,11 +451,8 @@ function getFunctionAbiAndDefinition(
       `No function definition found for test case ${signature} in the ast.\n` +
         `Defined functions:\n` +
         `\t${defs.map((d) => {
-          if (d instanceof FunctionDefinition) {
-            return d.canonicalSignature(ABIEncoderVersion.V2);
-          }
-          if (d instanceof VariableDeclaration) {
-            return d.getterCanonicalSignature(ABIEncoderVersion.V2);
+          if (d instanceof FunctionDefinition || d instanceof VariableDeclaration) {
+            return infer.signature(d, ABIEncoderVersion.V2);
           }
           return `Unknown def ${d}`;
         })}`,
