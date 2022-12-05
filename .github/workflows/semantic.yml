@@ -1,6 +1,12 @@
 name: Semantic tests
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - warp-ts
+  pull_request:
 
 env:
   CAIRO_LANG_VERSION: 0.10.0
