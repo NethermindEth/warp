@@ -158,7 +158,7 @@ export async function selectSignature(
 ): Promise<solAbiFunctionType> {
   if (funcName === 'constructor') {
     // Item with abi[type] === 'constructor'
-    const constructorsAbi = abi.filter((item: any) => item.type === 'constructor');
+    const constructorsAbi = abi.filter((item: solAbiItemType) => item.type === 'constructor');
     if (constructorsAbi.length === 0) {
       throw new CLIError('No constructor found in abi');
     }
@@ -201,12 +201,15 @@ export function decodedOutputsToString(outputs: Result): string {
   return outputs.map((output) => outputToString(output)).join(', ');
 }
 
-function outputToString(output: Result): string {
+function outputToString(output: Result | string | number): string {
   if (Array.isArray(output)) return `[ ${output.map((o) => outputToString(o)).join(', ')} ]`;
   else if (output.constructor == Object)
     // is a Struct
     return `{ ${Object.keys(output)
-      .map((key: any) => outputToString(key) + ': ' + outputToString(output[key]))
+      .map(
+        (key: string | number) =>
+          outputToString(key) + ': ' + outputToString((output as Result)[key]),
+      )
       .join(', ')} }`;
-  else return (output as any).toString();
+  else return (output as Result).toString();
 }
