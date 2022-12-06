@@ -253,7 +253,6 @@ Please see the list below:
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |              nested tuple expressions               |    :question:     |
-|                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
 |                      msg.value                      |    :question:     |
 |                       msg.sig                       |    :question:     |
