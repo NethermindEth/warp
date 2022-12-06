@@ -110,7 +110,7 @@ function insertIntoInitFunction(
   ast: AST,
 ) {
   // No need to create the initialization function if the block is empty
-  if (initialisationBlock.vStatements.length == 0) return;
+  if (initialisationBlock.vStatements.length === 0) return;
 
   const initFunc = new FunctionDefinition(
     ast.reserveId(),

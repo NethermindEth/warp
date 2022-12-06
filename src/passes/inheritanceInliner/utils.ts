@@ -157,7 +157,7 @@ function findSuperReferenceNode(
         functions.length <= 1,
         `Function ${funcName} is defined multiple times in the same contract`,
       );
-      if (functions.length == 1) return functions[0];
+      if (functions.length === 1) return functions[0];
     } else {
       contractFound = contract.id === base.id;
     }

@@ -70,7 +70,7 @@ function findFunctionInLibrary(
   librariesById: Map<number, ContractDefinition>,
 ): ContractDefinition | undefined {
   for (const library of librariesById.values()) {
-    if (library.vFunctions.some((f) => f.id == functionId)) return library;
+    if (library.vFunctions.some((f) => f.id === functionId)) return library;
   }
   return undefined;
 }
