@@ -252,7 +252,6 @@ Please see the list below:
 |            fallback functions with args             | :hammer_and_pick: |
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
-|                 indexed parameters                  |    :question:     |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |

@@ -16,6 +16,7 @@ export * from './shortCircuitToConditional';
 export * from './freeFunctionInliner';
 export * from './externalArgModifier/export';
 export * from './externalContractHandler/export';
+export * from './events';
 export * from './freeFunctionInliner';
 export * from './functionModifierHandler/export';
 export * from './functionPruner/export';

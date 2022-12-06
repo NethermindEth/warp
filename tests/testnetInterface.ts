@@ -1,4 +1,5 @@
 import { BigNumber } from 'ethers';
+import { EventItem } from './behaviour/expectations/types';
 import axios from 'axios';
 
 export type InvokeResponse =
@@ -8,6 +9,7 @@ export type InvokeResponse =
       threw: false;
       return_data: string[];
       error_message: undefined;
+      events: EventItem[];
     }
   | {
       status: number;
@@ -15,6 +17,7 @@ export type InvokeResponse =
       threw: true;
       return_data: null;
       error_message: string;
+      events: EventItem[];
     };
 
 export type DeployResponse =
@@ -113,6 +116,7 @@ export async function invoke(
         threw: true,
         return_data: null,
         error_message: response.data.transaction_info.message,
+        events: [],
       }
     : {
         status: response.status,
@@ -120,6 +124,7 @@ export async function invoke(
         threw: false,
         return_data: response.data.transaction_info.return_data,
         error_message: undefined,
+        events: response.data.events,
       };
 }
 
