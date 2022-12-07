@@ -1,4 +1,3 @@
-import fs from 'fs';
 import {
   AddressType,
   ArrayType,
@@ -21,10 +20,9 @@ import {
   InlineAssembly,
   Literal,
   MemberAccess,
-  ParameterList,
-  parseSourceLocation,
   PointerType,
   RevertStatement,
+  SourceUnit,
   StructDefinition,
   TryStatement,
   TypeNameType,
@@ -35,10 +33,16 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
-import { error } from '../utils/formatting';
+import { getErrorMessage, WillNotSupportError } from '../utils/errors';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
+import { isExternalCall, isExternallyVisible } from '../utils/utils';
+
+const PATH_REGEX = /^[\w-@/\\]*$/;
+
+export function checkPath(path: string): boolean {
+  const pathWithoutExtension = path.substring(0, path.length - '.sol'.length);
+  return !PATH_REGEX.test(pathWithoutExtension);
+}
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   unsupportedFeatures: [string, ASTNode][] = [];
@@ -57,24 +61,9 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }, 0);
 
     if (unsupportedDetected > 0) {
-      let errorNum = 0;
-      const errorMsg = [...unsupportedPerSource.entries()].reduce(
-        (fullMsg, [filePath, unsopported]) => {
-          const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-          const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
-            const errorCode = getSourceFromLocations(
-              content,
-              [parseSourceLocation(node.src)],
-              error,
-              4,
-            );
-            errorNum += 1;
-            return newMessage + `\n${error(`${errorNum}. ` + errorMsg)}:\n\n${errorCode}\n`;
-          }, `\nFile ${filePath}:\n`);
-
-          return fullMsg + newMessage;
-        },
-        error(`Detected ${unsupportedDetected} Unsupported Features:\n`),
+      const errorMsg = getErrorMessage(
+        unsupportedPerSource,
+        `Detected ${unsupportedDetected} Unsupported Features:`,
       );
       throw new WillNotSupportError(errorMsg, undefined, false);
     }
@@ -96,15 +85,19 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
     this.visitExpression(node, ast);
   }
+
   visitInlineAssembly(node: InlineAssembly, _ast: AST): void {
     this.addUnsupported('Yul blocks are not supported', node);
   }
+
   visitRevertStatement(node: RevertStatement, _ast: AST): void {
     this.addUnsupported('Reverts with custom errors are not supported', node);
   }
+
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     this.addUnsupported('User defined Errors are not supported', node);
   }
+
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
     // Allow options only when passing salt values for contract creation
     if (
@@ -121,6 +114,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       node,
     );
   }
+
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = safeGetNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
@@ -174,14 +168,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         node,
       );
     this.visitExpression(node, ast);
-  }
-
-  visitParameterList(node: ParameterList, ast: AST): void {
-    // any of node.vParameters has indexed flag true then throw error
-    if (node.vParameters.some((param) => param.indexed)) {
-      this.addUnsupported(`Indexed parameters are not supported`, node);
-    }
-    this.commonVisit(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -242,6 +228,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitTryStatement(node: TryStatement, _ast: AST): void {
     this.addUnsupported(`Try/Catch statements are not supported`, node);
+  }
+
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    if (checkPath(node.absolutePath)) {
+      this.addUnsupported(
+        'File path includes unsupported characters, only _, -, /, , and alphanumeric characters are supported',
+        node,
+      );
+    }
+    this.commonVisit(node, ast);
   }
 
   // Cases not allowed:

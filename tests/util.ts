@@ -31,6 +31,15 @@ export function transpile(contractPath: string): Promise<{ stdout: string; stder
   return sh(`${warpBin} transpile --dev ${contractPath}`);
 }
 
+export function gen_interface(
+  cairoContractPath: string,
+  cairoContractAddress?: string,
+): Promise<{ stdout: string; stderr: string }> {
+  return sh(
+    `${warpBin} gen_interface ${cairoContractPath} --contract-address ${cairoContractAddress}`,
+  );
+}
+
 export function starknetCompile(
   cairoPath: string,
   jsonOutputPath: string,

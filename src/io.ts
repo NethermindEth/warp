@@ -3,8 +3,7 @@ import * as fs from 'fs-extra';
 import { OutputOptions, TranspilationOptions } from '.';
 import { TranspileFailedError, logError } from './utils/errors';
 import { execSync } from 'child_process';
-
-export const solABIPrefix = '// Original soldity abi:';
+import { AST } from './ast/ast';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
@@ -63,11 +62,8 @@ export function outputResult(
   outputPath: string,
   code: string,
   options: OutputOptions & TranspilationOptions,
-  abi?: string,
+  ast: AST,
 ): void {
-  const codeWithABI = abi ? `${code}\n\n${solABIPrefix} ${abi}` : code;
-  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-
   if (options.outputDir === undefined) {
     if (options.result) {
       console.log(`//--- ${outputPath} ---\n${code}\n//---`);
@@ -82,8 +78,19 @@ export function outputResult(
       }
     }
     const fullCodeOutPath = path.join(options.outputDir, outputPath);
-    fs.outputFileSync(fullCodeOutPath, codeWithABI);
+    const abiOutPath = fullCodeOutPath.slice(0, -'.cairo'.length).concat('_sol_abi.json');
+
+    const contractName = path.basename(outputPath).slice(0, -'.cairo'.length);
+    const solFilePath = path.dirname(outputPath);
+
+    fs.outputFileSync(
+      abiOutPath,
+      JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
+    );
+    fs.outputFileSync(fullCodeOutPath, code);
+
     if (options.formatCairo || options.dev) {
+      const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
       execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
     }
   }

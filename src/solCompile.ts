@@ -18,7 +18,7 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(files: string[]): { result: unknown; compilerVersion: string } {
+function compileSolFilesCommon(files: string[], options: CompilationOptions): SolcOutput {
   const sources = files.map((file) => {
     return getSolFileVersion(file);
   });
@@ -36,17 +36,17 @@ function compileSolFilesCommon(files: string[]): { result: unknown; compilerVers
     throw new TranspileFailedError(`All solidity files should be the same major version`);
   }
 
-  const solcOutput = cliCompile(formatInput(files), sources[0]);
+  const solcOutput = cliCompile(formatInput(files), sources[0], options);
   return solcOutput;
 }
 
 export function compileSolFiles(files: string[], options: CompilationOptions): AST {
-  const solcOutput = compileSolFilesCommon(files);
-  printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
+  const solcOutput = compileSolFilesCommon(files, options);
+  printErrors(solcOutput.result, options.warnings || false, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
-  return new AST(sourceUnits, solcOutput.compilerVersion);
+  return new AST(sourceUnits, solcOutput.compilerVersion, solcOutput.result);
 }
 
 const supportedVersions = ['0.8.14', '0.7.6'];
@@ -98,11 +98,29 @@ function formatInput(fileNames: string[]): SolcInput {
   };
 }
 
+export type SolcOutput = {
+  result: {
+    contracts: {
+      [path: string]: {
+        [contract: string]: {
+          abi: [{ [key: string]: string }];
+        };
+      };
+    };
+    sources: {
+      [path: string]: {
+        ast: [{ [key: string]: string }];
+      };
+    };
+  };
+  compilerVersion: string;
+};
+
 function cliCompile(
   input: SolcInput,
   solcVersion: string,
   options?: CompilationOptions,
-): { result: unknown; compilerVersion: string } {
+): SolcOutput {
   // Determine compiler version to use
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
   const solcCommand = nethersolcPath(nethersolcVersion);
@@ -116,16 +134,14 @@ function cliCompile(
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
-  const includePathOptions =
-    options === undefined || options.includePaths === undefined
-      ? ''
-      : `--include-path ${options.includePaths.join(' --include-path ')}`;
-  const basePathOption =
-    options === undefined || options.basePath === undefined
-      ? ''
-      : `--base-path ${options.basePath}`;
 
-  const commandOptions = `--standard-json ${allowedPaths} ${includePathOptions} ${basePathOption}`;
+  const includePathOptions =
+    options?.includePaths === undefined || nethersolcVersion === '7'
+      ? ``
+      : `--include-path ${options.includePaths.join(' --include-path ')}`;
+  const basePathOption = options?.basePath === undefined ? `` : `--base-path ${options.basePath}`;
+
+  const commandOptions = `--standard-json ${allowedPaths} ${basePathOption} ${includePathOptions}`;
 
   return {
     result: JSON.parse(

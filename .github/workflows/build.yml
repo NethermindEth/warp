@@ -17,17 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '16.x'
           cache: 'yarn'
 
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.9 # Cairo was tested with this version
+
       - name: Install dependencies
         run: |
           yarn
           pipx install black[colors]
-          pipx install cairo-lang=="$CAIRO_LANG_VERSION"
+          pip install cairo-lang=="$CAIRO_LANG_VERSION"
 
       - name: Build warplib
         run: yarn warplib

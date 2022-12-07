@@ -1,5 +1,14 @@
 import { Dir, Expect, File } from './types';
-import { getByte32Array, flatten, getByteXArray, toCairoUint256 } from './utils';
+import {
+  getByte32Array,
+  flatten,
+  getByteXArray,
+  toCairoUint256,
+  warpEventCanonicalSignaturehash,
+} from './utils';
+
+import createKeccakHash from 'keccak';
+import { mapRange, MASK_250 } from '../../../src/export';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -749,6 +758,13 @@ export const expectations = flatten(
           ),
         ]),
         new Dir('conversions', [
+          File.Simple('addr2uint256', [
+            Expect.Simple(
+              'address2uint256',
+              ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+              ['340282366920938463463374607431768211455', '10633823966279326983230456482242756607'],
+            ),
+          ]),
           File.Simple('signedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
             Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
@@ -2171,6 +2187,370 @@ export const expectations = flatten(
           File.Simple('require', [
             new Expect('require should pass', [['willPass', [], [], '0']]),
             new Expect('require should fail', [['shouldFail', [], null, '0', 'why is x not 2???']]),
+          ]),
+        ]),
+        new Dir('events', [
+          File.Simple('simple', [
+            new Expect('add', [
+              [
+                'add',
+                ['34', '0', '35', '0'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['69'],
+                    keys: [warpEventCanonicalSignaturehash('uintEvent', ['uint256'])],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('array', [
+              [
+                'array',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['32', '3', '2', '3', '5'],
+                    keys: [warpEventCanonicalSignaturehash('arrayEvent', ['uint256[]'])],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('nestedArray', [
+              [
+                'nestedArray',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['32', '2', '64', '192', '3', '2', '3', '5', '2', '7', '11'],
+                    keys: [warpEventCanonicalSignaturehash('nestedArrayEvent', ['uint256[][]'])],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('structComplex', [
+              [
+                'structComplex',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['32', '128', '7', '11', '13', '3', '2', '3', '5'],
+                    keys: [
+                      warpEventCanonicalSignaturehash('structEvent', [['uint8[]', 'uint256[3]']]),
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+          ]),
+          File.Simple('indexed', [
+            new Expect('add', [
+              [
+                'add',
+                ['34', '0', '35', '0'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [warpEventCanonicalSignaturehash('uintEvent', ['uint256']), '69'],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('array', [
+              [
+                'array',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('arrayEvent', ['uint256[]']),
+                      // 2,
+                      // 3,
+                      // 5,
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              (
+                                (BigInt(2) << BigInt(32 * 8 * 2)) |
+                                (BigInt(3) << BigInt(32 * 8 * 1)) |
+                                BigInt(5)
+                              )
+                                .toString(16)
+                                .padStart(32 * 3 * 2, '0'),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('nestedArray', [
+              [
+                'nestedArray',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('nestedArrayEvent', ['uint256[][]']),
+                      // 2,
+                      // 3,
+                      // 5,
+                      // 7,
+                      // 11,
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              (
+                                (BigInt(2) << BigInt(32 * 8 * 4)) |
+                                (BigInt(3) << BigInt(32 * 8 * 3)) |
+                                (BigInt(5) << BigInt(32 * 8 * 2)) |
+                                (BigInt(7) << BigInt(32 * 8 * 1)) |
+                                BigInt(11)
+                              )
+                                .toString(16)
+                                .padStart(32 * 5 * 2, '0'),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('structComplex', [
+              [
+                'structComplex',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('structEvent', [['uint8[]', 'uint256[3]']]),
+                      // '2',
+                      // '3',
+                      // '5',
+                      // '7',
+                      // '11',
+                      // '13',
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              (
+                                (BigInt(2) << BigInt(32 * 8 * 5)) |
+                                (BigInt(3) << BigInt(32 * 8 * 4)) |
+                                (BigInt(5) << BigInt(32 * 8 * 3)) |
+                                (BigInt(7) << BigInt(32 * 8 * 2)) |
+                                (BigInt(11) << BigInt(32 * 8 * 1)) |
+                                BigInt(13)
+                              )
+                                .toString(16)
+                                .padStart(32 * 6 * 2, '0'),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+          ]),
+          File.Simple('misc', [
+            new Expect('allString', [
+              [
+                'allString',
+                ['2', '65', '66', '2', '66', '67'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [
+                      '32',
+                      '2',
+                      `${(BigInt(0x41) << BigInt(248)) | (BigInt(0x42) << BigInt(240))}`,
+                      '32',
+                      '2',
+                      `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
+                    ],
+                    keys: [warpEventCanonicalSignaturehash('allStringEvent', ['string', 'string'])],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('allStringMisc', [
+              [
+                'allStringMisc',
+                ['2', '65', '66', '2', '66', '67'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [
+                      '32',
+                      '2',
+                      `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
+                    ],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allStringMiscEvent', ['string', 'string']),
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              ((BigInt(0x41) << BigInt(8)) | BigInt(0x42)).toString(16),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('allUint', [
+              [
+                'allUint',
+                ['1', '0', '2', '0'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: ['1'],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allUintMiscEvent', ['uint256', 'uint256']),
+                      '2',
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('allIndexed', [
+              [
+                'allIndexed',
+                ['1', '0', '2', '0'],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allIndexedEvent', ['uint256', 'uint256']),
+                      '1',
+                      '2',
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
+            new Expect('allEventsAtOnce', [
+              [
+                'allEventsAtOnce',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [
+                      '32',
+                      '1',
+                      `${BigInt(0x61) << BigInt(248)}`,
+                      '32',
+                      '1',
+                      `${BigInt(0x62) << BigInt(248)}`,
+                    ],
+                    keys: [warpEventCanonicalSignaturehash('allStringEvent', ['string', 'string'])],
+                    order: 0,
+                  },
+                  {
+                    data: ['32', '1', `${BigInt(0x62) << BigInt(248)}`],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allStringMiscEvent', ['string', 'string']),
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(BigInt(0x61).toString(16), 'hex')
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
+                    ],
+                    order: 1,
+                  },
+                  {
+                    data: ['1'],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allUintMiscEvent', ['uint256', 'uint256']),
+                      '2',
+                    ],
+                    order: 2,
+                  },
+                  {
+                    data: [],
+                    keys: [
+                      warpEventCanonicalSignaturehash('allIndexedEvent', ['uint256', 'uint256']),
+                      '1',
+                      '2',
+                    ],
+                    order: 3,
+                  },
+                  {
+                    data: ['1'],
+                    keys: ['2'],
+                    order: 4,
+                  },
+                ],
+              ],
+            ]),
           ]),
         ]),
         new Dir('expressions', [
@@ -4082,6 +4462,12 @@ export const expectations = flatten(
             Expect.Simple('identifier', [], []),
             Expect.Simple('simple', [], []),
             Expect.Simple('indexAccess', [], []),
+          ]),
+        ]),
+        new Dir('underscore_integers', [
+          File.Simple('underscore_integers', [
+            Expect.Simple('a', [], ['10000', '0']),
+            Expect.Simple('b', [], ['10000', '0']),
           ]),
         ]),
         new Dir('user_defined_value_types', [

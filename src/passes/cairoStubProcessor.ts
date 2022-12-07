@@ -8,7 +8,7 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from '../utils/errors';
-import { MANGLED_LOCAL_VAR } from '../utils/nameModifiers';
+import { MANGLED_WARP } from '../utils/nameModifiers';
 import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
@@ -42,7 +42,7 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
   return processMacro(documentation, /STATEVAR\((.*?)\)/g, (arg) => {
     const stateVarNames = contract.vStateVariables.map((decl) => decl.name);
     const matchingStateVars = stateVarNames.filter((name) => {
-      const regex = new RegExp(`${MANGLED_LOCAL_VAR}[0-9]+_`);
+      const regex = new RegExp(`${MANGLED_WARP}[0-9]+_`);
       return name.replace(regex, '') === arg;
     });
     if (matchingStateVars.length === 0) {

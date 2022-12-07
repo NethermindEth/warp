@@ -20,7 +20,8 @@ brew install z3
 sudo apt install libz3-dev
 ```
 
-2. Have Python 3.7 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
+2. Install Python3.9 with dev dependencies (`python3.9 python3.9-venv python3.9-dev`) into your base env.
+   If you do not have the dev dependencies installed the installation will fail.
 
 ### Warp Installation Method 1
 
@@ -54,7 +55,7 @@ warp transpile example_contracts/ERC20.sol
 
 Make sure you have the [dependencies](#dependencies) installed first.
 
-With a virtual environment (recommended Python3.7) activated:
+With a virtual environment (recommended Python3.9) activated:
 
 1. Clone this repo and change directory into the `warp` folder.
 
@@ -93,7 +94,7 @@ bin/warp transpile example_contracts/ERC20.sol
 
 ## Usage
 
-Warp 2 allows transpiling directly from Solidity to Cairo and transpiled .cairo file can be deployed to starknet.
+Warp 2 allows transpiling directly from Solidity to Cairo and the transpiled .cairo file can be deployed to starknet.
 
 ### Transpiling
 
@@ -111,13 +112,20 @@ warp transpile contracts/token/ERC20/ERC20.sol
 
 The output of the transpilation could be found in warp_output folder.
 
-Now,the file can be compiled and deployed. Run the following to compile the Cairo contract:
+Now, the file can be compiled and deployed. Run the following to compile the Cairo contract:
 
 ```
 warp compile warp_output/contracts/token/ERC20/ERC20__WARP_CONTRACT__ERC20.cairo
 ```
 
 ### Deploying
+
+Cairo0.10 now requires the declaration of a contract if a user is going to use a wallet to deploy.
+If a wallet is not needed then you can add the `--no_wallet` flag to the end of the `deploy` command and skip the `declare`.
+
+```
+warp declare [PATH_TO_TRANSPILED_CAIRO_CONTRACT]
+```
 
 ```
 warp deploy [PATH_TO_TRANSPILED_CAIRO_CONTRACT]  --inputs  [INPUT_ARGUMENTS]
@@ -226,11 +234,9 @@ namespace foo:
     end
 end
 
-# Original soldity abi: ["constructor(uint256)",""]
-
 ```
 
-If you want to compile the cairo file, you can run :
+If you want to compile the cairo file, you can run:
 
 ```
 
@@ -240,10 +246,18 @@ warp compile warp_output/simple__WC__foo.cairo
 
 Please check if the path is correct, as it may be different on your system.
 
-In order to deploy the contract to starknet,you can run :
+In order to deploy the contract to starknet the contract needs to be declared and then deployed:
 
 ```
+warp declare warp_output/simple__WC__foo.cairo
+```
 
+```
 warp deploy warp_output/simple__WC__foo.cairo --inputs 2
+```
 
+If you wish to deploy the contract without the use of a wallet, you can run:
+
+```
+warp deploy warp_output/simple__WC__foo.cairo --inputs 2 --no_wallet
 ```

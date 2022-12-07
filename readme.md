@@ -68,9 +68,33 @@ export LDFLAGS=-L`brew --prefix gmp`/lib
 sudo apt install libz3-dev libgmp3-dev
 ```
 
-2. Have Python 3.9 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
+2. Install Python3.9 with dev dependencies (`python3.9 python3.9-venv python3.9-dev`) into your base env.
+   If you do not have the dev dependencies installed the installation will fail.
+   <br>
 
-<br>
+- Install commands on MacOS:
+
+```bash
+brew install python@3.9
+```
+
+With python3.9 already installed you have venv covered:
+
+> If you are using Python 3.3 or newer (...) venv is included in the Python standard library and requires no additional installation.
+
+Then you can install dev package using pip:
+
+```bash
+pip install python-dev-tools
+```
+
+- Install commands on Ubuntu:
+
+```bash
+sudo apt install python3.9 python3.9-venv python3.9-dev
+```
+
+Or you can just install python3.9 and then install python-dev-tools using pip.
 
 ### Warp Installation Method 1:
 
@@ -228,9 +252,7 @@ Please see the list below:
 |            fallback functions with args             | :hammer_and_pick: |
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
-|                 indexed parameters                  |    :question:     |
 |              nested tuple expressions               |    :question:     |
-|                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
 |                      msg.value                      |    :question:     |
 |                       msg.sig                       |    :question:     |
@@ -248,7 +270,6 @@ Please see the list below:
 |                      blockhash                      |    :question:     |
 |            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
-|                  ternary operator                   | :hammer_and_pick: |
 |                       receive                       |    :question:     |
 |   Inline Yul Assembly - arithmetic (add, sub ...)   | :hammer_and_pick: |
 |  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
