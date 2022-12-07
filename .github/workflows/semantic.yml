@@ -12,7 +12,7 @@ env:
   CAIRO_LANG_VERSION: 0.10.0
 
 jobs:
-  build:
+  semantic_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
