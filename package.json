@@ -34,6 +34,7 @@
     "test:semantic": "yarn tsc && yarn warplib && tests/behaviour/setup.sh && node build/semanticTestRunner.js",
     "testnet": "python3 starknet-testnet/server.py",
     "testnet:benchmark": "python3 starknet-testnet/server.py benchmark",
+    "testnet:benchmark_semantic": "python3 starknet-testnet/server.py benchmark > /dev/null 2>&1",
     "warplib": "yarn tsc; node ./build/warplib/generateWarplib.js",
     "release": "yarn warplib && npm publish --access public"
   },
