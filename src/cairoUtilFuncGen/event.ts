@@ -156,6 +156,7 @@ export class EventFunction extends StringIndexedFuncGen {
   }
 
   private generateAnonymizeCode(isAnonymous: boolean, topic: BigInt, eventSig: string): string {
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
     if (isAnonymous) {
@@ -183,6 +184,7 @@ export class EventFunction extends StringIndexedFuncGen {
   private generateComplexEncodingCode(type: TypeNode, arrayName: string, argName: string): string {
     const abiFunc = this.indexEncode.getOrCreate([type]);
 
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
     this.requireImport('warplib.keccak', 'warp_keccak_felt');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
