@@ -124,7 +124,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 
     const sourceUnit = node.getClosestParentByType(SourceUnit);
     const referencedSourceUnit = node.vReferencedDeclaration?.getClosestParentByType(SourceUnit);
-    if (referencedSourceUnit !== sourceUnit) {
+    if (referencedSourceUnit !== sourceUnit || node.vFunctionName.startsWith('_emit_')) {
       result.add('range_check_ptr');
       result.add('syscall_ptr');
     }
