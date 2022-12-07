@@ -51,9 +51,6 @@ import { CairoFunctionDefinition } from './cairoNodes';
 export class AST {
   // SourceUnit id -> CairoUtilFuncGen
   private cairoUtilFuncGen: Map<number, CairoUtilFuncGen> = new Map();
-  // TODO we can delete this stuff below
-  // SourceUnit id -> function signatures
-  abi: Map<number, Set<string>> = new Map();
 
   context: ASTContext;
   // node requiring cairo import -> file to import from -> symbols to import

@@ -394,6 +394,12 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   const functions = node.vFunctions.map((v) => {
     const resultLines = writer
       .write(v)
+      /* TODO: It's a quickfix for now. Implement that as a pass maybe. 
+               Remove any StructuredDocumentation from interface's functions? 
+               Only those that start with 'warp-cairo'?
+               Or create a pass that transforms StructuredDocumentation into AST nodes and removes the function body from interfaces?
+      */
+      .replace(/\s*\/\/.*/g, '')
       // remove all content between any two pairing curly braces
       .replace(/\{[^]*\}/g, '')
       .split('\n');

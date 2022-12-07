@@ -148,6 +148,22 @@ func fixed_bytes256_to_felt_dynamic_array{
     );
 }
 
+func fixed_bytes256_to_felt_dynamic_array_spl{
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(array_index: felt, array: felt*, fixed_byte_index: felt, fixed_byte: Uint256) -> (
+    final_index: felt
+) {
+    alloc_locals;
+    if (fixed_byte_index == 32) {
+        return (array_index,);
+    }
+    let (byte) = byte256_at_index(fixed_byte, fixed_byte_index);
+    assert array[array_index] = byte;
+    return fixed_bytes256_to_felt_dynamic_array_spl(
+        array_index + 1, array, fixed_byte_index + 1, fixed_byte
+    );
+}
+
 func fixed_bytes_to_felt_dynamic_array{
     bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
 }(
@@ -186,6 +202,35 @@ func bytes_to_felt_dynamic_array{
     let max_offset = new_offset + bytes_needed;
     bytes_to_felt_dynamic_array_inline(new_offset, max_offset, array, 0, length, mem_ptr + 2);
     return (new_index, max_offset);
+}
+
+func bytes_to_felt_dynamic_array_spl{
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(array_index: felt, array: felt*, mem_ptr: felt) -> (final_index: felt) {
+    alloc_locals;
+    let (length_low) = wm_read_felt(mem_ptr);
+    let (length_high) = wm_read_felt(mem_ptr + 1);
+    let length256 = Uint256(length_low, length_high);
+    let (length) = narrow_safe(length256);
+    let (bytes_needed) = bytes_upper_bound(length);
+    bytes_to_felt_dynamic_array_inline(
+        array_index, array_index + bytes_needed, array, 0, length, mem_ptr + 2
+    );
+    return (array_index + bytes_needed,);
+}
+
+func bytes_to_felt_dynamic_array_spl_without_padding{
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(array_index: felt, array: felt*, mem_ptr: felt) -> (final_index: felt) {
+    alloc_locals;
+    let (length_low) = wm_read_felt(mem_ptr);
+    let (length_high) = wm_read_felt(mem_ptr + 1);
+    let length256 = Uint256(length_low, length_high);
+    let (length) = narrow_safe(length256);
+    bytes_to_felt_dynamic_array_inline(
+        array_index, array_index + length, array, 0, length, mem_ptr + 2
+    );
+    return (array_index + length,);
 }
 
 func bytes_to_felt_dynamic_array_inline{

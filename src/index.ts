@@ -20,6 +20,7 @@ import { runTests } from './testing';
 
 import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
+import { defaultBasePathAndIncludePath } from './utils/utils';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -83,12 +84,26 @@ program
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
 
-    const ast = compileSolFiles(files, options);
+    const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+
+    if (defaultBasePath !== null && defaultIncludePath !== null) {
+      options.includePaths =
+        options.includePaths === undefined
+          ? [defaultIncludePath]
+          : options.includePaths.concat(defaultIncludePath);
+      options.basePath = options.basePath || defaultBasePath;
+    }
+
+    // map file location relative to current working directory
+    const mFiles = files.map((file) => path.relative(process.cwd(), file));
+
+    const ast = compileSolFiles(mFiles, options);
     const contractToHashMap = new Map<string, string>();
+
     try {
       transpile(ast, options)
-        .map(([name, cairo, abi]) => {
-          outputResult(name, cairo, options, ast, abi);
+        .map(([name, cairo]) => {
+          outputResult(name, cairo, options, ast);
           return name;
         })
         .map((file) =>
@@ -133,9 +148,21 @@ program
   .option('--base-path <path>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
+
+    const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+
+    if (defaultBasePath !== null && defaultIncludePath !== null) {
+      options.includePaths =
+        options.includePaths === undefined
+          ? [defaultIncludePath]
+          : options.includePaths.concat(defaultIncludePath);
+      options.basePath = options.basePath || defaultBasePath;
+    }
+
     try {
-      const ast = compileSolFiles([file], options);
-      transform(ast, options).map(([name, solidity, _]) => {
+      const mFile = path.relative(process.cwd(), file);
+      const ast = compileSolFiles([mFile], options);
+      transform(ast, options).map(([name, solidity]) => {
         outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
       });
     } catch (e) {
@@ -329,7 +356,7 @@ export type IInstallOptions = IInstallOptions_ & IOptionalVerbose;
 
 program
   .command('install')
-  .option('--python <python>', 'Path to python3.7 executable.', 'python3.7')
+  .option('--python <python>', 'Path to python3.9 executable.', 'python3.9')
   .option('-v, --verbose')
   .action((options: IInstallOptions) => {
     runVenvSetup(options);
