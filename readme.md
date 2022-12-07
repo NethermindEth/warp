@@ -270,7 +270,6 @@ Please see the list below:
 |                      blockhash                      |    :question:     |
 |            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
-|                  ternary operator                   | :hammer_and_pick: |
 |                       receive                       |    :question:     |
 |   Inline Yul Assembly - arithmetic (add, sub ...)   | :hammer_and_pick: |
 |  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
