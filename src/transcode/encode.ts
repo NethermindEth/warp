@@ -8,6 +8,7 @@ import {
   safeNext,
   parseSolAbi,
   selectSignature,
+  solAbiFuncArgType,
 } from './utils';
 import Web3 from 'web3';
 
@@ -26,7 +27,9 @@ export async function encodeInputs(
   const funcSignature = await selectSignature(solABI, func);
   const selector = new Web3().utils
     .keccak256(
-      `${funcSignature['name']}(${funcSignature['inputs'].map((i: any) => i['type']).join(',')})`,
+      `${funcSignature['name']}(${funcSignature['inputs']
+        .map((i: solAbiFuncArgType) => i['type'])
+        .join(',')})`,
     )
     .substring(2, 10);
 
