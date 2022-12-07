@@ -1,6 +1,6 @@
 import { Statement, StructuredDocumentation } from 'solc-typed-ast';
 
-export class CairoTempVar extends Statement {
+export class CairoTempVarStatement extends Statement {
   constructor(
     id: number,
     src: string,

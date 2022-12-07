@@ -65,10 +65,14 @@ import {
   StatementWithChildren,
   ASTNodeWithChildren,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  CairoTempVarStatement,
+} from './cairoNodes';
 
 import { AST } from './ast';
-import { CairoTempVar } from './cairoNodes/tempvar';
 
 /*
  Visits every node in a tree in depth first order, calling visitT for each T extends ASTNode
@@ -118,7 +122,7 @@ export abstract class ASTVisitor<T> {
     else if (node instanceof UnaryOperation) res = this.visitUnaryOperation(node, ast);
     else if (node instanceof CairoFunctionDefinition)
       res = this.visitCairoFunctionDefinition(node, ast);
-    else if (node instanceof CairoTempVar) res = this.visitCairoTempVar(node, ast);
+    else if (node instanceof CairoTempVarStatement) res = this.visitCairoTempVar(node, ast);
     else if (node instanceof FunctionDefinition) res = this.visitFunctionDefinition(node, ast);
     else if (node instanceof IdentifierPath) res = this.visitIdentifierPath(node, ast);
     else if (node instanceof ImportDirective) res = this.visitImportDirective(node, ast);
@@ -165,7 +169,7 @@ export abstract class ASTVisitor<T> {
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): T {
     return this.visitFunctionDefinition(node, ast);
   }
-  visitCairoTempVar(node: CairoTempVar, ast: AST): T {
+  visitCairoTempVar(node: CairoTempVarStatement, ast: AST): T {
     return this.commonVisit(node, ast);
   }
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): T {
