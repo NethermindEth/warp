@@ -40,6 +40,8 @@ import { AbiEncodePacked } from './abi/abiEncodePacked';
 import { AbiEncodeWithSelector } from './abi/abiEncodeWithSelector';
 import { AbiEncodeWithSignature } from './abi/abiEncodeWithSignature';
 import { AbiDecode } from './abi/abiDecode';
+import { EventFunction } from '../export';
+import { IndexEncode } from './abi/indexEncode';
 
 export class CairoUtilFuncGen {
   abi: {
@@ -89,6 +91,10 @@ export class CairoUtilFuncGen {
   boundChecks: {
     inputCheck: InputCheckGen;
     enums: EnumInputCheck;
+  };
+  events: {
+    index: IndexEncode;
+    event: EventFunction;
   };
   utils: {
     encodeAsFelt: EncodeAsFelt;
@@ -212,6 +218,11 @@ export class CairoUtilFuncGen {
       encodePacked: new AbiEncodePacked(memoryRead, ast, sourceUnit),
       encodeWithSelector: new AbiEncodeWithSelector(abiEncode, ast, sourceUnit),
       encodeWithSignature: new AbiEncodeWithSignature(abiEncode, ast, sourceUnit),
+    };
+    const indexEncode = new IndexEncode(memoryRead, ast, sourceUnit);
+    this.events = {
+      index: indexEncode,
+      event: new EventFunction(abiEncode, indexEncode, ast, sourceUnit),
     };
     this.utils = {
       encodeAsFelt: new EncodeAsFelt(externalDynArrayStructConstructor, ast, sourceUnit),

@@ -1,5 +1,4 @@
 export * from './abiBuiltins';
-export * from './abiExtractor';
 export * from './annotateImplicits';
 export * from './argBoundChecker';
 export * from './builtinHandler';
@@ -15,6 +14,7 @@ export * from './enumConverter';
 export * from './expressionSplitter';
 export * from './externalArgModifier';
 export * from './externalContractHandler';
+export * from './events';
 export * from './freeFunctionInliner';
 export * from './functionModifierHandler';
 export * from './functionPruner';
@@ -55,3 +55,4 @@ export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
 export * from './warnSupportedFeatures';
+export * from './sourceUnitPathFixer';

@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import assert from 'assert';
 import * as path from 'path';
 import { execSync } from 'child_process';
@@ -568,4 +569,70 @@ export function getContainingSourceUnit(node: ASTNode): SourceUnit {
   const root = node.getClosestParentByType(SourceUnit);
   assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
   return root;
+}
+
+export const NODE_MODULES_MARKER = ['node_modules'];
+
+function markerExists(files: string[], markers: string[]) {
+  return markers.some((marker) => {
+    return files.some((file) => {
+      return file === marker;
+    });
+  });
+}
+
+export function traverseParent(
+  directory: string,
+  levels: number,
+  markers: string[],
+): string | null {
+  const files = fs.readdirSync(directory);
+  if (levels === 0) {
+    return null;
+  } else if (markerExists(files, markers)) {
+    return directory;
+  } else {
+    return traverseParent(path.resolve(directory, '..'), levels - 1, markers);
+  }
+}
+
+export function traverseChildren(
+  directory: string,
+  levels: number,
+  markers: string[],
+): string | null {
+  const files = fs.readdirSync(directory);
+  if (levels === 0) {
+    return null;
+  } else if (markerExists(files, markers)) {
+    return directory;
+  } else {
+    for (const file of files) {
+      const child = path.join(directory, file);
+
+      if (fs.statSync(child).isDirectory()) {
+        const result = traverseChildren(child, levels - 1, markers);
+        if (result !== null) {
+          return result;
+        }
+      }
+    }
+    return null;
+  }
+}
+
+export function defaultBasePathAndIncludePath() {
+  const currentDirectory = process.cwd();
+
+  const parentNodeModules = traverseParent(currentDirectory, 4, NODE_MODULES_MARKER);
+  if (parentNodeModules !== null) {
+    return [currentDirectory, path.resolve(parentNodeModules, 'node_modules')];
+  }
+
+  const childNodeModules = traverseChildren(currentDirectory, 4, NODE_MODULES_MARKER);
+  if (childNodeModules !== null) {
+    return [currentDirectory, path.resolve(childNodeModules, 'node_modules')];
+  }
+
+  return [null, null];
 }

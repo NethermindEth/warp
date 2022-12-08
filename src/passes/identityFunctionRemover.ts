@@ -52,7 +52,7 @@ export class IdentityFunctionRemover extends ASTMapper {
   isIdentity(node: FunctionDefinition): boolean {
     if (node.vBody !== undefined) {
       const statements = node.vBody.vStatements;
-      if (statements.length == 1) {
+      if (statements.length === 1) {
         const stmt = statements[0];
         if (stmt instanceof Return) {
           const retExpr = stmt.vExpression;
@@ -78,7 +78,7 @@ export class IdentityFunctionRemover extends ASTMapper {
       `Expected a Block in ${printNode(node)}, but got undefined instead`,
     );
     assert(
-      node.vBody.vStatements.length == 1,
+      node.vBody.vStatements.length === 1,
       `Expected only one statement in ${printNode(node.vBody)}`,
     );
     const stmt = node.vBody.vStatements[0];
@@ -122,7 +122,7 @@ export class IdentityFunctionRemover extends ASTMapper {
 }
 
 function checkParamsLength(node: FunctionDefinition, length: number) {
-  return node.vParameters.vParameters.length == length;
+  return node.vParameters.vParameters.length === length;
 }
 
 function checkIdentifierInParams(expr: Identifier, node: FunctionDefinition): boolean {
@@ -141,7 +141,7 @@ function getIndexOf(expr: Expression | null, node: FunctionDefinition): number {
   assert(expr instanceof Identifier, `Expected Identifier but got ${printNode(expr)} instead`);
 
   const parameters = node.vParameters.vParameters;
-  const varDec = parameters.find((param) => param.id == expr.referencedDeclaration);
+  const varDec = parameters.find((param) => param.id === expr.referencedDeclaration);
   assert(
     varDec !== undefined,
     `${printNode(expr)} should be referencing one of the function's parameters`,

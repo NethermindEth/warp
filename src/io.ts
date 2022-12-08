@@ -5,8 +5,6 @@ import { TranspileFailedError, logError } from './utils/errors';
 import { execSync } from 'child_process';
 import { AST } from './ast/ast';
 
-export const solABIPrefix = '// Original soldity abi:';
-
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
     if (printError) logError(`${path} doesn't exist`);
@@ -65,10 +63,7 @@ export function outputResult(
   code: string,
   options: OutputOptions & TranspilationOptions,
   ast: AST,
-  abi?: string,
 ): void {
-  const codeWithABI = abi ? `${code}\n\n${solABIPrefix} ${abi}` : code;
-
   if (options.outputDir === undefined) {
     if (options.result) {
       console.log(`//--- ${outputPath} ---\n${code}\n//---`);
@@ -92,7 +87,7 @@ export function outputResult(
       abiOutPath,
       JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
     );
-    fs.outputFileSync(fullCodeOutPath, codeWithABI);
+    fs.outputFileSync(fullCodeOutPath, code);
 
     if (options.formatCairo || options.dev) {
       const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;

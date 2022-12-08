@@ -391,15 +391,22 @@ class SourceUnitWriter extends CairoASTNodeWriter {
 
 function writeContractInterface(node: ContractDefinition, writer: ASTWriter): SrcDesc {
   const documentation = getDocumentation(node.documentation, writer);
-  const functions = node.vFunctions.map((v) =>
-    writer
+  const functions = node.vFunctions.map((v) => {
+    const resultLines = writer
       .write(v)
-      .split('\n')
-      .filter((line) => line.trim().startsWith('func '))
-      .flatMap((line) => [line, '}', ''])
-      .map((l) => INDENT + l)
-      .join('\n'),
-  );
+      /* TODO: It's a quickfix for now. Implement that as a pass maybe. 
+               Remove any StructuredDocumentation from interface's functions? 
+               Only those that start with 'warp-cairo'?
+               Or create a pass that transforms StructuredDocumentation into AST nodes and removes the function body from interfaces?
+      */
+      .replace(/\s*\/\/.*/g, '')
+      // remove all content between any two pairing curly braces
+      .replace(/\{[^]*\}/g, '')
+      .split('\n');
+    const funcLineIndex = resultLines.findIndex((line) => line.startsWith('func'));
+    resultLines.splice(0, funcLineIndex);
+    return resultLines.join('\n') + '{\n}';
+  });
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
   const baseName = node.name.replace('@interface', '');
@@ -415,7 +422,7 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
 
 class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
-    if (node.kind == ContractKind.Interface) {
+    if (node.kind === ContractKind.Interface) {
       return writeContractInterface(node, writer);
     }
     if (node.abstract)
@@ -436,7 +443,15 @@ class CairoContractWriter extends CairoASTNodeWriter {
       ...staticVariables,
     ];
 
-    const documentation = getDocumentation(node.documentation, writer);
+    let documentation = getDocumentation(node.documentation, writer);
+
+    if (documentation.slice(2).trim().startsWith('warp-cairo')) {
+      documentation = documentation
+        .split('\n')
+        .map((line) => line.slice(2))
+        .slice(1)
+        .join('\n');
+    }
 
     // Don't need to write structs, SourceUnitWriter does so already
 
@@ -898,13 +913,25 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
           ) {
+            let isDelegateCall = false;
             const memberName = node.vExpression.memberName;
-            const contract = writer.write(node.vExpression.vExpression);
+            let firstArg = writer.write(node.vExpression.vExpression); // could be address or class_hash
+            const docLets = getDocumentation(nodeType.definition.documentation, writer)
+              .split('\n')
+              .map((ele) => ele.slice(2).trim());
+            if (docLets[0] === 'WARP-GENERATED') {
+              // extract class hash from doclets[1] which is in the format "class_hash: 0x..."
+              const classHashTextLets = docLets[1].split(':').map((ele) => ele.trim());
+              if (classHashTextLets[0] !== 'class_hash') {
+                throw new TranspileFailedError('Class Hash not found in interface documentation');
+              }
+              isDelegateCall = true;
+              firstArg = classHashTextLets[1];
+            }
             return [
-              `${getInterfaceNameForContract(
-                nodeType.definition.name,
-                node,
-              )}.${memberName}(${contract}${args ? ', ' : ''}${args})`,
+              `${getInterfaceNameForContract(nodeType.definition.name, node)}.${
+                (isDelegateCall ? 'library_call_' : '') + memberName
+              }(${firstArg}${args ? ', ' : ''}${args})`,
             ];
           }
         } else if (

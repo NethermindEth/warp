@@ -61,6 +61,22 @@ export function createArrayTypeName(baseType: TypeName, ast: AST): ArrayTypeName
   return node;
 }
 
+export function createStaticArrayTypeName(
+  baseType: TypeName,
+  size: number,
+  ast: AST,
+): ArrayTypeName {
+  const node = new ArrayTypeName(
+    ast.reserveId(),
+    '',
+    `${baseType.typeString}[${size}]`,
+    baseType,
+    createNumberLiteral(size, ast),
+  );
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createBlock(
   statements: Statement[],
   ast: AST,

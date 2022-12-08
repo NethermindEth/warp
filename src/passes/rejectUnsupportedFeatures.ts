@@ -19,7 +19,6 @@ import {
   IndexAccess,
   Literal,
   MemberAccess,
-  ParameterList,
   PointerType,
   RevertStatement,
   SourceUnit,
@@ -164,14 +163,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         node,
       );
     this.visitExpression(node, ast);
-  }
-
-  visitParameterList(node: ParameterList, ast: AST): void {
-    // any of node.vParameters has indexed flag true then throw error
-    if (node.vParameters.some((param) => param.indexed)) {
-      this.addUnsupported(`Indexed parameters are not supported`, node);
-    }
-    this.commonVisit(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {

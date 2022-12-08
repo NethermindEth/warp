@@ -18,14 +18,14 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(files: string[]): SolcOutput {
+function compileSolFilesCommon(files: string[], options: CompilationOptions): SolcOutput {
   const sources = files.map((file) => {
     return getSolFileVersion(file);
   });
 
   sources.forEach((version, i) => {
     const [, majorVersion] = matchCompilerVersion(version);
-    if (majorVersion != '7' && majorVersion != '8') {
+    if (majorVersion !== '7' && majorVersion !== '8') {
       throw new TranspileFailedError(
         `Unsupported version of solidity source ${version} in file ${files[i]}`,
       );
@@ -36,13 +36,13 @@ function compileSolFilesCommon(files: string[]): SolcOutput {
     throw new TranspileFailedError(`All solidity files should be the same major version`);
   }
 
-  const solcOutput = cliCompile(formatInput(files), sources[0]);
+  const solcOutput = cliCompile(formatInput(files), sources[0], options);
   return solcOutput;
 }
 
 export function compileSolFiles(files: string[], options: CompilationOptions): AST {
-  const solcOutput = compileSolFilesCommon(files);
-  printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
+  const solcOutput = compileSolFilesCommon(files, options);
+  printErrors(solcOutput.result, options.warnings || false, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
@@ -130,20 +130,18 @@ function cliCompile(
   // For solc v0.8.7 and before, we need to set the allow path.
   // Since we are using latest version of v0.8.x, we do not need to set allow path
   // for v0.8.x contracts.
-  if (nethersolcVersion == '7') {
+  if (nethersolcVersion === '7') {
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
-  const includePathOptions =
-    options === undefined || options.includePaths === undefined
-      ? ''
-      : `--include-path ${options.includePaths.join(' --include-path ')}`;
-  const basePathOption =
-    options === undefined || options.basePath === undefined
-      ? ''
-      : `--base-path ${options.basePath}`;
 
-  const commandOptions = `--standard-json ${allowedPaths} ${includePathOptions} ${basePathOption}`;
+  const includePathOptions =
+    options?.includePaths === undefined || nethersolcVersion === '7'
+      ? ``
+      : `--include-path ${options.includePaths.join(' --include-path ')}`;
+  const basePathOption = options?.basePath === undefined ? `` : `--base-path ${options.basePath}`;
+
+  const commandOptions = `--standard-json ${allowedPaths} ${basePathOption} ${includePathOptions}`;
 
   return {
     result: JSON.parse(
@@ -215,7 +213,7 @@ function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion
 export function compileSolFilesAndExtractContracts(file: string): unknown {
   const requiredSolcVersion = getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
-  if (majorVersion != '7' && majorVersion != '8') {
+  if (majorVersion !== '7' && majorVersion !== '8') {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
