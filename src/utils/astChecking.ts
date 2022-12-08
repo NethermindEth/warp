@@ -163,7 +163,7 @@ function checkFieldAndVFieldMatch<T extends ASTNode, K1 extends keyof T, K2 exte
       );
     }
 
-    if (val1 != val2.id) {
+    if (val1 !== val2.id) {
       throw new InsaneASTError(
         `Node ${pp(node)} property ${String(field)} ${val1} differs from ${String(vField)}.id ${pp(
           val2,
@@ -203,7 +203,7 @@ function checkFieldAndVFieldMatch<T extends ASTNode, K1 extends keyof T, K2 exte
         );
       }
 
-      if (el1 != el2.id) {
+      if (el1 !== el2.id) {
         throw new InsaneASTError(
           `Node ${pp(node)} property ${String(field)}[${idx}] ${el1} differs from ${String(
             vField,

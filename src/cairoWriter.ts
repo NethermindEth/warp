@@ -422,7 +422,7 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
 
 class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
-    if (node.kind == ContractKind.Interface) {
+    if (node.kind === ContractKind.Interface) {
       return writeContractInterface(node, writer);
     }
     if (node.abstract)

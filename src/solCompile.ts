@@ -25,7 +25,7 @@ function compileSolFilesCommon(files: string[], options: CompilationOptions): So
 
   sources.forEach((version, i) => {
     const [, majorVersion] = matchCompilerVersion(version);
-    if (majorVersion != '7' && majorVersion != '8') {
+    if (majorVersion !== '7' && majorVersion !== '8') {
       throw new TranspileFailedError(
         `Unsupported version of solidity source ${version} in file ${files[i]}`,
       );
@@ -130,7 +130,7 @@ function cliCompile(
   // For solc v0.8.7 and before, we need to set the allow path.
   // Since we are using latest version of v0.8.x, we do not need to set allow path
   // for v0.8.x contracts.
-  if (nethersolcVersion == '7') {
+  if (nethersolcVersion === '7') {
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
@@ -213,7 +213,7 @@ function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion
 export function compileSolFilesAndExtractContracts(file: string): unknown {
   const requiredSolcVersion = getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
-  if (majorVersion != '7' && majorVersion != '8') {
+  if (majorVersion !== '7' && majorVersion !== '8') {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 

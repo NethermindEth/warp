@@ -229,7 +229,7 @@ function findConstructorCall(
     // passed as part of a Modifier Invocation or from a more derived contract.
     for (const specifier of contract.vInheritanceSpecifiers) {
       const contractId = specifier.vBaseType.referencedDeclaration;
-      if (contractId == currentContract.id) {
+      if (contractId === currentContract.id) {
         const size = specifier.vArguments.length;
         if (size > 0) {
           assert(
@@ -246,7 +246,7 @@ function findConstructorCall(
     if (constructorFunc !== undefined) {
       for (const modInvocation of constructorFunc.vModifiers) {
         const contractDef = modInvocation.vModifier;
-        if (contractDef instanceof ContractDefinition && contractDef.id == currentContract.id) {
+        if (contractDef instanceof ContractDefinition && contractDef.id === currentContract.id) {
           return modInvocation.vArguments;
         }
       }
@@ -375,7 +375,7 @@ function removeModifiersFromConstructor(node: ContractDefinition) {
 function findVarInitialization(contract: ContractDefinition): FunctionDefinition | null {
   const name = `${INIT_FUNCTION_PREFIX}${contract.name}`;
   for (const f of contract.vFunctions) {
-    if (f.name == name) {
+    if (f.name === name) {
       return f;
     }
   }

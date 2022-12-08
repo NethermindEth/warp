@@ -13,6 +13,7 @@
   ],
   "ignorePatterns": ["build", "src/utils/functionSignatureParser.ts"],
   "rules": {
+    "eqeqeq": "error",
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }]
