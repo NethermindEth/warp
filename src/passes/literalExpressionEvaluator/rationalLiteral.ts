@@ -137,6 +137,28 @@ export class RationalLiteral {
   toString(): string {
     return `${this.numerator}/${this.denominator}`;
   }
+
+  and(other: RationalLiteral): RationalLiteral {
+    return new RationalLiteral(
+      this.numerator && other.numerator,
+      this.denominator && other.denominator,
+    );
+  }
+  or(other: RationalLiteral): RationalLiteral {
+    return new RationalLiteral(
+      this.numerator || other.numerator,
+      this.denominator || other.denominator,
+    );
+  }
+  xor(other: RationalLiteral): RationalLiteral {
+    return new RationalLiteral(
+      this.numerator ^ other.numerator,
+      this.denominator ^ other.denominator,
+    );
+  }
+  not(): boolean {
+    return !this.numerator;
+  }
 }
 
 export function stringToLiteralValue(value: string): RationalLiteral {

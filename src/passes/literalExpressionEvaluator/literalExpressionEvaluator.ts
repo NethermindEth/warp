@@ -236,6 +236,14 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
         return left.shiftLeft(right);
       case '>>':
         return left.shiftRight(right);
+      case '&':
+        return left.and(right);
+      case '|':
+        return left.or(right);
+      case '^':
+        return left.xor(right);
+      case '~':
+        return left.not();
       default:
         throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
     }
