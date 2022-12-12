@@ -28,6 +28,7 @@ export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
 export * from './importDirectiveIdentifier';
 export * from './inheritanceInliner/export';
+export * from './inlineAssemblyTransformer';
 export * from './literalExpressionEvaluator/export';
 export * from './loopFunctionaliser/export';
 export * from './namedArgsRemover';
