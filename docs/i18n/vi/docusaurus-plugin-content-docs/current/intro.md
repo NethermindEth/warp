@@ -3,7 +3,7 @@ title: Welcome
 sidebar_position: 1
 ---
 
-# Welcome to Warp 2.0
+# Welcome to Warp 2
 
 We are excited to announce the second version of Warp, now designed to transpile your Solidity code directly into Cairo.
 
@@ -17,7 +17,6 @@ Warp 2 improves on the prior version by transpiling directly from Solidity to Ca
 - Smaller step count when calling functions (functions require less computation)
 - Improved Cairo readability
 - Unsupported feature messages to know which features in Solidity are not supported
-- Reduced code size & smaller step count
 - YUL will always have more instructions than the Solidity it is generated from. As an example, the simple 1-line function in Solidity grows to 6 lines of YUL with additional function calls.
 
 #### Want to know more on Warp 2.0? Read the blog [here](https://medium.com/nethermind-eth/warp-2-0-transpiling-directly-from-solidity-to-cairo-9bf41a6d26ee).
