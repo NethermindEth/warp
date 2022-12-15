@@ -51,7 +51,7 @@ jobs:
       - name: Test code execution
         run: |
           yarn testnet:benchmark_semantic &
-          ${{ matrix.SM_BATCH }} node build/autoRunSemanticTests.js
+          SM_BATCH=${{ matrix.SM_BATCH }} node build/autoRunSemanticTests.js
 
       - name: Save benchmarks in artifacts
         uses: actions/upload-artifact@v3
