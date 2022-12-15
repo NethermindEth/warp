@@ -17,9 +17,9 @@ jobs:
       matrix:
         SM_BATCH: [1, 2, 3]
     runs-on: ubuntu-latest
+    env:
+      SM_BATCH: ${{ matrix.SM_BATCH }}
     steps:
-      - env:
-          SM_BATCH: ${{ matrix.SM_BATCH }}
       - uses: actions/checkout@v2
 
       - name: Use Node.js
