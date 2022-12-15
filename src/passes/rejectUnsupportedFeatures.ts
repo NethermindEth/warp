@@ -79,7 +79,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     if (node.vIndexExpression === undefined) {
-      if (!(safeGetNodeType(node, ast.compilerVersion) instanceof TypeNameType)) {
+      if (!(safeGetNodeType(node, ast.inference) instanceof TypeNameType)) {
         this.addUnsupported(`Undefined index access not supported`, node);
       }
     }
@@ -116,14 +116,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const typeNode = safeGetNodeType(node, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node, ast.inference);
     if (typeNode instanceof FunctionType)
       this.addUnsupported('Function objects are not supported', node);
     this.commonVisit(node, ast);
   }
 
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
-    const typeNode = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node.vExpression, ast.inference);
     if (typeNode instanceof FunctionType)
       this.addUnsupported('Function objects are not supported', node);
     this.commonVisit(node, ast);
@@ -147,7 +147,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    if (!(safeGetNodeType(node.vExpression, ast.compilerVersion) instanceof AddressType)) {
+    if (!(safeGetNodeType(node.vExpression, ast.inference) instanceof AddressType)) {
       this.visitExpression(node, ast);
       return;
     }
@@ -209,7 +209,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (!(node.vScope instanceof ContractDefinition && node.vScope.kind === ContractKind.Library)) {
       [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach((decl) => {
-        const type = safeGetNodeType(decl, ast.compilerVersion);
+        const type = safeGetNodeType(decl, ast.inference);
         this.functionArgsCheck(type, ast, isExternallyVisible(node), decl.storageLocation, node);
       });
     }
@@ -261,7 +261,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       }
       type.definition.vMembers.forEach((member) =>
         this.functionArgsCheck(
-          safeGetNodeType(member, ast.compilerVersion),
+          safeGetNodeType(member, ast.inference),
           ast,
           externallyVisible,
           dataLocation,
@@ -328,7 +328,7 @@ function findDynArrayRecursive(type: TypeNode, ast: AST): boolean {
     return true;
   } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
     return type.definition.vMembers.some((member) =>
-      findDynArrayRecursive(safeGetNodeType(member, ast.compilerVersion), ast),
+      findDynArrayRecursive(safeGetNodeType(member, ast.inference), ast),
     );
   } else {
     return false;

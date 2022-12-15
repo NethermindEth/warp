@@ -5,6 +5,7 @@ import {
   ForStatement,
   FunctionDefinition,
   Identifier,
+  InferType,
   SourceUnit,
   StructDefinition,
   VariableDeclaration,
@@ -18,7 +19,6 @@ import { WillNotSupportError } from '../../utils/errors';
 import { MANGLED_WARP } from '../../utils/nameModifiers';
 import { isNameless } from '../../utils/utils';
 import { safeCanonicalHash } from '../../utils/nodeTypeProcessing';
-import { infer } from '../../utils/inference';
 // Terms grabbed from here
 // https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/lang/compiler/cairo.ebnf
 export const reservedTerms = new Set<string>([
@@ -149,8 +149,8 @@ export class DeclarationNameMangler extends ASTMapper {
     node.name = this.createNewFunctionName(node, ast);
   }
 
-  mangleEventDefinition(node: EventDefinition): void {
-    node.name = `${node.name}_${infer.signatureHash(node, ABIEncoderVersion.V2)}`;
+  mangleEventDefinition(inference: InferType, node: EventDefinition): void {
+    node.name = `${node.name}_${inference.signatureHash(node, ABIEncoderVersion.V2)}`;
   }
 
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {
@@ -158,6 +158,6 @@ export class DeclarationNameMangler extends ASTMapper {
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
-    node.vEvents.forEach((e) => this.mangleEventDefinition(e));
+    node.vEvents.forEach((e) => this.mangleEventDefinition(ast.inference, e));
   }
 }

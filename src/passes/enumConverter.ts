@@ -19,12 +19,17 @@ import {
   FunctionCall,
   FunctionCallKind,
   ElementaryTypeNameExpression,
+  StringLiteralType,
+  Literal,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
-import { generateExpressionTypeString } from '../utils/getTypeString';
+import {
+  generateExpressionTypeString,
+  generateExpressionTypeString1,
+} from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
@@ -46,7 +51,7 @@ export class EnumConverter extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.visitExpression(node, ast);
     if (node.kind !== FunctionCallKind.TypeConversion) return;
-    const tNode = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const tNode = safeGetNodeType(node.vExpression, ast.inference);
     assert(
       tNode instanceof TypeNameType,
       `Got non-typename type ${tNode.pp()} when parsing conversion function
@@ -58,7 +63,11 @@ export class EnumConverter extends ASTMapper {
       (node.vExpression instanceof MemberAccess &&
         node.vExpression.vReferencedDeclaration instanceof EnumDefinition)
     ) {
-      node.vExpression.typeString = generateExpressionTypeString(replaceEnumType(tNode));
+      node.vExpression.typeString = generateExpressionTypeString1(
+        ast.inference,
+        node,
+        replaceEnumType(tNode),
+      );
       ast.replaceNode(
         node.vExpression,
         new ElementaryTypeNameExpression(
@@ -78,36 +87,44 @@ export class EnumConverter extends ASTMapper {
 
   visitTypeName(node: TypeName, ast: AST): void {
     this.commonVisit(node, ast);
-    const tNode = safeGetNodeType(node, ast.compilerVersion);
+    const tNode = safeGetNodeType(node, ast.inference);
     const replacementNode = replaceEnumType(tNode);
     if (tNode.pp() !== replacementNode.pp()) {
-      node.typeString = generateExpressionTypeString(replacementNode);
+      node.typeString = generateExpressionTypeString1(ast.inference, node, replacementNode);
     }
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
-    const tNode = safeGetNodeType(node, ast.compilerVersion);
+    const tNode = safeGetNodeType(node, ast.inference);
     assert(tNode instanceof UserDefinedType, 'Expected UserDefinedType');
     if (!(tNode.definition instanceof EnumDefinition)) return;
-    const newTypeString = generateExpressionTypeString(replaceEnumType(tNode));
+    const newTypeString = generateExpressionTypeString1(
+      ast.inference,
+      node,
+      replaceEnumType(tNode),
+    );
     ast.replaceNode(node, new ElementaryTypeName(node.id, node.src, newTypeString, newTypeString));
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
-    const typeNode = replaceEnumType(safeGetNodeType(node, ast.compilerVersion));
-    node.typeString = generateExpressionTypeString(typeNode);
+    const typeNode = replaceEnumType(safeGetNodeType(node, ast.inference));
+    node.typeString = generateExpressionTypeString1(ast.inference, node, typeNode);
   }
 
   visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
-    const typeNode = replaceEnumType(safeGetNodeType(node, ast.compilerVersion));
-    node.typeString = generateExpressionTypeString(typeNode);
+    const type = safeGetNodeType(node, ast.inference);
+    if (type instanceof StringLiteralType) {
+      return;
+    }
+    const typeNode = replaceEnumType(type);
+    node.typeString = generateExpressionTypeString1(ast.inference, node, typeNode);
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    const type = safeGetNodeType(node, ast.compilerVersion);
-    const baseType = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const type = safeGetNodeType(node, ast.inference);
+    const baseType = safeGetNodeType(node.vExpression, ast.inference);
     if (
       type instanceof UserDefinedType &&
       type.definition instanceof EnumDefinition &&

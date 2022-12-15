@@ -83,6 +83,8 @@ export abstract class ASTVisitor<T> {
   }
   dispatchVisit(node: ASTNode, ast: AST): T {
     let res: T | null = null;
+    // console.log(this);
+    // console.log((ast.roots[0].lastChild?.firstChild?.lastChild?.firstChild as VariableDeclarationStatement).vInitialValue);
     // ASTNodeWithChildren
     if (node instanceof CairoContract) res = this.visitCairoContract(node, ast);
     else if (node instanceof ContractDefinition) res = this.visitContractDefinition(node, ast);

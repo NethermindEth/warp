@@ -55,23 +55,13 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       'ABI decode must recieve two arguments: data to decode, and types to decode into',
     );
     const [data, types] = expressions.map(
-      (t) => generalizeType(safeGetNodeType(t, this.ast.compilerVersion))[0],
+      (t) => generalizeType(safeGetNodeType(t, this.ast.inference))[0],
     );
     assert(
       data instanceof BytesType,
       `Data must be of BytesType instead of ${printTypeNode(data)}`,
     );
-    assert(
-      types instanceof TupleType || types instanceof TypeNameType,
-      `Types must be of TupleType or TypeNameType instead of ${printTypeNode(types)}`,
-    );
-    const typesToDecode =
-      types instanceof TupleType
-        ? types.elements.map((t) => {
-            assert(t instanceof TypeNameType);
-            return t.type;
-          })
-        : [types.type];
+    const typesToDecode = types instanceof TupleType ? types.elements : [types];
 
     const functionName = this.getOrCreate(typesToDecode.map((t) => generalizeType(t)[0]));
 
@@ -117,7 +107,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     );
 
     const indexLength = types.reduce(
-      (sum, t) => sum + BigInt(getByteSize(t, this.ast.compilerVersion)),
+      (sum, t) => sum + BigInt(getByteSize(t, this.ast.inference)),
       0n,
     );
 
@@ -154,7 +144,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       (type) => this.createStaticArrayDecoding(type),
       (type, definition) => this.createStructDecoding(type, definition),
       unexpectedType,
-      (type) => this.createValueTypeDecoding(getPackedByteSize(type, this.ast.compilerVersion)),
+      (type) => this.createValueTypeDecoding(getPackedByteSize(type, this.ast.inference)),
     );
   }
 
@@ -198,7 +188,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       //    actual location, the decoding process starts from there.
       let initInstructions: string[] = [];
       let typeIndex = 'mem_index';
-      if (isDynamicallySized(type, this.ast.compilerVersion)) {
+      if (isDynamicallySized(type, this.ast.inference)) {
         this.requireImport('warplib.dynamic_arrays_util', 'byte_array_to_felt_value');
         initInstructions = [
           `let (param_offset) = byte_array_to_felt_value(mem_index, mem_index + 32, mem_ptr, 0);`,
@@ -278,12 +268,12 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       return [
         ...initInstructions,
         ...callInstructions,
-        `let ${newIndexVar} = mem_index + ${getByteSize(type, this.ast.compilerVersion)};`,
+        `let ${newIndexVar} = mem_index + ${getByteSize(type, this.ast.inference)};`,
       ].join('\n');
     }
 
     // Handling value types
-    const byteSize = Number(getPackedByteSize(type, this.ast.compilerVersion));
+    const byteSize = Number(getPackedByteSize(type, this.ast.inference));
     const args = [
       add('mem_index', 32 - byteSize),
       'mem_index + 32',
@@ -418,7 +408,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     let indexWalked = 0;
     let structWriteLocation = 0;
     const instructions = definition.vMembers.map((member, index) => {
-      const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
+      const type = generalizeType(safeGetNodeType(member, this.ast.inference))[0];
       const elemWidth = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
       const decodingCode = this.generateDecodingCode(
         type,
@@ -426,7 +416,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         `member${index}`,
         `${indexWalked}`,
       );
-      indexWalked += Number(getByteSize(type, this.ast.compilerVersion));
+      indexWalked += Number(getByteSize(type, this.ast.inference));
       structWriteLocation += index * elemWidth;
       const getMemLocCode = `let mem_to_write_loc = ${add('struct_ptr', structWriteLocation)};`;
       const writeMemLocCode = `${this.memoryWrite.getOrCreate(

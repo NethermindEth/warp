@@ -82,7 +82,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
       'Expected variables to be initialised when running variable declaration expression splitter (did you run variable declaration initialiser?)',
     );
 
-    const initialValueType = safeGetNodeType(initialValue, ast.compilerVersion);
+    const initialValueType = safeGetNodeType(initialValue, ast.inference);
 
     if (!(initialValueType instanceof TupleType)) {
       return [node];
@@ -142,6 +142,9 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
       return [node, ...newDeclarationStatements];
     } else if (initialValue instanceof TupleExpression) {
       // Since Solidity 0.5.0 tuples on either side of an assignment must be of equal size
+      if (node.vDeclarations.length === 1) {
+        return [node];
+      }
 
       return node.assignments
         .map((declId, tupleIndex) => {

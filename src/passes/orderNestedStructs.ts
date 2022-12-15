@@ -101,7 +101,7 @@ export function makeStructTree(
 
   structs.forEach((struct) => {
     struct.vMembers.forEach((varDecl) => {
-      const nestedStruct = findStruct(safeGetNodeType(varDecl, ast.compilerVersion));
+      const nestedStruct = findStruct(safeGetNodeType(varDecl, ast.inference));
       // second check to avoid adding imported structs to contract defintion
       if (nestedStruct !== null && structs.has(nestedStruct)) {
         roots.delete(nestedStruct);

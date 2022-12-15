@@ -25,7 +25,7 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitLiteral(node: Literal, ast: AST): void {
-    const type = safeGetNodeType(node, ast.compilerVersion);
+    const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
       ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
     }

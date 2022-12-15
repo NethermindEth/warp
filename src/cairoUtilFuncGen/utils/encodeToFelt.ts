@@ -270,7 +270,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     assert(type.definition instanceof StructDefinition);
 
     const encodeCode = type.definition.vMembers.map((varDecl, index) => {
-      const varType = safeGetNodeType(varDecl, this.ast.compilerVersion);
+      const varType = safeGetNodeType(varDecl, this.ast.inference);
       return [
         `let member_${index} = from_struct.${varDecl.name};`,
         ...this.generateEncodeCode(varType, `member_${index}`),

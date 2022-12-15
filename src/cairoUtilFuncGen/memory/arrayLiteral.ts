@@ -69,7 +69,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const elements = node.vOriginalComponents.filter(notNull);
     assert(elements.length === node.vOriginalComponents.length);
 
-    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
     assert(type instanceof ArrayType || type instanceof BytesType || type instanceof StringType);
 
     const elementT = getElementType(type);

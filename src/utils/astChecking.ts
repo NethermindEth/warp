@@ -765,7 +765,7 @@ class NodeTypeResolutionChecker extends ASTMapper {
           child instanceof Expression || child instanceof VariableDeclaration,
       )
       .filter((child) => child.parent !== undefined && !(child.parent instanceof ImportDirective))
-      .forEach((child) => safeGetNodeType(child, ast.compilerVersion));
+      .forEach((child) => safeGetNodeType(child, ast.inference));
   }
 }
 

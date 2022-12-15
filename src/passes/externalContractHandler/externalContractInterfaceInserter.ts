@@ -46,7 +46,7 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    const nodeType = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node.vExpression, ast.inference);
     if (nodeType instanceof UserDefinedType && nodeType.definition instanceof ContractDefinition) {
       // nodeType.definition will get the old ContractDefinition, see the note
       // in storageAllocator on hotfixing getNodeType

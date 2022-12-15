@@ -2,7 +2,6 @@ import assert from 'assert';
 import { ElementaryTypeName, TypeName } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { infer } from '../utils/inference';
 
 class AssertTypeStrings extends ASTMapper {
   visitTypeName(node: TypeName, ast: AST): void {
@@ -18,9 +17,9 @@ export class TypeStringsChecker extends ASTMapper {
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
-  visitElementaryTypeName(node: ElementaryTypeName, _ast: AST): void {
+  visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (node.typeString === undefined) {
-      node.typeString = infer.typeNameToTypeNode(node).pp();
+      node.typeString = ast.inference.typeNameToTypeNode(node).pp();
     }
   }
 

@@ -32,7 +32,7 @@ export class ConstantHandler extends ASTMapper {
     }
 
     const constant = cloneASTNode(referencedDeclaration.vValue, ast);
-    const typeTo = safeGetNodeType(node, ast.compilerVersion);
+    const typeTo = safeGetNodeType(node, ast.inference);
 
     ast.replaceNode(node, constant);
     insertConversionIfNecessary(constant, typeTo, constant, ast);

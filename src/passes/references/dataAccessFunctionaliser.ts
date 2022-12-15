@@ -67,7 +67,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       return this.commonVisit(node, ast);
     }
 
-    const nodeType = safeGetNodeType(node, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, ast.inference);
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
 
@@ -165,7 +165,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .memory.convert.genIfNecesary(
             node.vLeftHandSide,
-            safeGetNodeType(node.vRightHandSide, ast.compilerVersion),
+            safeGetNodeType(node.vRightHandSide, ast.inference),
           );
         if (result) {
           ast.replaceNode(node.vRightHandSide, convert, node);
@@ -238,7 +238,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       return this.visitExpression(node, ast);
     }
 
-    const type = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const type = safeGetNodeType(node.vExpression, ast.inference);
     if (!(type instanceof PointerType)) {
       assert(
         (type instanceof UserDefinedType && type.definition instanceof ContractDefinition) ||
@@ -269,7 +269,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
 
-    const baseType = safeGetNodeType(node.vBaseExpression, ast.compilerVersion);
+    const baseType = safeGetNodeType(node.vBaseExpression, ast.inference);
     let replacement: FunctionCall | null = null;
     if (baseType instanceof PointerType) {
       if (actualLoc === DataLocation.Storage) {
@@ -317,9 +317,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 }
 
 function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): FunctionCall {
-  const arrayType = generalizeType(
-    safeGetNodeType(indexAccess.vBaseExpression, ast.compilerVersion),
-  )[0];
+  const arrayType = generalizeType(safeGetNodeType(indexAccess.vBaseExpression, ast.inference))[0];
   const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
   const returnTypeName =
     arrayTypeName instanceof ArrayTypeName

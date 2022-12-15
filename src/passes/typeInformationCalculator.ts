@@ -18,7 +18,6 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printTypeNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
-import { infer } from '../utils/inference';
 import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
@@ -90,7 +89,7 @@ export class TypeInformationCalculator extends ASTMapper {
     typestring: string,
     ast: AST,
   ): ASTNode | null {
-    let nodeType = safeGetNodeType(node, ast.compilerVersion);
+    let nodeType = safeGetNodeType(node, ast.inference);
     assert(
       nodeType instanceof TypeNameType,
       `Expected TypeNameType, found ${printTypeNode(nodeType)}`,
@@ -122,7 +121,7 @@ export class TypeInformationCalculator extends ASTMapper {
           throw new WillNotSupportError(`Access to ${memberName} is not supported`);
 
         if (userDef.kind === ContractKind.Interface && memberName === 'interfaceId') {
-          const interfaceId = infer.interfaceId(userDef, ABIEncoderVersion.V2);
+          const interfaceId = ast.inference.interfaceId(userDef, ABIEncoderVersion.V2);
           assert(
             interfaceId !== undefined,
             'Contracts of kind interface must have a defined interfaceId',

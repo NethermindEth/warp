@@ -40,6 +40,7 @@ import {
   ImportDirective,
   IndexAccess,
   IndexRangeAccess,
+  InferType,
   InheritanceSpecifier,
   InlineAssembly,
   Literal,
@@ -145,7 +146,7 @@ class StructDefinitionWriter extends CairoASTNodeWriter {
           .map(
             (value) =>
               `${value.name} : ${CairoType.fromSol(
-                safeGetNodeType(value, writer.targetCompilerVersion),
+                safeGetNodeType(value, new InferType(writer.targetCompilerVersion)),
                 this.ast,
                 TypeConversionContext.StorageAllocation,
               )},`,
@@ -185,7 +186,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const initialValueType = safeGetNodeType(node.vInitialValue, this.ast.compilerVersion);
+    const initialValueType = safeGetNodeType(node.vInitialValue, this.ast.inference);
 
     const getValueN = (n: number): TypeNode => {
       if (initialValueType instanceof TupleType) {
@@ -558,7 +559,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
           : defContext;
 
       const tp = CairoType.fromSol(
-        safeGetNodeType(value, writer.targetCompilerVersion),
+        safeGetNodeType(value, new InferType(writer.targetCompilerVersion)),
         this.ast,
         varTypeConversionContext,
       );
@@ -853,7 +854,7 @@ class IndexAccessWriter extends CairoASTNodeWriter {
     assert(node.vIndexExpression !== undefined);
     const baseWritten = writer.write(node.vBaseExpression);
     const indexWritten = writer.write(node.vIndexExpression);
-    if (isDynamicCallDataArray(safeGetNodeType(node.vBaseExpression, this.ast.compilerVersion))) {
+    if (isDynamicCallDataArray(safeGetNodeType(node.vBaseExpression, this.ast.inference))) {
       return [`${baseWritten}.ptr[${indexWritten}]`];
     }
     return [`${baseWritten}[${indexWritten}]`];
@@ -868,13 +869,13 @@ class IdentifierWriter extends CairoASTNodeWriter {
     ) {
       return ['0'];
     }
-    if (isCalldataDynArrayStruct(node, this.ast.compilerVersion)) {
+    if (isCalldataDynArrayStruct(node, this.ast.inference)) {
       // Calldata dynamic arrays have the element pointer and length variables
       // stored inside a struct. When the dynamic array is accessed, struct's members
       // must be used instead
       return [`${node.name}.len, ${node.name}.ptr`];
     }
-    if (isExternalMemoryDynArray(node, this.ast.compilerVersion)) {
+    if (isExternalMemoryDynArray(node, this.ast.inference)) {
       // Memory treated as calldata behaves similarly to calldata but it's
       // element pointer and length variabes are not wrapped inside a struct.
       // When access to the dynamic array is needed, this two variables are used instead
@@ -901,7 +902,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           // check if we're calling a member of a contract
           const nodeType = safeGetNodeType(
             node.vExpression.vExpression,
-            writer.targetCompilerVersion,
+            new InferType(writer.targetCompilerVersion),
           );
           if (
             nodeType instanceof UserDefinedType &&
@@ -938,7 +939,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             : ['.len', '.ptr'];
           const argTypes = node.vArguments.map((v) => ({
             name: writer.write(v),
-            type: safeGetNodeType(v, this.ast.compilerVersion),
+            type: safeGetNodeType(v, this.ast.inference),
           }));
           const args = argTypes
             .map(({ name, type }) =>
@@ -968,7 +969,10 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
           return [`${args[0]}`];
         }
-        const nodeType = safeGetNodeType(node.vExpression, writer.targetCompilerVersion);
+        const nodeType = safeGetNodeType(
+          node.vExpression,
+          new InferType(writer.targetCompilerVersion),
+        );
         if (
           nodeType instanceof UserDefinedType &&
           nodeType.definition instanceof ContractDefinition

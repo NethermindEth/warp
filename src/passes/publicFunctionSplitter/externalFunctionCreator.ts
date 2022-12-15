@@ -121,7 +121,7 @@ function createCallToInternalFunction(
   const memberAccess = new MemberAccess(
     ast.reserveId(),
     '',
-    getFunctionTypeString(functionDef, ast.compilerVersion, nodeInSourceUnit),
+    getFunctionTypeString(functionDef, ast.inference, nodeInSourceUnit),
     new Identifier(
       ast.reserveId(),
       '',

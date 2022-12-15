@@ -50,7 +50,7 @@ export class StorageAllocator extends ASTMapper {
     const dynamicAllocations: Map<VariableDeclaration, number> = new Map();
     const staticAllocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
-      const type = safeGetNodeType(v, ast.compilerVersion);
+      const type = safeGetNodeType(v, ast.inference);
       if (generalizeType(type)[0] instanceof MappingType || isDynamicArray(type)) {
         const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
         dynamicAllocations.set(v, ++usedNames);
@@ -136,7 +136,7 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
   if (node.vValue === undefined) return;
 
   assert(node.vType !== undefined);
-  const type = typeNameToSpecializedTypeNode(node.vType, DataLocation.Storage);
+  const type = typeNameToSpecializedTypeNode(ast.inference, node.vType, DataLocation.Storage);
 
   let value = node.vValue;
   if (value && value instanceof Literal && value.kind === LiteralKind.String) {
