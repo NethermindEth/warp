@@ -18,6 +18,8 @@ jobs:
         SM_BATCH: [1, 2, 3]
     runs-on: ubuntu-latest
     steps:
+      - env:
+          SM_BATCH: ${{ matrix.SM_BATCH }}
       - uses: actions/checkout@v2
 
       - name: Use Node.js
@@ -51,7 +53,7 @@ jobs:
       - name: Test code execution
         run: |
           yarn testnet:benchmark_semantic &
-          SM_BATCH=${{ matrix.SM_BATCH }} node build/autoRunSemanticTests.js
+          node build/autoRunSemanticTests.js
 
       - name: Save benchmarks in artifacts
         uses: actions/upload-artifact@v3
