@@ -14,7 +14,11 @@ export class DropUnusedSourceUnits extends ASTMapper {
     ast.roots = ast.roots.filter(
       (su) =>
         su.vContracts.length > 0 &&
-        su.vContracts.some((cd) => cd.kind === ContractKind.Contract && !cd.abstract),
+        su.vContracts.some(
+          (cd) =>
+            (cd.kind === ContractKind.Contract && !cd.abstract) ||
+            cd.kind === ContractKind.Interface,
+        ),
     );
     return ast;
   }
