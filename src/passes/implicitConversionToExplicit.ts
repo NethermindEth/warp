@@ -271,12 +271,13 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     const type = generalizeType(safeGetNodeType(node, ast.inference))[0];
 
     assert(
-      type instanceof TupleType,
+      type instanceof TupleType || type instanceof ArrayType,
       `Expected inline array ${printNode(node)} to be tuple type, got ${printTypeNode(type)}`,
     );
 
     for (const [i, element] of node.vComponents.entries()) {
-      insertConversionIfNecessary(element, type.elements[i], node, ast);
+      const targetType = type instanceof TupleType ? type.elements[i] : type.elementT;
+      insertConversionIfNecessary(element, targetType, node, ast);
     }
 
     this.visitExpression(node, ast);
@@ -372,7 +373,9 @@ export function insertConversionIfNecessary(
   } else if (currentType instanceof ImportRefType) {
     return;
   } else if (currentType instanceof IntLiteralType) {
-    return;
+    if (!(generalisedTargetType instanceof IntLiteralType)) {
+      insertConversion(expression, generalisedTargetType, context, ast);
+    }
   } else if (currentType instanceof IntType) {
     if (
       generalisedTargetType instanceof IntType &&
@@ -434,7 +437,7 @@ export function insertConversionIfNecessary(
       expression.vComponents.forEach((node) =>
         insertConversionIfNecessary(node, generalisedTargetType.elementT, expression, ast),
       );
-      // expression.typeString =
+      expression.typeString = generalisedTargetType.getFields()[0];
       return;
     } else if (targetType instanceof TupleType) {
       return;
