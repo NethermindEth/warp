@@ -11,7 +11,6 @@ import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { createBlock, createCairoTempVar } from '../utils/nodeTemplates';
-import { FunctionStubKind } from '../ast/cairoNodes/cairoFunctionDefinition';
 import { hasPathWithoutReturn } from '../export';
 
 /*
@@ -82,11 +81,6 @@ export class IfStatementTempVarPostpender extends ASTMapper {
         throw new TranspileFailedError(
           `Implicit variable dead. ${implicit} in function ${node.name}.`,
         );
-      }
-    });
-    node.vParameters.vParameters.forEach((p) => {
-      if (!this.liveVars.delete(p.name) && node.functionStubKind === FunctionStubKind.None) {
-        node.functionStubKind;
       }
     });
     this.liveVars = new Set<string>();

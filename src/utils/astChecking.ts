@@ -669,8 +669,6 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
       checkDirectChildren(node, 'vSubExpression');
     } else if (node instanceof CairoAssert) {
       checkDirectChildren(node, 'vExpression');
-    } else if (node instanceof CairoTempVarStatement) {
-      // TODO make sure vars are live after and declared before
     } else {
       throw new Error(`Unknown ASTNode type ${node.constructor.name}`);
     }
