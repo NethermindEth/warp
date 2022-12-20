@@ -65,7 +65,7 @@ import {
 } from 'solc-typed-ast';
 import { pp } from 'solc-typed-ast/dist/misc/index';
 import { AST } from '../ast/ast';
-import { CairoAssert, CairoTempVarStatement } from '../ast/cairoNodes';
+import { CairoAssert } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
 import { safeGetNodeType } from './nodeTypeProcessing';
