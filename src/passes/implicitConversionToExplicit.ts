@@ -442,9 +442,11 @@ export function insertConversionIfNecessary(
     } else if (targetType instanceof TupleType) {
       return;
     }
-    throw new TranspileFailedError(
+    assert(
+      expression.vComponents.length === 1,
       `Attempted to convert tuple ${printNode(expression)} as single value`,
     );
+    ast.replaceNode(expression, expression.vComponents[0]);
   } else if (currentType instanceof TypeNameType) {
     return;
   } else if (currentType instanceof UserDefinedType) {
