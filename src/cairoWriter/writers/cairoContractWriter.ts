@@ -1,5 +1,5 @@
 import { ASTWriter, ContractKind, SrcDesc } from 'solc-typed-ast';
-import { CairoContract, isExternallyVisible } from '../../export';
+import { CairoContract, isExternallyVisible, TEMP_INTERFACE_SUFFIX } from '../../export';
 import { CairoASTNodeWriter } from '../base';
 import {
   getDocumentation,
@@ -130,7 +130,6 @@ export class CairoContractWriter extends CairoASTNodeWriter {
   }
 
   private writeContractInterface(node: CairoContract, writer: ASTWriter): SrcDesc {
-    console.log('Writing contract interface', node.name);
     const documentation = getDocumentation(node.documentation, writer);
     const functions = node.vFunctions.map((v) => {
       const resultLines = writer
@@ -150,8 +149,14 @@ export class CairoContractWriter extends CairoASTNodeWriter {
     });
     // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
     // Remove `@interface` to get the actual contract interface name
-    const baseName = node.name.replace('@interface', '');
-    const interfaceName = getInterfaceNameForContract(baseName, node, interfaceNameMappings);
+
+    const interfaceName = node.name.endsWith(TEMP_INTERFACE_SUFFIX)
+      ? getInterfaceNameForContract(
+          node.name.replace(TEMP_INTERFACE_SUFFIX, ''),
+          node,
+          interfaceNameMappings,
+        )
+      : node.name;
 
     return [
       [

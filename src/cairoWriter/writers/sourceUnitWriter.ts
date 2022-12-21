@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
-import { getStructsAndRemappings, removeExcessNewlines } from '../../export';
+import { getStructsAndRemappings, removeExcessNewlines, TEMP_INTERFACE_SUFFIX } from '../../export';
 import { CairoASTNodeWriter } from '../base';
 import { writeImports } from '../utils';
 
@@ -14,8 +14,12 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
     this.generateInterfaceNameMappings(node);
 
     // Every sourceUnit should only define a single contract
-    const mainContract_ = node.vContracts.filter((cd) => cd.kind !== ContractKind.Interface);
-    assert(mainContract_.length <= 1, 'There should only be one active contract per sourceUnit');
+    const mainContract_ =
+      node.vContracts.length >= 2
+        ? node.vContracts.filter((cd) => !cd.name.endsWith(TEMP_INTERFACE_SUFFIX))
+        : node.vContracts;
+
+    assert(mainContract_.length <= 1, 'xx');
     const [mainContract] = mainContract_;
 
     const [freeStructs, freeStructRemappings_] = mainContract
@@ -62,9 +66,9 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
       .map((c) => c.name);
 
     node.vContracts
-      .filter((c) => c.kind === ContractKind.Interface)
+      .filter((c) => c.kind === ContractKind.Interface && c.name.endsWith(TEMP_INTERFACE_SUFFIX))
       .forEach((c) => {
-        const baseName = c.name.replace('@interface', '');
+        const baseName = c.name.replace(TEMP_INTERFACE_SUFFIX, '');
         const interfaceName = `${baseName}_warped_interface`;
         if (!existingNames.includes(baseName)) {
           map.set(baseName, interfaceName);
