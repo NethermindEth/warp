@@ -347,8 +347,11 @@ class SourceUnitWriter extends CairoASTNodeWriter {
     generateInterfaceNameMappings(node);
 
     // Every sourceUnit should only define a single contract
-    const mainContract_ = node.vContracts.filter((cd) => cd.kind !== ContractKind.Interface);
-    assert(mainContract_.length <= 1, 'There should only be one active contract per sourceUnit');
+    const mainContract_ =
+      node.vContracts.length >= 2
+        ? node.vContracts.filter((cd) => cd.kind !== ContractKind.Interface)
+        : node.vContracts;
+    assert(mainContract_.length === 1, 'There should only be one active contract per sourceUnit');
     const [mainContract] = mainContract_;
 
     const [freeStructs, freeStructRemappings_] = mainContract
