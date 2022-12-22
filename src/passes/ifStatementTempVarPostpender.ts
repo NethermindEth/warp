@@ -11,7 +11,7 @@ import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { createBlock, createCairoTempVar } from '../utils/nodeTemplates';
-import { hasPathWithoutReturn, printNode } from '../export';
+import { hasPathWithoutReturn } from '../export';
 
 /*
  * This pass does a live variable analysis of the code while simultaneously
