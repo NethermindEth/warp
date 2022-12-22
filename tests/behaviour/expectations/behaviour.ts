@@ -3241,17 +3241,17 @@ export const expectations = flatten(
           ]),
           File.Simple('localVariables', [
             Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
-            Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifNoElse', ['0'], ['2'], 'false branch'),
             Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
-            Expect.Simple('ifWithElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifWithElse', ['0'], ['3'], 'false branch'),
           ]),
           File.Simple('returns', [
             Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
-            Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifNoElse', ['0'], ['2'], 'false branch'),
             Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
-            Expect.Simple('ifWithElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifWithElse', ['0'], ['2'], 'false branch'),
             Expect.Simple('unreachableCode', ['1'], ['1'], 'true branch'),
-            Expect.Simple('unreachableCode', ['0'], ['0'], 'false branch'),
+            Expect.Simple('unreachableCode', ['0'], ['2'], 'false branch'),
           ]),
           File.Simple('nesting', [
             Expect.Simple('nestedIfs', ['1', '1'], ['3', '1'], 'true/true'),

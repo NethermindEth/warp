@@ -11,7 +11,7 @@ import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { createBlock, createCairoTempVar } from '../utils/nodeTemplates';
-import { hasPathWithoutReturn } from '../export';
+import { hasPathWithoutReturn, printNode } from '../export';
 
 /*
  * This pass does a live variable analysis of the code while simultaneously
@@ -183,15 +183,11 @@ function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
     ast.registerChild(node.vTrueBody, node);
   }
 
-  if (
-    node.vFalseBody !== undefined &&
-    !(node.vFalseBody instanceof Block) &&
-    !(node.vFalseBody instanceof UncheckedBlock)
-  ) {
-    node.vFalseBody = createBlock([node.vFalseBody], ast);
-    ast.registerChild(node.vFalseBody, node);
-  } else if (!node.vFalseBody) {
+  if (node.vFalseBody === undefined) {
     node.vFalseBody = createBlock([], ast);
+    ast.registerChild(node.vFalseBody, node);
+  } else if (!(node.vFalseBody instanceof Block) && !(node.vFalseBody instanceof UncheckedBlock)) {
+    node.vFalseBody = createBlock([node.vFalseBody], ast);
     ast.registerChild(node.vFalseBody, node);
   }
 }
