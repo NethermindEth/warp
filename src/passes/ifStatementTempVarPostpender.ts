@@ -11,7 +11,8 @@ import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { createBlock, createCairoTempVar } from '../utils/nodeTemplates';
-import { hasPathWithoutReturn } from '../export';
+import { hasPathWithoutReturn } from '../utils/controlFlowAnalyser';
+import assert from 'assert';
 
 /*
  * This pass does a live variable analysis of the code while simultaneously
@@ -63,7 +64,7 @@ export class IfStatementTempVarPostpender extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
-      'An', // An creates cairoFunctionDefinition which this pass use
+      'An', // AnotateImplicit pass creates cairoFunctionDefinitions which this pass use
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
@@ -88,7 +89,7 @@ export class IfStatementTempVarPostpender extends ASTMapper {
 
   visitIdentifier(node: Identifier, _ast: AST): void {
     if (
-      node.vReferencedDeclaration &&
+      node.vReferencedDeclaration !== undefined &&
       node.vReferencedDeclaration.getClosestParentByType(CairoFunctionDefinition) !== undefined
     ) {
       this.liveVars.add(node.name);
@@ -125,6 +126,7 @@ export class IfStatementTempVarPostpender extends ASTMapper {
 
   visitIfStatement(node: IfStatement, ast: AST): void {
     ensureBothBranchesAreBlocks(node, ast);
+    assert(node.vFalseBody instanceof Block);
 
     const liveVarsBefore = new Set(this.liveVars);
     this.dispatchVisit(node.vTrueBody, ast);
@@ -160,8 +162,7 @@ export class IfStatementTempVarPostpender extends ASTMapper {
     if (falseHasPathWithoutReturn) {
       for (const liveVar of liveVarsBefore) {
         const child = createCairoTempVar(liveVar, ast);
-        (node.vFalseBody as Block).appendChild(child);
-        // @ts-ignore ensureBothBranchesAreBlocks forces vFalseBody to be defined;
+        node.vFalseBody.appendChild(child);
         ast.registerChild(child, node.vFalseBody);
       }
     }
