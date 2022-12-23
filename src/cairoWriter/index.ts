@@ -1,4 +1,4 @@
-import { AST } from '../export';
+import { AST } from '../ast/ast';
 import {
   ArrayTypeName,
   Assignment,

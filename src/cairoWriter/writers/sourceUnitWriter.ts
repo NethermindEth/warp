@@ -4,7 +4,9 @@ import { getStructsAndRemappings, removeExcessNewlines, TEMP_INTERFACE_SUFFIX } 
 import { CairoASTNodeWriter } from '../base';
 import { writeImports } from '../utils';
 
-// Used by CairoContractWriter
+// Used by:
+//  -> CairoContractWriter
+//  -> FunctionCallWriter
 export const interfaceNameMappings: Map<SourceUnit, Map<string, string>> = new Map();
 // Used by IdentifierWriter
 export let structRemappings: Map<number, string>;
