@@ -330,7 +330,13 @@ tests/behaviour/setup.sh
 yarn testnet
 ```
 
-3. Run the tests:
+3. Remember to compile the project every time some minor changes are applied could be anoying, so, in a separate terminal, start a process that will be watching for files updates:
+
+```bash
+yarn dev
+```
+
+4. Run the tests:
 
 ```bash
 yarn test

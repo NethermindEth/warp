@@ -13,6 +13,7 @@ import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
+import { exec } from 'child_process';
 
 const WARP_TEST = 'warp_test';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, 'example_contracts');
@@ -260,9 +261,12 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
   if (force) {
     postTestCleanup();
   } else if (!preTestChecks()) return;
-  findSolSourceFilePaths('example_contracts', true).forEach((file) =>
-    runSolFileTest(file, results, onlyResults, unsafe),
-  );
+  const filter = process.env.FILTER;
+  findSolSourceFilePaths('example_contracts', true).forEach((file) => {
+    if (filter === undefined || file.includes(filter)) {
+      runSolFileTest(file, results, onlyResults, unsafe);
+    }
+  });
   findCairoSourceFilePaths(WARP_TEST_FOLDER, true).forEach((file) => {
     runCairoFileTest(file, results, onlyResults);
   });
