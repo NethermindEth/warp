@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwarp_docs=self.webpackChunkwarp_docs||[]).push([[593],{1700:a=>{a.exports=JSON.parse('{"allTagsPath":"/warp/vi/blog/tags","slug":"/warp/vi/blog/tags/hello","name":"hello","count":1,"permalink":"/warp/vi/blog/tags/hello"}')}}]);

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>Warp 🚀 Blog</title>
+        <link>https://nethermindeth.github.io/warp/vi/blog</link>
+        <description>Warp 🚀 Blog</description>
+        <lastBuildDate>Fri, 17 Jun 2022 00:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[Welcome]]></title>
+            <link>https://nethermindeth.github.io/warp/vi/blog/welcome</link>
+            <guid>welcome</guid>
+            <pubDate>Fri, 17 Jun 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[WIP]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_mojV" id="wip">WIP<a class="hash-link" href="#wip" title="Đường dẫn trực tiếp tới đề mục này">​</a></h2>]]></content:encoded>
+            <category>hello</category>
+            <category>warp</category>
+        </item>
+    </channel>
+</rss>
