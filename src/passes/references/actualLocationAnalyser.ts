@@ -10,6 +10,7 @@ import {
   IndexAccess,
   MemberAccess,
   PointerType,
+  TupleType,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -31,6 +32,8 @@ export class ActualLocationAnalyser extends ASTMapper {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof PointerType) {
       this.actualLocations.set(node, type.location);
+    } else if (type instanceof TupleType) {
+      this.actualLocations.set(node, DataLocation.Memory);
     } else {
       this.actualLocations.set(node, DataLocation.Default);
     }

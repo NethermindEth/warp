@@ -437,7 +437,7 @@ export function insertConversionIfNecessary(
       expression.vComponents.forEach((node) =>
         insertConversionIfNecessary(node, generalisedTargetType.elementT, expression, ast),
       );
-      expression.typeString = generalisedTargetType.getFields()[0];
+      expression.typeString = `${generalisedTargetType.getFields()[0]} memory`;
       return;
     } else if (targetType instanceof TupleType) {
       return;
