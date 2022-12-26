@@ -205,6 +205,13 @@ export function generateExpressionTypeString1(
     return node.typeString;
   }
   if (node instanceof TupleExpression) {
+    if (node.vComponents.length === 0) {
+      // E.g. `return abi.decode(data, (address, uint256));`
+      assert(type instanceof TupleType);
+      return `tuple(${type.elements
+        .map((element) => generateExpressionTypeString(element))
+        .join(',')})`;
+    }
     return `tuple(${node.vComponents
       .map((element) =>
         generateExpressionTypeString1(inference, element, safeGetNodeType(element, inference)),
