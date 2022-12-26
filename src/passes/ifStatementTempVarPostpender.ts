@@ -134,10 +134,9 @@ export class IfStatementTempVarPostpender extends ASTMapper {
 
     this.liveVars = new Set(liveVarsBefore);
     let liveVarsAfterFalseBody = new Set<string>();
-    if (node.vFalseBody) {
-      this.dispatchVisit(node.vFalseBody, ast);
-      liveVarsAfterFalseBody = new Set(this.liveVars);
-    }
+
+    this.dispatchVisit(node.vFalseBody, ast);
+    liveVarsAfterFalseBody = new Set(this.liveVars);
 
     this.liveVars = new Set(liveVarsBefore);
     this.dispatchVisit(node.vCondition, ast);
@@ -156,8 +155,7 @@ export class IfStatementTempVarPostpender extends ASTMapper {
         ast.registerChild(child, node.vTrueBody);
       }
     }
-    const falseHasPathWithoutReturn =
-      node.vFalseBody === undefined || hasPathWithoutReturn(node.vFalseBody);
+    const falseHasPathWithoutReturn = hasPathWithoutReturn(node.vFalseBody);
 
     if (falseHasPathWithoutReturn) {
       for (const liveVar of liveVarsBefore) {
