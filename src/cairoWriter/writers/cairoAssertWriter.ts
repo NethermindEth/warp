@@ -1,5 +1,5 @@
 import { ASTWriter, SrcDesc } from 'solc-typed-ast';
-import { CairoAssert } from '../../export';
+import { CairoAssert } from '../../ast/cairoNodes';
 import { CairoASTNodeWriter } from '../base';
 import { INDENT } from '../utils';
 

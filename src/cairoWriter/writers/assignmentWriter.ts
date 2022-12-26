@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { Assignment, ASTWriter, FunctionCall, SrcDesc, TupleExpression } from 'solc-typed-ast';
-import { CairoFunctionDefinition, FunctionStubKind } from '../../export';
+import { CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 import { CairoASTNodeWriter } from '../base';
 
 export class AssignmentWriter extends CairoASTNodeWriter {

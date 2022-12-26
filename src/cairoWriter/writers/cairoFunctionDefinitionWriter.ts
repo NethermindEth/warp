@@ -8,17 +8,12 @@ import {
   FunctionVisibility,
   SrcDesc,
 } from 'solc-typed-ast';
-import {
-  CairoContract,
-  CairoFunctionDefinition,
-  error,
-  FunctionStubKind,
-  implicitOrdering,
-  implicitTypes,
-  isExternallyVisible,
-  notNull,
-  printNode,
-} from '../../export';
+import { CairoContract, CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
+import { printNode } from '../../utils/astPrinter';
+import { error } from '../../utils/formatting';
+import { implicitOrdering, implicitTypes } from '../../utils/implicits';
+import { notNull } from '../../utils/typeConstructs';
+import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
 

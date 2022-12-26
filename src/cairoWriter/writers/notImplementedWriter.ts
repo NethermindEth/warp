@@ -1,5 +1,5 @@
 import { ASTNode, ASTWriter, SrcDesc } from 'solc-typed-ast';
-import { printNode } from '../../export';
+import { printNode } from '../../utils/astPrinter';
 import { CairoASTNodeWriter } from '../base';
 
 export class NotImplementedWriter extends CairoASTNodeWriter {

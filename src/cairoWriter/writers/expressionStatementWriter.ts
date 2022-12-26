@@ -6,7 +6,7 @@ import {
   FunctionCallKind,
   SrcDesc,
 } from 'solc-typed-ast';
-import { CairoAssert } from '../../export';
+import { CairoAssert } from '../../ast/cairoNodes';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
 

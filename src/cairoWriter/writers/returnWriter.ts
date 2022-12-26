@@ -6,7 +6,9 @@ import {
   SrcDesc,
   TupleExpression,
 } from 'solc-typed-ast';
-import { CairoFunctionDefinition, Implicits, isExternallyVisible } from '../../export';
+import { CairoFunctionDefinition } from '../../ast/cairoNodes/cairoFunctionDefinition';
+import { Implicits } from '../../utils/implicits';
+import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
 

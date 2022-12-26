@@ -5,7 +5,7 @@ import {
   MemberAccess,
   SrcDesc,
 } from 'solc-typed-ast';
-import { isCalldataDynArrayStruct, isExternalMemoryDynArray } from '../../export';
+import { isCalldataDynArrayStruct, isExternalMemoryDynArray } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { structRemappings } from './sourceUnitWriter';
 

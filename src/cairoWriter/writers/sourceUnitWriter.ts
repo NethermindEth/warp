@@ -1,6 +1,8 @@
 import assert from 'assert';
 import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
-import { getStructsAndRemappings, removeExcessNewlines, TEMP_INTERFACE_SUFFIX } from '../../export';
+import { getStructsAndRemappings } from '../../freeStructWritter';
+import { removeExcessNewlines } from '../../utils/formatting';
+import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
 import { CairoASTNodeWriter } from '../base';
 import { writeImports } from '../utils';
 

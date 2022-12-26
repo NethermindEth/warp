@@ -1,5 +1,7 @@
 import { ASTWriter, ContractKind, SrcDesc } from 'solc-typed-ast';
-import { CairoContract, isExternallyVisible, TEMP_INTERFACE_SUFFIX } from '../../export';
+import { isExternallyVisible } from '../../utils/utils';
+import { CairoContract } from '../../ast/cairoNodes';
+import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
 import { CairoASTNodeWriter } from '../base';
 import {
   getDocumentation,

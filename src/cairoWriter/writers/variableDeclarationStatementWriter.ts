@@ -10,14 +10,10 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import {
-  CairoFunctionDefinition,
-  FunctionStubKind,
-  isDynamicArray,
-  isExternalCall,
-  safeGetNodeType,
-  TranspileFailedError,
-} from '../../export';
+import { CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
+import { TranspileFailedError } from '../../utils/errors';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { isExternalCall } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
 

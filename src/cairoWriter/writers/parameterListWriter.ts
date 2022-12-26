@@ -6,13 +6,9 @@ import {
   ParameterList,
   SrcDesc,
 } from 'solc-typed-ast';
-import {
-  CairoDynArray,
-  CairoType,
-  isExternallyVisible,
-  safeGetNodeType,
-  TypeConversionContext,
-} from '../../export';
+import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 
 export class ParameterListWriter extends CairoASTNodeWriter {

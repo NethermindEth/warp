@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { ASTNode, ASTWriter, SourceUnit, StructuredDocumentation } from 'solc-typed-ast';
-import { mergeImports } from '../export';
+import { mergeImports } from '../utils/utils';
 
 export const INDENT = ' '.repeat(4);
 export const INCLUDE_CAIRO_DUMP_FUNCTIONS = false;

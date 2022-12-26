@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { ASTWriter, IndexAccess, SrcDesc } from 'solc-typed-ast';
-import { isDynamicCallDataArray, safeGetNodeType } from '../../export';
+import { isDynamicCallDataArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { CairoASTNodeWriter } from '../base';
 
 export class IndexAccessWriter extends CairoASTNodeWriter {

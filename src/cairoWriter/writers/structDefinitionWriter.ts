@@ -1,5 +1,6 @@
 import { ASTWriter, SrcDesc, StructDefinition } from 'solc-typed-ast';
-import { CairoType, safeGetNodeType, TypeConversionContext } from '../../export';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mangleStructName } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { INDENT } from '../utils';
