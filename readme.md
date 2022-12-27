@@ -9,6 +9,9 @@ smart contracts to StarkNet Cairo Contracts.
 
 Docker compose provides a ready to use environment featuring warp and devnet.
 
+> **Note:**
+> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
+
 ### Build and run containers
 
 ```bash
@@ -276,6 +279,9 @@ Note: We have changed the return of `ecrecover` to be `uint160` because we use t
 
 ## Docker :whale:
 
+> **Note:**
+> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
+
 Build the image from source:
 
 ```bash
@@ -287,9 +293,6 @@ Run the container with the same options and arguments as the Warp binary:
 ```bash
 docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
 ```
-
-> **Note:**
-> This way to execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
 
 ## Contributing
 
