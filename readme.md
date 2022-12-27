@@ -296,7 +296,21 @@ docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_co
 
 ## Contributing
 
-Please checkout our database of open tickets [here](https://nethermind.notion.site/bb63e1485481427da72484457b4cc449?v=60e2e876b44740999a2e83fae29051db)
+### First steps :feet:
+
+If you like to contribute, the first step is install Warp from source for devs [steps here](#warp-installation-method-2-from-sourcefor-devs)
+
+To look what features we are currently working on or tasks that are pending to do, please checkout our database of open tickets [here](https://nethermind.notion.site/bb63e1485481427da72484457b4cc449?v=60e2e876b44740999a2e83fae29051db)
+
+### Developing tips :honey_pot:
+
+While developing your code, remember to compile the project every time some minor changes are applied could be annoying. You could start a process that watch for changes and automatically recompile it.
+
+In a separate terminal execute:
+
+```bash
+yarn dev
+```
 
 ### Testing for contributors :stethoscope:
 
@@ -330,13 +344,7 @@ tests/behaviour/setup.sh
 yarn testnet
 ```
 
-3. Remember to compile the project every time some minor changes are applied could be anoying, so, in a separate terminal, start a process that will be watching for files updates:
-
-```bash
-yarn dev
-```
-
-4. Run the tests:
+3. Run the tests:
 
 ```bash
 yarn test
