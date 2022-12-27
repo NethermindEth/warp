@@ -66,6 +66,9 @@ export function splitTupleAssignment(
         location = DataLocation.Memory;
       } else {
         [typeNode, location] = generalizeType(lhsElementType);
+        if (location === DataLocation.Storage) {
+          location = DataLocation.Memory;
+        }
       }
       const typeName = typeNameFromTypeNode(typeNode, ast);
       const decl = new VariableDeclaration(
