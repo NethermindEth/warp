@@ -58,3 +58,7 @@ export const COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX = '__warp_cs_';
 
 // Used in StorageAllocator and InheritanceInliner in ConstructorInheritance
 export const INIT_FUNCTION_PREFIX = '__warp_init_';
+
+// Used in ExternalContractHandler
+// Used in SourceUnitWriter (to distinguish generated interfaces from user defined ones)
+export const TEMP_INTERFACE_SUFFIX = '@interface';
