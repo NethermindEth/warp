@@ -21,13 +21,7 @@ docker-compose up
 docker-compose exec warp warp transpile example_contracts/ERC20.sol
 ```
 
-Alternatively for warp developers:
-
-```bash
-docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
-```
-
-It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above commands.
+It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
 
 ### Deploy to devnet
 
@@ -294,6 +288,9 @@ Run the container with the same options and arguments as the Warp binary:
 docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
 ```
 
+> **Note:**
+> This way to execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
+
 ## Contributing
 
 ### First steps :feet:
@@ -310,6 +307,12 @@ In a separate terminal execute:
 
 ```bash
 yarn dev
+```
+
+Developers could run warp instructions using docker. This is an example using `transpile` command:
+
+```bash
+docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
 ```
 
 ### Testing for contributors :stethoscope:
