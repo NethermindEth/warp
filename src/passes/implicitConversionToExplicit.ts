@@ -633,6 +633,10 @@ function handleAbiEncodeArgs(args: Expression[], ast: AST) {
       assert(arg instanceof Literal);
       const signed = BigInt(arg.value) < 0;
       insertConversionIfNecessary(arg, new IntType(256, signed), arg, ast);
+    } else if (type instanceof TupleType) {
+      arg.typeString = `uint8[${type.elements.length}] memory`;
+      const arrType = safeGetNodeType(arg, ast.inference);
+      insertConversionIfNecessary(arg, arrType, arg, ast);
     }
   });
 }
