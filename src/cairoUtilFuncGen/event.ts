@@ -7,7 +7,6 @@ import {
   SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
-
 import {
   AbiEncode,
   AST,
@@ -19,10 +18,9 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
+  warpEventCanonicalSignaturehash,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
-
-import keccak from 'keccak';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 
 export const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
@@ -113,12 +111,10 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    const topic: BigInt =
-      BigInt(
-        `0x${keccak('keccak256')
-          .update(node.canonicalSignature(ABIEncoderVersion.V2))
-          .digest('hex')}`,
-      ) & BigInt(MASK_250);
+    const topic: string = warpEventCanonicalSignaturehash(
+      node.name,
+      node.vParameters.vParameters.map((param) => param.typeString),
+    );
 
     const code = [
       `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
@@ -155,7 +151,7 @@ export class EventFunction extends StringIndexedFuncGen {
     return `${this.funcName}${key}`;
   }
 
-  private generateAnonymizeCode(isAnonymous: boolean, topic: BigInt, eventSig: string): string {
+  private generateAnonymizeCode(isAnonymous: boolean, topic: string, eventSig: string): string {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');

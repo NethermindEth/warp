@@ -148,15 +148,10 @@ export class DeclarationNameMangler extends ASTMapper {
     node.name = this.createNewFunctionName(node, ast);
   }
 
-  mangleEventDefinition(node: EventDefinition): void {
-    node.name = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
-  }
-
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {
     checkSourceTerms(node.name, node);
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
-    node.vEvents.forEach((e) => this.mangleEventDefinition(e));
   }
 }

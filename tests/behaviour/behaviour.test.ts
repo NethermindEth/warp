@@ -12,12 +12,12 @@ import {
 import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { expectations } from './expectations';
-import { AsyncTest, EventItem, Expect, OUTPUT_DIR } from './expectations/types';
+import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
-import { decodeEventLog } from './expectations/utils';
+import { decodeEventLog, EventItem } from '../../src/utils/event';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
