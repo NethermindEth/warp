@@ -135,9 +135,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
     if (typeof notNullMember === 'boolean') {
       switch (node.operator) {
         case '&&': // false && x = false
-          return notNullMember ? null : false;
+          return notNullMember && false;
         case '||': // true || x = true
-          return notNullMember ? true : false;
+          return notNullMember || true;
         default:
           if (!['==', '!='].includes(node.operator)) {
             throw new TranspileFailedError(
@@ -153,23 +153,14 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
         case '*': // 0*x = x*0 = 0
           return is_zero ? new RationalLiteral(0n, 1n) : null;
         case '**': // x**0 = 1   1**x = 1
-          if (right && is_zero) {
-            return new RationalLiteral(1n, 1n);
-          } else if (left && is_one) {
-            return new RationalLiteral(1n, 1n);
-          } else return null;
+          return (is_zero && right) || (is_one && left) ? new RationalLiteral(1n, 1n) : null;
         case '<<': // 0<<x = 0   x<<n(n>255) = 0
-          if (left && is_zero) {
-            return new RationalLiteral(0n, 1n);
-          } else if (right && notNullMember.greaterThan(new RationalLiteral(255n, 1n))) {
-            return new RationalLiteral(0n, 1n);
-          } else return null;
+          return (is_zero && left) ||
+            (right && notNullMember.greaterThan(new RationalLiteral(255n, 1n)))
+            ? new RationalLiteral(0n, 1n)
+            : null;
         case '>>': // 0>>x = 0   1>>x = 0
-          if (left && is_zero) {
-            return new RationalLiteral(0n, 1n);
-          } else if (left && is_one) {
-            return new RationalLiteral(0n, 1n);
-          } else return null;
+          return left && (is_zero || is_one) ? new RationalLiteral(0n, 1n) : null;
         default: {
           const otherOp = [
             '/',
@@ -253,11 +244,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
 }
 
 function evaluateTupleLiteral(node: TupleExpression): RationalLiteral | boolean | null {
-  if (node.vOriginalComponents.length === 1 && node.vOriginalComponents[0] !== null) {
-    return evaluateLiteralExpression(node.vOriginalComponents[0]);
-  }
-
-  return null;
+  return node.vOriginalComponents.length === 1 && node.vOriginalComponents[0] !== null
+    ? evaluateLiteralExpression(node.vOriginalComponents[0])
+    : null;
 }
 
 function isConstType(typeString: string): boolean {

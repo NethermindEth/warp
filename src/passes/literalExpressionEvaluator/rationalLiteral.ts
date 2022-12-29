@@ -140,14 +140,14 @@ export class RationalLiteral {
 
   and(other: RationalLiteral): RationalLiteral {
     return new RationalLiteral(
-      this.numerator && other.numerator,
-      this.denominator && other.denominator,
+      this.numerator & other.numerator,
+      this.denominator & other.denominator,
     );
   }
   or(other: RationalLiteral): RationalLiteral {
     return new RationalLiteral(
-      this.numerator || other.numerator,
-      this.denominator || other.denominator,
+      this.numerator | other.numerator,
+      this.denominator | other.denominator,
     );
   }
   xor(other: RationalLiteral): RationalLiteral {
@@ -156,8 +156,8 @@ export class RationalLiteral {
       this.denominator ^ other.denominator,
     );
   }
-  not(): boolean {
-    return !this.numerator;
+  not(): RationalLiteral {
+    return new RationalLiteral(~this.numerator, this.denominator);
   }
 }
 
