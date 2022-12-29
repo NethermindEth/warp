@@ -38,8 +38,8 @@ export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
   const events: EventItem[] = eventsLog.map((event) => {
     return {
       order: event.order,
-      keys: byte32numbers(event.keys).map((num) => num.toString()),
-      data: byte32numbers(event.data).map((num) => num.toString()),
+      keys: byte32numbers(event.keys).map((num) => `0x${num.toString(16)}`),
+      data: byte32numbers(event.data).map((num) => `0x${num.toString(16)}`),
     };
   });
   return events;

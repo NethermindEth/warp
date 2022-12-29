@@ -242,6 +242,10 @@ async function behaviourTest(
           `${name} - Return data should match expectation`,
         ).to.deep.equal(replaced_expectedResult);
         if (events !== undefined) {
+          events.forEach((e) => {
+            e.data = e.data.map((n) => `0x${BigInt(n).toString(16)}`);
+            e.keys = e.keys.map((n) => `0x${BigInt(n).toString(16)}`);
+          });
           expect(
             decodeEventLog(response.events as EventItem[]),
             `${name} - Events should match events expectation`,

@@ -113,7 +113,9 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const topic: string = warpEventCanonicalSignaturehash(
       node.name,
-      node.vParameters.vParameters.map((param) => param.typeString),
+      node.vParameters.vParameters.map((param) =>
+        param.canonicalSignatureType(ABIEncoderVersion.V2),
+      ),
     );
 
     const code = [
