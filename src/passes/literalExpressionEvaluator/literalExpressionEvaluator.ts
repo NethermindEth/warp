@@ -38,7 +38,7 @@ export class LiteralExpressionEvaluator extends ASTMapper {
     // It is sometimes possible to avoid any calculation and take the value from the type
     // This is not always possible because boolean literals do not contain their value in the type,
     // and because very large int and rational literals omit some digits
-    const result = createLiteralFromType(node.typeString) ?? evaluateLiteralExpression(node);
+    const result = createLiteralFromType(node.typeString) || evaluateLiteralExpression(node);
 
     if (result === null) {
       this.commonVisit(node, ast);
@@ -128,11 +128,10 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
   if (left === null || right === null) {
     // In some cases a binary expression could be calculated at
     // compile time, even when only one argument is a literal.
-    const notNullMember = left === null ? right : left;
+    const notNullMember = left ?? right;
     if (notNullMember === null) {
       return null;
-    }
-    if (typeof notNullMember === 'boolean') {
+    } else if (typeof notNullMember === 'boolean') {
       switch (node.operator) {
         case '&&': // false && x = false
           return notNullMember && false;
