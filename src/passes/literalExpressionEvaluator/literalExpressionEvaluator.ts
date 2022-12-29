@@ -99,7 +99,7 @@ function evaluateLiteral(node: Literal): RationalLiteral | boolean | null {
 
 function evaluateUnaryLiteral(node: UnaryOperation): RationalLiteral | boolean | null {
   const op = evaluateLiteralExpression(node.vSubExpression);
-  if (!op) return null;
+  if (op === null) return null;
 
   switch (node.operator) {
     case '~': {
