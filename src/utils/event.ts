@@ -28,7 +28,7 @@ export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
     }
 
     //remove trailing zero
-    if (padded_hex_input.length != raw_hex_input.length && numbers[numbers.length - 1] === 0n) {
+    if (padded_hex_input.length !== raw_hex_input.length && numbers[numbers.length - 1] === 0n) {
       numbers.pop();
     }
 

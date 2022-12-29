@@ -1,7 +1,6 @@
 import {
   ASTNode,
   ContractDefinition,
-  EventDefinition,
   ForStatement,
   FunctionDefinition,
   Identifier,
@@ -10,7 +9,6 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
