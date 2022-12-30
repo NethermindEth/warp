@@ -2621,6 +2621,10 @@ export const expectations = flatten(
             Expect.Simple('shiftRight', [], ['1']),
             Expect.Simple('bitwiseNegate', [], ['253']),
             Expect.Simple('toInteger', [], ['3']),
+            Expect.Simple('and', [], ['3']),
+            Expect.Simple('or', [], ['5']),
+            Expect.Simple('xor', [], ['2']),
+            Expect.Simple('not', [], ['3']),
           ]),
           File.Simple('short_circuit', [
             Expect.Simple('and_sc', [], ['56', '0']),
