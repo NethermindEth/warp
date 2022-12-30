@@ -12,12 +12,12 @@ import {
 import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { expectations } from './expectations';
-import { AsyncTest, EventItem, Expect, OUTPUT_DIR } from './expectations/types';
+import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
-import { decodeEventLog } from './expectations/utils';
+import { decodeEventLog, EventItem } from '../../src/utils/event';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -242,6 +242,10 @@ async function behaviourTest(
           `${name} - Return data should match expectation`,
         ).to.deep.equal(replaced_expectedResult);
         if (events !== undefined) {
+          events.forEach((e) => {
+            e.data = e.data.map((n) => `0x${BigInt(n).toString(16)}`);
+            e.keys = e.keys.map((n) => `0x${BigInt(n).toString(16)}`);
+          });
           expect(
             decodeEventLog(response.events as EventItem[]),
             `${name} - Events should match events expectation`,
