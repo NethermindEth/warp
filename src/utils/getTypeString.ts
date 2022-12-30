@@ -166,6 +166,10 @@ export function generateLiteralTypeString(
       return `literal_string hex"${hex_string}"`;
     }
     case LiteralKind.Number: {
+      if (value.startsWith('0x')) {
+        // Doesn't seem to have an effect on transpilation, but during tests "AST failed internal consistency check." is reported otherwise (eg. bitwise_shifting_constants_constantinople)
+        value = BigInt(value).toString();
+      }
       if (value.length > 32) {
         value = `${value.slice(0, 4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
       }

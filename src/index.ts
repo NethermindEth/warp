@@ -356,7 +356,7 @@ export type IInstallOptions = IInstallOptions_ & IOptionalVerbose;
 
 program
   .command('install')
-  .option('--python <python>', 'Path to python3.7 executable.', 'python3.7')
+  .option('--python <python>', 'Path to python3.9 executable.', 'python3.9')
   .option('-v, --verbose')
   .action((options: IInstallOptions) => {
     runVenvSetup(options);

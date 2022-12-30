@@ -76,7 +76,7 @@ export class DynArrayModifier extends ASTMapper {
           ([decl]) =>
             node.vParameters.vParameters.includes(decl) &&
             (decl.storageLocation === DataLocation.Memory ||
-              decl.storageLocation == DataLocation.CallData) &&
+              decl.storageLocation === DataLocation.CallData) &&
             isDynamicArray(safeGetNodeType(decl, ast.inference)),
         )
         .forEach(([varDecl, ids]) => {

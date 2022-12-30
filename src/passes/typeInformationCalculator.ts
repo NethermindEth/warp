@@ -6,6 +6,7 @@ import {
   EnumDefinition,
   EnumValue,
   Expression,
+  ExternalReferenceType,
   FunctionCall,
   Identifier,
   IntType,
@@ -62,25 +63,30 @@ export class TypeInformationCalculator extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
+    this.visitExpression(node, ast);
+    const typeFuncCall = node.vExpression;
     if (
-      !node.vExpression.typeString.startsWith('type(') ||
-      !(node.vExpression instanceof FunctionCall)
+      !(
+        typeFuncCall instanceof FunctionCall &&
+        typeFuncCall.vFunctionCallType === ExternalReferenceType.Builtin &&
+        typeFuncCall.vFunctionName === 'type'
+      )
     ) {
-      return this.visitExpression(node.vExpression, ast);
+      return;
     }
+    assert(
+      typeFuncCall.vArguments.length === 1,
+      `Calls to type() must have one argument, got ${typeFuncCall.vArguments.length}.`,
+    );
+    const argNode = typeFuncCall.vArguments[0];
 
-    const argNode = node.vExpression.vArguments[0];
-
-    const replaceNode: ASTNode | null = this.getReplacement(
+    const replaceNode: ASTNode = this.getReplacement(
       argNode,
       node.memberName,
       node.typeString,
       ast,
     );
-
-    if (replaceNode !== null) {
-      ast.replaceNode(node, replaceNode);
-    }
+    ast.replaceNode(node, replaceNode);
   }
 
   private getReplacement(
@@ -88,7 +94,7 @@ export class TypeInformationCalculator extends ASTMapper {
     memberName: string,
     typestring: string,
     ast: AST,
-  ): ASTNode | null {
+  ): ASTNode {
     let nodeType = safeGetNodeType(node, ast.inference);
     assert(
       nodeType instanceof TypeNameType,
@@ -117,9 +123,6 @@ export class TypeInformationCalculator extends ASTMapper {
       if (userDef instanceof ContractDefinition) {
         if (memberName === 'name') return createStringLiteral(userDef.name, ast);
 
-        if (['runtimeCode', 'executionCode'].includes(memberName))
-          throw new WillNotSupportError(`Access to ${memberName} is not supported`);
-
         if (userDef.kind === ContractKind.Interface && memberName === 'interfaceId') {
           const interfaceId = ast.inference.interfaceId(userDef, ABIEncoderVersion.V2);
           assert(
@@ -129,8 +132,14 @@ export class TypeInformationCalculator extends ASTMapper {
           const value = BigInt('0x' + interfaceId);
           return createNumberLiteral(value, ast);
         }
+
+        throw new WillNotSupportError(
+          `Member access "type(${nodeType.name}).${memberName}" is not supported`,
+        );
       }
     }
-    return null;
+    throw new WillNotSupportError(
+      `Member access "type(${printTypeNode(nodeType)}).${memberName} is not supported"`,
+    );
   }
 }

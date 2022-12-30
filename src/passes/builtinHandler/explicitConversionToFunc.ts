@@ -103,7 +103,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
 
     if (typeTo instanceof AddressType) {
       if (
-        (argType instanceof IntType && argType.nBits == 256) ||
+        (argType instanceof IntType && argType.nBits === 256) ||
         (argType instanceof FixedBytesType && argType.size === 32)
       ) {
         const replacementCall = createCallToFunction(

@@ -1,0 +1,30 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.Getting Started": {
+    "message": "Getting Started",
+    "description": "The label for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Getting Started.link.generated-index.description": {
+    "message": "Getting started with the project and all the tools.",
+    "description": "The generated-index page description for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Features": {
+    "message": "Features",
+    "description": "The label for category Features in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Solidity Equivalents": {
+    "message": "Solidity Equivalents",
+    "description": "The label for category Solidity Equivalents in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Contribution Guidelines": {
+    "message": "Contribution Guidelines",
+    "description": "The label for category Contribution Guidelines in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Contribution Guidelines.link.generated-index.description": {
+    "message": "Guides to contribute to documentation, code and Warp in general.",
+    "description": "The generated-index page description for category Contribution Guidelines in sidebar tutorialSidebar"
+  }
+}
