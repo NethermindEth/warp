@@ -69,7 +69,8 @@ export class EventFunction extends StringIndexedFuncGen {
   }
 
   private getOrCreate(node: EventDefinition): string {
-    const key = node.name;
+    // Add the canonicalSignatureHash so that generated function names don't collide when overloaded
+    const key = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
     const existing = this.generatedFunctions.get(key);
 
     if (existing !== undefined) {
