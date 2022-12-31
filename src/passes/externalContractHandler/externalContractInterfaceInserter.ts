@@ -14,6 +14,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
+import { TEMP_INTERFACE_SUFFIX } from '../../export';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -96,7 +97,7 @@ function importExternalContract(
 }
 
 export function getTemporaryInterfaceName(contractName: string): string {
-  return `${contractName}@interface`;
+  return `${contractName}${TEMP_INTERFACE_SUFFIX}`;
 }
 
 export function genContractInterface(
@@ -108,8 +109,7 @@ export function genContractInterface(
   const contractInterface = new CairoContract(
     contractId,
     '',
-    // `@interface` is a workaround to avoid the conflict with
-    // the existing contract with the same name
+    // Unique name to avoid clashing
     getTemporaryInterfaceName(contract.name),
     sourceUnit.id,
     ContractKind.Interface,

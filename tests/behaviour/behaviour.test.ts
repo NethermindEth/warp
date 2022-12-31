@@ -14,9 +14,10 @@ import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 import { describe } from 'mocha';
 import { assert, expect } from 'chai';
 import { expectations } from './expectations';
-import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
+import { AsyncTest, EventItem, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
+import { decodeEventLog } from './expectations/utils';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -200,6 +201,7 @@ async function behaviourTest(
     expectedResult,
     caller_address,
     error_message,
+    events,
   ] of functionExpectation.steps) {
     const name = functionExpectation.name;
     const mangledFuncName =
@@ -239,6 +241,12 @@ async function behaviourTest(
           response.return_data,
           `${name} - Return data should match expectation`,
         ).to.deep.equal(replaced_expectedResult);
+        if (events !== undefined) {
+          expect(
+            decodeEventLog(response.events as EventItem[]),
+            `${name} - Events should match events expectation`,
+          ).to.deep.equal(events);
+        }
       }
     }
   }

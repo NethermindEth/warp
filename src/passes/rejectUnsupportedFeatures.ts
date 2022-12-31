@@ -17,7 +17,6 @@ import {
   FunctionType,
   Identifier,
   IndexAccess,
-  InlineAssembly,
   Literal,
   MemberAccess,
   PointerType,
@@ -84,10 +83,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       }
     }
     this.visitExpression(node, ast);
-  }
-
-  visitInlineAssembly(node: InlineAssembly, _ast: AST): void {
-    this.addUnsupported('Yul blocks are not supported', node);
   }
 
   visitRevertStatement(node: RevertStatement, _ast: AST): void {

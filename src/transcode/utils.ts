@@ -8,6 +8,23 @@ import { divmod } from '../utils/utils';
 export type SolValue = BigNumberish | boolean | string | { [key: string]: SolValue } | SolValue[];
 export type Param = (string | number | Param)[];
 
+export type solAbiFuncArgType = { internalType: string; name: string; type: string };
+export type solAbiFunctionType = {
+  inputs: solAbiFuncArgType[];
+  name: string;
+  outputs: solAbiFuncArgType[];
+  stateMutability: 'payable' | 'pure' | 'view';
+  type: 'function';
+};
+
+export type solAbiConstructorType = {
+  inputs: solAbiFuncArgType[];
+  stateMutability: 'payable' | 'pure' | 'view';
+  type: 'constructor';
+};
+
+export type solAbiItemType = solAbiFunctionType | solAbiConstructorType;
+
 export function getWidthInFeltsOf(type: ParamType): number {
   if (type.baseType.startsWith('uint')) {
     const width = parseInt(type.baseType.slice(4), 10);
@@ -135,8 +152,35 @@ export function parseSolAbi(filePath: string): [] {
   return solAbi;
 }
 
-export async function selectSignature(abi: [], funcName: string): Promise<any> {
-  const matches = abi.filter((fs) => fs['name'] === funcName);
+export async function selectSignature(
+  abi: solAbiItemType[],
+  funcName: string,
+): Promise<solAbiFunctionType> {
+  if (funcName === 'constructor') {
+    // Item with abi[type] === 'constructor'
+    const constructorsAbi = abi.filter((item: solAbiItemType) => item.type === 'constructor');
+    if (constructorsAbi.length === 0) {
+      throw new CLIError('No constructor found in abi');
+    }
+    if (constructorsAbi.length > 1) {
+      throw new CLIError('Multiple constructors found in abi');
+    }
+    return {
+      type: 'function',
+      inputs: constructorsAbi[0].inputs,
+      outputs: [],
+      stateMutability: constructorsAbi[0].stateMutability,
+      name: 'constructor',
+    };
+  }
+
+  const matchesWithoutConstructor = abi.filter(
+    (item: solAbiItemType) => item.type === 'function',
+  ) as solAbiFunctionType[];
+  const matches = matchesWithoutConstructor.filter(
+    (fs: solAbiFunctionType) => fs['name'] === funcName,
+  );
+
   if (!matches.length) {
     throw new CLIError(`No function in abi with name ${funcName}`);
   }
@@ -147,7 +191,7 @@ export async function selectSignature(abi: [], funcName: string): Promise<any> {
     type: 'select',
     name: 'func',
     message: `Multiple function definitions found for ${funcName}. Please select one now:`,
-    choices: matches.map((func) => ({ title: func, value: func })),
+    choices: matches.map((func) => ({ title: func.name, value: func })),
   });
 
   return choice.func;
@@ -157,12 +201,15 @@ export function decodedOutputsToString(outputs: Result): string {
   return outputs.map((output) => outputToString(output)).join(', ');
 }
 
-function outputToString(output: Result): string {
+function outputToString(output: Result | string | number): string {
   if (Array.isArray(output)) return `[ ${output.map((o) => outputToString(o)).join(', ')} ]`;
-  else if (output.constructor == Object)
+  else if (output.constructor === Object)
     // is a Struct
     return `{ ${Object.keys(output)
-      .map((key: any) => outputToString(key) + ': ' + outputToString(output[key]))
+      .map(
+        (key: string | number) =>
+          outputToString(key) + ': ' + outputToString((output as Result)[key]),
+      )
       .join(', ')} }`;
-  else return (output as any).toString();
+  else return (output as Result).toString();
 }

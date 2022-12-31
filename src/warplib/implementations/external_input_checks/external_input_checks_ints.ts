@@ -9,7 +9,7 @@ const import_strings: string[] = [
 
 const BitBoundChecker: Array<string> = [
   ...forAllWidths((int_width) => {
-    if (int_width == 256) {
+    if (int_width === 256) {
       return [
         `func warp_external_input_check_int256{range_check_ptr}(x : Uint256){`,
         `${INDENT}alloc_locals;`,

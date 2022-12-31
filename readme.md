@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/NethermindEth/warp/main/resources/WARP.svg" width="900" height="512" />
+<img src="https://raw.githubusercontent.com/NethermindEth/warp/develop/resources/warp.png"/>
 
 # Warp
 
@@ -252,9 +252,7 @@ Please see the list below:
 |            fallback functions with args             | :hammer_and_pick: |
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
-|                 indexed parameters                  |    :question:     |
 |              nested tuple expressions               |    :question:     |
-|                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
 |                      msg.value                      |    :question:     |
 |                       msg.sig                       |    :question:     |
@@ -272,7 +270,6 @@ Please see the list below:
 |                      blockhash                      |    :question:     |
 |            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
-|                  ternary operator                   | :hammer_and_pick: |
 |                       receive                       |    :question:     |
 |   Inline Yul Assembly - arithmetic (add, sub ...)   | :hammer_and_pick: |
 |  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |

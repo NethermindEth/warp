@@ -1,6 +1,6 @@
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { StringIndexedFuncGen } from '../base';
-import { INCLUDE_CAIRO_DUMP_FUNCTIONS } from '../../cairoWriter';
+import { INCLUDE_CAIRO_DUMP_FUNCTIONS } from '../../cairoWriter/utils';
 
 export class DynArrayGen extends StringIndexedFuncGen {
   gen(valueCairoType: CairoType): [data: string, len: string] {
