@@ -49,7 +49,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
   public gen(node: EmitStatement, refEventDef: EventDefinition): FunctionCall {
     const argsTypes: TypeNode[] = node.vEventCall.vArguments.map(
-      (arg) => generalizeType(safeGetNodeType(arg, this.ast.compilerVersion))[0],
+      (arg) => generalizeType(safeGetNodeType(arg, this.ast.inference))[0],
     );
 
     const funcName = this.getOrCreate(refEventDef);
@@ -80,7 +80,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const [params, keysInsertions, dataInsertions] = node.vParameters.vParameters.reduce(
       ([params, keysInsertions, dataInsertions], param, index) => {
-        const paramType = generalizeType(safeGetNodeType(param, this.ast.compilerVersion))[0];
+        const paramType = generalizeType(safeGetNodeType(param, this.ast.inference))[0];
         const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
 
         params.push({ name: `param${index}`, type: cairoType.toString() });
@@ -116,7 +116,7 @@ export class EventFunction extends StringIndexedFuncGen {
     const topic: BigInt =
       BigInt(
         `0x${keccak('keccak256')
-          .update(node.canonicalSignature(ABIEncoderVersion.V2))
+          .update(this.ast.inference.signature(node, ABIEncoderVersion.V2))
           .digest('hex')}`,
       ) & BigInt(MASK_250);
 
@@ -130,7 +130,7 @@ export class EventFunction extends StringIndexedFuncGen {
       this.generateAnonymizeCode(
         node.anonymous,
         topic,
-        node.canonicalSignature(ABIEncoderVersion.V2),
+        this.ast.inference.signature(node, ABIEncoderVersion.V2),
       ),
       ...keysInsertions,
       `   // keys: pack 31 byte felts into a single 248 bit felt`,
