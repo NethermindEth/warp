@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers';
-import { EventItem } from './behaviour/expectations/types';
+import { EventItem } from '../src/export';
 import axios from 'axios';
 
 export type InvokeResponse =

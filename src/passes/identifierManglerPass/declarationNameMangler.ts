@@ -1,7 +1,6 @@
 import {
   ASTNode,
   ContractDefinition,
-  EventDefinition,
   ForStatement,
   FunctionDefinition,
   Identifier,
@@ -11,7 +10,6 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
@@ -149,15 +147,10 @@ export class DeclarationNameMangler extends ASTMapper {
     node.name = this.createNewFunctionName(node, ast);
   }
 
-  mangleEventDefinition(inference: InferType, node: EventDefinition): void {
-    node.name = `${node.name}_${inference.signatureHash(node, ABIEncoderVersion.V2)}`;
-  }
-
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {
     checkSourceTerms(node.name, node);
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
-    node.vEvents.forEach((e) => this.mangleEventDefinition(ast.inference, e));
   }
 }

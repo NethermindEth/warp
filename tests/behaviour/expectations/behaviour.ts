@@ -10,11 +10,9 @@ import {
   toCairoInt8,
   MIN_INT8,
   MAX_INT8,
-  warpEventCanonicalSignaturehash,
 } from './utils';
-
 import createKeccakHash from 'keccak';
-import { mapRange, MASK_250 } from '../../../src/export';
+import { MASK_250, warpEventCanonicalSignaturehash } from '../../../src/export';
 
 export const expectations = flatten(
   new Dir('tests', [

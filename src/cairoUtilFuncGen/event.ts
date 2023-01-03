@@ -1,13 +1,15 @@
 import {
+  ArrayType,
   DataLocation,
   EmitStatement,
   EventDefinition,
   FunctionCall,
   generalizeType,
+  PointerType,
   SourceUnit,
+  TupleType,
   TypeNode,
 } from 'solc-typed-ast';
-
 import {
   AbiEncode,
   AST,
@@ -19,11 +21,11 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
+  warpEventCanonicalSignaturehash,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
-
-import keccak from 'keccak';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
+import createKeccakHash from 'keccak';
 
 export const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 export const BYTES_IN_FELT_PACKING = 31;
@@ -31,6 +33,14 @@ const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte
 
 const IMPLICITS =
   '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*, keccak_ptr: felt*}';
+
+function signatureHash(funcSignature: string): string {
+  const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
+
+  return `0x${(
+    BigInt(`0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`) & MASK_250
+  ).toString(16)}`;
+}
 
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
@@ -71,7 +81,8 @@ export class EventFunction extends StringIndexedFuncGen {
   }
 
   private getOrCreate(node: EventDefinition): string {
-    const key = node.name;
+    // Add the canonicalSignatureHash so that generated function names don't collide when overloaded
+    const key = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
     const existing = this.generatedFunctions.get(key);
 
     if (existing !== undefined) {
@@ -113,12 +124,9 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    const topic: BigInt =
-      BigInt(
-        `0x${keccak('keccak256')
-          .update(this.ast.inference.signature(node, ABIEncoderVersion.V2))
-          .digest('hex')}`,
-      ) & BigInt(MASK_250);
+    // TODO: Replace signature hash with solc-typed-ast's version
+    // const topic: string = this.ast.inference.signatureHash(node, ABIEncoderVersion.V2);
+    const topic: string = signatureHash(this.ast.inference.signature(node, ABIEncoderVersion.V2));
 
     const code = [
       `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
@@ -155,7 +163,7 @@ export class EventFunction extends StringIndexedFuncGen {
     return `${this.funcName}${key}`;
   }
 
-  private generateAnonymizeCode(isAnonymous: boolean, topic: BigInt, eventSig: string): string {
+  private generateAnonymizeCode(isAnonymous: boolean, topic: string, eventSig: string): string {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
