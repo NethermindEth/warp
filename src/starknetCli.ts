@@ -8,7 +8,7 @@ import {
   IDeployAccountProps,
   IOptionalDebugInfo,
   IDeclareOptions,
-} from './index';
+} from './cli';
 import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
@@ -81,7 +81,7 @@ export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugI
 }
 
 export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
-  if (option.network == undefined) {
+  if (option.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "status" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
@@ -160,13 +160,13 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
 }
 
 export function runStarknetDeployAccount(options: IDeployAccountProps) {
-  if (options.wallet == undefined) {
+  if (options.wallet === undefined) {
     logError(
       `Error: AssertionError: --wallet must be specified with the "deploy_account" subcommand.`,
     );
     return;
   }
-  if (options.network == undefined) {
+  if (options.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy_account" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
@@ -194,7 +194,7 @@ export async function runStarknetCallOrInvoke(
 ) {
   const callOrInvoke = isCall ? 'call' : 'invoke';
 
-  if (options.network == undefined) {
+  if (options.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "${callOrInvoke}" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );

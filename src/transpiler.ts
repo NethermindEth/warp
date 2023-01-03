@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { CompilationOptions, PrintOptions, TranspilationOptions } from '.';
+import { CompilationOptions, PrintOptions, TranspilationOptions } from './cli';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -29,6 +29,7 @@ import {
   ImplicitConversionToExplicit,
   ImportDirectiveIdentifier,
   InheritanceInliner,
+  InlineAssemblyTransformer,
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   ModifierHandler,
@@ -102,6 +103,7 @@ function applyPasses(
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
+    ['Iat', InlineAssemblyTransformer],
     ['Wa', WarnSupportedFeatures],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],

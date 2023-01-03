@@ -19,3 +19,4 @@ export * from './implicits';
 export * from './cairoTypeSystem';
 export * from './nodeTemplates';
 export * from './controlFlowAnalyser';
+export * from './event';

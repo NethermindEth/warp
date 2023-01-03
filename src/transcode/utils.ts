@@ -203,7 +203,7 @@ export function decodedOutputsToString(outputs: Result): string {
 
 function outputToString(output: Result | string | number): string {
   if (Array.isArray(output)) return `[ ${output.map((o) => outputToString(o)).join(', ')} ]`;
-  else if (output.constructor == Object)
+  else if (output.constructor === Object)
     // is a Struct
     return `{ ${Object.keys(output)
       .map(

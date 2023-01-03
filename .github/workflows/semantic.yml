@@ -1,13 +1,24 @@
 name: Semantic tests
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - warp-ts
+  pull_request:
 
 env:
   CAIRO_LANG_VERSION: 0.10.0
 
 jobs:
-  lint:
+  semantic_test:
+    strategy:
+      matrix:
+        SM_BATCH: [1, 2, 3]
     runs-on: ubuntu-latest
+    env:
+      SM_BATCH: ${{ matrix.SM_BATCH }}
     steps:
       - uses: actions/checkout@v2
 
@@ -16,38 +27,6 @@ jobs:
         with:
           node-version: '16.x'
           cache: 'yarn'
-
-      - name: Install dependencies
-        run: |
-          yarn
-          pipx install black[colors]
-          pipx install cairo-lang=="$CAIRO_LANG_VERSION"
-
-      - name: Build warplib
-        run: yarn warplib
-
-      - name: Check formatting
-        run: |
-          yarn lint
-          black starknet-testnet/ --check --verbose --diff --color
-          find warplib/ -iname *.cairo -exec cairo-format -c {} +
-
-  build:
-    runs-on: ubuntu-latest-8-cores
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16.x'
-          cache: 'yarn'
-
-      - name: Setup gcc-11 Environment
-        run: |
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          sudo apt install -y gcc-11 gcc-11-multilib g++-11 g++-11-multilib
-          gcc-11 --version
 
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
@@ -65,9 +44,15 @@ jobs:
       - name: Build warplib
         run: yarn warplib
 
+      - name: Setup gcc-11 Environment
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt install -y gcc-11 gcc-11-multilib g++-11 g++-11-multilib
+          gcc-11 --version
+
       - name: Test code execution
         run: |
-          yarn testnet:benchmark &
+          yarn testnet:benchmark_semantic &
           node build/autoRunSemanticTests.js
 
       - name: Save benchmarks in artifacts
@@ -75,53 +60,3 @@ jobs:
         with:
           name: benchmark
           path: benchmark
-
-  benchmark:
-    if: ${{ github.event_name == 'push' }}
-    needs: build
-    runs-on: ubuntu-latest-8-cores
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2.2.2
-        with:
-          python-version: 3.9
-
-      - name: Setup env
-        run: |
-          pip install -r requirements.txt 
-          pip install cairo-lang=="$CAIRO_LANG_VERSION"
-
-      - name: Setup source hash (push)
-        if: ${{ github.event_name == 'push' }}
-        run: |
-          echo "source_hash=${{ github.sha }}" >> $GITHUB_ENV
-
-      - name: Download Benchmarks
-        uses: actions/download-artifact@master
-        with:
-          name: benchmark
-          path: benchmark
-
-      - name: Create markdown file
-        run: |
-          mv benchmark/json/data.json benchmark/json/${{ env.source_hash }}.json
-          python ./starknet-testnet/generateMarkdown.py ${{ env.source_hash }}
-
-      - name: Push benchmarks to another repository
-        uses: dmnemec/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: 'benchmark'
-          destination_repo: 'NethermindEth/warp-ts-benchmark'
-          commit_message: ${{ env.source_hash }}
-          destination_branch: main
-          user_email: 41898282+github-actions[bot]@users.noreply.github.com
-          user_name: 'Github Actions'
-
-      - name: Delete Artifact
-        uses: GeekyEggo/delete-artifact@v1.0.0
-        with:
-          name: benchmark

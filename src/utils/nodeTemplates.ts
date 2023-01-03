@@ -140,7 +140,12 @@ export function createBytesNTypeName(n: BytesN, ast: AST): ElementaryTypeName {
 }
 
 export function createEmptyTuple(ast: AST): TupleExpression {
-  const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
+  return createTuple(ast, []);
+}
+
+export function createTuple(ast: AST, nodes: Expression[]): TupleExpression {
+  const typeString = `tuple(${nodes.map((node) => node.typeString)})`;
+  const node = new TupleExpression(ast.reserveId(), '', typeString, false, nodes);
   ast.setContextRecursive(node);
   return node;
 }
