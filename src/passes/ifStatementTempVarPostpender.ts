@@ -13,6 +13,7 @@ import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { createBlock, createCairoTempVar } from '../utils/nodeTemplates';
 import { hasPathWithoutReturn } from '../utils/controlFlowAnalyser';
 import assert from 'assert';
+import { isBlock } from '../export';
 
 /*
  * This pass does a live variable analysis of the code while simultaneously
@@ -72,18 +73,22 @@ export class IfStatementTempVarPostpender extends ASTMapper {
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
     this.liveVars = new Set<string>();
     [...node.implicits].forEach((implicit) => this.liveVars.add(implicit));
+
     // analyse the block
-    if (node.vBody) {
+    if (node.vBody !== undefined) {
       this.dispatchVisit(node.vBody, ast);
     }
+
     // remove the parameters and implicits
-    [...node.implicits].forEach((implicit) => {
-      if (!this.liveVars.delete(implicit)) {
-        throw new TranspileFailedError(
-          `Implicit variable dead. ${implicit} in function ${node.name}.`,
-        );
-      }
-    });
+    const deadVars = [...node.implicits].filter((implicit) => !this.liveVars.delete(implicit));
+    if (deadVars.length > 0) {
+      throw new TranspileFailedError(
+        `Implicit variable(s) dead in function ${node.name}:\n ${deadVars
+          .map((implicit) => `  * ${implicit}`)
+          .join('\n')} `,
+      );
+    }
+
     this.liveVars = new Set<string>();
   }
 
@@ -126,7 +131,7 @@ export class IfStatementTempVarPostpender extends ASTMapper {
 
   visitIfStatement(node: IfStatement, ast: AST): void {
     ensureBothBranchesAreBlocks(node, ast);
-    assert(node.vFalseBody instanceof Block);
+    assert(node.vTrueBody instanceof Block && node.vFalseBody instanceof Block);
 
     const liveVarsBefore = new Set(this.liveVars);
     this.dispatchVisit(node.vTrueBody, ast);
@@ -149,20 +154,12 @@ export class IfStatementTempVarPostpender extends ASTMapper {
 
     const trueHasPathWithoutReturn = hasPathWithoutReturn(node.vTrueBody);
     if (trueHasPathWithoutReturn) {
-      for (const liveVar of liveVarsBefore) {
-        const child = createCairoTempVar(liveVar, ast);
-        (node.vTrueBody as Block).appendChild(child);
-        ast.registerChild(child, node.vTrueBody);
-      }
+      setBlockTempvars(node.vTrueBody, liveVarsBefore, ast);
     }
-    const falseHasPathWithoutReturn = hasPathWithoutReturn(node.vFalseBody);
 
+    const falseHasPathWithoutReturn = hasPathWithoutReturn(node.vFalseBody);
     if (falseHasPathWithoutReturn) {
-      for (const liveVar of liveVarsBefore) {
-        const child = createCairoTempVar(liveVar, ast);
-        node.vFalseBody.appendChild(child);
-        ast.registerChild(child, node.vFalseBody);
-      }
+      setBlockTempvars(node.vFalseBody, liveVarsBefore, ast);
     }
 
     if (falseHasPathWithoutReturn || trueHasPathWithoutReturn) {
@@ -177,7 +174,7 @@ export class IfStatementTempVarPostpender extends ASTMapper {
 }
 
 function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
-  if (!(node.vTrueBody instanceof Block) && !(node.vTrueBody instanceof UncheckedBlock)) {
+  if (!isBlock(node.vTrueBody)) {
     node.vTrueBody = createBlock([node.vTrueBody], ast);
     ast.registerChild(node.vTrueBody, node);
   }
@@ -185,8 +182,16 @@ function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
   if (node.vFalseBody === undefined) {
     node.vFalseBody = createBlock([], ast);
     ast.registerChild(node.vFalseBody, node);
-  } else if (!(node.vFalseBody instanceof Block) && !(node.vFalseBody instanceof UncheckedBlock)) {
+  } else if (!isBlock(node.vFalseBody)) {
     node.vFalseBody = createBlock([node.vFalseBody], ast);
     ast.registerChild(node.vFalseBody, node);
+  }
+}
+
+function setBlockTempvars(node: Block, liveVars: Set<string>, ast: AST) {
+  for (const liveVar of liveVars) {
+    const child = createCairoTempVar(liveVar, ast);
+    node.appendChild(child);
+    ast.registerChild(child, node);
   }
 }
