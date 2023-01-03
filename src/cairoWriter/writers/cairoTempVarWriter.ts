@@ -4,6 +4,6 @@ import { CairoASTNodeWriter } from '../base';
 
 export class CairoTempVarWriter extends CairoASTNodeWriter {
   writeInner(node: CairoTempVarStatement, _writer: ASTWriter): SrcDesc {
-    return [`tempvar ${node.name} = ${node.name}`];
+    return [`tempvar ${node.name} = ${node.name};`];
   }
 }
