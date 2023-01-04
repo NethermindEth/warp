@@ -209,6 +209,14 @@ export function generateExpressionTypeString1(
     return node.typeString;
   }
   if (node instanceof TupleExpression) {
+    if (node.isInlineArray === true) {
+      const type = safeGetNodeType(node, inference);
+      if (type instanceof TupleType) {
+        return `${type.elements[0].getFields()[0]} memory`;
+      } else if (type instanceof ArrayType || type instanceof PointerType) {
+        return generateExpressionTypeString(type);
+      }
+    }
     if (node.vComponents.length === 0) {
       // E.g. `return abi.decode(data, (address, uint256));`
       assert(type instanceof TupleType);
