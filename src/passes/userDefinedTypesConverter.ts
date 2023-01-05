@@ -5,11 +5,9 @@ import {
   FunctionCall,
   FunctionType,
   InferType,
-  IntLiteralType,
   MappingType,
   MemberAccess,
   PointerType,
-  StringLiteralType,
   TupleType,
   TypeName,
   TypeNameType,
@@ -27,7 +25,6 @@ import {
   generateExpressionTypeString1,
 } from '../utils/getTypeString';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { ast } from 'peggy';
 import { partial } from 'lodash';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {

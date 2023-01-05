@@ -35,7 +35,6 @@ import {
   TypeNode,
   UserDefinedType,
   UserDefinedTypeName,
-  UserDefinedValueTypeDefinition,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';

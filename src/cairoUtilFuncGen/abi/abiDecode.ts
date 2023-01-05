@@ -10,7 +10,6 @@ import {
   SourceUnit,
   StructDefinition,
   TupleType,
-  TypeNameType,
   TypeNode,
   UserDefinedType,
 } from 'solc-typed-ast';

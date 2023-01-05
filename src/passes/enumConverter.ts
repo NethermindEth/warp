@@ -20,16 +20,12 @@ import {
   FunctionCallKind,
   ElementaryTypeNameExpression,
   StringLiteralType,
-  Literal,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
-import {
-  generateExpressionTypeString,
-  generateExpressionTypeString1,
-} from '../utils/getTypeString';
+import { generateExpressionTypeString1 } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 

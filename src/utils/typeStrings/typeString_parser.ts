@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Need the ts-nocheck to suppress the noUnusedLocals errors in the generated parser
 // @ts-nocheck
 import { lt } from 'semver';

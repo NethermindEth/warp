@@ -4,7 +4,6 @@ import {
   ForStatement,
   FunctionDefinition,
   Identifier,
-  InferType,
   SourceUnit,
   StructDefinition,
   VariableDeclaration,

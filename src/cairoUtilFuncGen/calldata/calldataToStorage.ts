@@ -34,12 +34,8 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression, calldataLocation: Expression, nodeInSourceUnit?: ASTNode) {
-    const storageType = generalizeType(
-      safeGetNodeType(storageLocation, this.ast.inference),
-    )[0];
-    const calldataType = generalizeType(
-      safeGetNodeType(calldataLocation, this.ast.inference),
-    )[0];
+    const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
+    const calldataType = generalizeType(safeGetNodeType(calldataLocation, this.ast.inference))[0];
 
     const name = this.getOrCreate(calldataType);
     const functionStub = createCairoFunctionStub(

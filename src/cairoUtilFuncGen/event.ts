@@ -1,13 +1,10 @@
 import {
-  ArrayType,
   DataLocation,
   EmitStatement,
   EventDefinition,
   FunctionCall,
   generalizeType,
-  PointerType,
   SourceUnit,
-  TupleType,
   TypeNode,
 } from 'solc-typed-ast';
 import {
@@ -21,7 +18,6 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
-  warpEventCanonicalSignaturehash,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
