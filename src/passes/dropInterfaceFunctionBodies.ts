@@ -1,9 +1,4 @@
-import {
-  Block,
-  ContractDefinition,
-  ContractKind,
-  FunctionDefinition,
-} from 'solc-typed-ast';
+import { Block, ContractDefinition, ContractKind, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 
