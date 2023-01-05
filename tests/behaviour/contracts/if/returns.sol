@@ -8,14 +8,14 @@ contract WARP {
             return 1;
         }
 
-        return 0;
+        return 2;
     }
 
     function ifWithElse(bool choice) pure public returns (uint8 a) {
         if (choice) {
             return 1;
         } else {
-            return 0;
+            return 2;
         }
     }
 
@@ -23,8 +23,8 @@ contract WARP {
         if (choice) {
             return 1;
         } else {
-            return 0;
+            return 2;
         }
-        return 2;
+        return 3;
     }
 }

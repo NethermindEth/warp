@@ -8,6 +8,7 @@ import {
   ArrayTypeName,
   Assignment,
   ASTNode,
+  Block,
   BoolType,
   BytesType,
   CompileFailedError,
@@ -44,6 +45,7 @@ import {
   TupleExpression,
   TypeName,
   TypeNode,
+  UncheckedBlock,
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
@@ -412,6 +414,10 @@ export function mangleStructName(structDef: StructDefinition): string {
 export function mangleOwnContractInterface(contractOrName: ContractDefinition | string): string {
   const name = typeof contractOrName === 'string' ? contractOrName : contractOrName.name;
   return `${name}_interface`;
+}
+
+export function isBlock(node: ASTNode): node is Block | UncheckedBlock {
+  return node instanceof Block || node instanceof UncheckedBlock;
 }
 
 export function isExternalCall(node: FunctionCall): boolean {

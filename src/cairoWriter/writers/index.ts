@@ -4,6 +4,7 @@ export * from './blockWriter';
 export * from './cairoAssertWriter';
 export * from './cairoContractWriter';
 export * from './cairoFunctionDefinitionWriter';
+export * from './cairoTempVarWriter';
 export * from './elementaryTypeNameExpressionWriter';
 export * from './emitStatementWriter';
 export * from './enumDefinitionWriter';

@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 
 contract WARP {
     function ifNoElse(bool choice) pure public returns (uint8 a) {
-        uint8 x = 0;
+        uint8 x = 2;
 
         if (choice) {
             x = 1;
@@ -18,7 +18,7 @@ contract WARP {
         if (choice) {
             x = 1;
         } else {
-            x= 0;
+            x= 3;
         }
         return x;
     }

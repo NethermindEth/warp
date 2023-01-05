@@ -57,7 +57,12 @@ import {
   VariableDeclarationStatement,
   WhileStatement,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from '../ast/cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  CairoTempVarStatement,
+} from '../ast/cairoNodes';
 import {
   AssignmentWriter,
   BinaryOperationWriter,
@@ -65,6 +70,7 @@ import {
   CairoAssertWriter,
   CairoContractWriter,
   CairoFunctionDefinitionWriter,
+  CairoTempVarWriter,
   ElementaryTypeNameExpressionWriter,
   EmitStatementWriter,
   EnumDefinitionWriter,
@@ -98,6 +104,7 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
+    [CairoTempVarStatement, new CairoTempVarWriter(ast, throwOnUnimplemented)],
     [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
