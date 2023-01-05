@@ -639,9 +639,12 @@ function handleAbiEncodeArgs(args: Expression[], ast: AST) {
       const signed = BigInt(arg.value) < 0;
       insertConversionIfNecessary(arg, new IntType(256, signed), arg, ast);
     } else if (type instanceof TupleType) {
-      arg.typeString = `uint8[${type.elements.length}] memory`;
-      const arrType = safeGetNodeType(arg, ast.inference);
-      insertConversionIfNecessary(arg, arrType, arg, ast);
+      const abiEncodeType = new PointerType(
+        new ArrayType(new IntType(8, false), BigInt(type.elements.length)),
+        DataLocation.Memory,
+      );
+      arg.typeString = generateExpressionTypeString1(ast.inference, arg, abiEncodeType);
+      insertConversionIfNecessary(arg, abiEncodeType, arg, ast);
     }
   });
 }
