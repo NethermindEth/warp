@@ -25,7 +25,7 @@ import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
-import { generateExpressionTypeString1 } from '../utils/getTypeString';
+import { generateExpressionTypeStringForASTNode } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
@@ -59,7 +59,7 @@ export class EnumConverter extends ASTMapper {
       (node.vExpression instanceof MemberAccess &&
         node.vExpression.vReferencedDeclaration instanceof EnumDefinition)
     ) {
-      node.vExpression.typeString = generateExpressionTypeString1(
+      node.vExpression.typeString = generateExpressionTypeStringForASTNode(
         ast.inference,
         node,
         replaceEnumType(tNode),
@@ -86,7 +86,11 @@ export class EnumConverter extends ASTMapper {
     const tNode = safeGetNodeType(node, ast.inference);
     const replacementNode = replaceEnumType(tNode);
     if (tNode.pp() !== replacementNode.pp()) {
-      node.typeString = generateExpressionTypeString1(ast.inference, node, replacementNode);
+      node.typeString = generateExpressionTypeStringForASTNode(
+        ast.inference,
+        node,
+        replacementNode,
+      );
     }
   }
 
@@ -94,7 +98,7 @@ export class EnumConverter extends ASTMapper {
     const tNode = safeGetNodeType(node, ast.inference);
     assert(tNode instanceof UserDefinedType, 'Expected UserDefinedType');
     if (!(tNode.definition instanceof EnumDefinition)) return;
-    const newTypeString = generateExpressionTypeString1(
+    const newTypeString = generateExpressionTypeStringForASTNode(
       ast.inference,
       node,
       replaceEnumType(tNode),
@@ -105,7 +109,7 @@ export class EnumConverter extends ASTMapper {
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
     const typeNode = replaceEnumType(safeGetNodeType(node, ast.inference));
-    node.typeString = generateExpressionTypeString1(ast.inference, node, typeNode);
+    node.typeString = generateExpressionTypeStringForASTNode(ast.inference, node, typeNode);
   }
 
   visitExpression(node: Expression, ast: AST): void {
@@ -115,7 +119,7 @@ export class EnumConverter extends ASTMapper {
       return;
     }
     const typeNode = replaceEnumType(type);
-    node.typeString = generateExpressionTypeString1(ast.inference, node, typeNode);
+    node.typeString = generateExpressionTypeStringForASTNode(ast.inference, node, typeNode);
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {

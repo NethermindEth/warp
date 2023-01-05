@@ -195,7 +195,7 @@ function instanceOfNonRecursivePP(type: TypeNode): boolean {
   );
 }
 
-export function generateExpressionTypeString1(
+export function generateExpressionTypeStringForASTNode(
   inference: InferType,
   node: Expression,
   type: TypeNode,
@@ -225,7 +225,11 @@ export function generateExpressionTypeString1(
     }
     return `tuple(${node.vComponents
       .map((element) =>
-        generateExpressionTypeString1(inference, element, safeGetNodeType(element, inference)),
+        generateExpressionTypeStringForASTNode(
+          inference,
+          element,
+          safeGetNodeType(element, inference),
+        ),
       )
       .join(',')})`;
   }

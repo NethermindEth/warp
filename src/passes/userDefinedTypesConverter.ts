@@ -22,7 +22,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import {
   generateExpressionTypeString,
-  generateExpressionTypeString1,
+  generateExpressionTypeStringForASTNode,
 } from '../utils/getTypeString';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { partial } from 'lodash';
@@ -62,7 +62,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
     this.commonVisit(node, ast);
     const nodeType = safeGetNodeType(node, ast.inference);
     const replacementNode = replaceUserDefinedType(ast.inference, nodeType);
-    node.typeString = generateExpressionTypeString1(ast.inference, node, replacementNode);
+    node.typeString = generateExpressionTypeStringForASTNode(ast.inference, node, replacementNode);
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {

@@ -42,7 +42,7 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
-import { generateExpressionTypeString1 } from '../utils/getTypeString';
+import { generateExpressionTypeStringForASTNode } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, isExternalCall } from '../utils/utils';
@@ -438,7 +438,7 @@ export function insertConversionIfNecessary(
       expression.vComponents.forEach((node) =>
         insertConversionIfNecessary(node, generalisedTargetType.elementT, expression, ast),
       );
-      expression.typeString = generateExpressionTypeString1(
+      expression.typeString = generateExpressionTypeStringForASTNode(
         ast.inference,
         expression,
         generalisedTargetType,
@@ -643,7 +643,7 @@ function handleAbiEncodeArgs(args: Expression[], ast: AST) {
         new ArrayType(new IntType(8, false), BigInt(type.elements.length)),
         DataLocation.Memory,
       );
-      arg.typeString = generateExpressionTypeString1(ast.inference, arg, abiEncodeType);
+      arg.typeString = generateExpressionTypeStringForASTNode(ast.inference, arg, abiEncodeType);
       insertConversionIfNecessary(arg, abiEncodeType, arg, ast);
     }
   });
