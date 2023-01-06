@@ -260,9 +260,12 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
   if (force) {
     postTestCleanup();
   } else if (!preTestChecks()) return;
-  findSolSourceFilePaths('example_contracts', true).forEach((file) =>
-    runSolFileTest(file, results, onlyResults, unsafe),
-  );
+  const filter = process.env.FILTER;
+  findSolSourceFilePaths('example_contracts', true).forEach((file) => {
+    if (filter === undefined || file.includes(filter)) {
+      runSolFileTest(file, results, onlyResults, unsafe);
+    }
+  });
   findCairoSourceFilePaths(WARP_TEST_FOLDER, true).forEach((file) => {
     runCairoFileTest(file, results, onlyResults);
   });
