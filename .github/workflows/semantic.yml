@@ -8,6 +8,9 @@ on:
       - warp-ts
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 env:
   CAIRO_LANG_VERSION: 0.10.0
 
