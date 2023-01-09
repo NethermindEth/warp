@@ -45,12 +45,12 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitExpression(node: Expression, ast: AST): void {
-    this.commonVisit(node, ast);
     const typeNode = safeGetNodeType(node, ast.inference);
     if (typeNode instanceof IntLiteralType || typeNode instanceof StringLiteralType) {
       return;
     }
     node.typeString = generateExpressionTypeString(replaceBytesType(typeNode));
+    this.commonVisit(node, ast);
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
