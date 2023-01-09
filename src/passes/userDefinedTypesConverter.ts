@@ -43,8 +43,8 @@ export class UserDefinedTypesConverter extends ASTMapper {
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
     const replacementNode = replaceUserDefinedType(
-      ast.inference,
       safeGetNodeType(node, ast.inference),
+      ast.inference,
     );
     node.typeString = generateExpressionTypeString(replacementNode);
   }
@@ -52,7 +52,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
   visitTypeName(node: TypeName, ast: AST): void {
     this.commonVisit(node, ast);
     const tNode = safeGetNodeType(node, ast.inference);
-    const replacementNode = replaceUserDefinedType(ast.inference, tNode);
+    const replacementNode = replaceUserDefinedType(tNode, ast.inference);
     if (tNode.pp() !== replacementNode.pp()) {
       node.typeString = generateExpressionTypeString(replacementNode);
     }
@@ -61,8 +61,8 @@ export class UserDefinedTypesConverter extends ASTMapper {
   visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
     const nodeType = safeGetNodeType(node, ast.inference);
-    const replacementNode = replaceUserDefinedType(ast.inference, nodeType);
-    node.typeString = generateExpressionTypeStringForASTNode(ast.inference, node, replacementNode);
+    const replacementNode = replaceUserDefinedType(nodeType, ast.inference);
+    node.typeString = generateExpressionTypeStringForASTNode(node, replacementNode, ast.inference);
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
@@ -109,8 +109,8 @@ export class UserDefinedTypesConverter extends ASTMapper {
   }
 }
 
-function replaceUserDefinedType(inference: InferType, type: TypeNode): TypeNode {
-  const callSelf = partial(replaceUserDefinedType, inference);
+function replaceUserDefinedType(type: TypeNode, inference: InferType): TypeNode {
+  const callSelf = (type: TypeNode) => replaceUserDefinedType(type, inference);
 
   if (type instanceof ArrayType) {
     return new ArrayType(callSelf(type.elementT), type.size, type.src);

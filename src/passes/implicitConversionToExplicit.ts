@@ -42,7 +42,6 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
-import { generateExpressionTypeStringForASTNode } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, isExternalCall } from '../utils/utils';

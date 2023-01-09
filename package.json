@@ -78,7 +78,6 @@
     "ethers": "^5.6.2",
     "fs-extra": "^10.0.1",
     "keccak": "^3.0.2",
-    "lodash": "^4.17.21",
     "peggy": "^1.2.0",
     "prompts": "^2.4.2",
     "solc-typed-ast": "^11.0.2",

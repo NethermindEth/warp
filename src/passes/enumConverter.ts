@@ -60,9 +60,9 @@ export class EnumConverter extends ASTMapper {
         node.vExpression.vReferencedDeclaration instanceof EnumDefinition)
     ) {
       node.vExpression.typeString = generateExpressionTypeStringForASTNode(
-        ast.inference,
         node,
         replaceEnumType(tNode),
+        ast.inference,
       );
       ast.replaceNode(
         node.vExpression,
@@ -87,9 +87,9 @@ export class EnumConverter extends ASTMapper {
     const replacementNode = replaceEnumType(tNode);
     if (tNode.pp() !== replacementNode.pp()) {
       node.typeString = generateExpressionTypeStringForASTNode(
-        ast.inference,
         node,
         replacementNode,
+        ast.inference,
       );
     }
   }
@@ -99,9 +99,9 @@ export class EnumConverter extends ASTMapper {
     assert(tNode instanceof UserDefinedType, 'Expected UserDefinedType');
     if (!(tNode.definition instanceof EnumDefinition)) return;
     const newTypeString = generateExpressionTypeStringForASTNode(
-      ast.inference,
       node,
       replaceEnumType(tNode),
+      ast.inference,
     );
     ast.replaceNode(node, new ElementaryTypeName(node.id, node.src, newTypeString, newTypeString));
   }
@@ -109,7 +109,7 @@ export class EnumConverter extends ASTMapper {
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
     const typeNode = replaceEnumType(safeGetNodeType(node, ast.inference));
-    node.typeString = generateExpressionTypeStringForASTNode(ast.inference, node, typeNode);
+    node.typeString = generateExpressionTypeStringForASTNode(node, typeNode, ast.inference);
   }
 
   visitExpression(node: Expression, ast: AST): void {
@@ -119,7 +119,7 @@ export class EnumConverter extends ASTMapper {
       return;
     }
     const typeNode = replaceEnumType(type);
-    node.typeString = generateExpressionTypeStringForASTNode(ast.inference, node, typeNode);
+    node.typeString = generateExpressionTypeStringForASTNode(node, typeNode, ast.inference);
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {

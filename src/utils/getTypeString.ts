@@ -196,9 +196,9 @@ function instanceOfNonRecursivePP(type: TypeNode): boolean {
 }
 
 export function generateExpressionTypeStringForASTNode(
-  inference: InferType,
   node: Expression,
   type: TypeNode,
+  inference: InferType,
 ): string {
   if (
     type instanceof IntLiteralType ||
@@ -226,9 +226,9 @@ export function generateExpressionTypeStringForASTNode(
     return `tuple(${node.vComponents
       .map((element) =>
         generateExpressionTypeStringForASTNode(
-          inference,
           element,
           safeGetNodeType(element, inference),
+          inference,
         ),
       )
       .join(',')})`;

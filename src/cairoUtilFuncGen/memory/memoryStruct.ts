@@ -36,9 +36,9 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       structDef.vMembers.map((decl) => {
         assert(decl.vType !== undefined);
         const type = typeNameToSpecializedTypeNode(
-          this.ast.inference,
           decl.vType,
           DataLocation.Memory,
+          this.ast.inference,
         );
         return [
           decl.name,

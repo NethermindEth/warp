@@ -86,9 +86,9 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
 }
 
 export function typeNameToSpecializedTypeNode(
-  inference: InferType,
   typeName: TypeName,
   loc: DataLocation,
+  inference: InferType,
 ): TypeNode {
   return specializeType(inference.typeNameToTypeNode(typeName), loc);
 }
@@ -373,10 +373,6 @@ export function getPackedByteSize(type: TypeNode, inference: InferType): number 
   }
 
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    assert(
-      inference.version !== undefined,
-      'Struct byte size calculation requires compiler version',
-    );
     return type.definition.vMembers
       .map((varDecl) => getNodeType(varDecl, inference))
       .reduce(sumMemberSize, 0n);

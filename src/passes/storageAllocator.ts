@@ -136,7 +136,7 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
   if (node.vValue === undefined) return;
 
   assert(node.vType !== undefined);
-  const type = typeNameToSpecializedTypeNode(ast.inference, node.vType, DataLocation.Storage);
+  const type = typeNameToSpecializedTypeNode(node.vType, DataLocation.Storage, ast.inference);
 
   let value = node.vValue;
   if (value && value instanceof Literal && value.kind === LiteralKind.String) {
