@@ -272,14 +272,13 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     const type = generalizeType(safeGetNodeType(node, ast.inference))[0];
 
     assert(
-      type instanceof TupleType || type instanceof ArrayType,
-      `Expected inline array ${printNode(node)} to be tuple type, got ${printTypeNode(type)}`,
+      type instanceof ArrayType,
+      `Expected inline array ${printNode(node)} to be array type, got ${printTypeNode(type)}`,
     );
 
-    for (const [i, element] of node.vComponents.entries()) {
-      const targetType = type instanceof TupleType ? type.elements[i] : type.elementT;
-      insertConversionIfNecessary(element, targetType, node, ast);
-    }
+    node.vComponents.forEach((element) =>
+      insertConversionIfNecessary(element, type.elementT, node, ast),
+    );
 
     this.visitExpression(node, ast);
   }
@@ -433,25 +432,13 @@ export function insertConversionIfNecessary(
       insertConversion(expression, generalisedTargetType, context, ast);
     }
     return;
-  } else if (expression instanceof TupleExpression) {
-    if (generalisedTargetType instanceof ArrayType) {
-      expression.vComponents.forEach((node) =>
-        insertConversionIfNecessary(node, generalisedTargetType.elementT, expression, ast),
+  } else if (currentType instanceof TupleType) {
+    if (!(targetType instanceof TupleType)) {
+      throw new TranspileFailedError(
+        `Attempted to convert tuple ${printNode(expression)} as single value`,
       );
-      expression.typeString = generateExpressionTypeStringForASTNode(
-        ast.inference,
-        expression,
-        generalisedTargetType,
-      );
-      return;
-    } else if (targetType instanceof TupleType) {
-      return;
     }
-    assert(
-      expression.vComponents.length === 1,
-      `Attempted to convert tuple ${printNode(expression)} as single value`,
-    );
-    ast.replaceNode(expression, expression.vComponents[0]);
+    return;
   } else if (currentType instanceof TypeNameType) {
     return;
   } else if (currentType instanceof UserDefinedType) {
@@ -638,13 +625,6 @@ function handleAbiEncodeArgs(args: Expression[], ast: AST) {
       assert(arg instanceof Literal);
       const signed = BigInt(arg.value) < 0;
       insertConversionIfNecessary(arg, new IntType(256, signed), arg, ast);
-    } else if (type instanceof TupleType) {
-      const abiEncodeType = new PointerType(
-        new ArrayType(new IntType(8, false), BigInt(type.elements.length)),
-        DataLocation.Memory,
-      );
-      arg.typeString = generateExpressionTypeStringForASTNode(ast.inference, arg, abiEncodeType);
-      insertConversionIfNecessary(arg, abiEncodeType, arg, ast);
     }
   });
 }
