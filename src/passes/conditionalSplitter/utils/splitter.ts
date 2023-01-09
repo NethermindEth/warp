@@ -66,8 +66,8 @@ export function splitTupleAssignment(
         location = DataLocation.Memory;
       } else {
         let lhsLocation: DataLocation | undefined;
-        [typeNode, lhsLocation] = generalizeType(lhsElementType);
-        [, location] = generalizeType(rhsElementType);
+        [, lhsLocation] = generalizeType(lhsElementType);
+        [typeNode, location] = generalizeType(rhsElementType);
         // tupleAssignments.sol
         location = location || lhsLocation;
       }

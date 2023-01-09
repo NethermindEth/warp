@@ -25,7 +25,6 @@ import {
   generateExpressionTypeStringForASTNode,
 } from '../utils/getTypeString';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { partial } from 'lodash';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
   visitUserDefinedValueTypeDefinition(node: UserDefinedValueTypeDefinition, _ast: AST): void {
