@@ -13,6 +13,7 @@ env:
 
 jobs:
   semantic_test:
+    fail-fast: false
     strategy:
       matrix:
         SM_BATCH: [1, 2, 3]
