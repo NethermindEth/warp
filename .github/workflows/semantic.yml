@@ -16,8 +16,8 @@ env:
 
 jobs:
   semantic_test:
-    fail-fast: false
     strategy:
+      fail-fast: false
       matrix:
         SM_BATCH: [1, 2, 3]
     runs-on: ubuntu-latest
