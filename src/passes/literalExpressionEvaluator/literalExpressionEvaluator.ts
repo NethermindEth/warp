@@ -245,7 +245,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
 }
 
 function evaluateTupleLiteral(node: TupleExpression): RationalLiteral | boolean | null {
-  if (node.vOriginalComponents.length == 1 && node.vOriginalComponents[0] !== null) {
+  if (node.vOriginalComponents.length === 1 && node.vOriginalComponents[0] !== null) {
     return evaluateLiteralExpression(node.vOriginalComponents[0]);
   }
 

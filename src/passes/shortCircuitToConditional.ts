@@ -7,7 +7,7 @@ export class ShortCircuitToConditional extends ASTMapper {
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
 
-    if (node.operator == '&&') {
+    if (node.operator === '&&') {
       const replacementExpression = new Conditional(
         ast.reserveId(),
         node.src,
@@ -20,7 +20,7 @@ export class ShortCircuitToConditional extends ASTMapper {
       ast.replaceNode(node, replacementExpression);
     }
 
-    if (node.operator == '||') {
+    if (node.operator === '||') {
       const replacementExpression = new Conditional(
         ast.reserveId(),
         node.src,

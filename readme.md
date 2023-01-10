@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/NethermindEth/warp/main/resources/WARP.svg" width="900" height="512" />
+<img src="https://raw.githubusercontent.com/NethermindEth/warp/develop/resources/warp.png"/>
 
 # Warp
 
@@ -8,6 +8,9 @@ smart contracts to StarkNet Cairo Contracts.
 ## Quickstart
 
 Docker compose provides a ready to use environment featuring warp and devnet.
+
+> **Note:**
+> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
 
 ### Build and run containers
 
@@ -21,13 +24,7 @@ docker-compose up
 docker-compose exec warp warp transpile example_contracts/ERC20.sol
 ```
 
-Alternatively for warp developers:
-
-```bash
-docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
-```
-
-It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above commands.
+It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
 
 ### Deploy to devnet
 
@@ -270,7 +267,6 @@ Please see the list below:
 |                      blockhash                      |    :question:     |
 |            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
-|                  ternary operator                   | :hammer_and_pick: |
 |                       receive                       |    :question:     |
 |   Inline Yul Assembly - arithmetic (add, sub ...)   | :hammer_and_pick: |
 |  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
@@ -282,6 +278,9 @@ Please see the list below:
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
 
 ## Docker :whale:
+
+> **Note:**
+> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
 
 Build the image from source:
 
@@ -297,7 +296,27 @@ docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_co
 
 ## Contributing
 
-Please checkout our database of open tickets [here](https://nethermind.notion.site/bb63e1485481427da72484457b4cc449?v=60e2e876b44740999a2e83fae29051db)
+### First steps :feet:
+
+If you like to contribute, the first step is to install Warp from source for devs [steps here](#warp-installation-method-2-from-sourcefor-devs)
+
+To look what features we are currently working on or tasks that are pending to do, please checkout our database of open tickets [here](https://nethermind.notion.site/bb63e1485481427da72484457b4cc449?v=60e2e876b44740999a2e83fae29051db)
+
+### Developing tips :honey_pot:
+
+While developing your code, remembering to compile the project every time some minor changes are applied could be annoying. You could start a process that watch for changes and automatically recompile it.
+
+In a separate terminal execute:
+
+```bash
+yarn dev
+```
+
+Developers could run warp instructions using docker. This is an example using `transpile` command:
+
+```bash
+docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
+```
 
 ### Testing for contributors :stethoscope:
 

@@ -8,6 +8,7 @@ import {
   ArrayTypeName,
   Assignment,
   ASTNode,
+  Block,
   BoolType,
   BytesType,
   CompileFailedError,
@@ -44,6 +45,7 @@ import {
   TupleExpression,
   TypeName,
   TypeNode,
+  UncheckedBlock,
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
@@ -66,7 +68,7 @@ import {
 } from './nodeTemplates';
 import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
-import { TranspilationOptions } from '..';
+import { TranspilationOptions } from '../cli';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
 
@@ -412,6 +414,10 @@ export function mangleStructName(structDef: StructDefinition): string {
 export function mangleOwnContractInterface(contractOrName: ContractDefinition | string): string {
   const name = typeof contractOrName === 'string' ? contractOrName : contractOrName.name;
   return `${name}_interface`;
+}
+
+export function isBlock(node: ASTNode): node is Block | UncheckedBlock {
+  return node instanceof Block || node instanceof UncheckedBlock;
 }
 
 export function isExternalCall(node: FunctionCall): boolean {

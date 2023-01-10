@@ -212,7 +212,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       }
 
       if (node.vFunctionName === 'decode') {
-        assert(node.vArguments.length == 2, 'decode recieves two arguments');
+        assert(node.vArguments.length === 2, 'decode recieves two arguments');
         insertConversionIfNecessary(node.vArguments[0], new BytesType(), node, ast);
         return;
       }

@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { CompilationOptions, PrintOptions, TranspilationOptions } from '.';
+import { CompilationOptions, PrintOptions, TranspilationOptions } from './cli';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -25,10 +25,11 @@ import {
   FunctionTypeStringMatcher,
   IdentifierMangler,
   IdentityFunctionRemover,
-  IfFunctionaliser,
+  IfStatementTempVarPostpender,
   ImplicitConversionToExplicit,
   ImportDirectiveIdentifier,
   InheritanceInliner,
+  InlineAssemblyTransformer,
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   ModifierHandler,
@@ -102,6 +103,7 @@ function applyPasses(
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
+    ['Iat', InlineAssemblyTransformer],
     ['Wa', WarnSupportedFeatures],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
@@ -129,7 +131,6 @@ function applyPasses(
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
-    ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
     ['Sc', ShortCircuitToConditional],
     ['U', UnloadingAssignment],
@@ -150,6 +151,7 @@ function applyPasses(
     ['Fp', FunctionPruner],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
+    ['Lv', IfStatementTempVarPostpender],
     ['Ci', CairoUtilImporter],
     ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
@@ -174,8 +176,10 @@ function applyPasses(
   RejectPrefix.map(ast);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
+    printPassName(mapper.getPassName(), options);
     const newAst = mapper.map(ast);
     checkAST(ast, options, mapper.getPassName());
+    printAST(ast, options);
     return newAst;
   }, ast);
 

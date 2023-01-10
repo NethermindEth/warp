@@ -26,10 +26,17 @@ import {
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { CairoTempVarStatement } from '../ast/cairoNodes';
 import { generateExpressionTypeString, generateLiteralTypeString } from './getTypeString';
 import { safeGetNodeTypeInCtx, specializeType } from './nodeTypeProcessing';
 import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
+
+export function createCairoTempVar(name: string, ast: AST) {
+  const node = new CairoTempVarStatement(ast.reserveId(), '', name);
+  ast.setContextRecursive(node);
+  return node;
+}
 
 export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTypeName {
   const node = new ElementaryTypeName(
@@ -133,7 +140,12 @@ export function createBytesNTypeName(n: BytesN, ast: AST): ElementaryTypeName {
 }
 
 export function createEmptyTuple(ast: AST): TupleExpression {
-  const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
+  return createTuple(ast, []);
+}
+
+export function createTuple(ast: AST, nodes: Expression[]): TupleExpression {
+  const typeString = `tuple(${nodes.map((node) => node.typeString)})`;
+  const node = new TupleExpression(ast.reserveId(), '', typeString, false, nodes);
   ast.setContextRecursive(node);
   return node;
 }
@@ -285,7 +297,7 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
 
 export function createVariableDeclarationStatement(
   varDecls: (VariableDeclaration | null)[],
-  intitalValue: Expression,
+  intitalValue: Expression | undefined,
   ast: AST,
 ): VariableDeclarationStatement {
   assert(
