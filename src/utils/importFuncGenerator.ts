@@ -30,6 +30,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createUint256ImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
       return createByte256AtIndexImportFuncDef(node, ast);
+    case WARPLIB_MATHS_INT_CONVERSIONS + WARP_UINT256:
+      return createWarpUint256ImportFuncDef(node, ast);
     case WARPLIB_MATHS_UTILS + FELT_TO_UINT256:
       return createFelt2Uint256ImportFuncDef(node, ast);
     case WARPLIB_MATHS_UTILS + NARROW_SAFE:
@@ -76,6 +78,7 @@ const STARKWARE_CAIRO_COMMON_CAIROBUILTINS = 'starkware.cairo.common.cairo_built
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
+const WARPLIB_MATHS_INT_CONVERSIONS = 'warplib.maths.int_conversions';
 const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
 const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
 const WARPLIB_MEMORY = 'warplib.memory';
@@ -105,6 +108,7 @@ const WM_DYN_ARRAY_LENGTH = 'wm_dyn_array_length';
 const WM_INDEX_DYN = 'wm_index_dyn';
 const WM_NEW = 'wm_new';
 const WARP_KECCAK = 'warp_keccak';
+const WARP_UINT256 = 'warp_uint256';
 
 function findExistingImport(name: string, node: SourceUnit) {
   const found = node.getChildrenBySelector(
@@ -159,6 +163,16 @@ function createByte256AtIndexImportFuncDef(
   const funcName = BYTE256_AT_INDEX;
   const path = WARPLIB_MATHS_BYTES_ACCESS;
   const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpUint256ImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = WARP_UINT256;
+  const path = WARPLIB_MATHS_INT_CONVERSIONS;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
