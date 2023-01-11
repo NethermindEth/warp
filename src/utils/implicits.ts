@@ -7,6 +7,7 @@ export const RANGE_CHECK_PTR = 'range_check_ptr';
 export const SYSCALL_PTR = 'syscall_ptr';
 export const WARP_MEMORY = 'warp_memory';
 export const KECCAK_PTR = 'keccak_ptr';
+export const DICT_PTR = 'dict_ptr';
 
 export type Implicits =
   | 'bitwise_ptr'
@@ -14,7 +15,8 @@ export type Implicits =
   | 'range_check_ptr'
   | 'syscall_ptr'
   | 'warp_memory'
-  | 'keccak_ptr';
+  | 'keccak_ptr'
+  | 'dict_ptr';
 export type CairoBuiltin = 'bitwise' | 'pedersen' | 'range_check';
 
 const implicitsOrder = {
@@ -24,6 +26,7 @@ const implicitsOrder = {
   bitwise_ptr: 3,
   warp_memory: 4,
   keccak_ptr: 5,
+  dict_ptr: 6,
 };
 
 export function implicitOrdering(a: Implicits, b: Implicits): number {
@@ -37,6 +40,7 @@ export const implicitTypes: { [key in Implicits]: string } = {
   syscall_ptr: 'felt*',
   warp_memory: 'DictAccess*',
   keccak_ptr: 'felt*',
+  dict_ptr: 'DictAccess*',
 };
 
 export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Implicits) {
@@ -60,4 +64,5 @@ export const requiredBuiltin: { [key in Implicits]: CairoBuiltin | null } = {
   syscall_ptr: null,
   warp_memory: null,
   keccak_ptr: null,
+  dict_ptr: null,
 };

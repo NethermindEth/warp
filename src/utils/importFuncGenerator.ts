@@ -3,6 +3,7 @@ import { CairoImportFunctionDefinition } from '../ast/cairoNodes';
 import { AST } from '../ast/ast';
 import {
   BITWISE_PTR,
+  DICT_PTR,
   Implicits,
   KECCAK_PTR,
   RANGE_CHECK_PTR,
@@ -23,6 +24,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createAllocImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_CAIROBUILTINS + BITWISE_BUILTIN:
       return createBitwiseBuiltinImportFuncDef(node, ast);
+    case STARKWARE_CAIRO_COMMON_DICT + DICT_WRITE:
+      return createDictWriteImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256:
       return createUint256ImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
@@ -70,6 +73,7 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
 // Paths
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
 const STARKWARE_CAIRO_COMMON_CAIROBUILTINS = 'starkware.cairo.common.cairo_builtins';
+const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
 const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
@@ -81,6 +85,7 @@ const WARPLIB_KECCAK = 'warplib.keccak';
 const ALLOC = 'alloc';
 const BITWISE_BUILTIN = 'BitwiseBuiltin';
 const BYTE256_AT_INDEX = 'byte256_at_index';
+const DICT_WRITE = 'dict_write';
 const UINT256 = 'Uint256';
 const FELT_TO_UINT256 = 'felt_to_uint256';
 const NARROW_SAFE = 'narrow_safe';
@@ -128,6 +133,16 @@ function createBitwiseBuiltinImportFuncDef(
   const path = STARKWARE_CAIRO_COMMON_CAIROBUILTINS;
 
   return createImportStructFuncDefinition(structName, path, ast, node);
+}
+
+function createDictWriteImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = DICT_WRITE;
+  const path = STARKWARE_CAIRO_COMMON_DICT;
+  const implicits = new Set<Implicits>([DICT_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
 }
 
 function createUint256ImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
