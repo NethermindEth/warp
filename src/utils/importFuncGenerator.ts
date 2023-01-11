@@ -203,7 +203,7 @@ function createImportFuncFuncDefinition(
   node: SourceUnit,
 ): CairoImportFunctionDefinition {
   const id = ast.reserveId();
-  const scope = ast.getContainingScope(node);
+  const scope = node.id;
   var funcDef = new CairoImportFunctionDefinition(
     id,
     scope,
@@ -214,8 +214,8 @@ function createImportFuncFuncDefinition(
     params,
     retParams,
   );
+  ast.setContextRecursive(funcDef);
   node.insertAtBeginning(funcDef);
-  ast.setContextRecursive(node);
   return funcDef;
 }
 
@@ -226,7 +226,7 @@ function createImportStructFuncDefinition(
   node: SourceUnit,
 ): CairoImportFunctionDefinition {
   const id = ast.reserveId();
-  const scope = ast.getContainingScope(node);
+  const scope = node.id;
   const implicits = new Set<Implicits>();
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
@@ -240,7 +240,7 @@ function createImportStructFuncDefinition(
     params,
     retParams,
   );
+  ast.setContextRecursive(funcDef);
   node.insertAtBeginning(funcDef);
-  ast.setContextRecursive(node);
   return funcDef;
 }
