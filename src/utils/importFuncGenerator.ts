@@ -25,9 +25,11 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createBitwiseBuiltinImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256:
       return createUint256ImportFuncDef(node, ast);
-    case WARPLIB_MATH_UTILS + FELT_TO_UINT256:
+    case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
+      return createByte256AtIndexImportFuncDef(node, ast);
+    case WARPLIB_MATHS_UTILS + FELT_TO_UINT256:
       return createFelt2Uint256ImportFuncDef(node, ast);
-    case WARPLIB_MATH_UTILS + NARROW_SAFE:
+    case WARPLIB_MATHS_UTILS + NARROW_SAFE:
       return createNarrowSafeImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + BYTE_ARRAY_TO_FELT_VALUE:
       return createByteArrayToFeltValueImportFuncDef(node, ast);
@@ -63,7 +65,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
 const STARKWARE_CAIRO_COMMON_CAIROBUILTINS = 'starkware.cairo.common.cairo_builtins';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
-const WARPLIB_MATH_UTILS = 'warplib.maths.utils';
+const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
+const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
 const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
 const WARPLIB_MEMORY = 'warplib.memory';
 const WARPLIB_KECCAK = 'warplib.keccak';
@@ -71,6 +74,7 @@ const WARPLIB_KECCAK = 'warplib.keccak';
 // Functions-Structs names to import
 const ALLOC = 'alloc';
 const BITWISE_BUILTIN = 'BitwiseBuiltin';
+const BYTE256_AT_INDEX = 'byte256_at_index';
 const UINT256 = 'Uint256';
 const FELT_TO_UINT256 = 'felt_to_uint256';
 const NARROW_SAFE = 'narrow_safe';
@@ -123,12 +127,25 @@ function createUint256ImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunc
   return createImportStructFuncDefinition(structName, path, ast, node);
 }
 
+function createByte256AtIndexImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = BYTE256_AT_INDEX;
+  const path = WARPLIB_MATHS_BYTES_ACCESS;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
 function createFelt2Uint256ImportFuncDef(
   node: SourceUnit,
   ast: AST,
 ): CairoImportFunctionDefinition {
   const funcName = FELT_TO_UINT256;
-  const path = WARPLIB_MATH_UTILS;
+  const path = WARPLIB_MATHS_UTILS;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
@@ -138,7 +155,7 @@ function createFelt2Uint256ImportFuncDef(
 
 function createNarrowSafeImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
   const funcName = NARROW_SAFE;
-  const path = WARPLIB_MATH_UTILS;
+  const path = WARPLIB_MATHS_UTILS;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
