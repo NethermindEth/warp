@@ -6,7 +6,7 @@ import { createParameterList } from './nodeTemplates';
 import { assert } from 'console';
 
 export function createImportFuncDefinition(path: string, name: string, node: SourceUnit, ast: AST) {
-  // First check if that import was already added. If so, then there's no need of adding it again.
+  // First check if the import was already added. If so, there's no need to add it again.
   const foundImportFuncDef = findExistingImport(name, node);
   if (foundImportFuncDef !== undefined) {
     return foundImportFuncDef;
@@ -49,7 +49,7 @@ const WARPLIB_MATH_UTILS = 'warplib.maths.utils';
 const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
 const WARPLIB_MEMORY = 'warplib.memory';
 
-// Functions or Structs names to import
+// Functions-Structs names to import
 const ALLOC = 'alloc';
 const BITWISE_BUILTIN = 'BitwiseBuiltin';
 const UINT256 = 'Uint256';
