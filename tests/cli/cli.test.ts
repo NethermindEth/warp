@@ -12,6 +12,16 @@ const MAX_FEE = 1000000;
 
 const TIME_LIMIT = 10 * 60 * 1000;
 
+const warpBin = path.resolve(__dirname, '..', '..', '..', 'bin', 'warp');
+const warpVenvPrefix = `PATH=${path.resolve(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  'warp_venv',
+  'bin',
+)}:$PATH`;
+
 describe('Manage starknet account', function () {
   this.timeout(TIME_LIMIT);
   it('should create a starknet account', async () => {
@@ -20,7 +30,7 @@ describe('Manage starknet account', function () {
     }
 
     await sh(
-      `starknet new_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+      `${warpVenvPrefix} starknet new_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
     );
 
     const starknet_open_zeppelin_accounts = JSON.parse(
@@ -44,24 +54,34 @@ describe('Manage starknet account', function () {
       fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
     );
     const address = starknet_open_zeppelin_accounts[network]['__default__']['address'];
-    const { stdout, stderr } = await sh(
-      `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \"address\": \"${address}\", \"amount\": 1000000000000000000, \"lite\": false }"`,
-    );
 
-    expect(stderr).to.be.empty;
+    const { stdout } = await sh(
+      `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
+    );
 
     const response = JSON.parse(stdout);
 
     expect(response).to.not.be.undefined;
+    expect(response['new_balance']).to.not.be.undefined;
+    expect(response['new_balance']).to.equal(1000000000000000000);
+    expect(response['tx_hash']).to.not.be.undefined;
+  });
+
+  it('should deploy the starknet account', async () => {
+    console.log(warpBin, process.cwd());
+    const { stdout, stderr } = await sh(
+      `${warpBin} deploy_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir} --max_fee ${MAX_FEE}`,
+    );
+    console.log(stdout, stderr);
   });
 });
 
-describe('Cleanup cli_test directory', function () {
-  this.timeout(TIME_LIMIT);
-  it('should remove the starknet account', async () => {
-    fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
-    if (fs.existsSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'))) {
-      fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
-    }
-  });
-});
+// describe('Cleanup cli_test directory', function () {
+//   this.timeout(TIME_LIMIT);
+//   it('should remove the starknet account', async () => {
+//     fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+//     if (fs.existsSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'))) {
+//       fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
+//     }
+//   });
+// });
