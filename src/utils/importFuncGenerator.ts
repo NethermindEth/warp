@@ -63,9 +63,9 @@ const WM_INDEX_DYN = 'wm_index_dyn';
 const WM_NEW = 'wm_new';
 
 function findExistingImport(name: string, node: SourceUnit) {
-  const found = node.children.filter((n) => {
-    n instanceof CairoImportFunctionDefinition && n.name === name;
-  });
+  const found = node.getChildrenBySelector(
+    (n) => n instanceof CairoImportFunctionDefinition && n.name === name,
+  );
   assert(found.length < 2, `Were found more than 1 import functions with name: ${name}.`);
 
   return found.length === 1 ? (found[0] as CairoImportFunctionDefinition) : undefined;
@@ -214,8 +214,8 @@ function createImportFuncFuncDefinition(
     params,
     retParams,
   );
-  ast.setContextRecursive(funcDef);
   node.insertAtBeginning(funcDef);
+  ast.setContextRecursive(node);
   return funcDef;
 }
 
@@ -240,7 +240,7 @@ function createImportStructFuncDefinition(
     params,
     retParams,
   );
-  ast.setContextRecursive(funcDef);
   node.insertAtBeginning(funcDef);
+  ast.setContextRecursive(node);
   return funcDef;
 }
