@@ -8,7 +8,7 @@ import {
   TypeNameType,
   TypeNode,
 } from 'solc-typed-ast';
-import { PrintOptions } from '../cli';
+import { PrintOptions } from '../cli/cli';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { cyan, underline } from './formatting';
 import { extractProperty } from './utils';

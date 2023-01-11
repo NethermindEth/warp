@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { replaceSuffix, isValidSolFile, outputResult } from './io';
-import { compileSolFiles } from './solCompile';
-import { handleTranspilationError, transform, transpile } from './transpiler';
-import { analyseSol } from './utils/analyseSol';
+import { replaceSuffix, isValidSolFile, outputResult } from '../io';
+import { compileSolFiles } from '../solCompile';
+import { handleTranspilationError, transform, transpile } from '../transpiler';
+import { analyseSol } from '../utils/analyseSol';
 import {
   compileCairo,
   runStarknetCallOrInvoke,
@@ -13,14 +13,14 @@ import {
   runStarknetDeploy,
   runStarknetDeployAccount,
   runStarknetStatus,
-} from './starknetCli';
+} from '../starknetCli';
 import chalk from 'chalk';
-import { runVenvSetup } from './utils/setupVenv';
-import { runTests } from './testing';
+import { runVenvSetup } from '../utils/setupVenv';
+import { runTests } from '../testing';
 
-import { generateSolInterface } from './icf/interfaceCallForwarder';
-import { postProcessCairoFile } from './utils/postCairoWrite';
-import { defaultBasePathAndIncludePath } from './utils/utils';
+import { generateSolInterface } from '../icf/interfaceCallForwarder';
+import { postProcessCairoFile } from '../utils/postCairoWrite';
+import { defaultBasePathAndIncludePath } from '../utils/utils';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -275,6 +275,7 @@ program
     'The directory of the account.',
     process.env.STARKNET_ACCOUNT_DIR,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetDeploy);
 
 interface IOptionalWallet {
@@ -309,6 +310,7 @@ program
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetDeployAccount);
 
 interface ICallOrInvokeProps_ {
@@ -353,6 +355,7 @@ program
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetCallOrInvoke);
 
 program
@@ -386,6 +389,7 @@ program
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
@@ -437,6 +441,7 @@ program
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetDeclare);
 
 const blue = chalk.bold.blue;

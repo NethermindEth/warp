@@ -7,7 +7,7 @@ import {
   extractSpecifiersFromSource,
   getCompilerVersionsBySpecifiers,
 } from 'solc-typed-ast';
-import { CompilationOptions } from './cli';
+import { CompilationOptions } from './cli/cli';
 import { AST } from './ast/ast';
 import { SupportedSolcVersions, nethersolcPath, fullVersionFromMajor } from './nethersolc';
 import { TranspileFailedError } from './utils/errors';

@@ -1,7 +1,7 @@
 import { compileCairo } from '../starknetCli';
 import * as path from 'path';
 import { logError } from '../utils/errors';
-import { SolcInterfaceGenOptions } from '../cli';
+import { SolcInterfaceGenOptions } from '../cli/cli';
 import fs from 'fs';
 import { AST } from '../ast/ast';
 

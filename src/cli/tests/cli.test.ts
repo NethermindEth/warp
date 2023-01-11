@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { sh } from '../util';
+import { sh } from '../../../tests/util';
 import { describe, it } from 'mocha';
 import * as path from 'path';
 import fs from 'fs';
