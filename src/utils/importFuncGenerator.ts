@@ -23,12 +23,20 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createFelt2Uint256ImportFuncDef(node, ast);
     case WARPLIB_MATH_UTILS + NARROW_SAFE:
       return createNarrowSafeImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + BYTE_ARRAY_TO_FELT_VALUE:
+      return createByteArrayToFeltValueImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + BYTE_ARRAY_TO_UINT256_VALUE:
+      return createByteArrayToUint256ValueImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY:
       return createFixedBytes256ToFeltDynArrayImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + FIXED_BYTES_TO_FELT_DYNAMIC_ARRAY:
       return createFixedBytesToFeltDynArrayImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + FELT_ARRAY_TO_WARP_MEMORY_ARRAY:
       return createFeltArray2WarpMemoryArrayImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + MEMORY_DYN_ARRAY_COPY:
+      return createMemoryDynArrayCopyImportFuncDef(node, ast);
+    case WARPLIB_MEMORY + WM_ALLOC:
+      return createWMAllocImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_DYN_ARRAY_LENGTH:
       return createWMDynArrayLengthImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_INDEX_DYN:
@@ -55,9 +63,13 @@ const BITWISE_BUILTIN = 'BitwiseBuiltin';
 const UINT256 = 'Uint256';
 const FELT_TO_UINT256 = 'felt_to_uint256';
 const NARROW_SAFE = 'narrow_safe';
+const BYTE_ARRAY_TO_FELT_VALUE = 'byte_array_to_felt_value';
+const BYTE_ARRAY_TO_UINT256_VALUE = 'byte_array_to_uint256_value';
 const FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY = 'fixed_bytes256_to_felt_dynamic_array';
 const FIXED_BYTES_TO_FELT_DYNAMIC_ARRAY = 'fixed_bytes_to_felt_dynamic_array';
 const FELT_ARRAY_TO_WARP_MEMORY_ARRAY = 'felt_array_to_warp_memory_array';
+const MEMORY_DYN_ARRAY_COPY = 'memory_dyn_array_copy';
+const WM_ALLOC = 'wm_alloc';
 const WM_DYN_ARRAY_LENGTH = 'wm_dyn_array_length';
 const WM_INDEX_DYN = 'wm_index_dyn';
 const WM_NEW = 'wm_new';
@@ -121,6 +133,32 @@ function createNarrowSafeImportFuncDef(node: SourceUnit, ast: AST): CairoImportF
   return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
 }
 
+function createByteArrayToFeltValueImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = BYTE_ARRAY_TO_FELT_VALUE;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createByteArrayToUint256ValueImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = BYTE_ARRAY_TO_UINT256_VALUE;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
 function createFixedBytes256ToFeltDynArrayImportFuncDef(
   node: SourceUnit,
   ast: AST,
@@ -153,6 +191,29 @@ function createFeltArray2WarpMemoryArrayImportFuncDef(
 ): CairoImportFunctionDefinition {
   const funcName = FELT_ARRAY_TO_WARP_MEMORY_ARRAY;
   const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createMemoryDynArrayCopyImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = MEMORY_DYN_ARRAY_COPY;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWMAllocImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = WM_ALLOC;
+  const path = WARPLIB_MEMORY;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
