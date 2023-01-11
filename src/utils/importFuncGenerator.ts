@@ -37,8 +37,14 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createByteArrayToUint256ValueImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + BYTES_TO_FELT_DYNAMIC_ARRAY:
       return createBytesToFeltDynamicArrayImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + BYTES_TO_FELT_DYNAMIC_ARRAY_SPL:
+      return createBytesToFeltDynamicArraySplImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + BYTES_TO_FELT_DYNAMIC_ARRAY_SPL_WITHOUT_PADDING:
+      return createBytesToFeltDynamicArraySplWithoutPaddingImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY:
       return createFixedBytes256ToFeltDynArrayImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL:
+      return createFixedBytes256ToFeltDynArraySplImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + FIXED_BYTES_TO_FELT_DYNAMIC_ARRAY:
       return createFixedBytesToFeltDynArrayImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + FELT_ARRAY_TO_WARP_MEMORY_ARRAY:
@@ -81,7 +87,11 @@ const NARROW_SAFE = 'narrow_safe';
 const BYTE_ARRAY_TO_FELT_VALUE = 'byte_array_to_felt_value';
 const BYTE_ARRAY_TO_UINT256_VALUE = 'byte_array_to_uint256_value';
 const BYTES_TO_FELT_DYNAMIC_ARRAY = 'bytes_to_felt_dynamic_array';
+const BYTES_TO_FELT_DYNAMIC_ARRAY_SPL = 'bytes_to_felt_dynamic_array_spl';
+const BYTES_TO_FELT_DYNAMIC_ARRAY_SPL_WITHOUT_PADDING =
+  'bytes_to_felt_dynamic_array_spl_without_padding';
 const FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY = 'fixed_bytes256_to_felt_dynamic_array';
+const FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL = 'fixed_bytes256_to_felt_dynamic_array_spl';
 const FIXED_BYTES_TO_FELT_DYNAMIC_ARRAY = 'fixed_bytes_to_felt_dynamic_array';
 const FELT_ARRAY_TO_WARP_MEMORY_ARRAY = 'felt_array_to_warp_memory_array';
 const MEMORY_DYN_ARRAY_COPY = 'memory_dyn_array_copy';
@@ -202,11 +212,50 @@ function createBytesToFeltDynamicArrayImportFuncDef(
   return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
 }
 
+function createBytesToFeltDynamicArraySplImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = BYTES_TO_FELT_DYNAMIC_ARRAY_SPL;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createBytesToFeltDynamicArraySplWithoutPaddingImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = BYTES_TO_FELT_DYNAMIC_ARRAY_SPL_WITHOUT_PADDING;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
 function createFixedBytes256ToFeltDynArrayImportFuncDef(
   node: SourceUnit,
   ast: AST,
 ): CairoImportFunctionDefinition {
   const funcName = FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createFixedBytes256ToFeltDynArraySplImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL;
   const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
   const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
   const params = createParameterList([], ast);
