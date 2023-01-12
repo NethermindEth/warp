@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { sh } from '../../../tests/util';
+import { exec } from 'child_process';
 import { describe, it } from 'mocha';
 import * as path from 'path';
 import fs from 'fs';
@@ -8,7 +8,6 @@ const starknet_wallet = 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAc
 const gateway_url = 'http://127.0.0.1:5050';
 const network = 'alpha-goerli';
 const account_dir = path.resolve(__dirname, '.');
-const MAX_FEE = 1000000;
 
 const TIME_LIMIT = 10 * 60 * 1000;
 
@@ -21,6 +20,41 @@ const warpVenvPrefix = `PATH=${path.resolve(
   'warp_venv',
   'bin',
 )}:$PATH`;
+
+const contractCairoFile = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  'warp_output',
+  'src',
+  'cli',
+  'tests',
+  'contract.sol',
+  'MyToken.cairo',
+);
+
+let contract_class_hash: string;
+let contract_address: string;
+
+async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
+  return new Promise(function (resolve, reject) {
+    exec(cmd, (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+  });
+}
+
+function starknetCompile(
+  cairoPath: string,
+  jsonOutputPath: string,
+): Promise<{ stdout: string; stderr: string }> {
+  return sh(`${warpVenvPrefix} starknet-compile ${cairoPath} --output ${jsonOutputPath}`);
+}
 
 describe('Manage starknet account', function () {
   this.timeout(TIME_LIMIT);
@@ -68,20 +102,278 @@ describe('Manage starknet account', function () {
   });
 
   it('should deploy the starknet account', async () => {
-    console.log(warpBin, process.cwd());
     const { stdout, stderr } = await sh(
-      `${warpBin} deploy_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir} --max_fee ${MAX_FEE}`,
+      `${warpBin} deploy_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
     );
-    console.log(stdout, stderr);
+
+    expect(stderr).to.be.empty;
+    expect(stdout).to.not.be.empty;
+
+    const contract_address = stdout.split('\n')[3].split(':')[1].trim();
+    const tx_hash = stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(contract_address).to.not.be.undefined;
+    expect(tx_hash).to.not.be.undefined;
+
+    const res = await sh(
+      `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
+    );
+
+    expect(res.stderr).to.be.empty;
+    expect(res.stdout).to.not.be.empty;
+
+    const response = JSON.parse(res.stdout);
+    expect(response.tx_status).to.equal('ACCEPTED_ON_L2');
   });
 });
 
-// describe('Cleanup cli_test directory', function () {
-//   this.timeout(TIME_LIMIT);
-//   it('should remove the starknet account', async () => {
-//     fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
-//     if (fs.existsSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'))) {
-//       fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
-//     }
-//   });
-// });
+describe('Transpile & compile a ERC20 based contract (MyToken)', function () {
+  this.timeout(TIME_LIMIT);
+  it('should transpile the MyToken contract', async () => {
+    const { stdout, stderr } = await sh(
+      `${warpBin} transpile --dev ${path.resolve(__dirname, 'contract.sol')}`,
+    );
+    expect(stderr).to.be.empty;
+    expect(stdout).to.be.empty;
+
+    const res = await starknetCompile(contractCairoFile, path.resolve(__dirname, 'contract.json'));
+
+    expect(res.stderr).to.be.empty;
+    expect(res.stdout).to.be.empty;
+  });
+});
+
+describe('Declare the MyToken contract', function () {
+  this.timeout(TIME_LIMIT);
+
+  let tx_hash: string;
+
+  it('should declare the ERC20 contract', async () => {
+    const { stdout, stderr } = await sh(
+      `${warpBin} declare ${contractCairoFile} --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+    );
+
+    contract_class_hash = stdout.split('\n')[3].split(':')[1].trim();
+    tx_hash = stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(contract_class_hash).to.not.be.undefined;
+    expect(tx_hash).to.not.be.undefined;
+  });
+
+  this.afterAll('Declare transaction status', async () => {
+    const res = await sh(
+      `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
+    );
+
+    expect(res.stderr).to.be.empty;
+    expect(res.stdout).to.not.be.empty;
+
+    const response = JSON.parse(res.stdout);
+    expect(response.tx_status).to.equal('ACCEPTED_ON_L2');
+  });
+});
+
+describe('Deploy the MyToken contract', function () {
+  this.timeout(TIME_LIMIT);
+
+  let tx_hash: string;
+
+  it('should deploy the ERC20 contract', async () => {
+    const { stdout, stderr } = await sh(
+      `${warpBin} deploy ${contractCairoFile} --inputs 500 0 --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+    );
+
+    expect(stderr).to.be.empty;
+
+    contract_address = stdout.split('\n')[3].split(':')[1].trim();
+    tx_hash = stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(contract_class_hash).to.not.be.undefined;
+    expect(tx_hash).to.not.be.undefined;
+  });
+
+  this.afterAll('Deploy transaction status', async () => {
+    const res = await sh(
+      `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
+    );
+
+    expect(res.stderr).to.be.empty;
+    expect(res.stdout).to.not.be.empty;
+
+    const response = JSON.parse(res.stdout);
+    expect(response.tx_status).to.equal('ACCEPTED_ON_L2');
+  });
+});
+
+describe('Call MyToken contract functions', function () {
+  this.timeout(TIME_LIMIT);
+  it('get Total Supply', async () => {
+    expect(contract_address).to.not.be.undefined;
+    const { stdout, stderr } = await sh(
+      `${warpBin} call ${contractCairoFile} --function totalSupply --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+    expect(stderr).to.be.empty;
+    expect(stdout.split('\n')[1].trim()).to.be.equal('500');
+  });
+  it('get Total Supply call using cairo ABI', async () => {
+    expect(contract_address).to.not.be.undefined;
+    const { stdout, stderr } = await sh(
+      `${warpBin} call ${contractCairoFile} --use_cairo_abi --function totalSupply_18160ddd --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+    expect(stderr).to.be.empty;
+    expect(stdout.split('\n')[1].trim()).to.be.equal('500 0');
+  });
+  it('balance of owner should equal totalSupply', async () => {
+    expect(contract_address).to.not.be.undefined;
+    const starknet_open_zeppelin_accounts = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+    );
+    const { stdout, stderr } = await sh(
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${starknet_open_zeppelin_accounts[network].__default__.address} --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+    expect(stderr).to.be.empty;
+    expect(stdout.split('\n')[1].trim()).to.be.equal('500');
+  });
+});
+
+describe('Invoke MyToken contract functions', function () {
+  this.timeout(TIME_LIMIT);
+  before('create few new accounts & deploy them', async () => {
+    // account creation
+    await sh(
+      `${warpVenvPrefix} starknet --account user1 new_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+    );
+    await sh(
+      `${warpVenvPrefix} starknet --account user2 new_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+    );
+
+    //mint some WEIs to these accounts
+    const starknet_open_zeppelin_accounts = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+    );
+
+    await sh(
+      `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${starknet_open_zeppelin_accounts[network].user1.address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
+    );
+
+    await sh(
+      `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${starknet_open_zeppelin_accounts[network].user2.address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
+    );
+
+    // account deployment
+    await sh(
+      `${warpBin} deploy_account --account user1 --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+    );
+    await sh(
+      `${warpBin} deploy_account --account user2 --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+    );
+  });
+
+  it('Transfer 100 tokens from owner to user1', async () => {
+    const starknet_open_zeppelin_accounts = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+    );
+
+    const transferToUser1 = await sh(
+      `${warpBin} invoke ${contractCairoFile} --function transfer --inputs ${starknet_open_zeppelin_accounts[network].user1.address} 100 0 --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+
+    expect(transferToUser1.stderr).to.be.empty;
+
+    const tx_hash = transferToUser1.stdout.split('\n')[4].split(':')[1].trim();
+
+    const tx_status = await sh(
+      `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
+    );
+
+    expect(tx_status.stderr).to.be.empty;
+
+    const tx_status_json = JSON.parse(tx_status.stdout);
+    expect(tx_status_json.tx_status).to.equal('ACCEPTED_ON_L2');
+  });
+
+  it('Approve 200 tokens to user2', async () => {
+    const starknet_open_zeppelin_accounts = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+    );
+
+    const approveToUser2 = await sh(
+      `${warpBin} invoke ${contractCairoFile} --function approve --inputs ${starknet_open_zeppelin_accounts[network].user2.address} 200 0 --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+
+    expect(approveToUser2.stderr).to.be.empty;
+
+    const tx_hash = approveToUser2.stdout.split('\n')[4].split(':')[1].trim();
+
+    const tx_status = await sh(
+      `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
+    );
+
+    expect(tx_status.stderr).to.be.empty;
+    const tx_status_json = JSON.parse(tx_status.stdout);
+    expect(tx_status_json.tx_status).to.equal('ACCEPTED_ON_L2');
+  });
+
+  it('Transfer 100 tokens from user2 to user1 on behalf of owner', async () => {
+    const starknet_open_zeppelin_accounts = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+    );
+
+    const transferFromUser2ToUser1 = await sh(
+      `${warpBin} invoke ${contractCairoFile} --function transferFrom --inputs ${starknet_open_zeppelin_accounts[network].__default__.address} ${starknet_open_zeppelin_accounts[network].user1.address} 100 0 --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir} --account user2`,
+    );
+
+    expect(transferFromUser2ToUser1.stderr).to.be.empty;
+
+    const tx_hash = transferFromUser2ToUser1.stdout.split('\n')[4].split(':')[1].trim();
+
+    const tx_status = await sh(
+      `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
+    );
+
+    expect(tx_status.stderr).to.be.empty;
+
+    const tx_status_json = JSON.parse(tx_status.stdout);
+    expect(tx_status_json.tx_status).to.equal('ACCEPTED_ON_L2');
+  });
+
+  this.afterAll('Verify accounts balance', async () => {
+    const starknet_open_zeppelin_accounts = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+    );
+    const ownerBalance = await sh(
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${starknet_open_zeppelin_accounts[network].__default__.address} --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+    expect(ownerBalance.stderr).to.be.empty;
+    expect(ownerBalance.stdout.split('\n')[1].trim()).to.be.equal('300');
+
+    const user1Balance = await sh(
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${starknet_open_zeppelin_accounts[network].user1.address} --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+    expect(user1Balance.stderr).to.be.empty;
+    expect(user1Balance.stdout.split('\n')[1].trim()).to.be.equal('200');
+
+    const user2Balance = await sh(
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${starknet_open_zeppelin_accounts[network].user2.address} --address ${contract_address} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url} --wallet ${starknet_wallet} --account_dir ${account_dir}`,
+    );
+
+    expect(user2Balance.stderr).to.be.empty;
+    expect(user2Balance.stdout.split('\n')[1].trim()).to.be.equal('0');
+  });
+});
+
+describe('Cleanup cli_test directory', function () {
+  this.timeout(TIME_LIMIT);
+  it('should remove the starknet account', async () => {
+    fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+    if (fs.existsSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'))) {
+      fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
+    }
+  });
+
+  it('remove contract generated files', async () => {
+    if (fs.existsSync(path.resolve(__dirname, 'contract.json'))) {
+      fs.unlinkSync(path.resolve(__dirname, 'contract.json'));
+    }
+  });
+});

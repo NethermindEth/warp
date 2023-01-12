@@ -19,9 +19,9 @@ contract MyToken {
   address public owner;
 
   // Constructor
-  constructor() {
+  constructor(uint256 total_supply) {
     owner = msg.sender;
-    _totalSupply = 1000000;
+    _totalSupply = total_supply;
     balances[owner] = _totalSupply;
   }
 

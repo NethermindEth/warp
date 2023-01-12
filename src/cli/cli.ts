@@ -198,6 +198,10 @@ export interface IOptionalNetwork {
   network?: string;
 }
 
+export interface IOptionalFee {
+  max_fee?: number;
+}
+
 program
   .command('status <tx_hash>')
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
@@ -249,7 +253,17 @@ interface IDeployProps_ {
   wallet?: string;
 }
 
-export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount & IOptionalDebugInfo;
+export interface IGatewayProps {
+  gateway_url?: string;
+  feeder_gateway_url?: string;
+}
+
+export type IDeployProps = IDeployProps_ &
+  IOptionalNetwork &
+  IOptionalAccount &
+  IOptionalDebugInfo &
+  IGatewayProps &
+  IOptionalFee;
 
 program
   .command('deploy <file>')
@@ -284,8 +298,13 @@ interface IOptionalWallet {
 
 interface IOptionalAccount {
   account?: string;
+  account_dir?: string;
 }
-export type IDeployAccountProps = IOptionalAccount & IOptionalNetwork & IOptionalWallet;
+export type IDeployAccountProps = IOptionalAccount &
+  IOptionalNetwork &
+  IOptionalWallet &
+  IGatewayProps &
+  IOptionalFee;
 
 program
   .command('deploy_account')
@@ -322,7 +341,9 @@ interface ICallOrInvokeProps_ {
 export type ICallOrInvokeProps = ICallOrInvokeProps_ &
   IOptionalNetwork &
   IOptionalWallet &
-  IOptionalAccount;
+  IOptionalAccount &
+  IGatewayProps &
+  IOptionalFee;
 
 program
   .command('invoke <file>')
@@ -356,7 +377,9 @@ program
     process.env.STARKNET_WALLET,
   )
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
-  .action(runStarknetCallOrInvoke);
+  .action(async (file: string, options: ICallOrInvokeProps) => {
+    runStarknetCallOrInvoke(file, false, options);
+  });
 
 program
   .command('call <file>')
@@ -415,6 +438,10 @@ export interface IDeclareOptions {
   network?: string;
   wallet?: string;
   account?: string;
+  account_dir?: string;
+  gateway_url?: string;
+  feeder_gateway_url?: string;
+  max_fee?: string;
 }
 
 program

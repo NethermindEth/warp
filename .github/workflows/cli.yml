@@ -51,8 +51,7 @@ jobs:
 
       - name: CLI test on starknet devnet
         run: |
-          yarn testnet:benchmark_semantic &
-          node build/autoRunSemanticTests.js
+          npx mocha src/cli/tests/cli.test.ts --extension ts --require ts-node/register --exit
 
       - name: Save benchmarks in artifacts
         uses: actions/upload-artifact@v3
