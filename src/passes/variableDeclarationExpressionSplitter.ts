@@ -84,10 +84,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
 
     const initialValueType = safeGetNodeType(initialValue, ast.inference);
 
-    if (
-      !(initialValueType instanceof TupleType) ||
-      (node.raw !== undefined && node.raw.assignments.length === 1)
-    ) {
+    if (!(initialValueType instanceof TupleType)) {
       return [node];
     }
 
