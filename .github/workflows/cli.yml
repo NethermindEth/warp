@@ -27,15 +27,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          make
+          yarn
           make compile
-          pip3 uninstall cairo-lang -y
           pip3 install cairo-lang==0.10.3
-          pip3 uninstall starknet-devnet -y
           pip3 install starknet-devnet==0.4.4
-
-      - name: Setup warp_venv
-        run: bin/warp install --python python --verbose
 
       - name: Build warplib
         run: yarn warplib
