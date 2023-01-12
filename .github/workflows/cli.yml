@@ -12,7 +12,7 @@ env:
   CAIRO_LANG_VERSION: 0.10.0
 
 jobs:
-  CLI test:
+  CLI_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -45,13 +45,9 @@ jobs:
           sudo apt install -y gcc-11 gcc-11-multilib g++-11 g++-11-multilib
           gcc-11 --version
 
-      - name: Start Starknet Devnet
-        run: |
-          starknet-devnet
-
       - name: CLI test on starknet devnet
         run: |
-          npx mocha src/cli/tests/cli.test.ts --extension ts --require ts-node/register --exit
+          starknet-devnet & npx mocha src/cli/tests/cli.test.ts --extension ts --require ts-node/register --exit
 
       - name: Save benchmarks in artifacts
         uses: actions/upload-artifact@v3

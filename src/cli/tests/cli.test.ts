@@ -153,6 +153,8 @@ describe('Declare the MyToken contract', function () {
       `${warpBin} declare ${contractCairoFile} --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
     );
 
+    expect(stderr).to.be.empty;
+
     contract_class_hash = stdout.split('\n')[3].split(':')[1].trim();
     tx_hash = stdout.split('\n')[4].split(':')[1].trim();
 
