@@ -68,6 +68,7 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createWarpKeccakImportFuncDef(node, ast);
     default:
       // TODO: Throw a not matched import error
+      return createWarpKeccakImportFuncDef(node, ast);
       break;
   }
 }

@@ -8,11 +8,12 @@ import {
   SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { CairoFunctionDefinition } from '../../ast/cairoNodes';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGenWithAuxiliar } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGenWithAuxiliar } from '../base';
 
 export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
   protected functionName = 'not_implemented';
@@ -21,10 +22,10 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
     const exprTypes = expressions.map(
       (expr) => generalizeType(safeGetNodeType(expr, this.ast.compilerVersion))[0],
     );
-    const functionName = this.getOrCreate(exprTypes);
+    const genFuncInfo = this.getOrCreate(exprTypes);
 
-    const functionStub = createCairoFunctionStub(
-      functionName,
+    const functionStub = createCairoGeneratedFunction(
+      genFuncInfo,
       exprTypes.map((exprT, index) =>
         isValueType(exprT)
           ? [`param${index}`, typeNameFromTypeNode(exprT, this.ast)]
@@ -39,11 +40,11 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
     return createCallToFunction(functionStub, expressions, this.ast);
   }
 
-  public getOrCreate(_types: TypeNode[]): string {
+  public getOrCreate(_types: TypeNode[]): GeneratedFunctionInfo {
     throw new Error('Method not implemented.');
   }
 
-  public getOrCreateEncoding(_type: TypeNode): string {
+  public getOrCreateEncoding(_type: TypeNode): CairoFunctionDefinition {
     throw new Error('Method not implemented.');
   }
 }

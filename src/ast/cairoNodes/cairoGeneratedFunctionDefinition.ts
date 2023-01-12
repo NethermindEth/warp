@@ -1,5 +1,5 @@
 import {
-  FunctionCall,
+  FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
@@ -9,7 +9,10 @@ import { Implicits } from '../../utils/implicits';
 import { CairoRawStringFunctionDefinition } from './cairoRawStringFunctionDefinition';
 
 export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefinition {
-  functionCalls: FunctionCall[];
+  /**
+   * List of functions defintions called by the generated function
+   */
+  functionsCalled: FunctionDefinition[];
   constructor(
     id: number,
     src: string,
@@ -22,7 +25,7 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
     returnParameters: ParameterList,
     implicits: Set<Implicits>,
     rawStringDefinition: string,
-    functionCalls: FunctionCall[],
+    functionsCalled: FunctionDefinition[],
   ) {
     super(
       id,
@@ -37,6 +40,6 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
       implicits,
       rawStringDefinition,
     );
-    this.functionCalls = functionCalls;
+    this.functionsCalled = functionsCalled;
   }
 }

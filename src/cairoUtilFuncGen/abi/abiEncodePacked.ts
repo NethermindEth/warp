@@ -1,5 +1,11 @@
 import { ArrayType, BytesType, SourceUnit, StringType, TypeNode } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
+import {
+  CairoFunctionDefinition,
+  createCairoImportFunction,
+  GeneratedFunctionInfo,
+} from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
@@ -30,11 +36,11 @@ export class AbiEncodePacked extends AbiBase {
     this.memoryRead = memoryRead;
   }
 
-  public getOrCreate(types: TypeNode[]): string {
+  public getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
     const key = types.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const [params, encodings] = types.reduce(
@@ -69,17 +75,18 @@ export class AbiEncodePacked extends AbiBase {
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
 
-    const cairoFunc = { name: funcName, code: code };
-    this.generatedFunctions.set(key, cairoFunc);
-    return cairoFunc.name;
+    const cairoFuncInfo = { name: funcName, code: code, functionsCalled: [] };
+    this.generatedFunctions.set(key, cairoFuncInfo);
+
+    return cairoFuncInfo;
   }
 
-  public override getOrCreateEncoding(type: TypeNode): string {
+  public override getOrCreateEncoding(type: TypeNode): CairoFunctionDefinition {
     const unexpectedType = () => {
       throw new TranspileFailedError(`Encoding ${printTypeNode(type)} is not supported`);
     };
 
-    return delegateBasedOnType<string>(
+    return delegateBasedOnType<CairoGeneratedFunctionDefinition>(
       type,
       (type) => this.createArrayInlineEncoding(type),
       (type) => this.createArrayInlineEncoding(type),
@@ -133,11 +140,13 @@ export class AbiEncodePacked extends AbiBase {
   /*
    * Produce inline array encoding for static and dynamic array types
    */
-  private createArrayInlineEncoding(type: ArrayType | BytesType | StringType): string {
+  private createArrayInlineEncoding(
+    type: ArrayType | BytesType | StringType,
+  ): CairoGeneratedFunctionDefinition {
     const key = type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const elementT = getElementType(type);
@@ -192,10 +201,13 @@ export class AbiEncodePacked extends AbiBase {
     return name;
   }
 
-  private createValueTypeHeadEncoding(size: number | bigint): string {
+  private createValueTypeHeadEncoding(size: number | bigint): CairoFunctionDefinition {
     const funcName =
       size === 32 ? 'fixed_bytes256_to_felt_dynamic_array' : `fixed_bytes_to_felt_dynamic_array`;
+
+    // Create utils import
     this.requireImport('warplib.dynamic_arrays_util', funcName);
+
     return funcName;
   }
 }

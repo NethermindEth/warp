@@ -3,6 +3,7 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
+  FunctionDefinition,
   generalizeType,
   IntType,
   MappingType,
@@ -14,7 +15,11 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
+import { CairoImportFunctionDefinition } from '../ast/cairoNodes/cairoImportFunctionDefinition';
+import { CairoFunctionDefinition, createCairoImportFunction } from '../export';
 import { TranspileFailedError } from '../utils/errors';
+import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
 
 export type CairoFunction = {
@@ -27,6 +32,12 @@ export type CairoStructDef = {
   code: string;
 };
 
+export interface GeneratedFunctionInfo {
+  name: string;
+  code: string;
+  functionsCalled: FunctionDefinition[];
+}
+
 /*
   Base class for all specific cairo function generators
   These exist for cases where a transform we need is too specific to cairo to
@@ -38,6 +49,7 @@ export abstract class CairoUtilFuncGenBase {
   protected ast: AST;
   protected imports: Map<string, Set<string>> = new Map();
   protected sourceUnit: SourceUnit;
+
   constructor(ast: AST, sourceUnit: SourceUnit) {
     this.ast = ast;
     this.sourceUnit = sourceUnit;
@@ -49,12 +61,10 @@ export abstract class CairoUtilFuncGenBase {
   }
 
   // Concatenate all the generated cairo code into a single string
-  abstract getGeneratedCode(): string;
+  // abstract getGeneratedCode(): string;
 
-  protected requireImport(location: string, name: string): void {
-    const existingImports = this.imports.get(location) ?? new Set<string>();
-    existingImports.add(name);
-    this.imports.set(location, existingImports);
+  protected requireImport(location: string, name: string): CairoImportFunctionDefinition {
+    return createImportFuncDefinition(location, name, this.sourceUnit, this.ast);
   }
 
   protected checkForImport(type: TypeNode): void {
@@ -69,21 +79,21 @@ export abstract class CairoUtilFuncGenBase {
   usually the cairo type of the input that the function's code depends on
 */
 export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
-  protected generatedFunctions: Map<string, CairoFunction> = new Map();
+  protected generatedFunctions: Map<string, GeneratedFunctionInfo> = new Map();
 
-  getGeneratedCode(): string {
-    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
-  }
+  // getGeneratedCode(): string {
+  //   return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
+  // }
 }
 
 export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
-  protected auxiliarGeneratedFunctions: Map<string, CairoFunction> = new Map();
+  protected auxiliarGeneratedFunctions: Map<string, CairoFunctionDefinition> = new Map();
 
-  getGeneratedCode(): string {
-    return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
-      .map((func) => func.code)
-      .join('\n\n');
-  }
+  // getGeneratedCode(): string {
+  //   return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
+  //     .map((func) => func.code)
+  //     .join('\n\n');
+  // }
 }
 
 // Quick shortcut for writing `${base} + ${offset}` that also shortens it in the case of +0

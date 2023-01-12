@@ -21,6 +21,9 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
+import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
+import { CairoImportFunctionDefinition } from '../ast/cairoNodes/cairoImportFunctionDefinition';
+import { GeneratedFunctionInfo } from '../export';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createIdentifier, createParameterList } from './nodeTemplates';
@@ -88,25 +91,6 @@ export function createCairoFunctionStub(
 ): CairoFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
-  const createParameters = (inputs: ([string, TypeName] | [string, TypeName, DataLocation])[]) =>
-    inputs.map(
-      ([name, type, location]) =>
-        new VariableDeclaration(
-          ast.reserveId(),
-          '',
-          false, // constant
-          false, // indexed
-          name,
-          funcDefId,
-          false, // stateVariable
-          location ?? DataLocation.Default,
-          StateVariableVisibility.Private,
-          Mutability.Mutable,
-          type.typeString,
-          undefined,
-          type,
-        ),
-    );
 
   const funcDef = new CairoFunctionDefinition(
     funcDefId,
@@ -118,8 +102,8 @@ export function createCairoFunctionStub(
     FunctionVisibility.Private,
     options.mutability ?? FunctionStateMutability.NonPayable,
     false, // isConstructor
-    createParameterList(createParameters(inputs), ast),
-    createParameterList(createParameters(returns), ast),
+    createParameterList(createParameters(inputs, funcDefId, ast), ast),
+    createParameterList(createParameters(returns, funcDefId, ast), ast),
     [],
     new Set(implicits),
     options.stubKind ?? FunctionStubKind.FunctionDefStub,
@@ -131,6 +115,89 @@ export function createCairoFunctionStub(
   sourceUnit.insertAtBeginning(funcDef);
 
   return funcDef;
+}
+
+export function createCairoGeneratedFunction(
+  genFuncInfo: GeneratedFunctionInfo,
+  inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
+  returns: ([string, TypeName] | [string, TypeName, DataLocation])[],
+  implicits: Implicits[],
+  ast: AST,
+  nodeInSourceUnit: ASTNode,
+  options: CairoFunctionStubOptions = {
+    mutability: FunctionStateMutability.NonPayable,
+    stubKind: FunctionStubKind.FunctionDefStub,
+    acceptsRawDArray: false,
+    acceptsUnpackedStructArray: false,
+  },
+): CairoGeneratedFunctionDefinition {
+  const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
+  const funcDefId = ast.reserveId();
+
+  return new CairoGeneratedFunctionDefinition(
+    funcDefId,
+    '',
+    sourceUnit.id,
+    FunctionKind.Function,
+    genFuncInfo.name,
+    FunctionVisibility.Private,
+    options.mutability ?? FunctionStateMutability.Payable,
+    createParameterList(createParameters(inputs, funcDefId, ast), ast),
+    createParameterList(createParameters(returns, funcDefId, ast), ast),
+    new Set(implicits),
+    genFuncInfo.code,
+    genFuncInfo.functionCalls,
+  );
+}
+
+export function createCairoImportFunction(
+  name: string,
+  path: string,
+  implicits: Implicits[],
+  ast: AST,
+  nodeInSourceUnit: ASTNode,
+): CairoImportFunctionDefinition {
+  const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
+  const funcDefId = ast.reserveId();
+
+  return new CairoImportFunctionDefinition(
+    funcDefId,
+    sourceUnit.id,
+    FunctionKind.Function,
+    name,
+    FunctionVisibility.Private,
+    FunctionStateMutability.NonPayable,
+    createParameterList([], ast),
+    createParameterList([], ast),
+    new Set(implicits),
+    path,
+    FunctionStubKind.FunctionDefStub,
+  );
+}
+
+function createParameters(
+  inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
+  funcDefId: number,
+  ast: AST,
+) {
+  return inputs.map(
+    ([name, type, location]) =>
+      new VariableDeclaration(
+        ast.reserveId(),
+        '',
+        false, // constant
+        false, // indexed
+        name,
+        funcDefId,
+        false, // stateVariable
+        location ?? DataLocation.Default,
+        StateVariableVisibility.Private,
+        Mutability.Mutable,
+        type.typeString,
+        undefined,
+        type,
+      ),
+  );
 }
 
 export function createElementaryConversionCall(

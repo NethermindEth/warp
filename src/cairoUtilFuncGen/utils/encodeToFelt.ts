@@ -5,6 +5,7 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   SourceUnit,
   StringType,
@@ -15,6 +16,8 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
+import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import {
   CairoDynArray,
@@ -23,7 +26,7 @@ import {
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, WillNotSupportError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -33,7 +36,11 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
+import {
+  delegateBasedOnType,
+  GeneratedFunctionInfo,
+  StringIndexedFuncGenWithAuxiliar,
+} from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 
 const IMPLICITS = '';
@@ -52,21 +59,13 @@ const IMPLICITS = '';
  * generated encoding functions. I.e. the auxiliar function to encode felt
  * dynamic arrays will be always the same
  */
-export class EncodeAsFelt extends StringIndexedFuncGen {
-  private auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
-
+export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
   constructor(
     private externalArrayGen: ExternalDynArrayStructConstructor,
     ast: AST,
     sourceUnit: SourceUnit,
   ) {
     super(ast, sourceUnit);
-  }
-
-  getGeneratedCode(): string {
-    return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
-      .map((func) => func.code)
-      .join('\n\n');
   }
 
   /**
@@ -80,10 +79,10 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
   gen(expressions: Expression[], expectedTypes: TypeNode[], sourceUnit?: SourceUnit): FunctionCall {
     assert(expectedTypes.length === expressions.length);
     expectedTypes = expectedTypes.map((type) => generalizeType(type)[0]);
-    const functionName = this.getOrCreate(expectedTypes);
+    const funcInfo = this.getOrCreate(expectedTypes);
 
-    const functionStub = createCairoFunctionStub(
-      functionName,
+    const functionStub = createCairoGeneratedFunction(
+      funcInfo,
       expectedTypes.map((exprT, index) => {
         const input: [string, TypeName] = [`arg${index}`, typeNameFromTypeNode(exprT, this.ast)];
         return isValueType(exprT) ? input : [...input, DataLocation.CallData];
@@ -102,15 +101,16 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
    * @param typesToEncode type list
    * @returns the name of the generated function
    */
-  getOrCreate(typesToEncode: TypeNode[]): string {
+  getOrCreate(typesToEncode: TypeNode[]): GeneratedFunctionInfo {
     const key = typesToEncode.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const parameters: string[] = [];
     const encodeCode: string[] = [];
+    const functionsCalled: FunctionDefinition[] = [];
 
     typesToEncode.forEach((type, index) => {
       const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
@@ -118,19 +118,26 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
 
       if (isDynamicArray(type)) {
         assert(cairoType instanceof CairoDynArray);
+
         const arrayName = `${prefix}_dynamic`;
         parameters.push(` ${arrayName} : ${cairoType.typeName}`);
-        const auxFuncName = this.getOrCreateAuxiliar(type);
+
+        const auxFunc = this.getOrCreateAuxiliar(type);
+        functionsCalled.push(auxFunc);
+
         encodeCode.push(
           `assert decode_array[total_size] = ${arrayName}.len;`,
           `let total_size = total_size + 1;`,
-          `let (total_size) = ${auxFuncName}(total_size, decode_array, 0, ${arrayName}.len, ${arrayName}.ptr);`,
+          `let (total_size) = ${auxFunc.name}(total_size, decode_array, 0, ${arrayName}.len, ${arrayName}.ptr);`,
         );
       } else if (type instanceof ArrayType) {
         parameters.push(`${prefix}_static : ${cairoType.toString()}`);
-        const auxFuncName = this.getOrCreateAuxiliar(type);
+
+        const auxFunc = this.getOrCreateAuxiliar(type);
+        functionsCalled.push(auxFunc);
+
         encodeCode.push(
-          `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}_static);`,
+          `let (total_size) = ${auxFunc.name}(total_size, decode_array, ${prefix}_static);`,
         );
       } else if (isStruct(type)) {
         assert(cairoType instanceof CairoStruct);
@@ -176,10 +183,16 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `   return (result,);`,
       `}`,
     ].join('\n');
-    this.requireImport('starkware.cairo.common.alloc', 'alloc');
 
-    this.generatedFunctions.set(key, { name: funcName, code: code });
-    return funcName;
+    const importFunc = this.requireImport('starkware.cairo.common.alloc', 'alloc');
+
+    const funcInfo = {
+      name: funcName,
+      code: code,
+      functionsCalled: [importFunc, ...functionsCalled],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
   /**
@@ -187,12 +200,12 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
    * @param type to encode (only arrays and structs allowed)
    * @returns name of the generated function
    */
-  private getOrCreateAuxiliar(type: TypeNode): string {
+  private getOrCreateAuxiliar(type: TypeNode): CairoFunctionDefinition {
     const key = type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
 
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const unexpectedTypeFunc = () => {
@@ -201,7 +214,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       );
     };
 
-    const cairoFunc = delegateBasedOnType<CairoFunction>(
+    const cairoFunc = delegateBasedOnType<CairoGeneratedFunctionDefinition>(
       type,
       (type) => this.generateDynamicArrayEncodeFunction(type),
       (type) => this.generateStaticArrayEncodeFunction(type),
@@ -211,7 +224,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     );
 
     this.auxiliarGeneratedFunctions.set(key, cairoFunc);
-    return cairoFunc.name;
+    return cairoFunc;
   }
 
   /**
@@ -240,7 +253,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
 
   private generateDynamicArrayEncodeFunction(
     type: ArrayType | BytesType | StringType,
-  ): CairoFunction {
+  ): CairoGeneratedFunctionDefinition {
     const cairoElementType = CairoType.fromSol(
       getElementType(type),
       this.ast,
@@ -266,10 +279,16 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `}`,
     ];
 
-    return { name: funcName, code: code.join('\n') };
+    const funcInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: code.join('\n'),
+      functionsCalled: [],
+    };
+
+    return createCairoGeneratedFunction(funcInfo, [], [], [], this.ast, this.sourceUnit);
   }
 
-  private generateStructEncodeFunction(type: UserDefinedType): CairoFunction {
+  private generateStructEncodeFunction(type: UserDefinedType): CairoGeneratedFunctionDefinition {
     assert(type.definition instanceof StructDefinition);
 
     const encodeCode = type.definition.vMembers.map((varDecl, index) => {
@@ -293,10 +312,12 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `    return (to_index,);`,
       `}`,
     ];
-    return { name: funcName, code: code.join('\n') };
+
+    const funcInfo = { name: funcName, code: code.join('\n'), functionsCalled: [] };
+    return createCairoGeneratedFunction(funcInfo, [], [], [], this.ast, this.sourceUnit);
   }
 
-  private generateStaticArrayEncodeFunction(type: ArrayType): CairoFunction {
+  private generateStaticArrayEncodeFunction(type: ArrayType): CairoGeneratedFunctionDefinition {
     assert(type.size !== undefined);
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
@@ -316,6 +337,8 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `    return (to_index,);`,
       `}`,
     ];
-    return { name: funcName, code: code.join('\n') };
+
+    const funcInfo = { name: funcName, code: code.join('\n'), functionsCalled: [] };
+    return createCairoGeneratedFunction(funcInfo, [], [], [], this.ast, this.sourceUnit);
   }
 }
