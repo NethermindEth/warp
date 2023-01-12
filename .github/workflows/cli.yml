@@ -8,9 +8,6 @@ on:
       - warp-ts
   pull_request:
 
-env:
-  CAIRO_LANG_VERSION: 0.10.0
-
 jobs:
   CLI_test:
     runs-on: ubuntu-latest
@@ -32,6 +29,10 @@ jobs:
         run: |
           make
           make compile
+          pip3 uninstall cairo-lang -y
+          pip3 install cairo-lang==0.10.3
+          pip3 uninstall starknet-devnet -y
+          pip3 install starknet-devnet==0.4.4
 
       - name: Setup warp_venv
         run: bin/warp install --python python --verbose
