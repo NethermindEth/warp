@@ -372,9 +372,7 @@ export function insertConversionIfNecessary(
   } else if (currentType instanceof ImportRefType) {
     return;
   } else if (currentType instanceof IntLiteralType) {
-    if (!(generalisedTargetType instanceof IntLiteralType)) {
-      insertConversion(expression, generalisedTargetType, context, ast);
-    }
+    insertConversion(expression, generalisedTargetType, context, ast);
   } else if (currentType instanceof IntType) {
     if (
       generalisedTargetType instanceof IntType &&
