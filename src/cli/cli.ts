@@ -22,7 +22,6 @@ import { runTests } from '../testing';
 import { generateSolInterface } from '../icf/interfaceCallForwarder';
 import { postProcessCairoFile } from '../utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from '../utils/utils';
-import { type } from 'os';
 
 export type CompilationOptions = {
   warnings?: boolean;
