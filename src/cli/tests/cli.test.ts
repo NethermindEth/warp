@@ -12,14 +12,6 @@ const account_dir = path.resolve(__dirname, '.');
 const TIME_LIMIT = 10 * 60 * 1000;
 
 const warpBin = path.resolve(__dirname, '..', '..', '..', 'bin', 'warp');
-const warpVenvPrefix = `PATH=${path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'warp_venv',
-  'bin',
-)}:$PATH`;
 
 const contractCairoFile = path.resolve(
   __dirname,
@@ -49,11 +41,11 @@ async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
   });
 }
 
-function starknetCompile(
-  cairoPath: string,
-  jsonOutputPath: string,
-): Promise<{ stdout: string; stderr: string }> {
-  return sh(`${warpVenvPrefix} starknet-compile ${cairoPath} --output ${jsonOutputPath}`);
+async function mintEthToAccount(address: string): Promise<{ stdout: string; stderr: string }> {
+  const res = await sh(
+    `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
+  );
+  return res;
 }
 
 describe('Manage starknet account', function () {
@@ -63,9 +55,12 @@ describe('Manage starknet account', function () {
       fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
     }
 
-    await sh(
-      `${warpVenvPrefix} starknet new_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+    const { stdout, stderr } = await sh(
+      `${warpBin} new_account --wallet ${starknet_wallet} --network ${network} --feeder_gateway_url ${gateway_url} --account_dir ${account_dir}`,
     );
+
+    expect(stderr).to.be.empty;
+    expect(stdout).to.not.be.empty;
 
     const starknet_open_zeppelin_accounts = JSON.parse(
       fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
@@ -89,9 +84,7 @@ describe('Manage starknet account', function () {
     );
     const address = starknet_open_zeppelin_accounts[network]['__default__']['address'];
 
-    const { stdout } = await sh(
-      `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
-    );
+    const { stdout } = await mintEthToAccount(address);
 
     const response = JSON.parse(stdout);
 
@@ -136,10 +129,10 @@ describe('Transpile & compile a ERC20 based contract (MyToken)', function () {
     expect(stderr).to.be.empty;
     expect(stdout).to.be.empty;
 
-    const res = await starknetCompile(contractCairoFile, path.resolve(__dirname, 'contract.json'));
+    const res = await sh(`${warpBin} compile ${contractCairoFile}`);
 
     expect(res.stderr).to.be.empty;
-    expect(res.stdout).to.be.empty;
+    expect(res.stdout).to.not.be.empty;
   });
 });
 
@@ -243,10 +236,11 @@ describe('Invoke MyToken contract functions', function () {
   before('create few new accounts & deploy them', async () => {
     // account creation
     await sh(
-      `${warpVenvPrefix} starknet --account user1 new_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+      `${warpBin} new_account --account user1 --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
     );
+
     await sh(
-      `${warpVenvPrefix} starknet --account user2 new_account --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
+      `${warpBin} new_account --account user2 --wallet ${starknet_wallet} --feeder_gateway_url ${gateway_url} --gateway_url ${gateway_url} --network ${network} --account_dir ${account_dir}`,
     );
 
     //mint some WEIs to these accounts
@@ -254,13 +248,8 @@ describe('Invoke MyToken contract functions', function () {
       fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
     );
 
-    await sh(
-      `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${starknet_open_zeppelin_accounts[network].user1.address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
-    );
-
-    await sh(
-      `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${starknet_open_zeppelin_accounts[network].user2.address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
-    );
+    await mintEthToAccount(starknet_open_zeppelin_accounts[network].user1.address);
+    await mintEthToAccount(starknet_open_zeppelin_accounts[network].user2.address);
 
     // account deployment
     await sh(

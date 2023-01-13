@@ -9,6 +9,7 @@ import {
   IDeployAccountProps,
   IOptionalDebugInfo,
   IDeclareOptions,
+  StarkNetNewAccountOptions,
 } from './cli/cli';
 import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
@@ -327,6 +328,29 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
   } else {
     assert(resultPath !== undefined);
     declareContract(resultPath, options);
+  }
+}
+
+export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
+  const networkOption = options.network ? `--network ${options.network}` : ``;
+  const walletOption = options.wallet ? `--wallet ${options.wallet}` : ``;
+  const accountOption = options.account ? `--account ${options.account}` : '';
+
+  const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
+  const feederGatewayUrlOption = options.feeder_gateway_url
+    ? `--feeder_gateway_url ${options.feeder_gateway_url}`
+    : '';
+  const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
+  try {
+    execSync(
+      `${warpVenvPrefix} starknet new_account ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
+      {
+        stdio: 'inherit',
+        encoding: 'utf8',
+      },
+    );
+  } catch {
+    logError('StarkNet new account creation failed');
   }
 }
 

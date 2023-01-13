@@ -12,6 +12,7 @@ import {
   runStarknetDeclare,
   runStarknetDeploy,
   runStarknetDeployAccount,
+  runStarknetNewAccount,
   runStarknetStatus,
 } from '../starknetCli';
 import chalk from 'chalk';
@@ -21,6 +22,7 @@ import { runTests } from '../testing';
 import { generateSolInterface } from '../icf/interfaceCallForwarder';
 import { postProcessCairoFile } from '../utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from '../utils/utils';
+import { type } from 'os';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -470,6 +472,38 @@ program
   )
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetDeclare);
+
+export type StarkNetNewAccountOptions = IOptionalAccount &
+  IOptionalAccount &
+  IOptionalNetwork &
+  IGatewayProps &
+  IOptionalWallet;
+
+program
+  .command('new_account')
+  .description('Command to create a new account.')
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, account will be named "__default__". If it already exists, it will be overwritten.',
+  )
+  .option(
+    '--account_dir <account_dir>',
+    'The directory of the account.',
+    process.env.STARKNET_ACCOUNT_DIR,
+  )
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
+  .option(
+    '--wallet <wallet>',
+    'The name of the wallet, including the python module and wallet class.',
+    process.env.STARKNET_WALLET,
+  )
+  .action(runStarknetNewAccount);
 
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;
