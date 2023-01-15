@@ -61,24 +61,32 @@ export const program = new Command();
 
 program
   .command('transpile <files...>')
-  .option('--compile-cairo')
+  .description('Transpile Solidity contracts into Cairo contracts')
+  .option('--compile-cairo', 'Compile the output to bytecode')
   .option('--no-compile-errors')
-  .option('--check-trees')
+  .option('--check-trees', 'Debug: Run sanity checks on all intermediate ASTs')
   // for development mode
   .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
-  .option('--format-cairo', 'Format cairo output')
-  .option('--highlight <ids...>')
-  .option('--order <passOrder>')
+  .option('--format-cairo', 'Format the cairo output - can be slow on large contracts')
+  .option(
+    '--highlight <ids...>',
+    'Debug: Highlight selected ids in the AST printed by --print-trees',
+  )
+  .option('--order <passOrder>', 'Use a custom set of transpilation passes')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
-  .option('-d, --debug-info', 'Include debug information.', false)
-  .option('--print-trees')
+  .option(
+    '-d, --debug-info',
+    'Include debug information in the compiled bytecode produced by --compile-cario',
+    false,
+  )
+  .option('--print-trees', 'Debug: Print all the intermediate ASTs')
   .option('--no-result')
   .option('--no-stubs')
   .option('--no-strict')
   .option('--until <pass>', 'Stops transpilation after the specified pass')
-  .option('--no-warnings')
-  .option('--include-paths <paths...>')
-  .option('--base-path <path>')
+  .option('--no-warnings', 'Suppress printed warnings')
+  .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
+  .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTranspile);
 
 export function runTranspile(files: string[], options: CliOptions) {
@@ -135,19 +143,25 @@ export function runTranspile(files: string[], options: CliOptions) {
 
 program
   .command('transform <file>')
+  .description(
+    'Debug tool which applies any set of passes to the AST and writes out the transformed Solidity',
+  )
   .option('--no-compile-errors')
-  .option('--check-trees')
-  .option('--highlight <ids...>')
-  .option('--order <passOrder>')
-  .option('-o, --output-dir <path>')
-  .option('--print-trees')
+  .option('--check-trees', 'Debug: Run sanity checks on all intermediate ASTs')
+  .option(
+    '--highlight <ids...>',
+    'Debug: highlight selected ids in the AST printed by --print-trees',
+  )
+  .option('--order <passOrder>', 'Use a custom set of transpilation passes')
+  .option('-o, --output-dir <path>', 'Output directory for transformed Solidity files')
+  .option('--print-trees', 'Debug: Print all the intermediate ASTs')
   .option('--no-result')
   .option('--no-stubs')
   .option('--no-strict')
-  .option('--until <pass>')
-  .option('--no-warnings')
-  .option('--include-paths <paths...>')
-  .option('--base-path <path>')
+  .option('--until <pass>', 'Pass to transform to')
+  .option('--no-warnings', 'Suppress printed warnings')
+  .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
+  .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTransform);
 
 export function runTransform(file: string, options: CliOptions) {
@@ -176,6 +190,7 @@ export function runTransform(file: string, options: CliOptions) {
 
 program
   .command('test')
+  .description('Deprecated testing framework')
   .option('-f --force')
   .option('-r --results')
   .option('-u --unsafe')
@@ -191,7 +206,8 @@ program
 
 program
   .command('analyse <file>')
-  .option('--highlight <ids...>')
+  .description('Debug tool to analyse the AST')
+  .option('--highlight <ids...>', 'Highlight selected ids in the AST')
   .action((file: string, options: PrintOptions) => analyseSol(file, options));
 
 export interface IOptionalNetwork {
@@ -200,7 +216,8 @@ export interface IOptionalNetwork {
 
 program
   .command('status <tx_hash>')
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .description('Get the satus of a transaction')
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .action((tx_hash: string, options: IOptionalNetwork) => {
     runStarknetStatus(tx_hash, options);
   });
@@ -211,7 +228,8 @@ export interface IOptionalDebugInfo {
 
 program
   .command('compile <file>')
-  .option('-d, --debug-info', 'Include debug information.', false)
+  .description('Compile cairo files with warplib in the cairo-path')
+  .option('-d, --debug-info', 'Include debug information', false)
   .action((file: string, options: IOptionalDebugInfo) => {
     runStarknetCompile(file, options);
   });
@@ -226,14 +244,20 @@ export interface SolcInterfaceGenOptions {
 
 program
   .command('gen_interface <file>')
+  .description(
+    'Use native Cario conracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
+  )
   .option('--cairo-path <cairo-path>', 'Cairo libraries/modules import path')
-  .option('--output <output>', 'Output path for the generation of files')
+  .option(
+    '--output <output>',
+    'Output path for the Solidity interface and the Cairo translation contract',
+  )
   .option(
     '--contract-address <contract-address>',
-    'Address at which cairo contract has been deployed',
+    'Address at which the target cairo contract has been deployed',
   )
   .option('--class-hash <class-hash>', 'Class hash of the cairo contract')
-  .option('--solc-version <version>', 'Solc version to use.', '0.8.14')
+  .option('--solc-version <version>', 'Solc version to use', '0.8.14')
   .action(generateSolInterface);
 
 interface IDeployProps_ {
@@ -247,15 +271,16 @@ export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount &
 
 program
   .command('deploy <file>')
-  .option('-d, --debug_info', 'Compile include debug information.', false)
+  .description('Deploy a warped cairo contract')
+  .option('-d, --debug_info', 'Compile include debug information', false)
   .option(
     '--inputs <inputs...>',
-    'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
+    'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists',
     undefined,
   )
-  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .option('--no_wallet', 'Do not use a wallet for deployment.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--no_wallet', 'Do not use a wallet for deployment', false)
   .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
   .option('--account <account>', 'Account to use for deployment', undefined)
   .action(runStarknetDeploy);
@@ -271,14 +296,15 @@ export type IDeployAccountProps = IOptionalAccount & IOptionalNetwork & IOptiona
 
 program
   .command('deploy_account')
+  .description('Deploy an account to StarkNet')
   .option(
     '--account <account>',
-    'The name of the account. If not given, the default for the wallet will be used.',
+    'The name of the account. If not given, the default for the wallet will be used',
   )
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
   .action(runStarknetDeployAccount);
@@ -296,44 +322,46 @@ export type ICallOrInvokeProps = ICallOrInvokeProps_ &
 
 program
   .command('invoke <file>')
-  .requiredOption('--address <address>', 'Address of contract to invoke.')
-  .requiredOption('--function <function>', 'Function to invoke.')
+  .description('Invoke a function on a warped contract using the Solidity abi')
+  .requiredOption('--address <address>', 'Address of contract to invoke')
+  .requiredOption('--function <function>', 'Function to invoke')
   .option(
     '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
-  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
   .option(
     '--account <account>',
-    'The name of the account. If not given, the default for the wallet will be used.',
+    'The name of the account. If not given, the default for the wallet will be used',
   )
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
   .action(runStarknetCallOrInvoke);
 
 program
   .command('call <file>')
-  .requiredOption('--address <address>', 'Address of contract to call.')
-  .requiredOption('--function <function>', 'Function to call.')
+  .description('Call a function on a warped contract using the Solidity abi')
+  .requiredOption('--address <address>', 'Address of contract to call')
+  .requiredOption('--function <function>', 'Function to call')
   .option(
     '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
-  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
   .option(
     '--account <account>',
-    'The name of the account. If not given, the default for the wallet will be used.',
+    'The name of the account. If not given, the default for the wallet will be used',
   )
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
   .action(async (file: string, options: ICallOrInvokeProps) => {
@@ -352,7 +380,8 @@ export type IInstallOptions = IInstallOptions_ & IOptionalVerbose;
 
 program
   .command('install')
-  .option('--python <python>', 'Path to python3.9 executable.', 'python3.9')
+  .description('Install the python dependencies required for Warp')
+  .option('--python <python>', 'Path to a python3.9 executable', 'python3.9')
   .option('-v, --verbose')
   .action(runVenvSetup);
 
@@ -365,15 +394,15 @@ export interface IDeclareOptions {
 
 program
   .command('declare <cairo_contract>')
-  .description('Command to declare Cairo contract on a StarkNet Network.')
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .description('Declare a Cairo contract')
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
   .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
   .action(runStarknetDeclare);
