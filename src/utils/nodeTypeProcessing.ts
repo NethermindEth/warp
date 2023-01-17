@@ -72,9 +72,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
       );
       const structDef = functionType.type.to.definition;
       assert(structDef instanceof StructDefinition);
-      return structDef.vMembers.map(
-        ast.inference.variableDeclarationToTypeNode.bind(ast.inference),
-      );
+      return structDef.vMembers.map(ast.inference.variableDeclarationToTypeNode, ast.inference);
     }
 
     case FunctionCallKind.TypeConversion:
