@@ -68,7 +68,7 @@ import {
 } from './nodeTemplates';
 import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
-import { TranspilationOptions } from '../cli/cli';
+import { TranspilationOptions } from '../cli';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
 

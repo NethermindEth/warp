@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { replaceSuffix, isValidSolFile, outputResult } from '../io';
-import { compileSolFiles } from '../solCompile';
-import { handleTranspilationError, transform, transpile } from '../transpiler';
-import { analyseSol } from '../utils/analyseSol';
+import { replaceSuffix, isValidSolFile, outputResult } from './io';
+import { compileSolFiles } from './solCompile';
+import { handleTranspilationError, transform, transpile } from './transpiler';
+import { analyseSol } from './utils/analyseSol';
 import {
   compileCairo,
   runStarknetCallOrInvoke,
@@ -14,14 +14,14 @@ import {
   runStarknetDeployAccount,
   runStarknetNewAccount,
   runStarknetStatus,
-} from '../starknetCli';
+} from './starknetCli';
 import chalk from 'chalk';
-import { runVenvSetup } from '../utils/setupVenv';
-import { runTests } from '../testing';
+import { runVenvSetup } from './utils/setupVenv';
+import { runTests } from './testing';
 
-import { generateSolInterface } from '../icf/interfaceCallForwarder';
-import { postProcessCairoFile } from '../utils/postCairoWrite';
-import { defaultBasePathAndIncludePath } from '../utils/utils';
+import { generateSolInterface } from './icf/interfaceCallForwarder';
+import { postProcessCairoFile } from './utils/postCairoWrite';
+import { defaultBasePathAndIncludePath } from './utils/utils';
 
 export type CompilationOptions = {
   warnings?: boolean;

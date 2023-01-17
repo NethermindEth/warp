@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { exec } from 'child_process';
+import { sh } from '../util';
 import { describe, it } from 'mocha';
 import * as path from 'path';
 import fs from 'fs';
@@ -28,18 +28,6 @@ const contractCairoFile = path.resolve(
 
 let contract_class_hash: string;
 let contract_address: string;
-
-async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
-  return new Promise(function (resolve, reject) {
-    exec(cmd, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ stdout, stderr });
-      }
-    });
-  });
-}
 
 async function mintEthToAccount(address: string): Promise<{ stdout: string; stderr: string }> {
   const res = await sh(

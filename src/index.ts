@@ -1,3 +1,3 @@
-import { program } from './cli/cli';
+import { program } from './cli';
 
 program.parse(process.argv);

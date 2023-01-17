@@ -1,4 +1,4 @@
-name: CLI testing
+name: CLI
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
 
       - name: CLI test on starknet devnet
         run: |
-          starknet-devnet & npx mocha src/cli/tests/cli.test.ts --extension ts --require ts-node/register --exit
+          starknet-devnet & yarn test:cli
 
       - name: Save benchmarks in artifacts
         uses: actions/upload-artifact@v3

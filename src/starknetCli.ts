@@ -10,7 +10,7 @@ import {
   IOptionalDebugInfo,
   IDeclareOptions,
   StarkNetNewAccountOptions,
-} from './cli/cli';
+} from './cli';
 import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
