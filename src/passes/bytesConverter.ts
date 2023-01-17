@@ -17,7 +17,6 @@ import {
   Literal,
   BytesType,
   StringType,
-  IntLiteralType,
   StringLiteralType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';

@@ -17,7 +17,7 @@ import {
   generalizeType,
   InferType,
   IntType,
-  Literal,
+  Literal, // eslint-disable-line
   MappingType,
   PackedArrayType,
   PointerType,
