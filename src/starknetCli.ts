@@ -136,6 +136,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
         options.inputs,
       )
     )[1];
+    inputs = inputs ? `--inputs ${inputs}` : inputs;
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -249,6 +250,7 @@ export async function runStarknetCallOrInvoke(
       options.use_cairo_abi,
       options.inputs,
     );
+    inputs = inputs ? `--inputs ${inputs}` : inputs;
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
