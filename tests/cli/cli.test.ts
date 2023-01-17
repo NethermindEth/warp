@@ -11,17 +11,15 @@ const account_dir = path.resolve(__dirname, '.');
 
 const TIME_LIMIT = 10 * 60 * 1000;
 
-const warpBin = path.resolve(__dirname, '..', '..', '..', 'bin', 'warp');
+const warpBin = path.resolve(__dirname, '..', '..', 'bin', 'warp');
 
 const contractCairoFile = path.resolve(
   __dirname,
   '..',
   '..',
-  '..',
   'warp_output',
-  'src',
-  'cli',
   'tests',
+  'cli',
   'contract.sol',
   'MyToken.cairo',
 );
@@ -169,7 +167,7 @@ describe('Declare the MyToken contract', function () {
 
     expect(stdout).to.be.equal(
       [
-        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..')}`,
         `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
         `Declare transaction was sent.`,
         `Contract class hash: ${contract_class_hash}`,
@@ -220,7 +218,7 @@ describe('Deploy the MyToken contract', function () {
 
     expect(stdout).to.be.equal(
       [
-        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..')}`,
         `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
         `Invoke transaction for contract deployment was sent.`,
         `Contract address: ${contract_address}`,
@@ -329,7 +327,7 @@ describe('Invoke MyToken contract functions', function () {
 
     expect(transferToUser1.stdout).to.be.equal(
       [
-        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..')}`,
         `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
         `Invoke transaction was sent.`,
         `Contract address: ${contract_address}`,
@@ -372,7 +370,7 @@ describe('Invoke MyToken contract functions', function () {
 
     expect(approveToUser2.stdout).to.be.equal(
       [
-        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..')}`,
         `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
         `Invoke transaction was sent.`,
         `Contract address: ${contract_address}`,
@@ -418,7 +416,7 @@ describe('Invoke MyToken contract functions', function () {
 
     expect(transferFromUser2ToUser1.stdout).to.be.equal(
       [
-        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..')}`,
         `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
         `Invoke transaction was sent.`,
         `Contract address: ${contract_address}`,
