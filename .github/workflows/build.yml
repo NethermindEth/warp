@@ -1,4 +1,4 @@
-name: Warp CI
+name: Behaviour tests
 
 on:
   push:

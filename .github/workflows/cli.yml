@@ -8,6 +8,9 @@ on:
       - warp-ts
   pull_request:
 
+env:
+  CAIRO_LANG_VERSION: 0.10.3
+
 jobs:
   CLI_test:
     runs-on: ubuntu-latest
@@ -29,7 +32,7 @@ jobs:
         run: |
           yarn
           make compile
-          pip3 install cairo-lang==0.10.3
+          pip3 install cairo-lang=="$CAIRO_LANG_VERSION"
           pip3 install starknet-devnet==0.4.4
 
       - name: Build warplib
@@ -43,7 +46,7 @@ jobs:
 
       - name: CLI test on starknet devnet
         run: |
-          starknet-devnet & yarn test:cli
+          starknet-devnet --lite-mode --seed 0 & yarn test:cli
 
       - name: Save benchmarks in artifacts
         uses: actions/upload-artifact@v3
