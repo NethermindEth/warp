@@ -4,6 +4,7 @@ import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
 import { execSync } from 'child_process';
 import { AST } from './ast/ast';
+import { OUTPUT_DIR_SUFFIX } from './export';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
@@ -81,7 +82,7 @@ export function outputResult(
     const abiOutPath = fullCodeOutPath.slice(0, -'.cairo'.length).concat('_sol_abi.json');
 
     const contractName = path.basename(outputPath).slice(0, -'.cairo'.length);
-    const solFilePath = path.dirname(outputPath);
+    const solFilePath = path.dirname(outputPath).slice(0, -`${OUTPUT_DIR_SUFFIX}`.length);
 
     fs.outputFileSync(
       abiOutPath,

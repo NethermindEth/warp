@@ -13,6 +13,7 @@ import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
+import { OUTPUT_DIR_SUFFIX } from './export';
 
 const WARP_TEST = 'warp_test';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, 'example_contracts');
@@ -355,7 +356,7 @@ function combineResults(results: ResultType[]): ResultType {
 function getTestsWithUnexpectedResults(results: Map<string, ResultType>): string[] {
   const testsWithUnexpectedResults: string[] = [];
   const groupedResults = groupBy([...results.entries()], ([file, _]) =>
-    file.endsWith('.cairo') ? path.dirname(file) : file,
+    file.endsWith('.cairo') ? path.dirname(file).slice(0, -OUTPUT_DIR_SUFFIX.length) : file,
   );
   [...groupedResults.entries()].forEach((e) => {
     const expected = expectedResults.get(e[0]);

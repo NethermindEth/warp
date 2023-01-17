@@ -10,6 +10,9 @@ export const TUPLE_FILLER_PREFIX = '__warp_tf';
 // Used in SourceUnitSplitter
 export const FREE_FILE_NAME = '__warp_free.cairo';
 
+// Used in SourceUnitSplitter
+export const OUTPUT_DIR_SUFFIX = '.out';
+
 // Used in IdentifierManglerPass and CairoStubProcessor
 export const MANGLED_WARP = '__warp_';
 

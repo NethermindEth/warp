@@ -10,7 +10,7 @@ import { join } from 'path';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import { FREE_FILE_NAME } from '../utils/nameModifiers';
+import { FREE_FILE_NAME, OUTPUT_DIR_SUFFIX } from '../utils/nameModifiers';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
@@ -106,7 +106,7 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return join(path, FREE_FILE_NAME);
+  return join(path + OUTPUT_DIR_SUFFIX, FREE_FILE_NAME);
 }
 
 export function mangleContractFilePath(
@@ -114,7 +114,7 @@ export function mangleContractFilePath(
   contractName: string,
   suffix = '.cairo',
 ): string {
-  return join(path, contractName + suffix);
+  return join(path + OUTPUT_DIR_SUFFIX, contractName + suffix);
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
