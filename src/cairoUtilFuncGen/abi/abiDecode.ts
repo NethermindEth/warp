@@ -5,6 +5,7 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   PointerType,
   SourceUnit,
@@ -39,7 +40,7 @@ import {
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from '../base';
-import { MemoryWriteGen } from '../export';
+import { MemoryWriteGen, parseCairoImplicits } from '../export';
 import { removeSizeInfo } from './base';
 
 const IMPLICITS =
@@ -103,22 +104,32 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       return existing.name;
     }
 
-    const [returnParams, decodings] = types.reduce(
-      ([returnParams, decodings], type, index) => [
-        [
+    const [returnParams, decodings, functionsCalled] = types.reduce(
+      ([returnParams, decodings, functionsCalled], type, index) => {
+        const newReturnParams = [
           ...returnParams,
           {
             name: `result${index}`,
             type: CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).toString(),
           },
-        ],
-        [
-          ...decodings,
-          `// Param ${index} decoding:`,
-          this.generateDecodingCode(type, 'mem_index', `result${index}`, 'mem_index'),
-        ],
+        ];
+        const [newDecodings, newFunctionsCalled] = this.generateDecodingCode(
+          type,
+          'mem_index',
+          `result${index}`,
+          'mem_index',
+        );
+        return [
+          newReturnParams,
+          [...decodings, `// Param ${index} decoding:`, newDecodings],
+          [...functionsCalled, ...newFunctionsCalled],
+        ];
+      },
+      [
+        new Array<{ name: string; type: string }>(),
+        new Array<string>(),
+        new Array<CairoFunctionDefinition>(),
       ],
-      [new Array<{ name: string; type: string }>(), new Array<string>()],
     );
 
     const indexLength = types.reduce(
@@ -169,14 +180,14 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
    * @param newIndexVar cairo var to store new index position after decoding the type
    * @param decodeResult cairo var that stores the result of the decoding
    * @param relativeIndexVar cairo var to handle offset values
-   * @returns the generated code
+   * @returns the generated code and functions called
    */
   public generateDecodingCode(
     type: TypeNode,
     newIndexVar: string,
     decodeResult: string,
     relativeIndexVar: string,
-  ): string {
+  ): [string, CairoFunctionDefinition[]] {
     assert(
       !(type instanceof PointerType),
       'Pointer types are not valid types for decoding. Try to generalize them',
@@ -184,14 +195,18 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     // address types get special treatment due to different byte size in ethereum and starknet
     if (isAddressType(type)) {
-      const funcName = this.createValueTypeDecoding(31);
+      const func = this.createValueTypeDecoding(31);
       return [
-        `let (${decodeResult} : felt) = ${funcName}(mem_index, mem_index + 32, mem_ptr, 0);`,
-        `let ${newIndexVar} = mem_index + 32;`,
-      ].join('\n');
+        [
+          `let (${decodeResult} : felt) = ${func.name}(mem_index, mem_index + 32, mem_ptr, 0);`,
+          `let ${newIndexVar} = mem_index + 32;`,
+        ].join('\n'),
+        [func],
+      ];
     }
 
     const auxFunc = this.getOrCreateDecoding(type);
+    const importedFuncs = [];
 
     if (isReferenceType(type)) {
       // Find where the type is encoded in the bytes array:
@@ -204,7 +219,9 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       let initInstructions: string[] = [];
       let typeIndex = 'mem_index';
       if (isDynamicallySized(type, this.ast.compilerVersion)) {
-        this.requireImport('warplib.dynamic_arrays_util', 'byte_array_to_felt_value');
+        importedFuncs.push(
+          this.requireImport('warplib.dynamic_arrays_util', 'byte_array_to_felt_value'),
+        );
         initInstructions = [
           `let (param_offset) = byte_array_to_felt_value(mem_index, mem_index + 32, mem_ptr, 0);`,
           `let mem_offset = ${calcOffset('mem_index', 'param_offset', relativeIndexVar)};`,
@@ -241,7 +258,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `);`,
         ];
         // Other relevant imports get added when the function is generated
-        this.requireImport('warplib.memory', 'wm_new');
+        importedFuncs.push(this.requireImport('warplib.memory', 'wm_new'));
       } else if (type instanceof ArrayType) {
         // Handling static arrays
         assert(type.size !== undefined);
@@ -258,7 +275,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `  ${decodeResult}`,
           `);`,
         ];
-        this.requireImport('warplib.memory', 'wm_alloc');
+        importedFuncs.push(this.requireImport('warplib.memory', 'wm_alloc'));
       } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
         const maxSize = CairoType.fromSol(
           type,
@@ -273,7 +290,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `  ${decodeResult}`,
           `);`,
         ];
-        this.requireImport('warplib.memory', 'wm_alloc');
+        importedFuncs.push(this.requireImport('warplib.memory', 'wm_alloc'));
       } else {
         throw new TranspileFailedError(
           `Unexpected reference type to generate decoding code: ${printTypeNode(type)}`,
@@ -281,10 +298,13 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       }
 
       return [
-        ...initInstructions,
-        ...callInstructions,
-        `let ${newIndexVar} = mem_index + ${getByteSize(type, this.ast.compilerVersion)};`,
-      ].join('\n');
+        [
+          ...initInstructions,
+          ...callInstructions,
+          `let ${newIndexVar} = mem_index + ${getByteSize(type, this.ast.compilerVersion)};`,
+        ].join('\n'),
+        [...importedFuncs, auxFunc],
+      ];
     }
 
     // Handling value types
@@ -298,25 +318,28 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     if (byteSize === 32) {
       args.push('0');
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+      importedFuncs.push(this.requireImport('starkware.cairo.common.uint256', 'Uint256'));
     }
     const decodeType = byteSize === 32 ? 'Uint256' : 'felt';
 
     return [
-      `let (${decodeResult} : ${decodeType}) = ${auxFunc.name}(${args.join(',')});`,
-      `let ${newIndexVar} = mem_index + 32;`,
-    ].join('\n');
+      [
+        `let (${decodeResult} : ${decodeType}) = ${auxFunc.name}(${args.join(',')});`,
+        `let ${newIndexVar} = mem_index + 32;`,
+      ].join('\n'),
+      [...importedFuncs, auxFunc],
+    ];
   }
 
-  private createStaticArrayDecoding(type: ArrayType) {
+  private createStaticArrayDecoding(type: ArrayType): CairoFunctionDefinition {
     assert(type.size !== undefined);
     const key = 'static' + removeSizeInfo(type);
     const existing = this.auxiliarGeneratedFunctions.get(key);
-    if (existing !== undefined) return existing.name;
+    if (existing !== undefined) return existing;
 
     const elementTWidth = CairoType.fromSol(type.elementT, this.ast).width;
 
-    const decodingCode = this.generateDecodingCode(
+    const [decodingCode, functionsCalled] = this.generateDecodingCode(
       type.elementT,
       'next_mem_index',
       'element',
@@ -352,19 +375,29 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
 
-    this.auxiliarGeneratedFunctions.set(key, { name, code });
-    return name;
+    const funcInfo = { name, code, functionsCalled };
+    const generatedFunc = createCairoGeneratedFunction(
+      funcInfo,
+      [],
+      [],
+      parseCairoImplicits(IMPLICITS),
+      this.ast,
+      this.sourceUnit,
+    );
+
+    this.auxiliarGeneratedFunctions.set(key, generatedFunc);
+    return generatedFunc;
   }
 
-  private createDynamicArrayDecoding(type: ArrayType): string {
+  private createDynamicArrayDecoding(type: ArrayType): CairoFunctionDefinition {
     const key = 'dynamic' + type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
-    if (existing !== undefined) return existing.name;
+    if (existing !== undefined) return existing;
 
     const elementT = getElementType(type);
     const elemenTWidth = CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
 
-    const decodingCode = this.generateDecodingCode(
+    const [decodingCode, functionsCalled] = this.generateDecodingCode(
       elementT,
       'next_mem_index',
       'element',
@@ -406,44 +439,72 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('warplib.memory', 'wm_index_dyn');
-    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-    this.requireImport('warplib.maths.utils', 'narrow_safe');
+    const importedFuncs = [
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('warplib.memory', 'wm_index_dyn'),
+      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+      this.requireImport('warplib.maths.utils', 'narrow_safe'),
+    ];
 
-    this.auxiliarGeneratedFunctions.set(key, { name, code });
-    return name;
+    const funcInfo = { name, code, functionsCalled: [...importedFuncs, ...functionsCalled] };
+    const generatedFunc = createCairoGeneratedFunction(
+      funcInfo,
+      [],
+      [],
+      parseCairoImplicits(IMPLICITS),
+      this.ast,
+      this.sourceUnit,
+    );
+
+    this.auxiliarGeneratedFunctions.set(key, generatedFunc);
+    return generatedFunc;
   }
 
-  private createStructDecoding(type: UserDefinedType, definition: StructDefinition) {
+  private createStructDecoding(
+    type: UserDefinedType,
+    definition: StructDefinition,
+  ): CairoFunctionDefinition {
     const key = type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
-    if (existing !== undefined) return existing.name;
+    if (existing !== undefined) return existing;
 
     let indexWalked = 0;
     let structWriteLocation = 0;
-    const instructions = definition.vMembers.map((member, index) => {
-      const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
-      const elemWidth = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
-      const decodingCode = this.generateDecodingCode(
-        type,
-        'mem_index',
-        `member${index}`,
-        `${indexWalked}`,
-      );
-      indexWalked += Number(getByteSize(type, this.ast.compilerVersion));
-      structWriteLocation += index * elemWidth;
-      const getMemLocCode = `let mem_to_write_loc = ${add('struct_ptr', structWriteLocation)};`;
-      const writeMemLocCode = `${this.memoryWrite.getOrCreate(
-        type,
-      )}(mem_to_write_loc, member${index});`;
-      return [
-        `// Decoding member ${member.name}`,
-        `${decodingCode}`,
-        `${getMemLocCode}`,
-        `${writeMemLocCode}`,
-      ].join('\n');
-    });
+    const decodingInfo: [string, CairoFunctionDefinition[]][] = definition.vMembers.map(
+      (member, index) => {
+        const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
+        const elemWidth = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
+        const [decodingCode, functionsCalled] = this.generateDecodingCode(
+          type,
+          'mem_index',
+          `member${index}`,
+          `${indexWalked}`,
+        );
+        indexWalked += Number(getByteSize(type, this.ast.compilerVersion));
+        structWriteLocation += index * elemWidth;
+        const getMemLocCode = `let mem_to_write_loc = ${add('struct_ptr', structWriteLocation)};`;
+        const writeMemLocCode = `${this.memoryWrite.getOrCreate(
+          type,
+        )}(mem_to_write_loc, member${index});`;
+        return [
+          [
+            `// Decoding member ${member.name}`,
+            `${decodingCode}`,
+            `${getMemLocCode}`,
+            `${writeMemLocCode}`,
+          ].join('\n'),
+          functionsCalled,
+        ];
+      },
+    );
+
+    const [instructions, functionsCalled] = decodingInfo.reduce(
+      ([instructions, functionsCalled], [currentInstruction, currentFuncs]) => [
+        [...instructions, currentInstruction],
+        [...functionsCalled, ...currentFuncs],
+      ],
+      [new Array<String>(), new Array<CairoFunctionDefinition>()],
+    );
 
     const name = `${this.functionName}_struct_${definition.name}`;
     const code = [
@@ -458,8 +519,8 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    const functionsCalled = [this.requireImport('warplib.maths.utils', 'felt_to_uint256')];
-    const genFuncInfo = { name, code, functionsCalled };
+    const importedFuncs = [this.requireImport('warplib.maths.utils', 'felt_to_uint256')];
+    const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...functionsCalled] };
     const auxFunc = createCairoGeneratedFunction(
       genFuncInfo,
       [],
@@ -470,7 +531,6 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     );
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
-
     return auxFunc;
   }
 
