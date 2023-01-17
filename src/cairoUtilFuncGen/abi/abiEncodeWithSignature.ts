@@ -7,14 +7,16 @@ import {
   StringType,
   TypeNode,
 } from 'solc-typed-ast';
+import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
+import { GeneratedFunctionInfo } from '../export';
 import { AbiEncodeWithSelector } from './abiEncodeWithSelector';
 
 const IMPLICITS =
@@ -27,10 +29,10 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     const exprTypes = expressions.map(
       (expr) => generalizeType(safeGetNodeType(expr, this.ast.compilerVersion))[0],
     );
-    const functionName = this.getOrCreate(exprTypes);
+    const funcInfo = this.getOrCreate(exprTypes);
 
-    const functionStub = createCairoFunctionStub(
-      functionName,
+    const functionStub = createCairoGeneratedFunction(
+      funcInfo,
       exprTypes.map((exprT, index) =>
         isValueType(exprT)
           ? [`param${index}`, typeNameFromTypeNode(exprT, this.ast)]
@@ -45,7 +47,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     return createCallToFunction(functionStub, expressions, this.ast);
   }
 
-  public override getOrCreate(types: TypeNode[]): string {
+  public override getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
     const signature = types[0];
     if (!(signature instanceof StringType)) {
       throw new TranspileFailedError(
@@ -59,23 +61,24 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     const key = types.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
-    const [params, encodings] = types.reduce(
-      ([params, encodings], type, index) => {
+    const [params, encodings, functionsCalled] = types.reduce(
+      ([params, encodings, functionsCalled], type, index) => {
         const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
         params.push({ name: `param${index}`, type: cairoType.toString() });
-        encodings.push(
-          this.abiEncode.generateEncodingCode(
-            type,
-            'bytes_index',
-            'bytes_offset',
-            '4',
-            `param${index}`,
-          ),
+        const [paramEncodings, paramFuncCalls] = this.abiEncode.generateEncodingCode(
+          type,
+          'bytes_index',
+          'bytes_offset',
+          '4',
+          `param${index}`,
         );
-        return [params, encodings];
+
+        encodings.push(paramEncodings);
+        functionsCalled.concat(paramFuncCalls);
+        return [params, encodings, functionsCalled];
       },
       [
         [{ name: 'signature', type: 'felt' }],
@@ -93,6 +96,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
             'let bytes_index = bytes_index + 4;',
           ].join('\n'),
         ],
+        new Array<CairoFunctionDefinition>(),
       ],
     );
 
@@ -117,17 +121,23 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.alloc', 'alloc');
-    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-    this.requireImport('warplib.memory', 'wm_new');
-    this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
-    this.requireImport('warplib.maths.bytes_access', 'byte256_at_index');
-    this.requireImport('warplib.keccak', 'warp_keccak');
+    const importedFuncs = [
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+      this.requireImport('warplib.memory', 'wm_new'),
+      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
+      this.requireImport('warplib.maths.bytes_access', 'byte256_at_index'),
+      this.requireImport('warplib.keccak', 'warp_keccak'),
+    ];
 
-    const cairoFunc = { name: funcName, code: code };
+    const cairoFunc = {
+      name: funcName,
+      code: code,
+      functionsCalled: [...importedFuncs, ...functionsCalled],
+    };
     this.generatedFunctions.set(key, cairoFunc);
 
-    return cairoFunc.name;
+    return cairoFunc;
   }
 }
