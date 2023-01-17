@@ -24,7 +24,7 @@ const interfaceTranspiledCairoFile = `${path.resolve(
   'warp_output',
   'tests',
   'interface_call_forwarder',
-  'interact.sol',
+  'interact.sol.out',
   'itr.cairo',
 )}`;
 const contractJsonPath = path.resolve(__dirname, '..', 'interface_call_forwarder', 'contract.json');
