@@ -102,8 +102,27 @@ describe('Manage starknet account', function () {
     expect(stderr).to.be.empty;
     expect(stdout).to.not.be.empty;
 
+    const tx_fee_eth = stdout.split('\n')[0].split(':')[1].split('ETH')[0].trim();
+    const tx_fee_wei = stdout
+      .split('\n')[0]
+      .split(':')[1]
+      .trim()
+      .split('(')[1]
+      .split('WEI')[0]
+      .trim();
+
     const contract_address = stdout.split('\n')[3].split(':')[1].trim();
     const tx_hash = stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(stdout).to.be.equal(
+      [
+        `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
+        `Sent deploy account contract transaction.\n`,
+        `Contract address: ${contract_address}`,
+        `Transaction hash: ${tx_hash}`,
+        '\n',
+      ].join('\n'),
+    );
 
     expect(contract_address).to.not.be.undefined;
     expect(tx_hash).to.not.be.undefined;
@@ -148,8 +167,27 @@ describe('Declare the MyToken contract', function () {
 
     expect(stderr).to.be.empty;
 
+    const tx_fee_eth = stdout.split('\n')[1].split(':')[1].split('ETH')[0].trim();
+    const tx_fee_wei = stdout
+      .split('\n')[1]
+      .split(':')[1]
+      .trim()
+      .split('(')[1]
+      .split('WEI')[0]
+      .trim();
+
     contract_class_hash = stdout.split('\n')[3].split(':')[1].trim();
     tx_hash = stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(stdout).to.be.equal(
+      [
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
+        `Declare transaction was sent.`,
+        `Contract class hash: ${contract_class_hash}`,
+        `Transaction hash: ${tx_hash}\n`,
+      ].join('\n'),
+    );
 
     expect(contract_class_hash).to.not.be.undefined;
     expect(tx_hash).to.not.be.undefined;
@@ -180,8 +218,27 @@ describe('Deploy the MyToken contract', function () {
 
     expect(stderr).to.be.empty;
 
+    const tx_fee_eth = stdout.split('\n')[1].split(':')[1].split('ETH')[0].trim();
+    const tx_fee_wei = stdout
+      .split('\n')[1]
+      .split(':')[1]
+      .trim()
+      .split('(')[1]
+      .split('WEI')[0]
+      .trim();
+
     contract_address = stdout.split('\n')[3].split(':')[1].trim();
     tx_hash = stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(stdout).to.be.equal(
+      [
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
+        `Invoke transaction for contract deployment was sent.`,
+        `Contract address: ${contract_address}`,
+        `Transaction hash: ${tx_hash}\n`,
+      ].join('\n'),
+    );
 
     expect(contract_class_hash).to.not.be.undefined;
     expect(tx_hash).to.not.be.undefined;
@@ -271,7 +328,27 @@ describe('Invoke MyToken contract functions', function () {
 
     expect(transferToUser1.stderr).to.be.empty;
 
+    const tx_fee_eth = transferToUser1.stdout.split('\n')[1].split(':')[1].split('ETH')[0].trim();
+    const tx_fee_wei = transferToUser1.stdout
+      .split('\n')[1]
+      .split(':')[1]
+      .trim()
+      .split('(')[1]
+      .split('WEI')[0]
+      .trim();
+
     const tx_hash = transferToUser1.stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(transferToUser1.stdout).to.be.equal(
+      [
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
+        `Invoke transaction was sent.`,
+        `Contract address: ${contract_address}`,
+        `Transaction hash: ${tx_hash}`,
+        '\n',
+      ].join('\n'),
+    );
 
     const tx_status = await sh(
       `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
@@ -294,7 +371,27 @@ describe('Invoke MyToken contract functions', function () {
 
     expect(approveToUser2.stderr).to.be.empty;
 
+    const tx_fee_eth = approveToUser2.stdout.split('\n')[1].split(':')[1].split('ETH')[0].trim();
+    const tx_fee_wei = approveToUser2.stdout
+      .split('\n')[1]
+      .split(':')[1]
+      .trim()
+      .split('(')[1]
+      .split('WEI')[0]
+      .trim();
+
     const tx_hash = approveToUser2.stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(approveToUser2.stdout).to.be.equal(
+      [
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
+        `Invoke transaction was sent.`,
+        `Contract address: ${contract_address}`,
+        `Transaction hash: ${tx_hash}`,
+        '\n',
+      ].join('\n'),
+    );
 
     const tx_status = await sh(
       `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
@@ -316,7 +413,31 @@ describe('Invoke MyToken contract functions', function () {
 
     expect(transferFromUser2ToUser1.stderr).to.be.empty;
 
+    const tx_fee_eth = transferFromUser2ToUser1.stdout
+      .split('\n')[1]
+      .split(':')[1]
+      .split('ETH')[0]
+      .trim();
+    const tx_fee_wei = transferFromUser2ToUser1.stdout
+      .split('\n')[1]
+      .split(':')[1]
+      .trim()
+      .split('(')[1]
+      .split('WEI')[0]
+      .trim();
+
     const tx_hash = transferFromUser2ToUser1.stdout.split('\n')[4].split(':')[1].trim();
+
+    expect(transferFromUser2ToUser1.stdout).to.be.equal(
+      [
+        `Running starknet compile with cairoPath ${path.resolve(__dirname, '..', '..', '..')}`,
+        `Sending the transaction with max_fee: ${tx_fee_eth} ETH (${tx_fee_wei} WEI).`,
+        `Invoke transaction was sent.`,
+        `Contract address: ${contract_address}`,
+        `Transaction hash: ${tx_hash}`,
+        '\n',
+      ].join('\n'),
+    );
 
     const tx_status = await sh(
       `${warpBin} status ${tx_hash} --network ${network} --gateway_url ${gateway_url} --feeder_gateway_url ${gateway_url}`,
