@@ -82,8 +82,7 @@ describe('Manage starknet account', function () {
     const response = JSON.parse(stdout);
 
     expect(response).to.not.be.undefined;
-    expect(response['new_balance']).to.not.be.undefined;
-    expect(response['new_balance']).to.equal(1000000000000000000);
+    expect(response['new_balance']).to.be.equal(1000000000000000000);
     expect(response['tx_hash']).to.not.be.undefined;
   });
 
