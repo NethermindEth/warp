@@ -151,7 +151,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    const cairoFunc = { name: funcName, code: code, functionsCalled: [] };
+    const cairoFunc = { name: funcName, code: code, functionsCalled: functionsCalled };
     this.generatedFunctions.set(key, cairoFunc);
     return cairoFunc.name;
   }
