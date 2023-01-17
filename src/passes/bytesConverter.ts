@@ -46,7 +46,7 @@ export class BytesConverter extends ASTMapper {
 
   visitExpression(node: Expression, ast: AST): void {
     const typeNode = safeGetNodeType(node, ast.inference);
-    if (typeNode instanceof IntLiteralType || typeNode instanceof StringLiteralType) {
+    if (typeNode instanceof StringLiteralType) {
       return;
     }
     node.typeString = generateExpressionTypeString(replaceBytesType(typeNode));
