@@ -5,6 +5,7 @@ import {
   BytesType,
   DataLocation,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   MemberAccess,
   SourceUnit,
@@ -13,7 +14,11 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import {
   getElementType,
   isDynamicArray,
@@ -21,7 +26,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
 
@@ -46,10 +51,10 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         arrayType instanceof StringType,
     );
 
-    const name = this.getOrCreate(getElementType(arrayType));
+    const funcInfo = this.getOrCreate(getElementType(arrayType));
 
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
@@ -57,10 +62,10 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? pop,
     );
 
-    return createCallToFunction(functionStub, [pop.vExpression.vExpression], this.ast);
+    return createCallToFunction(funcDef, [pop.vExpression.vExpression], this.ast);
   }
 
-  private getOrCreate(elementType: TypeNode): string {
+  private getOrCreate(elementType: TypeNode): GeneratedFunctionInfo {
     const cairoElementType = CairoType.fromSol(
       elementType,
       this.ast,
@@ -70,22 +75,30 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     const key = cairoElementType.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
-    const [arrayName, lengthName] = this.dynArrayGen.gen(cairoElementType);
-    const deleteFuncName = this.storageDelete.genFuncName(elementType);
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+    );
+
+    const arrayInfo = this.dynArrayGen.gen(cairoElementType);
+    const lengthName = arrayInfo.name + '_LENGTH';
+    const deleteFuncInfo = this.storageDelete.genFuncName(elementType);
 
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
         ? [
-            `let (elem_loc) = ${arrayName}.read(loc, newLen);`,
+            `let (elem_loc) = ${arrayInfo.name}.read(loc, newLen);`,
             `let (elem_loc) = readId(elem_loc);`,
           ].join('\n')
-        : `let (elem_loc) = ${arrayName}.read(loc, newLen);`;
+        : `let (elem_loc) = ${arrayInfo.name}.read(loc, newLen);`;
 
-    const funcName = `${arrayName}_POP`;
-    this.generatedFunctions.set(key, {
+    const funcName = `${arrayInfo.name}_POP`;
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (){`,
@@ -96,13 +109,13 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         `    let (newLen) = uint256_sub(len, Uint256(1,0));`,
         `    ${lengthName}.write(loc, newLen);`,
         `    ${getElemLoc}`,
-        `    return ${deleteFuncName}(elem_loc);`,
+        `    return ${deleteFuncInfo.name}(elem_loc);`,
         `}`,
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+
+    return funcInfo;
   }
 }

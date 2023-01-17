@@ -6,6 +6,7 @@ import {
   DataLocation,
   FunctionStateMutability,
   generalizeType,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import {
   CairoFelt,
@@ -15,10 +16,14 @@ import {
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
 /*
@@ -52,9 +57,9 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       );
     }
 
-    const name = this.getOrCreate(resultCairoType);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcInfo = this.getOrCreate(resultCairoType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       params,
       [
         [
@@ -69,10 +74,13 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       { mutability: FunctionStateMutability.View },
     );
 
-    return createCallToFunction(functionStub, args, this.ast);
+    return createCallToFunction(funcDef, args, this.ast);
   }
 
-  getOrCreate(typeToRead: CairoType): string {
+  getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
+    const funcsCalled: FunctionDefinition[] = [];
+
+    // TODO: This cases need to be handled
     if (typeToRead instanceof MemoryLocation) {
       this.requireImport('warplib.memory', 'wm_read_id');
       return 'wm_read_id';
@@ -87,13 +95,14 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     const key = typeToRead.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
+    funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_read'));
     const funcName = `WM${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}){`,
@@ -102,9 +111,10 @@ export class MemoryReadGen extends StringIndexedFuncGen {
         `    return (${pack},);`,
         '}',
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.dict', 'dict_read');
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 }
 

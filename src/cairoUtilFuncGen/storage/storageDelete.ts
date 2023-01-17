@@ -6,6 +6,7 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   MappingType,
   PointerType,
@@ -17,11 +18,21 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
+import {
+  add,
+  CairoFunction,
+  delegateBasedOnType,
+  GeneratedFunctionInfo,
+  StringIndexedFuncGen,
+} from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
@@ -40,32 +51,33 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const nodeType = dereferenceType(safeGetNodeType(node, this.ast.compilerVersion));
 
-    const functionName = this.getOrCreate(nodeType);
+    const funcInfo = this.getOrCreate(nodeType);
 
-    const functionStub = createCairoFunctionStub(
-      functionName,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['loc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
       [],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? node,
     );
-    return createCallToFunction(functionStub, [node], this.ast);
+    return createCallToFunction(funcDef, [node], this.ast);
   }
 
-  genFuncName(node: TypeNode): string {
+  genFuncName(node: TypeNode): GeneratedFunctionInfo {
     return this.getOrCreate(node);
   }
 
+  // TODO: Check what this function does
   genAuxFuncName(node: TypeNode): string {
     return `${this.getOrCreate(node)}_elem`;
   }
 
-  private getOrCreate(type: TypeNode): string {
+  private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const cairoFuncName = delegateBasedOnType<string>(
@@ -82,9 +94,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       get code(): string {
         throw new TranspileFailedError('Tried accessing code yet to be generated');
       },
+      functionsCalled: [],
     });
 
-    const cairoFunc = delegateBasedOnType<CairoFunction>(
+    const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       type,
       (type) => this.deleteDynamicArray(type, cairoFuncName),
       (type) => {
@@ -101,19 +114,19 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     // WSMAP_DELETE can be keyed with multiple types but since its definition
     // is always the same we want to make sure its not duplicated or else it
     // clashes with itself.
-    if (cairoFunc.name === 'WSMAP_DELETE' && !this.nothingHandlerGen) {
+    if (funcInfo.name === 'WSMAP_DELETE' && !this.nothingHandlerGen) {
       this.nothingHandlerGen = true;
-    } else if (cairoFunc.name === 'WSMAP_DELETE' && this.nothingHandlerGen) {
-      this.generatedFunctions.set(key, { ...cairoFunc, code: '' });
-      return cairoFunc.name;
+    } else if (funcInfo.name === 'WSMAP_DELETE' && this.nothingHandlerGen) {
+      funcInfo.code = '';
+      this.generatedFunctions.set(key, funcInfo);
+      return funcInfo;
     }
+    this.generatedFunctions.set(key, funcInfo);
 
-    this.generatedFunctions.set(key, cairoFunc);
-
-    return cairoFunc.name;
+    return funcInfo;
   }
 
-  private deleteGeneric(cairoType: CairoType, funcName: string): CairoFunction {
+  private deleteGeneric(cairoType: CairoType, funcName: string): GeneratedFunctionInfo {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     return {
       name: funcName,
@@ -123,26 +136,37 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
         `    return ();`,
         `}`,
       ].join('\n'),
+      functionsCalled: [],
     };
   }
 
   private deleteDynamicArray(
     type: ArrayType | BytesType | StringType,
     funcName: string,
-  ): CairoFunction {
+  ): GeneratedFunctionInfo {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const elementT = dereferenceType(getElementType(type));
-    const [arrayName, lengthName] = this.dynArrayGen.gen(
+    const arrayInfo = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
+    const lengthName = arrayInfo.name + '_LENGTH';
 
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+    );
+
+    const calledFuncInfo = this.getOrCreate(elementT);
+    funcsCalled.push(...calledFuncInfo.functionsCalled);
     const deleteCode = requiresReadBeforeRecursing(elementT)
       ? [
           `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc);`,
-          `   ${this.getOrCreate(elementT)}(elem_id);`,
+          `   ${calledFuncInfo.name}(elem_id);`,
         ]
-      : [`    ${this.getOrCreate(elementT)}(elem_loc);`];
+      : [`    ${calledFuncInfo.name}(elem_loc);`];
 
     const deleteFunc = [
       `func ${funcName}_elem${implicits}(loc : felt, index : Uint256, length : Uint256){`,
@@ -151,7 +175,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     if (stop == 1){`,
       `        return ();`,
       `     }`,
-      `     let (elem_loc) = ${arrayName}.read(loc, index);`,
+      `     let (elem_loc) = ${arrayInfo.name}.read(loc, index);`,
       ...deleteCode,
       `     let (next_index, _) = uint256_add(index, ${uint256(1)});`,
       `     return ${funcName}_elem(loc, next_index, length);`,
@@ -164,14 +188,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-
-    return { name: funcName, code: deleteFunc };
+    return { name: funcName, code: deleteFunc, functionsCalled: funcsCalled };
   }
 
-  private deleteSmallStaticArray(type: ArrayType, funcName: string) {
+  private deleteSmallStaticArray(type: ArrayType, funcName: string): GeneratedFunctionInfo {
     assert(type.size !== undefined);
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
@@ -187,10 +207,11 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [`func ${funcName}${implicits}(loc : felt){`, ...code].join('\n'),
+      functionsCalled: [],
     };
   }
 
-  private deleteLargeStaticArray(type: ArrayType, funcName: string) {
+  private deleteLargeStaticArray(type: ArrayType, funcName: string): GeneratedFunctionInfo {
     assert(type.size !== undefined);
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
@@ -201,12 +222,21 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     ).width;
 
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+    );
+
+    const calledFuncInfo = this.getOrCreate(elementT);
+    funcsCalled.push(...calledFuncInfo.functionsCalled);
     const deleteCode = requiresReadBeforeRecursing(elementT)
       ? [
           `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(loc);`,
-          `   ${this.getOrCreate(elementT)}(elem_id);`,
+          `   ${calledFuncInfo.name}(elem_id);`,
         ]
-      : [`    ${this.getOrCreate(elementT)}(loc);`];
+      : [`    ${calledFuncInfo.name}(loc);`];
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidht);
     const deleteFunc = [
@@ -225,14 +255,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-
-    return { name: funcName, code: deleteFunc };
+    return { name: funcName, code: deleteFunc, functionsCalled: funcsCalled };
   }
 
-  private deleteStruct(structDef: StructDefinition, funcName: string): CairoFunction {
+  private deleteStruct(structDef: StructDefinition, funcName: string): GeneratedFunctionInfo {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     // struct names are unique
     const deleteFunc = [
@@ -245,14 +271,15 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `}`,
     ].join('\n');
 
-    return { name: funcName, code: deleteFunc };
+    return { name: funcName, code: deleteFunc, functionsCalled: [] };
   }
 
-  private deleteNothing(funcName: string): CairoFunction {
+  private deleteNothing(funcName: string): GeneratedFunctionInfo {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     return {
       name: funcName,
       code: [`func ${funcName}${implicits}(loc: felt){`, `    return ();`, `}`].join('\n'),
+      functionsCalled: [],
     };
   }
 

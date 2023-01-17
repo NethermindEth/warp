@@ -4,6 +4,7 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   IndexAccess,
   MappingType,
@@ -12,11 +13,15 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { createUint8TypeName } from '../../utils/nodeTemplates';
 import { isReferenceType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class MappingIndexAccessGen extends StringIndexedFuncGen {
@@ -50,10 +55,10 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       index = call;
     }
 
-    const name = this.getOrCreate(indexCairoType, valueCairoType);
+    const funcInfo = this.getOrCreate(indexCairoType, valueCairoType);
 
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         ['name', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
         [
@@ -74,14 +79,14 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? node,
     );
 
-    return createCallToFunction(functionStub, [base, index], this.ast);
+    return createCallToFunction(funcDef, [base, index], this.ast);
   }
 
-  private getOrCreate(indexType: CairoType, valueType: CairoType): string {
+  private getOrCreate(indexType: CairoType, valueType: CairoType): GeneratedFunctionInfo {
     const key = `${indexType.fullStringRepresentation}/${valueType.fullStringRepresentation}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const funcName = `WS${this.generatedFunctions.size - this.generatedHashFunctionNumber}_INDEX_${
@@ -91,7 +96,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       this.generatedFunctions.size - this.generatedHashFunctionNumber
     }`;
     const indexTypeString = indexType.toString();
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `@storage_var`,
@@ -110,8 +115,10 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
       ].join('\n'),
-    });
-    return funcName;
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
   private createStringHashFunction(
@@ -147,14 +154,23 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       this.ast.registerImport(call, 'warplib.string_hash', 'wm_string_hash');
       return call;
     } else {
-      const [data, len] = this.dynArrayGen.gen(indexCairoType);
-      const key = `${data}/${len}_hash`;
+      const funcsCalled: FunctionDefinition[] = [];
+      funcsCalled.push(
+        this.requireImport('warplib.maths.utils', 'narrow_safe'),
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+        this.requireImport('warplib.string_hash', 'string_hash'),
+      );
+      const dataInfo = this.dynArrayGen.gen(indexCairoType);
+      const lenName = dataInfo.name + '_LENGTH';
+      const key = `${dataInfo.name}/${lenName}_hash`;
       let funcName = `ws_string_hash${this.generatedHashFunctionNumber}`;
       const helperFuncName = `ws_to_felt_array${this.generatedHashFunctionNumber}`;
 
       const existing = this.generatedFunctions.get(key);
+      let funcInfo: GeneratedFunctionInfo;
       if (existing === undefined) {
-        this.generatedFunctions.set(key, {
+        funcInfo = {
           name: funcName,
           code: [
             `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
@@ -166,7 +182,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
             `    }`,
             `    let index = len - 1;`,
             `    let (index256) = felt_to_uint256(index);`,
-            `    let (loc) = ${data}.read(name, index256);`,
+            `    let (loc) = ${dataInfo.name}.read(name, index256);`,
             `    let (value) = WARP_STORAGE.read(loc);`,
             `    assert ptr[index] = value;`,
             `    ${helperFuncName}(name, ptr, index);`,
@@ -176,7 +192,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
             `    name : felt`,
             `) -> (hashedValue : felt){`,
             `    alloc_locals;`,
-            `    let (len256) = ${len}.read(name);`,
+            `    let (len256) = ${lenName}.read(name);`,
             `    let (len) = narrow_safe(len256);`,
             `    let (ptr) = alloc();`,
             `    ${helperFuncName}(name, ptr, len);`,
@@ -184,13 +200,15 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
             `    return (hashValue,);`,
             `}`,
           ].join('\n'),
-        });
+          functionsCalled: funcsCalled,
+        };
+        this.generatedFunctions.set(key, funcInfo);
         this.generatedHashFunctionNumber++;
       } else {
-        funcName = existing.name;
+        funcInfo = existing;
       }
-      const stub = createCairoFunctionStub(
-        funcName,
+      const funcDef = createCairoGeneratedFunction(
+        funcInfo,
         [['name', indexTypeName, DataLocation.Storage]],
         [['hashedStr', createUint8TypeName(this.ast), DataLocation.Default]],
         ['pedersen_ptr', 'range_check_ptr', 'syscall_ptr'],
@@ -198,7 +216,8 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         node,
       );
 
-      const call = createCallToFunction(stub, [node.vIndexExpression], this.ast);
+      const call = createCallToFunction(funcDef, [node.vIndexExpression], this.ast);
+      // TODO: Can this be deleted?
       this.ast.registerImport(call, 'warplib.maths.utils', 'narrow_safe');
       this.ast.registerImport(call, 'warplib.maths.utils', 'felt_to_uint256');
       this.ast.registerImport(call, 'starkware.cairo.common.alloc', 'alloc');

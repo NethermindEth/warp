@@ -5,13 +5,18 @@ import {
   ASTNode,
   DataLocation,
   PointerType,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 /*
   Produces functions to write a given value into warp_memory, returning that value (to simulate assignments)
@@ -20,10 +25,10 @@ import { add, StringIndexedFuncGen } from '../base';
 export class MemoryWriteGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, writeValue: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const typeToWrite = safeGetNodeType(memoryRef, this.ast.compilerVersion);
-    const name = this.getOrCreate(typeToWrite);
+    const funcInfo = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         ['loc', argTypeName, DataLocation.Memory],
         [
@@ -43,12 +48,13 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? memoryRef,
     );
-    return createCallToFunction(functionStub, [memoryRef, writeValue], this.ast);
+    return createCallToFunction(funcDef, [memoryRef, writeValue], this.ast);
   }
 
-  getOrCreate(typeToWrite: TypeNode): string {
+  getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
 
+    // TODO: Check how to rewrite this logic
     if (cairoTypeToWrite instanceof CairoFelt) {
       this.requireImport('warplib.memory', 'wm_write_felt');
       return 'wm_write_felt';
@@ -62,12 +68,15 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     const key = cairoTypeToWrite.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
+
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_write'));
 
     const cairoTypeString = cairoTypeToWrite.toString();
     const funcName = `WM_WRITE${this.generatedFunctions.size}`;
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{warp_memory : DictAccess*}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
@@ -77,11 +86,11 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
         '    return (value,);',
         '}',
       ].join('\n'),
-    });
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
 
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-
-    return funcName;
+    return funcInfo;
   }
 }
 

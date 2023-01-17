@@ -3,6 +3,7 @@ import {
   ASTNode,
   DataLocation,
   FunctionCall,
+  FunctionDefinition,
   IndexAccess,
   PointerType,
   SourceUnit,
@@ -10,11 +11,11 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
@@ -31,10 +32,10 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const baseType = safeGetNodeType(base, this.ast.compilerVersion);
 
     assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
-    const name = this.getOrCreate(nodeType);
+    const funcInfo = this.getOrCreate(nodeType);
 
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
         ['offset', createUint256TypeName(this.ast)],
@@ -45,10 +46,10 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? node,
     );
 
-    return createCallToFunction(functionStub, [base, index], this.ast);
+    return createCallToFunction(funcDef, [base, index], this.ast);
   }
 
-  getOrCreate(valueType: TypeNode): string {
+  getOrCreate(valueType: TypeNode): GeneratedFunctionInfo {
     const valueCairoType = CairoType.fromSol(
       valueType,
       this.ast,
@@ -57,12 +58,19 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const key = valueCairoType.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
-    const [arrayName, lengthName] = this.dynArrayGen.gen(valueCairoType);
-    const funcName = `${arrayName}_IDX`;
-    this.generatedFunctions.set(key, {
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
+    );
+
+    const arrayInfo = this.dynArrayGen.gen(valueCairoType);
+    const lengthName = arrayInfo.name + '_LENGTH';
+    const funcName = `${arrayInfo.name}_IDX`;
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(ref: felt, index: Uint256) -> (res: felt){`,
@@ -70,20 +78,20 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         `    let (length) = ${lengthName}.read(ref);`,
         `    let (inRange) = uint256_lt(index, length);`,
         `    assert inRange = 1;`,
-        `    let (existing) = ${arrayName}.read(ref, index);`,
+        `    let (existing) = ${arrayInfo.name}.read(ref, index);`,
         `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(used + ${valueCairoType.width});`,
-        `        ${arrayName}.write(ref, index, used);`,
+        `        ${arrayInfo.name}.write(ref, index, used);`,
         `        return (used,);`,
         `    }else{`,
         `        return (existing,);`,
         `    }`,
         `}`,
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 }

@@ -8,10 +8,14 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class StorageWriteGen extends StringIndexedFuncGen {
   gen(
@@ -20,10 +24,10 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
     const typeToWrite = safeGetNodeType(storageLocation, this.ast.compilerVersion);
-    const name = this.getOrCreate(typeToWrite);
+    const funcInfo = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         ['loc', argTypeName, DataLocation.Storage],
         [
@@ -43,10 +47,10 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? storageLocation,
     );
-    return createCallToFunction(functionStub, [storageLocation, writeValue], this.ast);
+    return createCallToFunction(funcDef, [storageLocation, writeValue], this.ast);
   }
 
-  getOrCreate(typeToWrite: TypeNode): string {
+  getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
     const cairoTypeToWrite = CairoType.fromSol(
       typeToWrite,
       this.ast,
@@ -55,12 +59,12 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     const key = cairoTypeToWrite.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const cairoTypeString = cairoTypeToWrite.toString();
     const funcName = `WS_WRITE${this.generatedFunctions.size}`;
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
@@ -70,8 +74,11 @@ export class StorageWriteGen extends StringIndexedFuncGen {
         '    return (value,);',
         '}',
       ].join('\n'),
-    });
-    return funcName;
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+
+    return funcInfo;
   }
 }
 

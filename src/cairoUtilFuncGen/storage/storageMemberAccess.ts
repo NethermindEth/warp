@@ -10,14 +10,18 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
-import { CairoUtilFuncGenBase, CairoFunction, add } from '../base';
+import { CairoUtilFuncGenBase, CairoFunction, add, GeneratedFunctionInfo } from '../base';
 
 export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
   // cairoType -> property name -> code
-  private generatedFunctions: Map<string, Map<string, CairoFunction>> = new Map();
+  private generatedFunctions: Map<string, Map<string, GeneratedFunctionInfo>> = new Map();
 
   getGeneratedCode(): string {
     return [...this.generatedFunctions.values()]
@@ -35,29 +39,29 @@ export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const name = this.getOrCreate(structCairoType, memberAccess.memberName);
+    const funcInfo = this.getOrCreate(structCairoType, memberAccess.memberName);
     const referencedDeclaration = memberAccess.vReferencedDeclaration;
     assert(referencedDeclaration instanceof VariableDeclaration);
     const outType = referencedDeclaration.vType;
     assert(outType !== undefined);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['loc', typeNameFromTypeNode(solType, this.ast), DataLocation.Storage]],
       [['memberLoc', cloneASTNode(outType, this.ast), DataLocation.Storage]],
       [],
       this.ast,
       nodeInSourceUnit ?? memberAccess,
     );
-    return createCallToFunction(functionStub, [memberAccess.vExpression], this.ast);
+    return createCallToFunction(funcDef, [memberAccess.vExpression], this.ast);
   }
 
-  private getOrCreate(structCairoType: CairoType, memberName: string): string {
+  private getOrCreate(structCairoType: CairoType, memberName: string): GeneratedFunctionInfo {
     const existingMemberAccesses =
       this.generatedFunctions.get(structCairoType.fullStringRepresentation) ??
-      new Map<string, CairoFunction>();
+      new Map<string, GeneratedFunctionInfo>();
     const existing = existingMemberAccesses.get(memberName);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const structName = structCairoType.toString();
@@ -71,16 +75,17 @@ export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
       this.generatedFunctions,
     )}_${structName}_${memberName}`;
 
-    existingMemberAccesses.set(memberName, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}(loc: felt) -> (memberLoc: felt){`,
         `    return (${add('loc', offset)},);`,
         `}`,
       ].join('\n'),
-    });
-
+      functionsCalled: [],
+    };
+    existingMemberAccesses.set(memberName, funcInfo);
     this.generatedFunctions.set(structCairoType.fullStringRepresentation, existingMemberAccesses);
-    return funcName;
+    return funcInfo;
   }
 }

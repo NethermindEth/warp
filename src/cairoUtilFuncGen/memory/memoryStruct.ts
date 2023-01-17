@@ -1,7 +1,9 @@
 import assert = require('assert');
+import { GeneratePrimeOptions } from 'crypto';
 import {
   DataLocation,
   FunctionCall,
+  FunctionDefinition,
   IdentifierPath,
   PointerType,
   StructDefinition,
@@ -9,10 +11,14 @@ import {
 } from 'solc-typed-ast';
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { safeGetNodeType, typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 /*
   Produces functions to allocate memory structs, assign their members, and return their location
@@ -29,10 +35,10 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       TypeConversionContext.MemoryAllocation,
     );
     assert(cairoType instanceof CairoStruct);
-    const name = this.getOrCreate(cairoType);
+    const funcInfo = this.getOrCreate(cairoType);
 
-    const stub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       structDef.vMembers.map((decl) => {
         assert(decl.vType !== undefined);
         const type = typeNameToSpecializedTypeNode(decl.vType, DataLocation.Memory);
@@ -63,17 +69,24 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 
     structDef.vScope.acceptChildren();
 
-    return createCallToFunction(stub, node.vArguments, this.ast);
+    return createCallToFunction(funcDef, node.vArguments, this.ast);
   }
 
-  private getOrCreate(structType: CairoStruct): string {
+  private getOrCreate(structType: CairoStruct): GeneratedFunctionInfo {
     const key = structType.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const funcName = `WM${this.generatedFunctions.size}_struct_${structType.name}`;
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('warplib.memory', 'wm_alloc'),
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('starkware.cairo.common.dict_access', 'DictAccess'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+    );
 
     const mangledStructMembers: [string, CairoType][] = [...structType.members.entries()].map(
       ([name, type]) => [`member_${name}`, type],
@@ -83,7 +96,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       .map(([name, type]) => `${name}: ${type.toString()}`)
       .join(', ');
 
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
@@ -96,14 +109,11 @@ export class MemoryStructGen extends StringIndexedFuncGen {
         `    return (start,);`,
         `}`,
       ].join('\n'),
-    });
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
 
-    this.requireImport('warplib.memory', 'wm_alloc');
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('starkware.cairo.common.dict_access', 'DictAccess');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-
-    return funcName;
+    return funcInfo;
   }
 }
 

@@ -9,9 +9,13 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
@@ -22,9 +26,9 @@ export class StorageReadGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const name = this.getOrCreate(resultCairoType);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcInfo = this.getOrCreate(resultCairoType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['loc', cloneASTNode(type, this.ast), DataLocation.Storage]],
       [
         [
@@ -38,7 +42,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? storageLocation,
       { mutability: FunctionStateMutability.View },
     );
-    return createCallToFunction(functionStub, [storageLocation], this.ast);
+    return createCallToFunction(funcDef, [storageLocation], this.ast);
   }
 
   genFuncName(type: TypeNode) {
@@ -46,17 +50,17 @@ export class StorageReadGen extends StringIndexedFuncGen {
     return this.getOrCreate(cairoType);
   }
 
-  private getOrCreate(typeToRead: CairoType): string {
+  private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const key = typeToRead.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const funcName = `WS${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}){`,
@@ -65,8 +69,11 @@ export class StorageReadGen extends StringIndexedFuncGen {
         `    return (${pack},);`,
         '}',
       ].join('\n'),
-    });
-    return funcName;
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+
+    return funcInfo;
   }
 }
 

@@ -4,27 +4,32 @@ import {
   ASTNode,
   DataLocation,
   FunctionCall,
+  FunctionDefinition,
   IndexAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { CairoUtilFuncGenBase } from '../base';
+import { CairoUtilFuncGenBase, GeneratedFunctionInfo } from '../base';
 
 export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
-  private generatedFunction: string | null = null;
+  private generatedFunctionInfo: GeneratedFunctionInfo | undefined = undefined;
 
-  getGeneratedCode(): string {
-    return this.generatedFunction ?? '';
+  getGeneratedCode(): GeneratedFunctionInfo | undefined {
+    return this.generatedFunctionInfo ?? undefined;
   }
 
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(node.vIndexExpression !== undefined);
 
-    const name = this.getOrCreate();
+    const funcInfo = this.getOrCreate();
 
     const arrayType = safeGetNodeType(node.vBaseExpression, this.ast.compilerVersion);
     assert(
@@ -35,8 +40,8 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
 
     const valueType = safeGetNodeType(node, this.ast.compilerVersion);
 
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         ['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage],
         ['index', createUint256TypeName(this.ast)],
@@ -50,7 +55,7 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
     );
 
     return createCallToFunction(
-      functionStub,
+      funcDef,
       [
         node.vBaseExpression,
         node.vIndexExpression,
@@ -65,16 +70,25 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
     );
   }
 
-  private getOrCreate(): string {
-    if (this.generatedFunction === null) {
-      this.generatedFunction = idxCode;
-      this.requireImport('starkware.cairo.common.math', 'split_felt');
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_le');
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_mul');
+  private getOrCreate(): GeneratedFunctionInfo {
+    if (this.generatedFunctionInfo !== undefined) {
+      return this.generatedFunctionInfo;
     }
-    return 'WS0_IDX';
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.math', 'split_felt'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_le'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_mul'),
+    );
+    const funcInfo: GeneratedFunctionInfo = {
+      name: 'WS0_IDX',
+      code: idxCode,
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctionInfo = funcInfo;
+    return funcInfo;
   }
 }
 

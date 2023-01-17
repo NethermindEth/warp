@@ -1,11 +1,18 @@
 import assert from 'assert';
-import { ASTNode, DataLocation, FunctionCall, MemberAccess, SourceUnit } from 'solc-typed-ast';
+import {
+  ASTNode,
+  DataLocation,
+  FunctionCall,
+  FunctionDefinition,
+  MemberAccess,
+  SourceUnit,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
@@ -41,9 +48,16 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    const [arrayName, lengthName] = this.dynArrayGen.gen(elementType);
-    const funcName = `${arrayName}_PUSH`;
-    this.generatedFunctions.set(key, {
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+    );
+
+    const arrayInfo = this.dynArrayGen.gen(elementType);
+    const lengthName = arrayInfo.name + '_LENGTH';
+    const funcName = `${arrayInfo.name}_PUSH`;
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (newElemLoc: felt){`,
@@ -52,20 +66,21 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
         `    assert carry = 0;`,
         `    ${lengthName}.write(loc, newLen);`,
-        `    let (existing) = ${arrayName}.read(loc, len);`,
+        `    let (existing) = ${arrayInfo.name}.read(loc, len);`,
         `    if ((existing) == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(used + ${elementType.width});`,
-        `        ${arrayName}.write(loc, len, used);`,
+        `        ${arrayInfo.name}.write(loc, len, used);`,
         `        return (used,);`,
         `    }else{`,
         `        return (existing,);`,
         `    }`,
         `}`,
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+
     return funcName;
   }
 }

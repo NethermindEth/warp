@@ -10,11 +10,15 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { getElementType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { CairoUtilFuncGenBase } from '../base';
+import { CairoUtilFuncGenBase, GeneratedFunctionInfo } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayLengthGen extends CairoUtilFuncGenBase {
@@ -31,16 +35,18 @@ export class DynArrayLengthGen extends CairoUtilFuncGenBase {
     arrayType: ArrayType | BytesType | StringType,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
-    const lengthName = this.dynArrayGen.gen(
+    const arrayInfo = this.dynArrayGen.gen(
       CairoType.fromSol(
         getElementType(arrayType),
         this.ast,
         TypeConversionContext.StorageAllocation,
       ),
-    )[1];
+    );
+    const lengthName = arrayInfo.name + '_LENGHT';
 
-    const functionStub = createCairoFunctionStub(
-      `${lengthName}.read`,
+    const funcDef = createCairoGeneratedFunction(
+      // TODO: Check what about the .read
+      arrayInfo,
       [['name', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [['len', createUint256TypeName(this.ast)]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
@@ -48,6 +54,6 @@ export class DynArrayLengthGen extends CairoUtilFuncGenBase {
       nodeInSourceUnit ?? node,
     );
 
-    return createCallToFunction(functionStub, [node.vExpression], this.ast);
+    return createCallToFunction(funcDef, [node.vExpression], this.ast);
   }
 }

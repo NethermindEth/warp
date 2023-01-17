@@ -14,6 +14,7 @@ export class MemoryDynArrayLengthGen extends CairoUtilFuncGenBase {
   gen(node: MemberAccess, ast: AST): FunctionCall {
     const arrayType = generalizeType(safeGetNodeType(node.vExpression, ast.compilerVersion))[0];
     const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
+    // TODO: Check how this should be handled
     const functionStub = createCairoFunctionStub(
       'wm_dyn_array_length',
       [['arrayLoc', arrayTypeName, DataLocation.Memory]],

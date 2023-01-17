@@ -24,6 +24,7 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       arrayType.size !== undefined,
       `Attempted to use static indexing for dynamic index ${printNode(indexAccess)}`,
     );
+    // TODO: Check how to rewrite this code
     const stub = createCairoFunctionStub(
       'wm_index_static',
       [

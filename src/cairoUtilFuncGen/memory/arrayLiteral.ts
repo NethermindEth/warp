@@ -5,6 +5,7 @@ import {
   DataLocation,
   FixedBytesType,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   Literal,
   LiteralKind,
@@ -15,7 +16,11 @@ import {
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { createNumberLiteral, createStringTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -26,7 +31,7 @@ import {
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 
 /*
   Converts [a,b,c] and "abc" into WM0_arr(a,b,c), which allocates new space in warp_memory
@@ -45,10 +50,10 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const size = node.hexValue.length / 2;
     const baseType = new FixedBytesType(1);
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
-    const name = this.getOrCreate(baseType, size, true);
+    const funcInfo = this.getOrCreate(baseType, size, true);
 
-    const stub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       mapRange(size, (n) => [`e${n}`, cloneASTNode(baseTypeName, this.ast), DataLocation.Default]),
       [['arr', createStringTypeName(false, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'warp_memory'],
@@ -57,7 +62,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     );
 
     return createCallToFunction(
-      stub,
+      funcDef,
       mapRange(size, (n) =>
         createNumberLiteral(parseInt(node.hexValue.slice(2 * n, 2 * n + 2), 16), this.ast),
       ),
@@ -80,10 +85,10 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         ? narrowBigIntSafe(wideSize, `${printNode(node)} too long to process`)
         : elements.length;
 
-    const name = this.getOrCreate(elementT, size, isDynamicArray(type));
+    const funcInfo = this.getOrCreate(elementT, size, isDynamicArray(type));
 
-    const stub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       mapRange(size, (n) => [
         `e${n}`,
         typeNameFromTypeNode(elementT, this.ast),
@@ -95,24 +100,32 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       node,
     );
 
-    return createCallToFunction(stub, elements, this.ast);
+    return createCallToFunction(funcDef, elements, this.ast);
   }
 
-  private getOrCreate(type: TypeNode, size: number, dynamic: boolean): string {
+  private getOrCreate(type: TypeNode, size: number, dynamic: boolean): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(type, this.ast);
     const key = `${dynamic ? 'd' : 's'}${size}${elementCairoType.fullStringRepresentation}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const funcName = `WM${this.generatedFunctions.size}_${dynamic ? 'd' : 's'}_arr`;
+
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('warplib.memory', 'wm_alloc'),
+      this.requireImport('warplib.memory', 'wm_write_256'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+    );
 
     const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
 
     // If it's dynamic we need to include the length at the start
     const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt){`,
@@ -133,13 +146,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         `    return (start,);`,
         `}`,
       ].join('\n'),
-    });
-
-    this.requireImport('warplib.memory', 'wm_alloc');
-    this.requireImport('warplib.memory', 'wm_write_256');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 }

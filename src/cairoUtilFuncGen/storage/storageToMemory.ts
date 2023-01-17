@@ -5,6 +5,7 @@ import {
   BytesType,
   DataLocation,
   Expression,
+  FunctionDefinition,
   FunctionStateMutability,
   generalizeType,
   SourceUnit,
@@ -17,11 +18,15 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
+import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 /*
@@ -38,9 +43,9 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): Expression {
     const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
 
-    const name = this.getOrCreate(type);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcInfo = this.getOrCreate(type);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
@@ -48,14 +53,14 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? node,
       { mutability: FunctionStateMutability.View },
     );
-    return createCallToFunction(functionStub, [node], this.ast);
+    return createCallToFunction(funcDef, [node], this.ast);
   }
 
-  private getOrCreate(type: TypeNode): string {
+  private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const unexpectedTypeFunc = () => {
@@ -64,7 +69,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       );
     };
 
-    return delegateBasedOnType<string>(
+    return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
       (type) => this.createDynamicArrayCopyFunction(key, type),
       (type) => this.createStaticArrayCopyFunction(key, type),
@@ -74,7 +79,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     );
   }
 
-  private createStructCopyFunction(key: string, type: UserDefinedType): string {
+  private createStructCopyFunction(key: string, type: UserDefinedType): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
@@ -82,9 +87,20 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    const emptyFuncInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: '',
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
-    this.generatedFunctions.set(key, {
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('warplib.memory', 'wm_alloc'),
+    );
+
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc: felt){`,
@@ -99,32 +115,42 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-    });
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
 
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('warplib.memory', 'wm_alloc');
-
-    return funcName;
+    return funcInfo;
   }
 
-  private createStaticArrayCopyFunction(key: string, type: ArrayType): string {
+  private createStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined, 'Expected static array with known size');
     return type.size <= 5
       ? this.createSmallStaticArrayCopyFunction(key, type)
       : this.createLargeStaticArrayCopyFunction(key, type);
   }
 
-  private createSmallStaticArrayCopyFunction(key: string, type: ArrayType) {
+  private createSmallStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
+
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('warplib.memory', 'wm_alloc'),
+    );
 
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    const emptyFuncInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: '',
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
@@ -140,15 +166,14 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-    });
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
 
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('warplib.memory', 'wm_alloc');
-
-    return funcName;
+    return funcInfo;
   }
 
-  private createLargeStaticArrayCopyFunction(key: string, type: ArrayType) {
+  private createLargeStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined, 'Expected static array with known size');
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
     const length = narrowBigIntSafe(
@@ -158,8 +183,21 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('warplib.memory', 'wm_alloc'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+    );
+
     // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    const emptyFuncInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: '',
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const elementMemoryWidth = CairoType.fromSol(type.elementT, this.ast).width;
     const elementStorageWidth = CairoType.fromSol(
@@ -175,7 +213,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       'mem_start',
     );
 
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(mem_start: felt, loc : felt, length: Uint256) -> (){`,
@@ -201,31 +239,42 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-    });
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
 
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('warplib.memory', 'wm_alloc');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-
-    return funcName;
+    return funcInfo;
   }
 
   private createDynamicArrayCopyFunction(
     key: string,
     type: ArrayType | BytesType | StringType,
-  ): string {
+  ): GeneratedFunctionInfo {
     const elementT = getElementType(type);
     const memoryElementType = CairoType.fromSol(elementT, this.ast);
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
-    this.generatedFunctions.set(key, {
+
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('warplib.memory', 'wm_new'),
+      this.requireImport('warplib.memory', 'wm_index_dyn'),
+    );
+
+    // Set an empty entry so recursive function generation doesn't clash
+    const emptyFuncInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: '',
-    });
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
-    const [elemMapping, lengthMapping] = this.dynArrayGen.gen(
+    const elemMappingInfo = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
+    const lengthMappingName = elemMappingInfo.name + '_LENGTH';
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
@@ -240,7 +289,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     );
 
     // Now generate two functions: the setup function funcName, and the elementwise copy function: funcName_elem
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
@@ -250,28 +299,24 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    }`,
         `    let (index) = uint256_sub(length, Uint256(1,0));`,
         `    let (mem_loc) = wm_index_dyn(mem_start, index, ${uint256(memoryElementType.width)});`,
-        `    let (element_storage_loc) = ${elemMapping}.read(storage_name, index);`,
+        `    let (element_storage_loc) = ${elemMappingInfo.name}.read(storage_name, index);`,
         copyCode,
         `    return ${funcName}_elem(storage_name, mem_start, index);`,
         `}`,
 
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
-        `    let (length: Uint256) = ${lengthMapping}.read(loc);`,
+        `    let (length: Uint256) = ${lengthMappingName}.read(loc);`,
         `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)});`,
         `    ${funcName}_elem(loc, mem_start, length);`,
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-    });
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
 
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('warplib.memory', 'wm_new');
-    this.requireImport('warplib.memory', 'wm_index_dyn');
-
-    return funcName;
+    return funcInfo;
   }
 
   // Copy code generation for iterative copy instructions (small static arrays and structs)
