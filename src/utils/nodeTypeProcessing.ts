@@ -17,6 +17,7 @@ import {
   generalizeType,
   InferType,
   IntType,
+  Literal,
   MappingType,
   PackedArrayType,
   PointerType,
@@ -296,6 +297,9 @@ export function safeGetNodeType(
   inference: InferType,
 ): TypeNode {
   getContainingSourceUnit(node);
+  // if (node instanceof Literal) {
+  //   return getNodeType(node, inference);
+  // }
   // if (node instanceof VariableDeclaration) {
   //   return inference.variableDeclarationToTypeNode(node);
   // }
