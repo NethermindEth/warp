@@ -50,9 +50,9 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
     case FunctionCallKind.FunctionCall:
       assert(
         functionType instanceof FunctionLikeType,
-        `Expected ${printNode(functionCall.vExpression)} to be FunctionType, got ${printTypeNode(
-          functionType,
-        )}`,
+        `Expected ${printNode(
+          functionCall.vExpression,
+        )} to be FunctionLikeType, got ${printTypeNode(functionType)}`,
       );
       return functionType.parameters;
 
