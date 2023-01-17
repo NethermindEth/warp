@@ -89,7 +89,7 @@ export function outputResult(
     );
     fs.outputFileSync(fullCodeOutPath, code);
 
-    if (options.formatCairo || options.dev) {
+    if (options.formatCairo /* || options.dev : Cairo-format is disabled, as it has a bug */) {
       const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
       execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
     }

@@ -60,7 +60,8 @@ export function generateFile(name: string, imports: string[], functions: string[
     `./warplib/maths/${name}.cairo`,
     `//AUTO-GENERATED\n${imports.join('\n')}\n\n${functions.join('\n')}\n`,
   );
-  execSync(`${warpVenvPrefix} cairo-format -i ./warplib/maths/${name}.cairo`);
+  // Disable cairo-formatting for now, as it has a bug that breaks the generated code
+  // execSync(`${warpVenvPrefix} cairo-format -i ./warplib/maths/${name}.cairo`);
 }
 
 export function IntxIntFunction(
