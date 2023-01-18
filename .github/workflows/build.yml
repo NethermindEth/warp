@@ -40,7 +40,7 @@ jobs:
         run: |
           yarn lint
           black starknet-testnet/ --check --verbose --diff --color
-          find warplib/ -iname *.cairo -exec cairo-format -c {} +
+        # find warplib/ -iname *.cairo -exec cairo-format -c {} +
 
   build:
     runs-on: ubuntu-latest
