@@ -8,22 +8,22 @@ import { divmod } from '../utils/utils';
 export type SolValue = BigNumberish | boolean | string | { [key: string]: SolValue } | SolValue[];
 export type Param = (string | number | Param)[];
 
-export type solAbiFuncArgType = { internalType: string; name: string; type: string };
-export type solAbiFunctionType = {
-  inputs: solAbiFuncArgType[];
+export type SolParamType = { internalType: string; name: string; type: string };
+export type SolFuncType = {
+  inputs: SolParamType[];
   name: string;
-  outputs: solAbiFuncArgType[];
+  outputs: SolParamType[];
   stateMutability: 'payable' | 'pure' | 'view';
   type: 'function';
 };
 
-export type solAbiConstructorType = {
-  inputs: solAbiFuncArgType[];
+export type SolConstructorType = {
+  inputs: SolParamType[];
   stateMutability: 'payable' | 'pure' | 'view';
   type: 'constructor';
 };
 
-export type solAbiItemType = solAbiFunctionType | solAbiConstructorType;
+export type SolABIFunction = SolFuncType | SolConstructorType;
 
 export function getWidthInFeltsOf(type: ParamType): number {
   if (type.baseType.startsWith('uint')) {
@@ -153,14 +153,19 @@ export function parseSolAbi(filePath: string): [] {
 }
 
 export async function selectSignature(
-  abi: solAbiItemType[],
+  abi: SolABIFunction[],
   funcName: string,
-): Promise<solAbiFunctionType> {
+): Promise<SolABIFunction> {
   if (funcName === 'constructor') {
     // Item with abi[type] === 'constructor'
-    const constructorsAbi = abi.filter((item: solAbiItemType) => item.type === 'constructor');
+    const constructorsAbi = abi.filter((item: SolABIFunction) => item.type === 'constructor');
     if (constructorsAbi.length === 0) {
-      throw new CLIError('No constructor found in abi');
+      // Solidity ABI has no constructor so enforce empty args for constructor in CLI
+      return {
+        inputs: [],
+        stateMutability: 'view',
+        type: 'constructor',
+      };
     }
     if (constructorsAbi.length > 1) {
       throw new CLIError('Multiple constructors found in abi');
@@ -175,11 +180,9 @@ export async function selectSignature(
   }
 
   const matchesWithoutConstructor = abi.filter(
-    (item: solAbiItemType) => item.type === 'function',
-  ) as solAbiFunctionType[];
-  const matches = matchesWithoutConstructor.filter(
-    (fs: solAbiFunctionType) => fs['name'] === funcName,
-  );
+    (item: SolABIFunction) => item.type === 'function',
+  ) as SolFuncType[];
+  const matches = matchesWithoutConstructor.filter((fs: SolFuncType) => fs['name'] === funcName);
 
   if (!matches.length) {
     throw new CLIError(`No function in abi with name ${funcName}`);

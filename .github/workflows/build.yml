@@ -1,11 +1,10 @@
-name: Warp CI
+name: Behaviour tests
 
 on:
   push:
     branches:
       - main
       - develop
-      - warp-ts
   pull_request:
 
 env:

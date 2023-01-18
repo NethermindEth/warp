@@ -4,10 +4,12 @@ import { execSync } from 'child_process';
 import {
   IDeployProps,
   ICallOrInvokeProps,
+  IGatewayProps,
   IOptionalNetwork,
   IDeployAccountProps,
   IOptionalDebugInfo,
   IDeclareOptions,
+  StarkNetNewAccountOptions,
 } from './cli';
 import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
@@ -80,7 +82,7 @@ export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugI
   console.log(`starknet-compile output written to ${resultPath}`);
 }
 
-export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
+export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IGatewayProps) {
   if (option.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "status" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -88,10 +90,18 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
     return;
   }
 
+  const gatewayUrlOption = option.gateway_url ? `--gateway_url ${option.gateway_url}` : '';
+  const feederGatewayUrlOption = option.feeder_gateway_url
+    ? `--feeder_gateway_url ${option.feeder_gateway_url}`
+    : '';
+
   try {
-    execSync(`${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network}`, {
-      stdio: 'inherit',
-    });
+    execSync(
+      `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network} ${gatewayUrlOption} ${feederGatewayUrlOption}`.trim(),
+      {
+        stdio: 'inherit',
+      },
+    );
   } catch {
     logError('starknet tx_status failed');
   }
@@ -126,6 +136,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
         options.inputs,
       )
     )[1];
+    inputs = inputs ? `--inputs ${inputs}` : inputs;
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -141,6 +152,12 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
       classHash = callClassHashScript(compileResult.resultPath);
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
+    const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
+    const feederGatewayUrlOption = options.feeder_gateway_url
+      ? `--feeder_gateway_url ${options.feeder_gateway_url}`
+      : '';
+    const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
+    const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
     const resultPath = compileResult.resultPath;
     execSync(
       `${warpVenvPrefix} starknet deploy --network ${options.network} ${
@@ -149,7 +166,9 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
           : options.wallet === undefined
           ? `${classHashOption}`
           : `${classHashOption} --wallet ${options.wallet}`
-      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
+      } ${inputs} ${
+        options.account !== undefined ? `--account ${options.account}` : ''
+      } ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
       {
         stdio: 'inherit',
       },
@@ -168,7 +187,7 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   }
   if (options.network === undefined) {
     logError(
-      `Error: Exception: feeder_gateway_url must be specified with the "deploy_account" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
+      `Error: Exception: network must be specified with the "deploy_account" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
     return;
   }
@@ -177,7 +196,13 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
 
   try {
     execSync(
-      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${options.network} ${account}`,
+      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${
+        options.network
+      } ${account} ${options.gateway_url ? `--gateway_url ${options.gateway_url}` : ''} ${
+        options.feeder_gateway_url ? `--feeder_gateway_url ${options.feeder_gateway_url}` : ''
+      } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
+        options.max_fee ? `--max_fee ${options.max_fee}` : ''
+      }`,
       {
         stdio: 'inherit',
       },
@@ -196,13 +221,20 @@ export async function runStarknetCallOrInvoke(
 
   if (options.network === undefined) {
     logError(
-      `Error: Exception: feeder_gateway_url must be specified with the "${callOrInvoke}" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
+      `Error: Exception: network must be specified with the "${callOrInvoke}" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
     return;
   }
 
   const wallet = options.wallet === undefined ? '--no_wallet' : `--wallet ${options.wallet}`;
   const account = options.account ? `--account ${options.account}` : '';
+
+  const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
+  const feederGatewayUrlOption = options.feeder_gateway_url
+    ? `--feeder_gateway_url ${options.feeder_gateway_url}`
+    : '';
+  const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
+  const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
 
   const { success, abiPath, solAbiPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
@@ -218,6 +250,7 @@ export async function runStarknetCallOrInvoke(
       options.use_cairo_abi,
       options.inputs,
     );
+    inputs = inputs ? `--inputs ${inputs}` : inputs;
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -227,7 +260,7 @@ export async function runStarknetCallOrInvoke(
   }
   try {
     let warpOutput: string = execSync(
-      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
+      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`.trim(),
     ).toString('utf-8');
 
     if (isCall && !options.use_cairo_abi) {
@@ -268,9 +301,17 @@ function declareContract(filePath: string, options: IDeclareOptions) {
     ? `--wallet ${options.wallet}`
     : ``;
   const accountOption = options.account ? `--account ${options.account}` : '';
+
+  const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
+  const feederGatewayUrlOption = options.feeder_gateway_url
+    ? `--feeder_gateway_url ${options.feeder_gateway_url}`
+    : '';
+  const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
+  const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
+
   try {
     execSync(
-      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption}`,
+      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
       {
         stdio: 'inherit',
         encoding: 'utf8',
@@ -289,6 +330,29 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
   } else {
     assert(resultPath !== undefined);
     declareContract(resultPath, options);
+  }
+}
+
+export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
+  const networkOption = options.network ? `--network ${options.network}` : ``;
+  const walletOption = options.wallet ? `--wallet ${options.wallet}` : ``;
+  const accountOption = options.account ? `--account ${options.account}` : '';
+
+  const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
+  const feederGatewayUrlOption = options.feeder_gateway_url
+    ? `--feeder_gateway_url ${options.feeder_gateway_url}`
+    : '';
+  const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
+  try {
+    execSync(
+      `${warpVenvPrefix} starknet new_account ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
+      {
+        stdio: 'inherit',
+        encoding: 'utf8',
+      },
+    );
+  } catch {
+    logError('StarkNet new account creation failed');
   }
 }
 
