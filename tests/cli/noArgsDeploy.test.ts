@@ -42,7 +42,7 @@ describe('Manage starknet account', function () {
     }
 
     const { stdout, stderr } = await sh(
-      `${warpBin} new_account --wallet ${wallet} --network ${network} --feeder_gateway_url ${gatewayURL} --account_dir ${starkNetAccountDir}`,
+      `${warpBin} new_account --wallet ${wallet} --network ${network} --feeder_gateway_url ${gatewayURL} --account_dir ${starkNetAccountDir} --account account_0`,
     );
 
     expect(stderr).to.be.empty;
@@ -54,21 +54,20 @@ describe('Manage starknet account', function () {
 
     // verify the properties of the created account
     expect(starknet_open_zeppelin_accounts[network]).to.not.be.undefined;
-    expect(starknet_open_zeppelin_accounts[network]['__default__']).to.not.be.undefined;
-    expect(starknet_open_zeppelin_accounts[network]['__default__']['private_key']).to.not.be
+    expect(starknet_open_zeppelin_accounts[network]['account_0']).to.not.be.undefined;
+    expect(starknet_open_zeppelin_accounts[network]['account_0']['private_key']).to.not.be
       .undefined;
-    expect(starknet_open_zeppelin_accounts[network]['__default__']['public_key']).to.not.be
-      .undefined;
-    expect(starknet_open_zeppelin_accounts[network]['__default__']['salt']).to.not.be.undefined;
-    expect(starknet_open_zeppelin_accounts[network]['__default__']['address']).to.not.be.undefined;
-    expect(starknet_open_zeppelin_accounts[network]['__default__']['deployed']).to.be.false;
+    expect(starknet_open_zeppelin_accounts[network]['account_0']['public_key']).to.not.be.undefined;
+    expect(starknet_open_zeppelin_accounts[network]['account_0']['salt']).to.not.be.undefined;
+    expect(starknet_open_zeppelin_accounts[network]['account_0']['address']).to.not.be.undefined;
+    expect(starknet_open_zeppelin_accounts[network]['account_0']['deployed']).to.be.false;
   });
 
   it('mint wei to the generated account', async () => {
     const starknet_open_zeppelin_accounts = JSON.parse(
       fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
     );
-    const address = starknet_open_zeppelin_accounts[network]['__default__']['address'];
+    const address = starknet_open_zeppelin_accounts[network]['account_0']['address'];
 
     const { stdout } = await mintEthToAccount(address);
 
@@ -81,7 +80,7 @@ describe('Manage starknet account', function () {
 
   it('should deploy the starknet account', async () => {
     const { stdout, stderr } = await sh(
-      `${warpBin} deploy_account --wallet ${wallet} --feeder_gateway_url ${gatewayURL} --gateway_url ${gatewayURL} --network ${network} --account_dir ${starkNetAccountDir}`,
+      `${warpBin} deploy_account --wallet ${wallet} --feeder_gateway_url ${gatewayURL} --gateway_url ${gatewayURL} --network ${network} --account_dir ${starkNetAccountDir} --account account_0`,
     );
 
     expect(stderr).to.be.empty;
@@ -133,7 +132,7 @@ describe('Declare the NoConstructor contract', function () {
 
   it('should declare the ERC20 contract', async () => {
     const { stdout, stderr } = await sh(
-      `${warpBin} declare ${contractCairoFile} --wallet ${wallet} --feeder_gateway_url ${gatewayURL} --gateway_url ${gatewayURL} --network ${network} --account_dir ${starkNetAccountDir}`,
+      `${warpBin} declare ${contractCairoFile} --wallet ${wallet} --feeder_gateway_url ${gatewayURL} --gateway_url ${gatewayURL} --network ${network} --account_dir ${starkNetAccountDir} --account account_0`,
     );
 
     expect(stderr).to.be.empty;
@@ -171,7 +170,7 @@ describe('Deploy the NoConstructor contract', function () {
 
   it('should deploy the ERC20 contract', async () => {
     const { stdout, stderr } = await sh(
-      `${warpBin} deploy ${contractCairoFile} --wallet ${wallet} --feeder_gateway_url ${gatewayURL} --gateway_url ${gatewayURL} --network ${network} --account_dir ${starkNetAccountDir}`,
+      `${warpBin} deploy ${contractCairoFile} --wallet ${wallet} --feeder_gateway_url ${gatewayURL} --gateway_url ${gatewayURL} --network ${network} --account_dir ${starkNetAccountDir} --account account_0`,
     );
 
     expect(stderr).to.be.empty;
