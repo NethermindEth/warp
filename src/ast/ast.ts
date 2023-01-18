@@ -8,6 +8,7 @@ import {
   FunctionCall,
   generalizeType,
   Identifier,
+  InferType,
   Mutability,
   SourceUnit,
   Statement,
@@ -55,12 +56,13 @@ export class AST {
   context: ASTContext;
   // node requiring cairo import -> file to import from -> symbols to import
   imports: Map<ASTNode, Map<string, Set<string>>> = new Map();
+  public inference: InferType;
 
   readonly tempId = -1;
 
   constructor(
     public roots: SourceUnit[],
-    public compilerVersion: string,
+    compilerVersion: string,
     public solidityABI: SolcOutput['result'],
   ) {
     assert(
@@ -72,6 +74,7 @@ export class AST {
       'All contexts should be the same, otherwise they are from seperate solc-typed-ast compiles and they will have no relationship to each other.',
     );
     this.context = roots[0].requiredContext;
+    this.inference = new InferType(compilerVersion);
     assert(
       this.context.locate(this.tempId) === undefined,
       `Attempted to create an AST with a context that already has ${this.tempId} registered`,
@@ -97,12 +100,11 @@ export class AST {
     let location: DataLocation;
     if (node instanceof FunctionCall && isExternalCall(node)) {
       location =
-        generalizeType(safeGetNodeType(node, this.compilerVersion))[1] === undefined
+        generalizeType(safeGetNodeType(node, this.inference))[1] === undefined
           ? DataLocation.Default
           : DataLocation.CallData;
     } else {
-      location =
-        generalizeType(safeGetNodeType(node, this.compilerVersion))[1] ?? DataLocation.Default;
+      location = generalizeType(safeGetNodeType(node, this.inference))[1] ?? DataLocation.Default;
     }
     const replacementVariable = new VariableDeclaration(
       this.tempId,

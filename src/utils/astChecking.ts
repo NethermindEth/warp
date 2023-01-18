@@ -34,7 +34,6 @@ import {
   IndexRangeAccess,
   InheritanceSpecifier,
   InlineAssembly,
-  InsaneASTError,
   Literal,
   Mapping,
   MemberAccess,
@@ -68,6 +67,7 @@ import { AST } from '../ast/ast';
 import { CairoAssert, CairoTempVarStatement } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
+import { InsaneASTError } from './errors';
 import { safeGetNodeType } from './nodeTypeProcessing';
 import { isNameless } from './utils';
 
@@ -768,7 +768,7 @@ class NodeTypeResolutionChecker extends ASTMapper {
           child instanceof Expression || child instanceof VariableDeclaration,
       )
       .filter((child) => child.parent !== undefined && !(child.parent instanceof ImportDirective))
-      .forEach((child) => safeGetNodeType(child, ast.compilerVersion));
+      .forEach((child) => safeGetNodeType(child, ast.inference));
   }
 }
 

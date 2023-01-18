@@ -42,7 +42,7 @@ export function splitTupleAssignment(
     lhs instanceof TupleExpression,
     `Split tuple assignment was called on non-tuple assignment ${node.type} # ${node.id}`,
   );
-  const rhsType = safeGetNodeType(rhs, ast.compilerVersion);
+  const rhsType = safeGetNodeType(rhs, ast.inference);
   assert(
     rhsType instanceof TupleType,
     `Expected rhs of tuple assignment to be tuple type ${printNode(node)}`,
@@ -52,7 +52,7 @@ export function splitTupleAssignment(
 
   const tempVars = new Map<Expression, VariableDeclaration>(
     lhs.vOriginalComponents.filter(notNull).map((child, index) => {
-      const lhsElementType = safeGetNodeType(child, ast.compilerVersion);
+      const lhsElementType = safeGetNodeType(child, ast.inference);
       const rhsElementType = rhsType.elements[index];
 
       // We need to calculate a type and location for the temporary variable
@@ -140,8 +140,7 @@ export function splitFunctionCallWithReturn(
     returnType.vType !== undefined,
     'Return types should not be undefined since solidity 0.5.0',
   );
-  const location =
-    generalizeType(safeGetNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
+  const location = generalizeType(safeGetNodeType(node, ast.inference))[1] ?? DataLocation.Default;
   const replacementVariable = new VariableDeclaration(
     ast.reserveId(),
     node.src,

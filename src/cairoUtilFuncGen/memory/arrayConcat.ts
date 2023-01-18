@@ -22,7 +22,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   gen(concat: FunctionCall) {
     const args = concat.vArguments;
     args.forEach((expr) => {
-      const exprType = safeGetNodeType(expr, this.ast.compilerVersion);
+      const exprType = safeGetNodeType(expr, this.ast.inference);
       if (
         !isDynamicArray(exprType) &&
         !(exprType instanceof IntType || exprType instanceof FixedBytesType)
@@ -35,16 +35,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     const inputs: [string, TypeName, DataLocation][] = mapRange(args.length, (n) => [
       `arg_${n}`,
-      typeNameFromTypeNode(safeGetNodeType(args[n], this.ast.compilerVersion), this.ast),
+      typeNameFromTypeNode(safeGetNodeType(args[n], this.ast.inference), this.ast),
       DataLocation.Memory,
     ]);
     const output: [string, TypeName, DataLocation] = [
       'res_loc',
-      typeNameFromTypeNode(safeGetNodeType(concat, this.ast.compilerVersion), this.ast),
+      typeNameFromTypeNode(safeGetNodeType(concat, this.ast.inference), this.ast),
       DataLocation.Memory,
     ];
 
-    const argTypes = args.map((e) => safeGetNodeType(e, this.ast.compilerVersion));
+    const argTypes = args.map((e) => safeGetNodeType(e, this.ast.inference));
     const name = this.getOrCreate(argTypes);
 
     const implicits: Implicits[] = argTypes.some(

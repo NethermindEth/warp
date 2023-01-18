@@ -28,7 +28,7 @@ export class StoredPointerDereference extends ReferenceSubPass {
 
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
-    const nodeType = safeGetNodeType(node, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, ast.inference);
 
     // Next, if the node is a type that requires an extra read, insert this first
     let readFunc: FunctionCall | null = null;
@@ -59,7 +59,7 @@ export class StoredPointerDereference extends ReferenceSubPass {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    const lhsType = safeGetNodeType(node.vLeftHandSide, ast.compilerVersion);
+    const lhsType = safeGetNodeType(node.vLeftHandSide, ast.inference);
 
     if (isComplexMemoryType(lhsType)) {
       this.visitExpression(node.vLeftHandSide, ast);

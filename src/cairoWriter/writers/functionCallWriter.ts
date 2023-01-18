@@ -4,6 +4,7 @@ import {
   ContractDefinition,
   FunctionCall,
   FunctionCallKind,
+  InferType,
   Literal,
   MemberAccess,
   SrcDesc,
@@ -31,7 +32,7 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
           // check if we're calling a member of a contract
           const nodeType = safeGetNodeType(
             node.vExpression.vExpression,
-            writer.targetCompilerVersion,
+            new InferType(writer.targetCompilerVersion),
           );
           if (
             nodeType instanceof UserDefinedType &&
@@ -72,7 +73,7 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
             : ['.len', '.ptr'];
           const argTypes = node.vArguments.map((v) => ({
             name: writer.write(v),
-            type: safeGetNodeType(v, this.ast.compilerVersion),
+            type: safeGetNodeType(v, this.ast.inference),
           }));
           const args = argTypes
             .map(({ name, type }) =>
@@ -102,7 +103,10 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
           assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
           return [`${args[0]}`];
         }
-        const nodeType = safeGetNodeType(node.vExpression, writer.targetCompilerVersion);
+        const nodeType = safeGetNodeType(
+          node.vExpression,
+          new InferType(writer.targetCompilerVersion),
+        );
         if (
           nodeType instanceof UserDefinedType &&
           nodeType.definition instanceof ContractDefinition

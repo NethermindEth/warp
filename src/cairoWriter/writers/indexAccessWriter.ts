@@ -8,7 +8,7 @@ export class IndexAccessWriter extends CairoASTNodeWriter {
     assert(node.vIndexExpression !== undefined);
     const baseWritten = writer.write(node.vBaseExpression);
     const indexWritten = writer.write(node.vIndexExpression);
-    if (isDynamicCallDataArray(safeGetNodeType(node.vBaseExpression, this.ast.compilerVersion))) {
+    if (isDynamicCallDataArray(safeGetNodeType(node.vBaseExpression, this.ast.inference))) {
       return [`${baseWritten}.ptr[${indexWritten}]`];
     }
     return [`${baseWritten}[${indexWritten}]`];

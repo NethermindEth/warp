@@ -103,7 +103,7 @@ export class ExpressionSplitter extends ASTMapper {
   splitSimpleAssignment(node: Assignment, ast: AST): void {
     const initialValue = node.vRightHandSide;
     const location =
-      generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
+      generalizeType(safeGetNodeType(initialValue, ast.inference))[1] ?? DataLocation.Default;
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
       '', // src

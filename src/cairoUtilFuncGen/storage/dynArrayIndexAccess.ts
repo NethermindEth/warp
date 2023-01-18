@@ -27,8 +27,8 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const index = node.vIndexExpression;
     assert(index !== undefined);
 
-    const nodeType = safeGetNodeType(node, this.ast.compilerVersion);
-    const baseType = safeGetNodeType(base, this.ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, this.ast.inference);
+    const baseType = safeGetNodeType(base, this.ast.inference);
 
     assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
     const name = this.getOrCreate(nodeType);
