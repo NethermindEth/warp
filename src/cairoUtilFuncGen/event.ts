@@ -120,8 +120,6 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    // TODO: Replace signature hash with solc-typed-ast's version
-    // const topic: string = this.ast.inference.signatureHash(node, ABIEncoderVersion.V2);
     const topic: string = signatureHash(this.ast.inference.signature(node, ABIEncoderVersion.V2));
 
     const code = [
