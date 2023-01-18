@@ -155,7 +155,7 @@ export function encodeComplex(type: ParamType, inputs: IterableIterator<SolValue
   throw new Error(`Can't encode complex type ${type}`);
 }
 
-export function makeIterator(value: SolValue) {
+export function makeIterator<T>(value: T): IterableIterator<T> {
   if (Array.isArray(value)) {
     return value.values();
   }
