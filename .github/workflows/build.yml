@@ -8,7 +8,7 @@ on:
   pull_request:
 
 env:
-  CAIRO_LANG_VERSION: 0.10.0
+  CAIRO_LANG_VERSION: 0.10.3
 
 jobs:
   lint:
