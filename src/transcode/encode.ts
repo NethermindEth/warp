@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers';
-import { isBytes, ParamType, FunctionFragment } from 'ethers/lib/utils';
+import { isBytes, ParamType } from 'ethers/lib/utils';
 import { isBigNumberish } from '@ethersproject/bignumber/lib/bignumber';
 import {
   isPrimitiveParam,
@@ -37,7 +37,7 @@ export async function encodeInputs(
     funcName = `${func}_${selector}`;
   }
 
-  const inputNodes: ParamType[] = FunctionFragment.fromObject(funcSignature).inputs;
+  const inputNodes: ParamType[] = funcSignature.inputs.map(ParamType.fromObject);
   const encodedInputs = encode(inputNodes, rawInputs ?? []);
   const inputs = rawInputs ? `${encodedInputs.join(' ')}` : '';
 
