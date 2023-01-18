@@ -4,7 +4,7 @@ import * as path from 'path';
 export const wallet = 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount';
 export const gatewayURL = 'http://127.0.0.1:5050';
 export const network = 'alpha-goerli';
-export const accountDir = path.resolve(__dirname, '.');
+export const starkNetAccountDir = path.resolve(__dirname, '.');
 export const warpBin = path.resolve(__dirname, '..', '..', 'bin', 'warp');
 
 export const TIME_LIMIT = 10 * 60 * 1000;
