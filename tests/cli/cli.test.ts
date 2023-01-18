@@ -1,23 +1,23 @@
-import { expect } from 'chai';
-import { sh } from '../util';
-import { describe, it } from 'mocha';
 import * as path from 'path';
 import fs from 'fs';
-import { extractFromStdout } from './utils';
-
-const wallet = 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount';
-const gatewayURL = 'http://127.0.0.1:5050';
-const network = 'alpha-goerli';
-const accountDir = path.resolve(__dirname, '.');
-
-const TIME_LIMIT = 10 * 60 * 1000;
-const TX_FEE_ETH_REGEX = /max_fee: (.*) ETH/g;
-const TX_FEE_WEI_REGEX = /max_fee:.* ETH \((.*) WEI\)/g;
-const CONTRACT_ADDRESS_REGEX = /Contract address: (.*)/g;
-const CONTRACT_CLASS_REGEX = /Contract class hash: (.*)/g;
-const TX_HASH_REGEX = /Transaction hash: (.*)/g;
-
-const warpBin = path.resolve(__dirname, '..', '..', 'bin', 'warp');
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+import { sh } from '../util';
+import {
+  accountDir,
+  CONTRACT_ADDRESS_REGEX,
+  CONTRACT_CLASS_REGEX,
+  extractFromStdout,
+  gatewayURL,
+  mintEthToAccount,
+  network,
+  TIME_LIMIT,
+  TX_FEE_ETH_REGEX,
+  TX_FEE_WEI_REGEX,
+  TX_HASH_REGEX,
+  wallet,
+  warpBin,
+} from './utils';
 
 const contractCairoFile = path.resolve(
   __dirname,
@@ -30,15 +30,8 @@ const contractCairoFile = path.resolve(
   'MyToken.cairo',
 );
 
-let contract_class_hash: string;
-let contract_address: string;
-
-async function mintEthToAccount(address: string): Promise<{ stdout: string; stderr: string }> {
-  const res = await sh(
-    `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
-  );
-  return res;
-}
+let contractClassHash: string;
+let contractAddress: string;
 
 describe('Manage starknet account', function () {
   this.timeout(TIME_LIMIT);
@@ -148,13 +141,13 @@ describe('Declare the MyToken contract', function () {
     const txFeeEth = extractFromStdout(stdout, TX_FEE_ETH_REGEX);
     const txFeeWei = extractFromStdout(stdout, TX_FEE_WEI_REGEX);
 
-    contract_class_hash = extractFromStdout(stdout, CONTRACT_CLASS_REGEX);
+    contractClassHash = extractFromStdout(stdout, CONTRACT_CLASS_REGEX);
     txHash = extractFromStdout(stdout, TX_HASH_REGEX);
 
     expect(txFeeEth).to.not.be.undefined;
     expect(txFeeWei).to.not.be.undefined;
 
-    expect(contract_class_hash).to.not.be.undefined;
+    expect(contractClassHash).to.not.be.undefined;
     expect(txHash).to.not.be.undefined;
   });
 
@@ -185,13 +178,13 @@ describe('Deploy the MyToken contract', function () {
 
     const txFeeEth = extractFromStdout(stdout, TX_FEE_ETH_REGEX);
     const txFeeWei = extractFromStdout(stdout, TX_FEE_WEI_REGEX);
-    contract_address = extractFromStdout(stdout, CONTRACT_ADDRESS_REGEX);
+    contractAddress = extractFromStdout(stdout, CONTRACT_ADDRESS_REGEX);
     txHash = extractFromStdout(stdout, TX_HASH_REGEX);
 
     expect(txFeeEth).to.not.be.undefined;
     expect(txFeeWei).to.not.be.undefined;
 
-    expect(contract_class_hash).to.not.be.undefined;
+    expect(contractClassHash).to.not.be.undefined;
     expect(txHash).to.not.be.undefined;
   });
 
@@ -212,30 +205,30 @@ describe('Call MyToken contract functions', function () {
   this.timeout(TIME_LIMIT);
 
   it('get Total Supply', async () => {
-    expect(contract_address).to.not.be.undefined;
+    expect(contractAddress).to.not.be.undefined;
     const { stdout, stderr } = await sh(
-      `${warpBin} call ${contractCairoFile} --function totalSupply --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} call ${contractCairoFile} --function totalSupply --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
     expect(stderr).to.be.empty;
     expect(stdout.split('\n')[1].trim()).to.be.equal('500');
   });
 
   it('get Total Supply call using cairo ABI', async () => {
-    expect(contract_address).to.not.be.undefined;
+    expect(contractAddress).to.not.be.undefined;
     const { stdout, stderr } = await sh(
-      `${warpBin} call ${contractCairoFile} --use_cairo_abi --function totalSupply_18160ddd --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} call ${contractCairoFile} --use_cairo_abi --function totalSupply_18160ddd --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
     expect(stderr).to.be.empty;
     expect(stdout.split('\n')[1].trim()).to.be.equal('500 0');
   });
 
   it('balance of owner should equal totalSupply', async () => {
-    expect(contract_address).to.not.be.undefined;
+    expect(contractAddress).to.not.be.undefined;
     const accountFile = JSON.parse(
       fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
     );
     const { stdout, stderr } = await sh(
-      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountFile[network].__default__.address} --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountFile[network].__default__.address} --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
     expect(stderr).to.be.empty;
     expect(stdout.split('\n')[1].trim()).to.be.equal('500');
@@ -278,7 +271,7 @@ describe('Invoke MyToken contract functions', function () {
     );
 
     const transferToUser1 = await sh(
-      `${warpBin} invoke ${contractCairoFile} --function transfer --inputs ${accountJSON[network].user1.address} 100 0 --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} invoke ${contractCairoFile} --function transfer --inputs ${accountJSON[network].user1.address} 100 0 --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
 
     expect(transferToUser1.stderr).to.be.empty;
@@ -305,7 +298,7 @@ describe('Invoke MyToken contract functions', function () {
     );
 
     const approveToUser2 = await sh(
-      `${warpBin} invoke ${contractCairoFile} --function approve --inputs ${accountJSON[network].user2.address} 200 0 --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} invoke ${contractCairoFile} --function approve --inputs ${accountJSON[network].user2.address} 200 0 --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
 
     expect(approveToUser2.stderr).to.be.empty;
@@ -333,7 +326,7 @@ describe('Invoke MyToken contract functions', function () {
     );
 
     const transferFromUser2ToUser1 = await sh(
-      `${warpBin} invoke ${contractCairoFile} --function transferFrom --inputs ${accountJSON[network].__default__.address} ${accountJSON[network].user1.address} 100 0 --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir} --account user2`,
+      `${warpBin} invoke ${contractCairoFile} --function transferFrom --inputs ${accountJSON[network].__default__.address} ${accountJSON[network].user1.address} 100 0 --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir} --account user2`,
     );
 
     expect(transferFromUser2ToUser1.stderr).to.be.empty;
@@ -360,19 +353,19 @@ describe('Invoke MyToken contract functions', function () {
       fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
     );
     const ownerBalance = await sh(
-      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountJSON[network].__default__.address} --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountJSON[network].__default__.address} --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
     expect(ownerBalance.stderr).to.be.empty;
     expect(ownerBalance.stdout.split('\n')[1].trim()).to.be.equal('300');
 
     const user1Balance = await sh(
-      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountJSON[network].user1.address} --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountJSON[network].user1.address} --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
     expect(user1Balance.stderr).to.be.empty;
     expect(user1Balance.stdout.split('\n')[1].trim()).to.be.equal('200');
 
     const user2Balance = await sh(
-      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountJSON[network].user2.address} --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
+      `${warpBin} call ${contractCairoFile} --function balanceOf  --inputs ${accountJSON[network].user2.address} --address ${contractAddress} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
     );
 
     expect(user2Balance.stderr).to.be.empty;

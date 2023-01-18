@@ -28,7 +28,7 @@
     "lint:fix": "npm run lint -- --fix",
     "formatlib": "find warplib/ -iname *.cairo -exec cairo-format -i {} +",
     "test": "tests/behaviour/setup.sh && npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit --exclude tests/cli/cli.test.ts",
-    "test:cli": "npx mocha tests/cli/**/*.test.ts --extension ts --require ts-node/register --exit",
+    "test:cli": "npx mocha tests/cli/**/*.test.ts --extension ts --require ts-node/register --parallel --exit",
     "test:forwarder": "npx mocha tests/interface_call_forwarder/interface_forwarder.test.ts --extension ts --require ts-node/register --exit",
     "test:lib": "npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",
     "test:behaviour": "npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
