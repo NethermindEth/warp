@@ -552,7 +552,7 @@ export function runStarkNetClassHash(filePath: string): string {
 
   const classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
   if (classHash === undefined) {
-    throw new Error(`starnet-class-hash failed`);
+    throw new Error(`starknet-class-hash failed`);
   }
   return classHash;
 }
