@@ -1,5 +1,6 @@
 import createKeccakHash from 'keccak';
 import { MASK_250 } from '../cairoUtilFuncGen/event';
+import { toUintOrFelt } from './export';
 
 export type EventItem = { data: string[]; keys: string[]; order: number };
 
@@ -77,11 +78,10 @@ export function warpEventCanonicalSignaturehash256(
 
   const hash = BigInt(`0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`);
 
-  const hash_low_128 = hash & 0xffffffffffffffffffffffffffffffffn;
-  const hash_high_128 = (hash >> 128n) & 0xffffffffffffffffffffffffffffffffn;
+  const splitHash: bigint[] = toUintOrFelt(hash, 256);
 
   return {
-    low: `0x${hash_low_128.toString(16)}`,
-    high: `0x${hash_high_128.toString(16)}`,
+    low: `0x${splitHash[0].toString(16)}`,
+    high: `0x${splitHash[1].toString(16)}`,
   };
 }

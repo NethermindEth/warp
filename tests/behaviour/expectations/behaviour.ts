@@ -10,6 +10,7 @@ import {
   toCairoInt8,
   MIN_INT8,
   MAX_INT8,
+  cairoUint256toBigIntHex,
 } from './utils';
 import createKeccakHash from 'keccak';
 import {
@@ -2229,13 +2230,9 @@ export const expectations = flatten(
                   {
                     data: ['69'],
                     keys: [
-                      `0x${(
-                        BigInt(warpEventCanonicalSignaturehash256('uintEvent', ['uint256']).low) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('uintEvent', ['uint256']).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('uintEvent', ['uint256']),
+                      ),
                     ],
                     order: 0,
                   },
@@ -2253,15 +2250,9 @@ export const expectations = flatten(
                   {
                     data: ['32', '3', '2', '3', '5'],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']),
+                      ),
                     ],
                     order: 0,
                   },
@@ -2279,17 +2270,9 @@ export const expectations = flatten(
                   {
                     data: ['32', '2', '64', '192', '3', '2', '3', '5', '2', '7', '11'],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]'])
-                            .low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]'])
-                            .high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]']),
+                      ),
                     ],
                     order: 0,
                   },
@@ -2307,19 +2290,11 @@ export const expectations = flatten(
                   {
                     data: ['32', '128', '7', '11', '13', '3', '2', '3', '5'],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('structEvent', [
-                            ['uint8[]', 'uint256[3]'],
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('structEvent', [
-                            ['uint8[]', 'uint256[3]'],
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('structEvent', [
+                          ['uint8[]', 'uint256[3]'],
+                        ]),
+                      ),
                     ],
                     order: 0,
                   },
@@ -2339,13 +2314,9 @@ export const expectations = flatten(
                   {
                     data: [],
                     keys: [
-                      `0x${(
-                        BigInt(warpEventCanonicalSignaturehash256('uintEvent', ['uint256']).low) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('uintEvent', ['uint256']).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('uintEvent', ['uint256']),
+                      ),
                       '69',
                     ],
                     order: 0,
@@ -2364,15 +2335,9 @@ export const expectations = flatten(
                   {
                     data: [],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']),
+                      ),
                       // 2,
                       // 3,
                       // 5,
@@ -2409,17 +2374,9 @@ export const expectations = flatten(
                   {
                     data: [],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]'])
-                            .low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]'])
-                            .high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]']),
+                      ),
                       // 2,
                       // 3,
                       // 5,
@@ -2460,19 +2417,11 @@ export const expectations = flatten(
                   {
                     data: [],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('structEvent', [
-                            ['uint8[]', 'uint256[3]'],
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('structEvent', [
-                            ['uint8[]', 'uint256[3]'],
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('structEvent', [
+                          ['uint8[]', 'uint256[3]'],
+                        ]),
+                      ),
                       // '2',
                       // '3',
                       // '5',
@@ -2524,17 +2473,9 @@ export const expectations = flatten(
                       `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
                     ],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string'])
-                            .low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string'])
-                            .high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string']),
+                      ),
                     ],
                     order: 0,
                   },
@@ -2556,21 +2497,12 @@ export const expectations = flatten(
                       `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
                     ],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allStringMiscEvent', [
-                            'string',
-                            'string',
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allStringMiscEvent', [
-                            'string',
-                            'string',
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allStringMiscEvent', [
+                          'string',
+                          'string',
+                        ]),
+                      ),
                       `${
                         BigInt(
                           `0x${createKeccakHash('keccak256')
@@ -2598,21 +2530,12 @@ export const expectations = flatten(
                   {
                     data: ['1'],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allUintMiscEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allUintMiscEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allUintMiscEvent', [
+                          'uint256',
+                          'uint256',
+                        ]),
+                      ),
                       '2',
                     ],
                     order: 0,
@@ -2631,21 +2554,12 @@ export const expectations = flatten(
                   {
                     data: [],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allIndexedEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allIndexedEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allIndexedEvent', [
+                          'uint256',
+                          'uint256',
+                        ]),
+                      ),
                       '1',
                       '2',
                     ],
@@ -2672,38 +2586,21 @@ export const expectations = flatten(
                       `${BigInt(0x62) << BigInt(248)}`,
                     ],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string'])
-                            .low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string'])
-                            .high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string']),
+                      ),
                     ],
                     order: 0,
                   },
                   {
                     data: ['32', '1', `${BigInt(0x62) << BigInt(248)}`],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allStringMiscEvent', [
-                            'string',
-                            'string',
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allStringMiscEvent', [
-                            'string',
-                            'string',
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allStringMiscEvent', [
+                          'string',
+                          'string',
+                        ]),
+                      ),
                       `${
                         BigInt(
                           `0x${createKeccakHash('keccak256')
@@ -2717,21 +2614,12 @@ export const expectations = flatten(
                   {
                     data: ['1'],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allUintMiscEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allUintMiscEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allUintMiscEvent', [
+                          'uint256',
+                          'uint256',
+                        ]),
+                      ),
                       '2',
                     ],
                     order: 2,
@@ -2739,21 +2627,12 @@ export const expectations = flatten(
                   {
                     data: [],
                     keys: [
-                      `0x${(
-                        BigInt(
-                          warpEventCanonicalSignaturehash256('allIndexedEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).low,
-                        ) +
-                        (BigInt(
-                          warpEventCanonicalSignaturehash256('allIndexedEvent', [
-                            'uint256',
-                            'uint256',
-                          ]).high,
-                        ) <<
-                          128n)
-                      ).toString(16)}`,
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('allIndexedEvent', [
+                          'uint256',
+                          'uint256',
+                        ]),
+                      ),
                       '1',
                       '2',
                     ],
