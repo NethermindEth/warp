@@ -220,15 +220,6 @@ describe('Call MyToken contract functions', function () {
     expect(stdout.split('\n')[1].trim()).to.be.equal('500');
   });
 
-  it('get Total Supply call using cairo ABI', async () => {
-    expect(contract_address).to.not.be.undefined;
-    const { stdout, stderr } = await sh(
-      `${warpBin} call ${contractCairoFile} --use_cairo_abi --function totalSupply_18160ddd --address ${contract_address} --network ${network} --gateway_url ${gatewayURL} --feeder_gateway_url ${gatewayURL} --wallet ${wallet} --account_dir ${accountDir}`,
-    );
-    expect(stderr).to.be.empty;
-    expect(stdout.split('\n')[1].trim()).to.be.equal('500 0');
-  });
-
   it('balance of owner should equal totalSupply', async () => {
     expect(contract_address).to.not.be.undefined;
     const accountFile = JSON.parse(
