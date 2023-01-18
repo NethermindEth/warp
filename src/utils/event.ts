@@ -61,3 +61,27 @@ export function warpEventCanonicalSignaturehash(eventName: string, argTypes: arg
     BigInt(`0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`) & MASK_250
   ).toString(16)}`;
 }
+
+// NOTE: argTypes must not contain `uint` , it should be `uint256` instead
+export function warpEventCanonicalSignaturehash256(
+  eventName: string,
+  argTypes: argType[],
+): { low: string; high: string } {
+  const getArgStringRepresentation = (arg: argType): string => {
+    if (typeof arg === 'string') return arg;
+    return `(${arg.map(getArgStringRepresentation).join(',')})`;
+  };
+
+  const funcSignature = `${eventName}(${argTypes.map(getArgStringRepresentation).join(',')})`;
+  const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
+
+  const hash = BigInt(`0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`);
+
+  const hash_low_128 = hash & 0xffffffffffffffffffffffffffffffffn;
+  const hash_high_128 = (hash >> 128n) & 0xffffffffffffffffffffffffffffffffn;
+
+  return {
+    low: `0x${hash_low_128.toString(16)}`,
+    high: `0x${hash_high_128.toString(16)}`,
+  };
+}

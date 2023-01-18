@@ -19,6 +19,7 @@ import {
   TypeConversionContext,
   typeNameFromTypeNode,
   warpEventCanonicalSignaturehash,
+  warpEventCanonicalSignaturehash256,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
@@ -112,7 +113,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    const topic: string = warpEventCanonicalSignaturehash(
+    const topic: { low: string; high: string } = warpEventCanonicalSignaturehash256(
       node.name,
       node.vParameters.vParameters.map((param) =>
         param.canonicalSignatureType(ABIEncoderVersion.V2),
@@ -154,7 +155,11 @@ export class EventFunction extends StringIndexedFuncGen {
     return `${this.funcName}${key}`;
   }
 
-  private generateAnonymizeCode(isAnonymous: boolean, topic: string, eventSig: string): string {
+  private generateAnonymizeCode(
+    isAnonymous: boolean,
+    topic: { low: string; high: string },
+    eventSig: string,
+  ): string {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
@@ -162,7 +167,7 @@ export class EventFunction extends StringIndexedFuncGen {
       return [`// Event is anonymous, topic won't be added to keys`].join('\n');
     }
     return [
-      `    let (topic256: Uint256) = felt_to_uint256(${topic});// keccak of event signature: ${eventSig}`,
+      `    let topic256: Uint256 = Uint256(${topic.low}, ${topic.high});// keccak of event signature: ${eventSig}`,
       `    let (keys_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(keys_len, keys, 0, topic256);`,
     ].join('\n');
   }
