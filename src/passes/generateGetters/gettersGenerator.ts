@@ -145,7 +145,7 @@ function genReturnParameters(
     );
   };
   if (vType instanceof ElementaryTypeName) {
-    if (isReferenceType(safeGetNodeType(vType, ast.compilerVersion))) {
+    if (isReferenceType(safeGetNodeType(vType, ast.inference))) {
       return [newVarDecl(vType, DataLocation.Memory)];
     } else {
       return [newVarDecl(vType)];
@@ -169,7 +169,7 @@ function genReturnParameters(
         returnVariables.push(
           newVarDecl(
             v.vType,
-            isReferenceType(safeGetNodeType(memberTypeName, ast.compilerVersion))
+            isReferenceType(safeGetNodeType(memberTypeName, ast.inference))
               ? DataLocation.Memory
               : DataLocation.Default,
           ),
@@ -230,7 +230,7 @@ function genFunctionParams(
         `_i${varCount}`,
         funcDefID,
         false, // stateVariable
-        locationIfComplexType(safeGetNodeType(vType, ast.compilerVersion), DataLocation.Memory),
+        locationIfComplexType(safeGetNodeType(vType, ast.inference), DataLocation.Memory),
         StateVariableVisibility.Internal,
         Mutability.Mutable,
         vType.vKeyType.typeString,

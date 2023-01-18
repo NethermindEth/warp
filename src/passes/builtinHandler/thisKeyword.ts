@@ -25,7 +25,7 @@ export class ThisKeyword extends ASTMapper {
         createCairoFunctionStub(
           'get_contract_address',
           [],
-          [['address', typeNameFromTypeNode(safeGetNodeType(node, ast.compilerVersion), ast)]],
+          [['address', typeNameFromTypeNode(safeGetNodeType(node, ast.inference), ast)]],
           ['syscall_ptr'],
           ast,
           node,

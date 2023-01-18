@@ -43,12 +43,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     targetExpression: Expression,
     sourceExpression: Expression,
   ): [Expression, boolean] {
-    const targetType = generalizeType(
-      safeGetNodeType(targetExpression, this.ast.compilerVersion),
-    )[0];
-    const sourceType = generalizeType(
-      safeGetNodeType(sourceExpression, this.ast.compilerVersion),
-    )[0];
+    const targetType = generalizeType(safeGetNodeType(targetExpression, this.ast.inference))[0];
+    const sourceType = generalizeType(safeGetNodeType(sourceExpression, this.ast.inference))[0];
 
     if (this.checkDims(targetType, sourceType) || this.checkSizes(targetType, sourceType)) {
       return [this.gen(targetExpression, sourceExpression), true];
@@ -99,8 +95,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   gen(lhs: Expression, rhs: Expression): FunctionCall {
-    const lhsType = safeGetNodeType(lhs, this.ast.compilerVersion);
-    const rhsType = safeGetNodeType(rhs, this.ast.compilerVersion);
+    const lhsType = safeGetNodeType(lhs, this.ast.inference);
+    const rhsType = safeGetNodeType(rhs, this.ast.inference);
 
     const funcInfo = this.getOrCreate(lhsType, rhsType);
 

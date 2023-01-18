@@ -34,7 +34,7 @@ import { serialiseReads } from '../serialisation';
 
 export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const valueType = generalizeType(safeGetNodeType(memoryRef, this.ast.compilerVersion))[0];
+    const valueType = generalizeType(safeGetNodeType(memoryRef, this.ast.inference))[0];
     const resultCairoType = CairoType.fromSol(valueType, this.ast);
 
     const params: [string, TypeName, DataLocation][] = [

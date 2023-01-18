@@ -40,7 +40,7 @@ import {
 
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
     const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
@@ -221,7 +221,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...structDef.vMembers.map((decl): string => {
-          const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
+          const memberType = safeGetNodeType(decl, this.ast.inference);
           if (isReferenceType(memberType)) {
             const recursiveFuncInfo = this.getOrCreate(memberType);
             funcsCalled.push(...recursiveFuncInfo.functionsCalled);

@@ -11,7 +11,6 @@ import {
   StringType,
   StructDefinition,
   TypeName,
-  typeNameToTypeNode,
   TypeNode,
   UserDefinedType,
 } from 'solc-typed-ast';
@@ -167,9 +166,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
       }
     });
 
-    const resultStruct = this.externalArrayGen.getOrCreate(
-      typeNameToTypeNode(createBytesTypeName(this.ast)),
-    );
+    const resultStruct = this.externalArrayGen.getOrCreate(new BytesType());
 
     const cairoParams = parameters.join(',');
     const funcName = `encode_as_felt${this.generatedFunctions.size}`;
@@ -292,7 +289,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
     assert(type.definition instanceof StructDefinition);
 
     const encodeCode = type.definition.vMembers.map((varDecl, index) => {
-      const varType = safeGetNodeType(varDecl, this.ast.compilerVersion);
+      const varType = safeGetNodeType(varDecl, this.ast.inference);
       return [
         `let member_${index} = from_struct.${varDecl.name};`,
         ...this.generateEncodeCode(varType, `member_${index}`),

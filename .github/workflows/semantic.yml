@@ -8,12 +8,16 @@ on:
       - warp-ts
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 env:
   CAIRO_LANG_VERSION: 0.10.0
 
 jobs:
   semantic_test:
     strategy:
+      fail-fast: false
       matrix:
         SM_BATCH: [1, 2, 3]
     runs-on: ubuntu-latest

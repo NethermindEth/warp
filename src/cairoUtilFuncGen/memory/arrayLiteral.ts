@@ -11,6 +11,7 @@ import {
   LiteralKind,
   StringType,
   TupleExpression,
+  TupleType,
   TypeNode,
 } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
@@ -74,8 +75,13 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const elements = node.vOriginalComponents.filter(notNull);
     assert(elements.length === node.vOriginalComponents.length);
 
-    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
-    assert(type instanceof ArrayType || type instanceof BytesType || type instanceof StringType);
+    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
+    assert(
+      type instanceof ArrayType ||
+        type instanceof TupleType ||
+        type instanceof BytesType ||
+        type instanceof StringType,
+    );
 
     const elementT = getElementType(type);
 

@@ -177,7 +177,7 @@ export function functionaliseSub(node: BinaryOperation, unsafe: boolean, ast: AS
       }
     }
   };
-  const typeNode = safeGetNodeType(node, ast.compilerVersion);
+  const typeNode = safeGetNodeType(node, ast.inference);
   assert(
     typeNode instanceof IntType,
     `Expected IntType for subtraction, got ${printTypeNode(typeNode)}`,

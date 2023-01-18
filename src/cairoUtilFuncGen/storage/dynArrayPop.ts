@@ -43,7 +43,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
   gen(pop: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(pop.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
-      safeGetNodeType(pop.vExpression.vExpression, this.ast.compilerVersion),
+      safeGetNodeType(pop.vExpression.vExpression, this.ast.inference),
     )[0];
     assert(
       arrayType instanceof ArrayType ||

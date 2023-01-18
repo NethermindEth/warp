@@ -59,7 +59,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 
   genIfNecesary(sourceExpression: Expression, targetType: TypeNode): [Expression, boolean] {
-    const sourceType = safeGetNodeType(sourceExpression, this.ast.compilerVersion);
+    const sourceType = safeGetNodeType(sourceExpression, this.ast.inference);
 
     const generalTarget = generalizeType(targetType)[0];
     const generalSource = generalizeType(sourceType)[0];
@@ -109,7 +109,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 
   gen(source: Expression, targetType: TypeNode): FunctionCall {
-    const sourceType = safeGetNodeType(source, this.ast.compilerVersion);
+    const sourceType = safeGetNodeType(source, this.ast.inference);
 
     const funcInfo = this.getOrCreate(targetType, sourceType);
 

@@ -95,7 +95,7 @@ export class TypeInformationCalculator extends ASTMapper {
     typestring: string,
     ast: AST,
   ): ASTNode {
-    let nodeType = safeGetNodeType(node, ast.compilerVersion);
+    let nodeType = safeGetNodeType(node, ast.inference);
     assert(
       nodeType instanceof TypeNameType,
       `Expected TypeNameType, found ${printTypeNode(nodeType)}`,
@@ -124,7 +124,7 @@ export class TypeInformationCalculator extends ASTMapper {
         if (memberName === 'name') return createStringLiteral(userDef.name, ast);
 
         if (userDef.kind === ContractKind.Interface && memberName === 'interfaceId') {
-          const interfaceId = userDef.interfaceId(ABIEncoderVersion.V2);
+          const interfaceId = ast.inference.interfaceId(userDef, ABIEncoderVersion.V2);
           assert(
             interfaceId !== undefined,
             'Contracts of kind interface must have a defined interfaceId',

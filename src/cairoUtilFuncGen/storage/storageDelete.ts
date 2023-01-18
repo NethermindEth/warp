@@ -49,7 +49,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const nodeType = dereferenceType(safeGetNodeType(node, this.ast.compilerVersion));
+    const nodeType = dereferenceType(safeGetNodeType(node, this.ast.inference));
 
     const funcInfo = this.getOrCreate(nodeType);
 
@@ -265,7 +265,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(loc : felt){`,
       `   alloc_locals;`,
       ...this.generateStructDeletionCode(
-        structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
+        structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.inference)),
       ),
       `   return ();`,
       `}`,

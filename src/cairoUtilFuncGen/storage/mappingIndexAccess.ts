@@ -36,8 +36,8 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     let index = node.vIndexExpression;
     assert(index !== undefined);
 
-    const nodeType = safeGetNodeType(node, this.ast.compilerVersion);
-    const baseType = safeGetNodeType(base, this.ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, this.ast.inference);
+    const baseType = safeGetNodeType(base, this.ast.inference);
 
     assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
 
@@ -49,7 +49,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     );
 
     if (isReferenceType(baseType.to.keyType)) {
-      const stringLoc = generalizeType(safeGetNodeType(index, this.ast.compilerVersion))[1];
+      const stringLoc = generalizeType(safeGetNodeType(index, this.ast.inference))[1];
       assert(stringLoc !== undefined);
       const call = this.createStringHashFunction(node, stringLoc, indexCairoType);
       index = call;
@@ -127,7 +127,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     indexCairoType: CairoType,
   ): FunctionCall {
     assert(node.vIndexExpression instanceof Expression);
-    const indexType = safeGetNodeType(node.vIndexExpression, this.ast.compilerVersion);
+    const indexType = safeGetNodeType(node.vIndexExpression, this.ast.inference);
     const indexTypeName = typeNameFromTypeNode(indexType, this.ast);
     if (loc === DataLocation.CallData) {
       const stub = createCairoFunctionStub(

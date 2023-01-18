@@ -44,7 +44,7 @@ export function createCallToFunction(
     new Identifier(
       ast.reserveId(),
       '',
-      getFunctionTypeString(functionDef, ast.compilerVersion, nodeInSourceUnit),
+      getFunctionTypeString(functionDef, ast.inference, nodeInSourceUnit),
       functionDef.name,
       functionDef.id,
     ),
@@ -206,7 +206,7 @@ export function createElementaryConversionCall(
   context: ASTNode,
   ast: AST,
 ): FunctionCall {
-  const isDynArray = isDynamicArray(safeGetNodeTypeInCtx(typeTo, ast.compilerVersion, context));
+  const isDynArray = isDynamicArray(safeGetNodeTypeInCtx(typeTo, ast.inference, context));
   const innerTypeString = isDynArray
     ? `type(${typeTo.typeString} storage pointer)`
     : `type(${typeTo.typeString})`;

@@ -58,7 +58,7 @@ export class ArrayFunctions extends ReferenceSubPass {
           this.expectedDataLocations.set(node.vArguments[0], actualArgLoc);
         }
       } else {
-        const type = safeGetNodeType(node, ast.compilerVersion);
+        const type = safeGetNodeType(node, ast.inference);
         replacement = utilGen.storage.dynArrayPush.withoutArg.gen(node);
         this.replace(node, replacement, node.parent, DataLocation.Storage, expectedLoc, ast);
         if (isDynamicArray(type)) {
@@ -89,7 +89,7 @@ export class ArrayFunctions extends ReferenceSubPass {
 
     const expectedLoc = this.getLocations(node)[1];
 
-    const baseType = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const baseType = safeGetNodeType(node.vExpression, ast.inference);
     if (baseType instanceof FixedBytesType) {
       const literal = createNumberLiteral(baseType.size, ast, 'uint8');
       if (expressionHasSideEffects(node.vExpression)) {
@@ -106,7 +106,7 @@ export class ArrayFunctions extends ReferenceSubPass {
     ) {
       if (isDynamicCallDataArray(baseType)) {
         const parent = node.parent;
-        const type = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
+        const type = generalizeType(safeGetNodeType(node, ast.inference))[0];
 
         const funcStub = createCairoFunctionStub(
           'felt_to_uint256',

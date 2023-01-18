@@ -31,14 +31,14 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
 
     const funcInfo = this.getOrCreate();
 
-    const arrayType = safeGetNodeType(node.vBaseExpression, this.ast.compilerVersion);
+    const arrayType = safeGetNodeType(node.vBaseExpression, this.ast.inference);
     assert(
       arrayType instanceof PointerType &&
         arrayType.to instanceof ArrayType &&
         arrayType.to.size !== undefined,
     );
 
-    const valueType = safeGetNodeType(node, this.ast.compilerVersion);
+    const valueType = safeGetNodeType(node, this.ast.inference);
 
     const funcDef = createCairoGeneratedFunction(
       funcInfo,

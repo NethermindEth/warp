@@ -41,7 +41,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): Expression {
-    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
     const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
@@ -378,7 +378,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
   let members: TypeNode[];
 
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    members = type.definition.vMembers.map((decl) => safeGetNodeType(decl, ast.compilerVersion));
+    members = type.definition.vMembers.map((decl) => safeGetNodeType(decl, ast.inference));
   } else if (type instanceof ArrayType && type.size !== undefined) {
     const narrowedWidth = narrowBigIntSafe(type.size, `Array size ${type.size} not supported`);
     members = mapRange(narrowedWidth, () => type.elementT);

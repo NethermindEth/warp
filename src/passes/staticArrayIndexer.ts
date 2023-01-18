@@ -89,7 +89,7 @@ export class StaticArrayIndexer extends ASTMapper {
     refVarDecl: VariableDeclaration,
     ast: AST,
   ): Identifier | IndexAccess | MemberAccess {
-    const exprType = safeGetNodeType(expr, ast.compilerVersion);
+    const exprType = safeGetNodeType(expr, ast.inference);
     const exprMemoryType = specializeType(generalizeType(exprType)[0], DataLocation.Memory);
 
     let replacement: Identifier | IndexAccess | MemberAccess;
@@ -127,7 +127,7 @@ export class StaticArrayIndexer extends ASTMapper {
     ast: AST,
   ): VariableDeclaration {
     const refId = identifier.referencedDeclaration;
-    const memoryType = generalizeType(safeGetNodeType(identifier, ast.compilerVersion))[0];
+    const memoryType = generalizeType(safeGetNodeType(identifier, ast.inference))[0];
 
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
@@ -184,7 +184,7 @@ function isCalldataStaticArray(type: TypeNode): boolean {
 function hasIndexAccess(node: Expression, ast: AST): boolean {
   return (
     (node instanceof IndexAccess &&
-      ((isCalldataStaticArray(safeGetNodeType(node.vBaseExpression, ast.compilerVersion)) &&
+      ((isCalldataStaticArray(safeGetNodeType(node.vBaseExpression, ast.inference)) &&
         isIndexedByNonLiteral(node)) ||
         hasIndexAccess(node.vBaseExpression, ast))) ||
     (node instanceof MemberAccess && hasIndexAccess(node.vExpression, ast))

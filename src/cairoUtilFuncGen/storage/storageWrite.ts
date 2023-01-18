@@ -8,11 +8,7 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -23,7 +19,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     writeValue: Expression,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
-    const typeToWrite = safeGetNodeType(storageLocation, this.ast.compilerVersion);
+    const typeToWrite = safeGetNodeType(storageLocation, this.ast.inference);
     const funcInfo = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
     const funcDef = createCairoGeneratedFunction(

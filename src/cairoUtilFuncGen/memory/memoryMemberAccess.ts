@@ -39,7 +39,7 @@ export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
   }
 
   gen(memberAccess: MemberAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const solType = safeGetNodeType(memberAccess.vExpression, this.ast.compilerVersion);
+    const solType = safeGetNodeType(memberAccess.vExpression, this.ast.inference);
     assert(solType instanceof PointerType);
     assert(solType.to instanceof UserDefinedType);
     const structCairoType = CairoType.fromSol(

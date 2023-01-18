@@ -129,11 +129,11 @@ export class IndexEncode extends AbiBase {
           ? this.createStringOrBytesHeadEncoding()
           : this.createStringOrBytesHeadEncodingWithoutPadding(),
       (type) =>
-        isDynamicallySized(type, this.ast.compilerVersion)
+        isDynamicallySized(type, this.ast.inference)
           ? this.createStaticArrayHeadEncoding(type)
           : this.createArrayInlineEncoding(type),
       (type, def) =>
-        isDynamicallySized(type, this.ast.compilerVersion)
+        isDynamicallySized(type, this.ast.inference)
           ? this.createStructHeadEncoding(type, def)
           : this.createStructInlineEncoding(type, def),
       unexpectedType,
@@ -156,7 +156,7 @@ export class IndexEncode extends AbiBase {
     padding = true,
   ): [string, CairoFunctionDefinition[]] {
     const func = this.getOrCreateEncoding(type, padding);
-    if (isDynamicallySized(type, this.ast.compilerVersion) || isStruct(type)) {
+    if (isDynamicallySized(type, this.ast.inference) || isStruct(type)) {
       return [
         [
           `let (${newIndexVar}) = ${func.name}(`,
@@ -187,7 +187,7 @@ export class IndexEncode extends AbiBase {
     }
 
     // Is value type
-    const size = getPackedByteSize(type, this.ast.compilerVersion);
+    const size = getPackedByteSize(type, this.ast.inference);
     const instructions: string[] = [];
     const importedFunc = [];
     // packed size of addresses is 32 bytes, but they are treated as felts,
@@ -468,7 +468,7 @@ export class IndexEncode extends AbiBase {
 
     const encodingInfo: [string, CairoFunctionDefinition[]][] = def.vMembers.map(
       (member, index) => {
-        const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
+        const type = generalizeType(safeGetNodeType(member, this.ast.inference))[0];
         const elemWidth = CairoType.fromSol(type, this.ast).width;
         const readFunc = this.readMemory(type, 'mem_ptr');
         const [encoding, functionsCalled] = this.generateEncodingCode(

@@ -50,7 +50,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
     if (isDynamicArray(type)) {
       this.dynamicArrayStructGen.gen(node, nodeInSourceUnit);
@@ -120,7 +120,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
         `    alloc_locals;`,
         ...structDef.vMembers.map((decl, index) => {
-          const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
+          const memberType = safeGetNodeType(decl, this.ast.inference);
           if (isReferenceType(memberType)) {
             funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_id'));
             const allocSize = isDynamicArray(memberType)

@@ -20,7 +20,7 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
 
   public gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
     const exprTypes = expressions.map(
-      (expr) => generalizeType(safeGetNodeType(expr, this.ast.compilerVersion))[0],
+      (expr) => generalizeType(safeGetNodeType(expr, this.ast.inference))[0],
     );
     const genFuncInfo = this.getOrCreate(exprTypes);
 

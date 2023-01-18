@@ -9,26 +9,21 @@ import {
   TypeName,
   TypeNode,
 } from 'solc-typed-ast';
-import { FLEnumDefinition } from 'solc-typed-ast/dist/compile/inference/file_level_definitions_parser';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { Implicits } from '../../utils/implicits';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
-import { CairoFunction, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayConcat extends StringIndexedFuncGen {
   gen(concat: FunctionCall) {
     const args = concat.vArguments;
     args.forEach((expr) => {
-      const exprType = safeGetNodeType(expr, this.ast.compilerVersion);
+      const exprType = safeGetNodeType(expr, this.ast.inference);
       if (
         !isDynamicArray(exprType) &&
         !(exprType instanceof IntType || exprType instanceof FixedBytesType)
@@ -41,16 +36,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     const inputs: [string, TypeName, DataLocation][] = mapRange(args.length, (n) => [
       `arg_${n}`,
-      typeNameFromTypeNode(safeGetNodeType(args[n], this.ast.compilerVersion), this.ast),
+      typeNameFromTypeNode(safeGetNodeType(args[n], this.ast.inference), this.ast),
       DataLocation.Memory,
     ]);
     const output: [string, TypeName, DataLocation] = [
       'res_loc',
-      typeNameFromTypeNode(safeGetNodeType(concat, this.ast.compilerVersion), this.ast),
+      typeNameFromTypeNode(safeGetNodeType(concat, this.ast.inference), this.ast),
       DataLocation.Memory,
     ];
 
-    const argTypes = args.map((e) => safeGetNodeType(e, this.ast.compilerVersion));
+    const argTypes = args.map((e) => safeGetNodeType(e, this.ast.inference));
     const funcInfo = this.getOrCreate(argTypes);
 
     const implicits: Implicits[] = argTypes.some(

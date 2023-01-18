@@ -20,7 +20,7 @@ import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
   gen(storageLocation: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const valueType = safeGetNodeType(storageLocation, this.ast.compilerVersion);
+    const valueType = safeGetNodeType(storageLocation, this.ast.inference);
     const resultCairoType = CairoType.fromSol(
       valueType,
       this.ast,

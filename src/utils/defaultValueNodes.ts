@@ -209,7 +209,7 @@ function userDefDefault(
     );
   if (nodeType.definition instanceof UserDefinedValueTypeDefinition)
     return getDefaultValue(
-      safeGetNodeType(nodeType.definition.underlyingType, ast.compilerVersion),
+      safeGetNodeType(nodeType.definition.underlyingType, ast.inference),
       parentNode,
       ast,
     );
@@ -243,7 +243,7 @@ function structDefault(
 ): Expression {
   const argsList: Expression[] = [];
   for (const member of structNode.vMembers) {
-    const tNode = safeGetNodeType(member, ast.compilerVersion);
+    const tNode = safeGetNodeType(member, ast.inference);
     argsList.push(getDefaultValue(tNode, node, ast));
   }
   return new FunctionCall(

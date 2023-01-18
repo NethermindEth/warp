@@ -163,7 +163,7 @@ export function createIdentifier(
   lookupNode?: ASTNode,
 ): Identifier {
   const type = specializeType(
-    safeGetNodeTypeInCtx(variable, ast.compilerVersion, lookupNode ?? variable),
+    safeGetNodeTypeInCtx(variable, ast.inference, lookupNode ?? variable),
     dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
   );
   const node = new Identifier(

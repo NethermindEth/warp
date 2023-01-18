@@ -116,7 +116,7 @@ export class AbiEncodePacked extends AbiBase {
       (type) => this.createArrayInlineEncoding(type),
       unexpectedType,
       unexpectedType,
-      (type) => this.createValueTypeHeadEncoding(getPackedByteSize(type, this.ast.compilerVersion)),
+      (type) => this.createValueTypeHeadEncoding(getPackedByteSize(type, this.ast.inference)),
     );
   }
 
@@ -167,7 +167,7 @@ export class AbiEncodePacked extends AbiBase {
     }
 
     // Type is value type
-    const packedByteSize = getPackedByteSize(type, this.ast.compilerVersion);
+    const packedByteSize = getPackedByteSize(type, this.ast.inference);
     const args = ['bytes_index', 'bytes_array', '0', varToEncode];
     if (packedByteSize < 32) args.push(`${packedByteSize}`);
 

@@ -22,8 +22,8 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
-    const arrayType = safeGetNodeType(push.vExpression.vExpression, this.ast.compilerVersion);
-    const elementType = safeGetNodeType(push, this.ast.compilerVersion);
+    const arrayType = safeGetNodeType(push.vExpression.vExpression, this.ast.inference);
+    const elementType = safeGetNodeType(push, this.ast.inference);
 
     const name = this.getOrCreate(
       CairoType.fromSol(elementType, this.ast, TypeConversionContext.StorageAllocation),
