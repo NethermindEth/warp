@@ -6,6 +6,7 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   SourceUnit,
   StringType,
@@ -161,9 +162,10 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const structDef = CairoType.fromSol(arrayType, this.ast, TypeConversionContext.CallDataRef);
     assert(structDef instanceof CairoDynArray);
 
-    const [arrayName, arrayLen] = this.dynArrayGen.gen(
+    const arrayInfo = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
+    const lenName = arrayInfo.name + '_LENGTH';
     const cairoElementType = CairoType.fromSol(
       elementT,
       this.ast,
@@ -175,6 +177,8 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const pointerType = `${cairoElementType.toString()}*`;
 
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(this.requireImport('warplib.maths.int_conversions', 'warp_uint256'));
     const funcName = `cd_dynamic_array_to_storage${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}_write${implicits}(loc : felt, index : felt, len : felt, elem: ${pointerType}){`,
@@ -183,11 +187,11 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       `       return ();`,
       `   }`,
       `   let (index_uint256) = warp_uint256(index);`,
-      `   let (elem_loc) = ${arrayName}.read(loc, index_uint256);`,
+      `   let (elem_loc) = ${arrayInfo.name}.read(loc, index_uint256);`,
       `   if (elem_loc == 0){`,
       `       let (elem_loc) = WARP_USED_STORAGE.read();`,
       `       WARP_USED_STORAGE.write(elem_loc + ${cairoElementType.width});`,
-      `       ${arrayName}.write(loc, index_uint256, elem_loc);`,
+      `       ${arrayInfo.name}.write(loc, index_uint256, elem_loc);`,
       `       ${copyCode}`,
       `       return ${funcName}_write(loc, index + 1, len, elem);`,
       `   }else{`,
@@ -199,15 +203,17 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt){ `,
       `   alloc_locals;`,
       `   let (len_uint256) = warp_uint256(dyn_array_struct.len);`,
-      `   ${arrayLen}.write(loc, len_uint256);`,
+      `   ${lenName}.write(loc, len_uint256);`,
       `   ${funcName}_write(loc, 0, dyn_array_struct.len, dyn_array_struct.ptr);`,
       `   return (loc,);`,
       `}`,
     ].join('\n');
 
-    this.requireImport('warplib.maths.int_conversions', 'warp_uint256');
-
-    const funcInfo = { name: funcName, code: code, functionsCalled: [] };
+    const funcInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: code,
+      functionsCalled: funcsCalled,
+    };
     this.generatedFunctions.set(key, funcInfo);
 
     return funcInfo;

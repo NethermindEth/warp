@@ -12,13 +12,17 @@ import {
   StringType,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../../utils/functionGeneration';
 import {
   CairoType,
   generateCallDataDynArrayStructName,
   TypeConversionContext,
 } from '../../../utils/cairoTypeSystem';
-import { StringIndexedFuncGen } from '../../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../../base';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { FunctionStubKind } from '../../../ast/cairoNodes';
 import { typeNameFromTypeNode } from '../../../utils/utils';
@@ -46,9 +50,9 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       `Attempted to create dynArray struct for non-dynarray type ${printTypeNode(type)}`,
     );
 
-    const name = this.getOrCreate(type);
-    const structDefStub = createCairoFunctionStub(
-      name,
+    const funcInfo = this.getOrCreate(type);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [['darray_struct', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [],
@@ -65,7 +69,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       const functionInputs: Identifier[] = [
         createIdentifier(astNode, this.ast, DataLocation.CallData, nodeInSourceUnit ?? astNode),
       ];
-      return createCallToFunction(structDefStub, functionInputs, this.ast);
+      return createCallToFunction(funcDef, functionInputs, this.ast);
     } else {
       // When CallData DynArrays are being returned and we do not need the StructConstructor to be returned, we just need
       // the StructDefinition to be in the contract.
@@ -73,7 +77,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     }
   }
 
-  getOrCreate(type: ArrayType | BytesType | StringType): string {
+  getOrCreate(type: ArrayType | BytesType | StringType): GeneratedFunctionInfo {
     const elemType = getElementType(type);
     const elementCairoType = CairoType.fromSol(
       elemType,
@@ -84,10 +88,10 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
 
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: key,
       code: [
         `struct ${key}{`,
@@ -95,8 +99,9 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
         `${INDENT} ptr : ${elementCairoType.toString()}*,`,
         `}`,
       ].join('\n'),
-    });
-
-    return key;
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 }

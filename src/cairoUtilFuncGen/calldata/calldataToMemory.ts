@@ -11,11 +11,22 @@ import {
   StructDefinition,
   BytesType,
   StringType,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
+import {
+  add,
+  CairoFunction,
+  delegateBasedOnType,
+  GeneratedFunctionInfo,
+  StringIndexedFuncGen,
+} from '../base';
 import { uint256 } from '../../warplib/utils';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
@@ -31,9 +42,9 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
 
-    const name = this.getOrCreate(type);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcInfo = this.getOrCreate(type);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['calldata', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
@@ -41,19 +52,24 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? node,
       { mutability: FunctionStateMutability.Pure },
     );
-    return createCallToFunction(functionStub, [node], this.ast);
+    return createCallToFunction(funcDef, [node], this.ast);
   }
 
-  private getOrCreate(type: TypeNode): string {
+  private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const funcName = `cd_to_memory${this.generatedFunctions.size}`;
     // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    const emptyFuncInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: '',
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
@@ -61,7 +77,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       );
     };
 
-    const code = delegateBasedOnType<CairoFunction>(
+    const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       type,
       (type) => this.createDynamicArrayCopyFunction(funcName, type),
       (type) => this.createStaticArrayCopyFunction(funcName, type),
@@ -70,17 +86,21 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       unexpectedTypeFunc,
     );
 
-    this.generatedFunctions.set(key, code);
-    return code.name;
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
+
   createDynamicArrayCopyFunction(
     funcName: string,
     type: ArrayType | BytesType | StringType,
-  ): CairoFunction {
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('warplib.memory', 'wm_new');
-    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+  ): GeneratedFunctionInfo {
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('warplib.memory', 'wm_new'),
+      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+    );
     const elementT = getElementType(type);
     const size = getSize(type);
 
@@ -92,10 +112,11 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     let copyCode: string;
 
     if (isReferenceType(elementT)) {
-      const recursiveFunc = this.getOrCreate(elementT);
+      const recursiveFuncInfo = this.getOrCreate(elementT);
+      funcsCalled.push(...recursiveFuncInfo.functionsCalled);
       copyCode = [
         `let cdElem = calldata[0];`,
-        `let (mElem) = ${recursiveFunc}(cdElem);`,
+        `let (mElem) = ${recursiveFuncInfo.name}(cdElem);`,
         `dict_write{dict_ptr=warp_memory}(mem_start, mElem);`,
       ].join('\n');
     } else if (memoryElementWidth === 2) {
@@ -126,12 +147,16 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
+      functionsCalled: funcsCalled,
     };
   }
-  createStaticArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('warplib.memory', 'wm_alloc');
+  createStaticArrayCopyFunction(funcName: string, type: ArrayType): GeneratedFunctionInfo {
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('warplib.memory', 'wm_alloc'),
+    );
 
     assert(type.size !== undefined);
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
@@ -144,11 +169,12 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     const loc = (index: number) =>
       index === 0 ? `mem_start` : `mem_start  + ${index}${memoryOffsetMultiplier}`;
     if (isReferenceType(type.elementT)) {
-      const recursiveFunc = this.getOrCreate(type.elementT);
+      const recursiveFuncInfo = this.getOrCreate(type.elementT);
+      funcsCalled.push(...recursiveFuncInfo.functionsCalled);
       copyCode = (index) =>
         [
           `let cdElem = calldata[${index}];`,
-          `let (mElem) = ${recursiveFunc}(cdElem);`,
+          `let (mElem) = ${recursiveFuncInfo.name}(cdElem);`,
           `dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem);`,
         ].join('\n');
     } else if (memoryElementWidth === 2) {
@@ -171,12 +197,16 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
+      functionsCalled: funcsCalled,
     };
   }
-  createStructCopyFunction(funcName: string, type: UserDefinedType): CairoFunction {
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('warplib.memory', 'wm_alloc');
+  createStructCopyFunction(funcName: string, type: UserDefinedType): GeneratedFunctionInfo {
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('warplib.memory', 'wm_alloc'),
+    );
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
@@ -193,9 +223,10 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         ...structDef.vMembers.map((decl): string => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
-            const recursiveFunc = this.getOrCreate(memberType);
+            const recursiveFuncInfo = this.getOrCreate(memberType);
+            funcsCalled.push(...recursiveFuncInfo.functionsCalled);
             const code = [
-              `let (m${memOffset}) = ${recursiveFunc}(calldata.${decl.name});`,
+              `let (m${memOffset}) = ${recursiveFuncInfo.name}(calldata.${decl.name});`,
               `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}, m${memOffset});`,
             ].join('\n');
             memOffset++;
@@ -221,6 +252,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
+      functionsCalled: funcsCalled,
     };
   }
 }

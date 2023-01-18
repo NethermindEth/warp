@@ -11,6 +11,7 @@ import {
   Expression,
   FixedBytesType,
   FunctionCall,
+  FunctionDefinition,
   FunctionStateMutability,
   generalizeType,
   IntType,
@@ -24,10 +25,19 @@ import { FunctionStubKind } from '../../ast/cairoNodes';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { delegateBasedOnType, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import {
+  delegateBasedOnType,
+  GeneratedFunctionInfo,
+  locationIfComplexType,
+  StringIndexedFuncGen,
+} from '../base';
 import {
   checkableType,
   getElementType,
@@ -35,6 +45,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
+import { GettersGenerator } from '../../export';
 
 export class InputCheckGen extends StringIndexedFuncGen {
   gen(
@@ -54,9 +65,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
       this.requireImport('warplib.maths.utils', 'narrow_safe');
     }
     this.sourceUnit = this.ast.getContainingRoot(nodeInSourceUnit);
-    const name = this.getOrCreate(typeToCheck, isUint256);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcInfo = this.getOrCreate(typeToCheck, isUint256);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         [
           'ref_var',
@@ -74,25 +85,25 @@ export class InputCheckGen extends StringIndexedFuncGen {
         acceptsRawDArray: isDynamicArray(typeToCheck),
       },
     );
-    return createCallToFunction(functionStub, [functionInput], this.ast);
+    return createCallToFunction(funcDef, [functionInput], this.ast);
   }
 
-  private getOrCreate(type: TypeNode, takesUint = false): string {
+  private getOrCreate(type: TypeNode, takesUint = false): GeneratedFunctionInfo {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(`Input check for ${printTypeNode(type)} not defined yet.`);
     };
 
-    return delegateBasedOnType<string>(
+    return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynArrayInputCheck(key, this.generateFuncName(key), type),
-      (type) => this.createStaticArrayInputCheck(key, this.generateFuncName(key), type),
-      (type) => this.createStructInputCheck(key, this.generateFuncName(key), type),
+      (type) => this.createDynArrayInputCheck(key, this.generateFuncName(key).name, type),
+      (type) => this.createStaticArrayInputCheck(key, this.generateFuncName(key).name, type),
+      (type) => this.createStructInputCheck(key, this.generateFuncName(key).name, type),
       unexpectedTypeFunc,
       (type) => {
         if (type instanceof FixedBytesType) {
@@ -115,38 +126,50 @@ export class InputCheckGen extends StringIndexedFuncGen {
     );
   }
 
-  private generateFuncName(key: string): string {
+  private generateFuncName(key: string): GeneratedFunctionInfo {
     const funcName = `extern_input_check${this.generatedFunctions.size}`;
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
-    return funcName;
+    const funcInfo: GeneratedFunctionInfo = { name: funcName, code: '', functionsCalled: [] };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
-  private createIntInputCheck(bitWidth: number): string {
+  private createIntInputCheck(bitWidth: number): GeneratedFunctionInfo {
     const funcName = `warp_external_input_check_int${bitWidth}`;
-    this.requireImport(
-      'warplib.maths.external_input_check_ints',
-      `warp_external_input_check_int${bitWidth}`,
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport(
+        'warplib.maths.external_input_check_ints',
+        `warp_external_input_check_int${bitWidth}`,
+      ),
     );
-    return funcName;
+    return { name: funcName, code: '', functionsCalled: funcsCalled };
   }
 
-  private createAddressInputCheck(): string {
+  private createAddressInputCheck(): GeneratedFunctionInfo {
     const funcName = 'warp_external_input_check_address';
-    this.requireImport(
-      'warplib.maths.external_input_check_address',
-      `warp_external_input_check_address`,
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport(
+        'warplib.maths.external_input_check_address',
+        `warp_external_input_check_address`,
+      ),
     );
-    return funcName;
+    return { name: funcName, code: '', functionsCalled: funcsCalled };
   }
 
-  private createStructInputCheck(key: string, funcName: string, type: UserDefinedType): string {
+  private createStructInputCheck(
+    key: string,
+    funcName: string,
+    type: UserDefinedType,
+  ): GeneratedFunctionInfo {
     const implicits = '{range_check_ptr : felt}';
 
     const structDef = type.definition;
     assert(structDef instanceof StructDefinition);
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
-    this.generatedFunctions.set(key, {
+    const funcsCalled: FunctionDefinition[] = [];
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
@@ -155,8 +178,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           this.checkForImport(memberType);
           if (checkableType(memberType)) {
-            const memberCheck = this.getOrCreate(memberType);
-            return [`${memberCheck}(arg.${decl.name});`];
+            const memberCheckInfo = this.getOrCreate(memberType);
+            funcsCalled.push(...memberCheckInfo.functionsCalled);
+            return [`${memberCheckInfo.name}(arg.${decl.name});`];
           } else {
             return '';
           }
@@ -164,11 +188,17 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `return ();`,
         `}`,
       ].join('\n'),
-    });
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
-  private createStaticArrayInputCheck(key: string, funcName: string, type: ArrayType): string {
+  private createStaticArrayInputCheck(
+    key: string,
+    funcName: string,
+    type: ArrayType,
+  ): GeneratedFunctionInfo {
     const implicits = '{range_check_ptr : felt}';
 
     assert(type.size !== undefined);
@@ -178,36 +208,52 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const elementType = generalizeType(type.elementT)[0];
     this.checkForImport(elementType);
-    this.generatedFunctions.set(key, {
+    const funcsCalled: FunctionDefinition[] = [];
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
         `alloc_locals;`,
         ...mapRange(length, (index) => {
-          const indexCheck = this.getOrCreate(elementType);
-          return [`${indexCheck}(arg[${index}]);`];
+          const indexCheckinfo = this.getOrCreate(elementType);
+          funcsCalled.push(...indexCheckinfo.functionsCalled);
+          return [`${indexCheckinfo.name}(arg[${index}]);`];
         }),
         `return ();`,
         `}`,
       ].join('\n'),
-    });
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
-  private createBoolInputCheck(): string {
+  private createBoolInputCheck(): GeneratedFunctionInfo {
     const funcName = `warp_external_input_check_bool`;
-    this.requireImport('warplib.maths.external_input_check_bool', `warp_external_input_check_bool`);
-    return funcName;
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport(
+        'warplib.maths.external_input_check_bool',
+        `warp_external_input_check_bool`,
+      ),
+    );
+    return { name: funcName, code: '', functionsCalled: funcsCalled };
   }
 
-  private createEnumInputCheck(key: string, type: UserDefinedType, takesUint = false): string {
+  private createEnumInputCheck(
+    key: string,
+    type: UserDefinedType,
+    takesUint = false,
+  ): GeneratedFunctionInfo {
     const funcName = `extern_input_check${this.generatedFunctions.size}`;
     const implicits = '{range_check_ptr : felt}';
 
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt'));
     const enumDef = type.definition;
     assert(enumDef instanceof EnumDefinition);
     const nMembers = enumDef.vMembers.length;
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
@@ -225,16 +271,17 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `    return ();`,
         `}`,
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
   private createDynArrayInputCheck(
     key: string,
     funcName: string,
     type: ArrayType | BytesType | StringType,
-  ): string {
+  ): GeneratedFunctionInfo {
     const implicits = '{range_check_ptr : felt}';
 
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
@@ -242,9 +289,14 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const ptrType = cairoType.vPtr;
     const elementType = generalizeType(getElementType(type))[0];
     this.checkForImport(elementType);
-    const indexCheck = [`${this.getOrCreate(elementType)}(ptr[0]);`];
 
-    this.generatedFunctions.set(key, {
+    const funcsCalled: FunctionDefinition[] = [];
+
+    const calledFunctionInfo = this.getOrCreate(elementType);
+    funcsCalled.push(...calledFunctionInfo.functionsCalled);
+    const indexCheck = [`${calledFunctionInfo.name}(ptr[0]);`];
+
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
@@ -257,7 +309,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `    return ();`,
         `}`,
       ].join('\n'),
-    });
-    return funcName;
+      functionsCalled: funcsCalled,
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 }

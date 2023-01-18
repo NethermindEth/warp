@@ -14,11 +14,15 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { isDynamicStorageArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, CairoFunction, StringIndexedFuncGen } from '../base';
+import { add, CairoFunction, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { getBaseType } from '../memory/implicitConversion';
 import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
@@ -98,10 +102,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const lhsType = safeGetNodeType(lhs, this.ast.compilerVersion);
     const rhsType = safeGetNodeType(rhs, this.ast.compilerVersion);
 
-    const name = this.getOrCreate(lhsType, rhsType);
+    const funcInfo = this.getOrCreate(lhsType, rhsType);
 
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         ['lhs', typeNameFromTypeNode(lhsType, this.ast), DataLocation.Storage],
         ['rhs', typeNameFromTypeNode(rhsType, this.ast), DataLocation.CallData],
@@ -113,12 +117,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     );
 
     return createCallToFunction(
-      functionStub,
+      funcDef,
       [cloneASTNode(lhs, this.ast), cloneASTNode(rhs, this.ast)],
       this.ast,
     );
   }
-  getOrCreate(targetType: TypeNode, sourceType: TypeNode): string {
+  getOrCreate(targetType: TypeNode, sourceType: TypeNode): GeneratedFunctionInfo {
     const sourceRepForKey = CairoType.fromSol(
       generalizeType(sourceType)[0],
       this.ast,
@@ -140,27 +144,27 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
-    let cairoFunc: CairoFunction;
+    let funcInfo: GeneratedFunctionInfo;
     if (targetType.to.size === undefined && sourceType.to.size === undefined) {
-      cairoFunc = this.DynamicToDynamicConversion(key, targetType, sourceType);
+      funcInfo = this.DynamicToDynamicConversion(key, targetType, sourceType);
     } else if (targetType.to.size === undefined && sourceType.to.size !== undefined) {
-      cairoFunc = this.staticToDynamicConversion(key, targetType, sourceType);
+      funcInfo = this.staticToDynamicConversion(key, targetType, sourceType);
     } else {
-      cairoFunc = this.staticToStaticConversion(key, targetType, sourceType);
+      funcInfo = this.staticToStaticConversion(key, targetType, sourceType);
     }
-    return cairoFunc.name;
+    return funcInfo;
   }
 
   private staticToStaticConversion(
     key: string,
     targetType: TypeNode,
     sourceType: TypeNode,
-  ): CairoFunction {
+  ): GeneratedFunctionInfo {
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
@@ -168,7 +172,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_ST_TO_WS_ST${this.generatedFunctions.size}`;
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    const emptyFuncInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: '',
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const cairoSourceType = CairoType.fromSol(
       sourceType,
@@ -195,8 +204,13 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       '}',
     ].join('\n');
     this.addImports(targetElmType, sourceElmType);
-    this.generatedFunctions.set(key, { name: funcName, code: code });
-    return { name: funcName, code: code };
+    const funcInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: code,
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
   private generateS2SCopyInstructions(
@@ -282,7 +296,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     key: string,
     targetType: TypeNode,
     sourceType: TypeNode,
-  ): CairoFunction {
+  ): GeneratedFunctionInfo {
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
@@ -292,7 +306,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_ST_TO_WS_DY${this.generatedFunctions.size}`;
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    const emptyFuncInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: '',
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const cairoTargetElementType = CairoType.fromSol(
       targetType.to.elementT,
@@ -312,7 +331,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     assert(sizeSource !== undefined);
 
-    const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
+    const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType).name + '_LENGTH';
     const copyInstructions = this.generateS2DCopyInstructions(
       targetElmType,
       sourceElmType,
@@ -332,8 +351,13 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       '}',
     ].join('\n');
     this.addImports(targetElmType, sourceElmType);
-    this.generatedFunctions.set(key, { name: funcName, code: code });
-    return { name: funcName, code: code };
+    const funcInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: code,
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
   private generateS2DCopyInstructions(
@@ -407,7 +431,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         }
       } else {
         if (isDynamicStorageArray(targetElmType)) {
-          const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
+          const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType).name + '_LENGTH';
           return [
             `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
@@ -436,7 +460,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     key: string,
     targetType: TypeNode,
     sourceType: TypeNode,
-  ): CairoFunction {
+  ): GeneratedFunctionInfo {
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
@@ -446,7 +470,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_DY_TO_WS_DY${this.generatedFunctions.size}`;
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    const emptyFuncInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: '',
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const cairoTargetElementType = CairoType.fromSol(
       targetType.to.elementT,
@@ -461,7 +490,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     );
     assert(cairoSourceType instanceof CairoDynArray);
 
-    const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
+    const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType).name + '_LENGTH';
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const loaderName = `DY_LOADER${this.generatedFunctions.size}`;
@@ -490,8 +519,13 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       '}',
     ].join('\n');
     this.addImports(targetElmType, sourceElmType);
-    this.generatedFunctions.set(key, { name: funcName, code: code });
-    return { name: funcName, code: code };
+    const funcInfo: GeneratedFunctionInfo = {
+      name: funcName,
+      code: code,
+      functionsCalled: [],
+    };
+    this.generatedFunctions.set(key, funcInfo);
+    return funcInfo;
   }
 
   private generateDynCopyInstructions(targetElmType: TypeNode, sourceElmType: TypeNode): string {
