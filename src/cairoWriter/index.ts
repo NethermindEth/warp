@@ -93,6 +93,8 @@ import {
   VariableDeclarationStatementWriter,
   VariableDeclarationWriter,
 } from './writers';
+import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
+import { CairoGeneratedFunctionDefinitionWriter } from './writers/cairoGeneratedFunctionDefinitionWriter';
 
 export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
@@ -104,6 +106,10 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
+    [
+      CairoGeneratedFunctionDefinition,
+      new CairoGeneratedFunctionDefinitionWriter(ast, throwOnUnimplemented),
+    ],
     [CairoTempVarStatement, new CairoTempVarWriter(ast, throwOnUnimplemented)],
     [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
