@@ -6,6 +6,7 @@ import {
   Expression,
   FixedBytesType,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   IntType,
   PointerType,
@@ -177,6 +178,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_ST_TO_WS_ST${this.generatedFunctions.size}`;
+    const funcsCalled: FunctionDefinition[] = [];
     const emptyFuncInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: '',
@@ -197,6 +199,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       targetElmType,
       sourceElmType,
       sizeSource,
+      funcsCalled,
     );
 
     const implicit =
@@ -212,7 +215,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: code,
-      functionsCalled: [],
+      functionsCalled: funcsCalled,
     };
     this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
@@ -222,6 +225,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     targetElmType: TypeNode,
     sourceElmType: TypeNode,
     length: number,
+    funcsCalled: FunctionDefinition[],
   ): string[] {
     const cairoTargetElementType = CairoType.fromSol(
       targetElmType,
@@ -235,25 +239,32 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       if (targetElmType instanceof IntType) {
         assert(sourceElmType instanceof IntType);
         if (targetElmType.nBits === sourceElmType.nBits) {
-          code = `     ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
-            'storage_loc',
-            offset,
-          )}, arg[${index}]);`;
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(writeDef);
+          code = `     ${writeDef.name}(${add('storage_loc', offset)}, arg[${index}]);`;
         } else if (targetElmType.signed) {
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
           code = [
             `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
-            `${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
-              'storage_loc',
-              offset,
-            )}, arg_${index});`,
+            `${writeDef.name}(${add('storage_loc', offset)}, arg_${index});`,
           ].join('\n');
         } else {
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
           code = [
             `    let (arg_${index}) = felt_to_uint256(arg[${index}]);`,
-            `    ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
-              'storage_loc',
-              offset,
-            )}, arg_${index});`,
+            `    ${writeDef.name}(${add('storage_loc', offset)}, arg_${index});`,
           ].join('\n');
         }
       } else if (
@@ -261,20 +272,24 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         sourceElmType instanceof FixedBytesType
       ) {
         if (targetElmType.size > sourceElmType.size) {
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
           code = [
             `    let (arg_${index}) = warp_bytes_widen${
               targetElmType.size === 32 ? '_256' : ''
             }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8});`,
-            `    ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
-              'storage_loc',
-              offset,
-            )}, arg_${index});`,
+            `    ${writeDef.name}(${add('storage_loc', offset)}, arg_${index});`,
           ].join('\n');
         } else {
-          code = `     ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
-            'storage_loc',
-            offset,
-          )}, arg[${index}]);`;
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          code = `     ${writeDef.name}(${add('storage_loc', offset)}, arg[${index}]);`;
         }
       } else {
         if (isDynamicStorageArray(targetElmType)) {
@@ -311,6 +326,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_ST_TO_WS_DY${this.generatedFunctions.size}`;
+    const funcsCalled: FunctionDefinition[] = [];
     const emptyFuncInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: '',
@@ -341,11 +357,13 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       this.genNode,
       this.genNodeInSourceUnit,
     );
+    funcsCalled.push(dynArrayDef);
     const dynArrayLengthName = dynArrayDef.name + '_LENGTH';
     const copyInstructions = this.generateS2DCopyInstructions(
       targetElmType,
       sourceElmType,
       sizeSource,
+      funcsCalled,
     );
 
     const implicit =
@@ -364,7 +382,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: code,
-      functionsCalled: [],
+      functionsCalled: funcsCalled,
     };
     this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
@@ -374,6 +392,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     targetElmType: TypeNode,
     sourceElmType: TypeNode,
     length: number,
+    funcsCalled: FunctionDefinition[],
   ): string[] {
     const cairoTargetElementType = CairoType.fromSol(
       targetElmType,
@@ -384,33 +403,54 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       if (targetElmType instanceof IntType) {
         assert(sourceElmType instanceof IntType);
         if (targetElmType.nBits === sourceElmType.nBits) {
+          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(arrayDef, writeDef);
           return [
-            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElmType,
-            )}(ref, ${uint256(index)});`,
-            `    ${this.storageWriteGen.getOrCreate(
-              targetElmType,
-            )}(storage_loc${index}, arg[${index}]);`,
+            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `    ${writeDef}(storage_loc${index}, arg[${index}]);`,
           ].join('\n');
         } else if (targetElmType.signed) {
+          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(arrayDef, writeDef);
           return [
             `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
-            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElmType,
-            )}(ref, ${uint256(index)});`,
-            `    ${this.storageWriteGen.getOrCreate(
-              targetElmType,
-            )}(storage_loc${index}, arg_${index});`,
+            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
           ].join('\n');
         } else {
+          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(arrayDef, writeDef);
           return [
             `    let (arg_${index}) = felt_to_uint256(arg[${index}]);`,
-            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElmType,
-            )}(ref, ${uint256(index)});`,
-            `    ${this.storageWriteGen.getOrCreate(
-              targetElmType,
-            )}(storage_loc${index}, arg_${index});`,
+            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
           ].join('\n');
         }
       } else if (
@@ -418,43 +458,67 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         sourceElmType instanceof FixedBytesType
       ) {
         if (targetElmType.size > sourceElmType.size) {
+          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(arrayDef, writeDef);
           return [
             `    let (arg_${index}) = warp_bytes_widen${
               targetElmType.size === 32 ? '_256' : ''
             }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8});`,
-            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElmType,
-            )}(ref, ${uint256(index)});`,
-            `    ${this.storageWriteGen.getOrCreate(
-              targetElmType,
-            )}(storage_loc${index}, arg_${index});`,
+            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
           ].join('\n');
         } else {
+          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(arrayDef, writeDef);
           return [
-            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElmType,
-            )}(ref, ${uint256(index)});`,
-            `    ${this.storageWriteGen.getOrCreate(
-              targetElmType,
-            )}(storage_loc${index}, arg[${index}]);`,
+            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `    ${writeDef.name}(storage_loc${index}, arg[${index}]);`,
           ].join('\n');
         }
       } else {
         if (isDynamicStorageArray(targetElmType)) {
-          const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType).name + '_LENGTH';
+          const dynArrayLengthName =
+            this.dynArrayGen.gen(cairoTargetElementType, this.genNode, this.genNodeInSourceUnit)
+              .name + '_LENGTH';
+          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(arrayDef);
           return [
-            `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElmType,
-            )}(ref, ${uint256(index)});`,
+            `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
             `     let (ref_${index}) = readId(storage_loc${index});`,
             `     ${dynArrayLengthName}.write(ref_${index}, ${uint256(length)});`,
             `     ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}]);`,
           ].join('\n');
         } else {
+          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+            targetElmType,
+            this.genNode,
+            this.genNodeInSourceUnit,
+          );
+          funcsCalled.push(arrayDef);
           return [
-            `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElmType,
-            )}(ref, ${uint256(index)});`,
+            `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
             `    ${this.getOrCreate(
               targetElmType,
               sourceElmType,
@@ -480,6 +544,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_DY_TO_WS_DY${this.generatedFunctions.size}`;
+    const funcsCalled: FunctionDefinition[] = [];
     const emptyFuncInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: '',
@@ -500,22 +565,36 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     );
     assert(cairoSourceType instanceof CairoDynArray);
 
-    const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType).name + '_LENGTH';
+    const dynArrayDef = this.dynArrayGen.gen(
+      cairoTargetElementType,
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    funcsCalled.push(dynArrayDef);
+    const dynArrayLengthName = dynArrayDef.name + '_LENGTH';
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const loaderName = `DY_LOADER${this.generatedFunctions.size}`;
 
-    const copyInstructions = this.generateDynCopyInstructions(targetElmType, sourceElmType);
+    const copyInstructions = this.generateDynCopyInstructions(
+      targetElmType,
+      sourceElmType,
+      funcsCalled,
+    );
 
+    const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+      targetElmType,
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    funcsCalled.push(arrayDef);
     const code = [
       `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
       `    alloc_locals;`,
       `    if (len == 0){`,
       `      return ();`,
       `    }`,
-      `    let (storage_loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
-        targetElmType,
-      )}(ref, Uint256(target_index, 0));`,
+      `    let (storage_loc) = ${arrayDef.name}(ref, Uint256(target_index, 0));`,
       copyInstructions,
 
       `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
@@ -538,15 +617,31 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     return funcInfo;
   }
 
-  private generateDynCopyInstructions(targetElmType: TypeNode, sourceElmType: TypeNode): string {
+  private generateDynCopyInstructions(
+    targetElmType: TypeNode,
+    sourceElmType: TypeNode,
+    funcsCalled: FunctionDefinition[],
+  ): string {
     if (sourceElmType instanceof IntType && targetElmType instanceof IntType) {
+      const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+        targetElmType,
+        this.genNode,
+        this.genNodeInSourceUnit,
+      );
+      funcsCalled.push(writeDef);
       return [
         sourceElmType.signed
           ? `    let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0]);`
           : `    let (val) = felt_to_uint256(ptr[0]);`,
-        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val);`,
+        `    ${writeDef.name}(storage_loc, val);`,
       ].join('\n');
     } else if (targetElmType instanceof FixedBytesType && sourceElmType instanceof FixedBytesType) {
+      const writeDef = this.storageWriteGen.getOrCreateFuncDef(
+        targetElmType,
+        this.genNode,
+        this.genNodeInSourceUnit,
+      );
+      funcsCalled.push(writeDef);
       return [
         targetElmType.size === 32
           ? `    let (val) = warp_bytes_widen_256(ptr[0], ${
@@ -555,7 +650,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           : `    let (val) = warp_bytes_widen(ptr[0], ${
               (targetElmType.size - sourceElmType.size) * 8
             });`,
-        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val);`,
+        `    ${writeDef.name}(storage_loc, val);`,
       ].join('\n');
     } else {
       return isDynamicStorageArray(targetElmType)

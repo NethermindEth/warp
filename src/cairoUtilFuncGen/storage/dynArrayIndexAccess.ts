@@ -37,12 +37,18 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const baseType = safeGetNodeType(base, this.ast.inference);
 
     assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
+
+    const funcDef = this.getOrCreateFuncDef(nodeType, node, nodeInSourceUnit);
+    return createCallToFunction(funcDef, [base, index], this.ast);
+  }
+
+  getOrCreateFuncDef(nodeType: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
     const funcInfo = this.getOrCreate(nodeType);
 
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
-        ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
+        // ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
         ['offset', createUint256TypeName(this.ast)],
       ],
       [['resLoc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
@@ -50,8 +56,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? node,
     );
-
-    return createCallToFunction(funcDef, [base, index], this.ast);
+    return funcDef;
   }
 
   getOrCreate(valueType: TypeNode): GeneratedFunctionInfo {
