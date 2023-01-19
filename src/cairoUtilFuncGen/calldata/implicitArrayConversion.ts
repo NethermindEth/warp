@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  ASTNode,
   DataLocation,
   Expression,
   FixedBytesType,
@@ -29,6 +30,8 @@ import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
 
 export class ImplicitArrayConversion extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private storageWriteGen: StorageWriteGen,
     private dynArrayGen: DynArrayGen,
@@ -95,22 +98,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   gen(lhs: Expression, rhs: Expression): FunctionCall {
+    this.genNode = rhs;
     const lhsType = safeGetNodeType(lhs, this.ast.inference);
     const rhsType = safeGetNodeType(rhs, this.ast.inference);
-
-    const funcInfo = this.getOrCreate(lhsType, rhsType);
-
-    const funcDef = createCairoGeneratedFunction(
-      funcInfo,
-      [
-        ['lhs', typeNameFromTypeNode(lhsType, this.ast), DataLocation.Storage],
-        ['rhs', typeNameFromTypeNode(rhsType, this.ast), DataLocation.CallData],
-      ],
-      [],
-      ['syscall_ptr', 'bitwise_ptr', 'range_check_ptr', 'pedersen_ptr', 'bitwise_ptr'],
-      this.ast,
-      rhs,
-    );
+    const funcDef = this.getOrCreateFuncDef(lhsType, rhsType, rhs);
 
     return createCallToFunction(
       funcDef,
@@ -118,6 +109,24 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       this.ast,
     );
   }
+
+  getOrCreateFuncDef(targetType: TypeNode, sourceType: TypeNode, node: Expression) {
+    const funcInfo = this.getOrCreate(targetType, sourceType);
+
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [
+        ['lhs', typeNameFromTypeNode(targetType, this.ast), DataLocation.Storage],
+        ['rhs', typeNameFromTypeNode(sourceType, this.ast), DataLocation.CallData],
+      ],
+      [],
+      ['syscall_ptr', 'bitwise_ptr', 'range_check_ptr', 'pedersen_ptr', 'bitwise_ptr'],
+      this.ast,
+      node,
+    );
+    return funcDef;
+  }
+
   getOrCreate(targetType: TypeNode, sourceType: TypeNode): GeneratedFunctionInfo {
     const sourceRepForKey = CairoType.fromSol(
       generalizeType(sourceType)[0],
@@ -327,7 +336,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     assert(sizeSource !== undefined);
 
-    const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType).name + '_LENGTH';
+    const dynArrayDef = this.dynArrayGen.gen(
+      cairoTargetElementType,
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    const dynArrayLengthName = dynArrayDef.name + '_LENGTH';
     const copyInstructions = this.generateS2DCopyInstructions(
       targetElmType,
       sourceElmType,

@@ -29,6 +29,8 @@ import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
 export class StorageToCalldataGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageReadGen: StorageReadGen,
@@ -40,6 +42,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression) {
+    this.genNode = storageLocation;
     const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
 
     const funcInfo = this.getOrCreate(storageType);
@@ -164,10 +167,13 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     );
 
     this.externalDynArrayStructConstructor.getOrCreate(arrayType);
-    const arrayInfo = this.dynArrayGen.gen(
+    const arrayDef = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
+      this.genNode,
     );
-    const arrayLen = arrayInfo.name + '_LENGTH';
+    funcsCalled.push(arrayDef);
+    const arrayName = arrayDef.name;
+    const lenName = arrayName + '_LENGTH';
     const cairoElementType = CairoType.fromSol(
       elementT,
       this.ast,
@@ -191,7 +197,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `       return (ptr,);`,
       `   }`,
       `   let (index_uint256) = warp_uint256(index);`,
-      `   let (elem_loc) = ${arrayInfo.name}.read(loc, index_uint256);`, // elem_loc should never be zero
+      `   let (elem_loc) = ${arrayName}.read(loc, index_uint256);`, // elem_loc should never be zero
       `   let (elem) = ${storageReadInfo.name}(elem_loc);`,
       `   assert ptr[index] = elem;`,
       `   return ${funcName}_write(loc, index + 1, len, ptr);`,
@@ -199,7 +205,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
       `func ${funcName}${implicits}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
       `   alloc_locals;`,
-      `   let (len_uint256) = ${arrayLen}.read(loc);`,
+      `   let (len_uint256) = ${lenName}.read(loc);`,
       `   let len = len_uint256.low + len_uint256.high*128;`,
       `   let (ptr : ${ptrType}) = alloc();`,
       `   let (ptr : ${ptrType}) = ${funcName}_write(loc, 0, len, ptr);`,

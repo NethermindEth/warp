@@ -6,6 +6,7 @@ import {
   DataLocation,
   Expression,
   FixedBytesType,
+  FunctionCall,
   FunctionDefinition,
   FunctionStateMutability,
   generalizeType,
@@ -41,6 +42,8 @@ import { StorageDeleteGen } from './storageDelete';
 */
 
 export class StorageToStorageGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageDeleteGen: StorageDeleteGen,
@@ -49,10 +52,22 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   ) {
     super(ast, sourceUnit);
   }
-  gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): Expression {
+  gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
+    this.genNode = to;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     const toType = generalizeType(safeGetNodeType(to, this.ast.inference))[0];
     const fromType = generalizeType(safeGetNodeType(from, this.ast.inference))[0];
+    const funcDef = this.getOrCreateFuncDef(toType, fromType, to, nodeInSourceUnit);
 
+    return createCallToFunction(funcDef, [to, from], this.ast);
+  }
+
+  getOrCreateFuncDef(
+    toType: TypeNode,
+    fromType: TypeNode,
+    node: Expression,
+    nodeInSourceUnit?: ASTNode,
+  ) {
     const funcInfo = this.getOrCreate(toType, fromType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -63,10 +78,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       [['retLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'],
       this.ast,
-      nodeInSourceUnit ?? to,
+      nodeInSourceUnit ?? node,
       { mutability: FunctionStateMutability.View },
     );
-    return createCallToFunction(funcDef, [to, from], this.ast);
+    return funcDef;
   }
 
   getOrCreate(toType: TypeNode, fromType: TypeNode): GeneratedFunctionInfo {
@@ -274,11 +289,21 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    // TODO: How to add this to functions called
-    const fromElementMapping = this.dynArrayGen.gen(fromElementCairoType);
-    const fromLengthMappingName = fromElementMapping.name + '_LENGTH';
-    const toElementMapping = this.dynArrayGen.gen(toElementCairoType);
-    const toLengthMappingName = toElementMapping.name + '_LENGTH';
+    const fromElementMappingDef = this.dynArrayGen.gen(
+      fromElementCairoType,
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    const fromElementMappingName = fromElementMappingDef.name;
+    const fromLengthMappingName = fromElementMappingName + '_LENGTH';
+    const toElementMappingDef = this.dynArrayGen.gen(
+      toElementCairoType,
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    const toElementMappingName = toElementMappingDef.name;
+    const toLengthMappingName = toElementMappingName + '_LENGTH';
+    funcsCalled.push(fromElementMappingDef, toElementMappingDef);
 
     const copyCode = createElementCopy(
       toElementCairoType,
@@ -299,12 +324,12 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ();`,
         `    }`,
         `    let (index) = uint256_sub(length, Uint256(1,0));`,
-        `    let (from_elem_loc) = ${fromElementMapping.name}.read(from_loc, index);`,
-        `    let (to_elem_loc) = ${toElementMapping.name}.read(to_loc, index);`,
+        `    let (from_elem_loc) = ${fromElementMappingName}.read(from_loc, index);`,
+        `    let (to_elem_loc) = ${toElementMappingName}.read(to_loc, index);`,
         `    if (to_elem_loc == 0){`,
         `        let (to_elem_loc) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});`,
-        `        ${toElementMapping.name}.write(to_loc, index, to_elem_loc);`,
+        `        ${toElementMappingName}.write(to_loc, index, to_elem_loc);`,
         `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
         `        return ${funcName}_elem(to_loc, from_loc, index);`,
         `    }else{`,
@@ -361,9 +386,13 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    // TODO: How to add this to functions called
-    const toElementMapping = this.dynArrayGen.gen(toElementCairoType);
-    const toLengthMappingName = toElementMapping.name + '_LENGTH';
+    const toElementMappingDef = this.dynArrayGen.gen(
+      toElementCairoType,
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    const toElementMappingName = toElementMappingDef.name;
+    const toLengthMappingName = toElementMappingName + '_LENGTH';
     const copyCode = createElementCopy(
       toElementCairoType,
       fromElementCairoType,
@@ -384,13 +413,13 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `            return ();`,
         `        }`,
         `    }`,
-        `    let (to_elem_loc) = ${toElementMapping.name}.read(to_loc, index);`,
+        `    let (to_elem_loc) = ${toElementMappingName}.read(to_loc, index);`,
         `    let (next_index, carry) = uint256_add(index, Uint256(1,0));`,
         `    assert carry = 0;`,
         `    if (to_elem_loc == 0){`,
         `        let (to_elem_loc) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});`,
-        `        ${toElementMapping.name}.write(to_loc, index, to_elem_loc);`,
+        `        ${toElementMappingName}.write(to_loc, index, to_elem_loc);`,
         `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
         `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
         `    }else{`,

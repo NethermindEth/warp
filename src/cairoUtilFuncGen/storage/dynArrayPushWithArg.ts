@@ -12,6 +12,7 @@ import {
   StringType,
   TypeNode,
   FunctionDefinition,
+  Expression,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -35,8 +36,12 @@ import {
   specializeType,
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
+import { Func } from 'mocha';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageWrite: StorageWriteGen,
@@ -51,6 +56,8 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   }
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
+    this.genNode = push;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     assert(push.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
       safeGetNodeType(push.vExpression.vExpression, this.ast.inference),
@@ -109,23 +116,37 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       return existing;
     }
 
-    let elementWriteFuncInfo: GeneratedFunctionInfo;
+    let elementWriteDef: CairoGeneratedFunctionDefinition;
     let inputType: string;
     if (argLoc === DataLocation.Memory) {
-      elementWriteFuncInfo = this.memoryToStorage.getOrCreate(elementType);
+      elementWriteDef = this.memoryToStorage.getOrCreateFuncDef(
+        elementType,
+        this.genNode,
+        this.genNodeInSourceUnit,
+      );
       inputType = 'felt';
     } else if (argLoc === DataLocation.Storage) {
-      elementWriteFuncInfo = this.storageToStorage.getOrCreate(elementType, argType);
+      elementWriteDef = this.storageToStorage.getOrCreateFuncDef(
+        elementType,
+        argType,
+        this.genNode,
+        this.genNodeInSourceUnit,
+      );
       inputType = 'felt';
     } else if (argLoc === DataLocation.CallData) {
       if (elementType.pp() !== argType.pp()) {
-        // TODO: change get or create under calldata scripts to return GeneratedFunctionInfo
-        elementWriteFuncInfo = this.calldataToStorageConversion.getOrCreate(
+        elementWriteDef = this.calldataToStorageConversion.getOrCreateFuncDef(
           specializeType(elementType, DataLocation.Storage),
           specializeType(argType, DataLocation.CallData),
+          this.genNode,
         );
       } else {
-        elementWriteFuncInfo = this.calldataToStorage.getOrCreate(elementType);
+        // TODO: check storage type parameter
+        elementWriteDef = this.calldataToStorage.getOrCreateFuncDef(
+          elementType,
+          this.genNode,
+          this.genNodeInSourceUnit,
+        );
       }
       inputType = CairoType.fromSol(
         argType,
@@ -133,13 +154,17 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         TypeConversionContext.CallDataRef,
       ).toString();
     } else {
-      elementWriteFuncInfo = this.storageWrite.getOrCreate(elementType);
+      elementWriteDef = this.storageWrite.getOrCreateFuncDef(
+        elementType,
+        this.genNode,
+        this.genNodeInSourceUnit,
+      );
       inputType = CairoType.fromSol(elementType, this.ast).toString();
     }
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
-      ...elementWriteFuncInfo.functionsCalled,
+      elementWriteDef,
       this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
       this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
     );
@@ -149,9 +174,14 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const arrayInfo = this.dynArrayGen.gen(allocationCairoType);
-    const lengthName = arrayInfo.name + '_LENGTH';
-    const funcName = `${arrayInfo.name}_PUSHV${this.generatedFunctions.size}`;
+    const arrayDef = this.dynArrayGen.gen(
+      allocationCairoType,
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    const arrayName = arrayDef.name;
+    const lengthName = arrayName + '_LENGTH';
+    const funcName = `${arrayName}_PUSHV${this.generatedFunctions.size}`;
     const implicits =
       argLoc === DataLocation.Memory
         ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
@@ -159,8 +189,8 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
 
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
-        ? [`let (elem_id) = readId(${cairoVar});`, `${elementWriteFuncInfo.name}(elem_id, value);`]
-        : [`${elementWriteFuncInfo.name}(${cairoVar}, value);`];
+        ? [`let (elem_id) = readId(${cairoVar});`, `${elementWriteDef.name}(elem_id, value);`]
+        : [`${elementWriteDef.name}(${cairoVar}, value);`];
 
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
@@ -171,11 +201,11 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
         `    assert carry = 0;`,
         `    ${lengthName}.write(loc, newLen);`,
-        `    let (existing) = ${arrayInfo.name}.read(loc, len);`,
+        `    let (existing) = ${arrayName}.read(loc, len);`,
         `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(used + ${allocationCairoType.width});`,
-        `        ${arrayInfo.name}.write(loc, len, used);`,
+        `        ${arrayName}.write(loc, len, used);`,
         ...callWriteFunc('used'),
         `    }else{`,
         ...callWriteFunc('existing'),

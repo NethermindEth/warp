@@ -21,6 +21,20 @@ import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 export class MemoryWriteGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, writeValue: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const typeToWrite = safeGetNodeType(memoryRef, this.ast.inference);
+    const funcDef = this.getOrCreateFuncDef(typeToWrite, memoryRef, nodeInSourceUnit);
+    return createCallToFunction(funcDef, [memoryRef, writeValue], this.ast);
+  }
+
+  getOrCreateFuncDef(typeToWrite: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
+    const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
+
+    if (cairoTypeToWrite instanceof CairoFelt) {
+      return this.requireImport('warplib.memory', 'wm_write_felt');
+    } else if (
+      cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation
+    ) {
+      return this.requireImport('warplib.memory', 'wm_write_256');
+    }
     const funcInfo = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
     const funcDef = createCairoGeneratedFunction(
@@ -42,25 +56,13 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
       ],
       ['warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? memoryRef,
+      nodeInSourceUnit ?? node,
     );
-    return createCallToFunction(funcDef, [memoryRef, writeValue], this.ast);
+    return funcDef;
   }
 
   getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
-
-    // TODO: Check how to rewrite this logic
-    if (cairoTypeToWrite instanceof CairoFelt) {
-      this.requireImport('warplib.memory', 'wm_write_felt');
-      return 'wm_write_felt';
-    } else if (
-      cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation
-    ) {
-      this.requireImport('warplib.memory', 'wm_write_256');
-      return 'wm_write_256';
-    }
-
     const key = cairoTypeToWrite.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {

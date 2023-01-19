@@ -46,9 +46,24 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
   ): FunctionCall {
     const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
     const calldataType = generalizeType(safeGetNodeType(calldataLocation, this.ast.inference))[0];
+    const funcDef = this.getOrCreateFuncDef(
+      calldataType,
+      storageType,
+      storageLocation,
+      nodeInSourceUnit,
+    );
 
+    return createCallToFunction(funcDef, [storageLocation, calldataLocation], this.ast);
+  }
+
+  getOrCreateFuncDef(
+    calldataType: TypeNode,
+    storageType: TypeNode,
+    node: Expression,
+    nodeInSourceUnit?: ASTNode,
+  ) {
     const funcInfo = this.getOrCreate(calldataType);
-    const functionStub = createCairoGeneratedFunction(
+    const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
         ['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage],
@@ -57,10 +72,9 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       [['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? storageLocation,
+      nodeInSourceUnit ?? node,
     );
-
-    return createCallToFunction(functionStub, [storageLocation, calldataLocation], this.ast);
+    return funcDef;
   }
 
   getOrCreate(type: TypeNode): GeneratedFunctionInfo {

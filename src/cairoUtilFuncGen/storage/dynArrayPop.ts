@@ -4,6 +4,7 @@ import {
   ASTNode,
   BytesType,
   DataLocation,
+  Expression,
   FunctionCall,
   FunctionDefinition,
   generalizeType,
@@ -31,6 +32,8 @@ import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
 
 export class DynArrayPopGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageDelete: StorageDeleteGen,
@@ -41,6 +44,8 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
   }
 
   gen(pop: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
+    this.genNode = pop;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     assert(pop.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
       safeGetNodeType(pop.vExpression.vExpression, this.ast.inference),
@@ -85,19 +90,20 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
     );
 
-    const arrayInfo = this.dynArrayGen.gen(cairoElementType);
-    const lengthName = arrayInfo.name + '_LENGTH';
+    const arrayDef = this.dynArrayGen.gen(cairoElementType, this.genNode, this.genNodeInSourceUnit);
+    const arrayName = arrayDef.name;
+    const lengthName = arrayName + '_LENGTH';
     const deleteFuncInfo = this.storageDelete.genFuncName(elementType);
 
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
         ? [
-            `let (elem_loc) = ${arrayInfo.name}.read(loc, newLen);`,
+            `let (elem_loc) = ${arrayName}.read(loc, newLen);`,
             `let (elem_loc) = readId(elem_loc);`,
           ].join('\n')
-        : `let (elem_loc) = ${arrayInfo.name}.read(loc, newLen);`;
+        : `let (elem_loc) = ${arrayName}.read(loc, newLen);`;
 
-    const funcName = `${arrayInfo.name}_POP`;
+    const funcName = `${arrayName}_POP`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [

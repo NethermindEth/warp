@@ -24,23 +24,7 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       arrayType.size !== undefined,
       `Attempted to use static indexing for dynamic index ${printNode(indexAccess)}`,
     );
-    // TODO: Check how to rewrite this code
-    const stub = createCairoFunctionStub(
-      'wm_index_static',
-      [
-        ['arr', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Memory],
-        ['index', createUint256TypeName(this.ast)],
-        ['width', createUint256TypeName(this.ast)],
-        ['length', createUint256TypeName(this.ast)],
-      ],
-      [['child', typeNameFromTypeNode(arrayType.elementT, this.ast), DataLocation.Memory]],
-      ['range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? indexAccess,
-    );
-
-    this.ast.registerImport(stub, 'warplib.memory', 'wm_index_static');
-
+    const funcDef = this.requireImport('warplib.memory', 'wm_index_static');
     const width = CairoType.fromSol(arrayType.elementT, this.ast).width;
 
     assert(
@@ -48,7 +32,7 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       `Found index access without index expression at ${printNode(indexAccess)}`,
     );
     return createCallToFunction(
-      stub,
+      funcDef,
       [
         indexAccess.vBaseExpression,
         indexAccess.vIndexExpression,

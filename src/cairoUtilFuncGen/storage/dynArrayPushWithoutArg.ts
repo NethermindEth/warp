@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ASTNode,
   DataLocation,
+  Expression,
   FunctionCall,
   FunctionDefinition,
   MemberAccess,
@@ -16,11 +17,15 @@ import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
+    this.genNode = push;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     assert(push.vExpression instanceof MemberAccess);
     const arrayType = safeGetNodeType(push.vExpression.vExpression, this.ast.inference);
     const elementType = safeGetNodeType(push, this.ast.inference);
@@ -54,9 +59,11 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
     );
 
-    const arrayInfo = this.dynArrayGen.gen(elementType);
-    const lengthName = arrayInfo.name + '_LENGTH';
-    const funcName = `${arrayInfo.name}_PUSH`;
+    const arrayDef = this.dynArrayGen.gen(elementType, this.genNode, this.genNodeInSourceUnit);
+    funcsCalled.push(arrayDef);
+    const arrayName = arrayDef.name;
+    const lengthName = arrayName + '_LENGTH';
+    const funcName = `${arrayName}_PUSH`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -66,11 +73,11 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
         `    assert carry = 0;`,
         `    ${lengthName}.write(loc, newLen);`,
-        `    let (existing) = ${arrayInfo.name}.read(loc, len);`,
+        `    let (existing) = ${arrayName}.read(loc, len);`,
         `    if ((existing) == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(used + ${elementType.width});`,
-        `        ${arrayInfo.name}.write(loc, len, used);`,
+        `        ${arrayName}.write(loc, len, used);`,
         `        return (used,);`,
         `    }else{`,
         `        return (existing,);`,

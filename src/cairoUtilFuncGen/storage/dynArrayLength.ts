@@ -35,12 +35,14 @@ export class DynArrayLengthGen extends CairoUtilFuncGenBase {
     arrayType: ArrayType | BytesType | StringType,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
-    const arrayInfo = this.dynArrayGen.gen(
+    const arrayDef = this.dynArrayGen.gen(
       CairoType.fromSol(
         getElementType(arrayType),
         this.ast,
         TypeConversionContext.StorageAllocation,
       ),
+      node,
+      nodeInSourceUnit,
     );
     const lengthName = arrayInfo.name + '_LENGHT';
 

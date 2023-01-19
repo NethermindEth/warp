@@ -37,10 +37,15 @@ import { DynArrayGen } from './dynArray';
 */
 
 export class StorageToMemoryGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
+
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): Expression {
+    this.genNode = node;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
     const funcInfo = this.getOrCreate(type);
@@ -271,10 +276,14 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     };
     this.generatedFunctions.set(key, emptyFuncInfo);
 
-    const elemMappingInfo = this.dynArrayGen.gen(
+    const elemMappingDef = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
+      this.genNode,
+      this.genNodeInSourceUnit,
     );
-    const lengthMappingName = elemMappingInfo.name + '_LENGTH';
+    funcsCalled.push(elemMappingDef);
+    const elemMappingName = elemMappingDef.name;
+    const lengthMappingName = elemMappingDef.name + '_LENGTH';
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
@@ -299,7 +308,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    }`,
         `    let (index) = uint256_sub(length, Uint256(1,0));`,
         `    let (mem_loc) = wm_index_dyn(mem_start, index, ${uint256(memoryElementType.width)});`,
-        `    let (element_storage_loc) = ${elemMappingInfo.name}.read(storage_name, index);`,
+        `    let (element_storage_loc) = ${elemMappingName}.read(storage_name, index);`,
         copyCode,
         `    return ${funcName}_elem(storage_name, mem_start, index);`,
         `}`,
@@ -329,7 +338,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       return `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)});`;
     }
 
-    const funcName = this.getOrCreate(copyType);
+    const funcName = this.getOrCreate(copyType).name;
     return isDynamicArray(copyType)
       ? [
           `let (dyn_loc) = WARP_STORAGE.read(${add('loc', storageOffset)});`,
@@ -347,13 +356,13 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   ) {
     if (isStaticArrayOrStruct(elementT)) {
       return [
-        `   let (copy) = ${this.getOrCreate(elementT)}(${storageLoc});`,
+        `   let (copy) = ${this.getOrCreate(elementT).name}(${storageLoc});`,
         `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
       ].join('\n');
     } else if (isDynamicArray(elementT)) {
       return [
         `   let (dyn_loc) = readId(${storageLoc});`,
-        `   let (copy) = ${this.getOrCreate(elementT)}(dyn_loc);`,
+        `   let (copy) = ${this.getOrCreate(elementT).name}(dyn_loc);`,
         `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
       ].join('\n');
     } else {
