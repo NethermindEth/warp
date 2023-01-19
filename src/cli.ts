@@ -80,7 +80,7 @@ program
     false,
   )
   .option('--print-trees', 'Debug: Print all the intermediate ASTs')
-  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using print-trees')
+  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
   .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
   .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings', 'Suppress printed warnings')
