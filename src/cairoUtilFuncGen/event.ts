@@ -18,11 +18,10 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
-  warpEventCanonicalSignaturehash256,
+  warpEvenSignatureHash256FromString,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
-import createKeccakHash from 'keccak';
 
 export const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 export const BYTES_IN_FELT_PACKING = 31;
@@ -30,14 +29,6 @@ const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte
 
 const IMPLICITS =
   '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*, keccak_ptr: felt*}';
-
-function signatureHash(funcSignature: string): string {
-  const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
-
-  return `0x${(
-    BigInt(`0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`) & MASK_250
-  ).toString(16)}`;
-}
 
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
@@ -121,11 +112,8 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    const topic: { low: string; high: string } = warpEventCanonicalSignaturehash256(
-      node.name,
-      node.vParameters.vParameters.map((param) =>
-        param.canonicalSignatureType(ABIEncoderVersion.V2),
-      ),
+    const topic: { low: string; high: string } = warpEvenSignatureHash256FromString(
+      this.ast.inference.signature(node, ABIEncoderVersion.V2),
     );
 
     const code = [

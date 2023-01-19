@@ -13,11 +13,7 @@ import {
   cairoUint256toBigIntHex,
 } from './utils';
 import createKeccakHash from 'keccak';
-import {
-  MASK_250,
-  warpEventCanonicalSignaturehash,
-  warpEventCanonicalSignaturehash256,
-} from '../../../src/export';
+import { MASK_250, warpEventCanonicalSignaturehash256 } from '../../../src/export';
 
 export const expectations = flatten(
   new Dir('tests', [

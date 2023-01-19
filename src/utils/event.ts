@@ -1,5 +1,4 @@
 import createKeccakHash from 'keccak';
-import { MASK_250 } from '../cairoUtilFuncGen/event';
 import { toUintOrFelt } from './export';
 
 export type EventItem = { data: string[]; keys: string[]; order: number };
@@ -49,19 +48,6 @@ export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
 export type argType = string | argType[];
 
 // NOTE: argTypes must not contain `uint` , it should be `uint256` instead
-export function warpEventCanonicalSignaturehash(eventName: string, argTypes: argType[]): string {
-  const getArgStringRepresentation = (arg: argType): string => {
-    if (typeof arg === 'string') return arg;
-    return `(${arg.map(getArgStringRepresentation).join(',')})`;
-  };
-
-  const funcSignature = `${eventName}(${argTypes.map(getArgStringRepresentation).join(',')})`;
-  const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
-
-  return `0x${(BigInt(`0x${funcSignatureHash}`) & MASK_250).toString(16)}`;
-}
-
-// NOTE: argTypes must not contain `uint` , it should be `uint256` instead
 export function warpEventCanonicalSignaturehash256(
   eventName: string,
   argTypes: argType[],
@@ -74,6 +60,20 @@ export function warpEventCanonicalSignaturehash256(
   const funcSignature = `${eventName}(${argTypes.map(getArgStringRepresentation).join(',')})`;
   const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
 
+  const splitHash: bigint[] = toUintOrFelt(BigInt(`0x${funcSignatureHash}`), 256);
+
+  return {
+    low: `0x${splitHash[0].toString(16)}`,
+    high: `0x${splitHash[1].toString(16)}`,
+  };
+}
+
+// NOTE: argTypes must not contain `uint` , it should be `uint256` instead
+export function warpEvenSignatureHash256FromString(functionSignature: string): {
+  low: string;
+  high: string;
+} {
+  const funcSignatureHash = createKeccakHash('keccak256').update(functionSignature).digest('hex');
   const splitHash: bigint[] = toUintOrFelt(BigInt(`0x${funcSignatureHash}`), 256);
 
   return {
