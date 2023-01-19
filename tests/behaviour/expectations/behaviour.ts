@@ -13,7 +13,7 @@ import {
   cairoUint256toBigIntHex,
 } from './utils';
 import createKeccakHash from 'keccak';
-import { MASK_250, warpEventCanonicalSignaturehash256 } from '../../../src/export';
+import { warpEventCanonicalSignaturehash256 } from '../../../src/export';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -2337,22 +2337,20 @@ export const expectations = flatten(
                       // 2,
                       // 3,
                       // 5,
-                      `${
-                        BigInt(
-                          `0x${createKeccakHash('keccak256')
-                            .update(
-                              (
-                                (BigInt(2) << BigInt(32 * 8 * 2)) |
-                                (BigInt(3) << BigInt(32 * 8 * 1)) |
-                                BigInt(5)
-                              )
-                                .toString(16)
-                                .padStart(32 * 3 * 2, '0'),
-                              'hex',
+                      `${BigInt(
+                        `0x${createKeccakHash('keccak256')
+                          .update(
+                            (
+                              (BigInt(2) << BigInt(32 * 8 * 2)) |
+                              (BigInt(3) << BigInt(32 * 8 * 1)) |
+                              BigInt(5)
                             )
-                            .digest('hex')}`,
-                        ) & MASK_250
-                      }`,
+                              .toString(16)
+                              .padStart(32 * 3 * 2, '0'),
+                            'hex',
+                          )
+                          .digest('hex')}`,
+                      )}`,
                     ],
                     order: 0,
                   },
@@ -2373,22 +2371,20 @@ export const expectations = flatten(
                       cairoUint256toBigIntHex(
                         warpEventCanonicalSignaturehash256('arrayStringEvent', ['string[]']),
                       ),
-                      `${
-                        BigInt(
-                          `0x${createKeccakHash('keccak256')
-                            .update(
-                              (
-                                (BigInt(0x61) << BigInt(32 * 8 * 3 - 8)) |
-                                (BigInt(0x62) << BigInt(32 * 8 * 2 - 8)) |
-                                (BigInt(0x63) << BigInt(32 * 8 * 1 - 8))
-                              )
-                                .toString(16)
-                                .padEnd(32 * (8 / 4) * 3, '0'),
-                              'hex',
+                      `${BigInt(
+                        `0x${createKeccakHash('keccak256')
+                          .update(
+                            (
+                              (BigInt(0x61) << BigInt(32 * 8 * 3 - 8)) |
+                              (BigInt(0x62) << BigInt(32 * 8 * 2 - 8)) |
+                              (BigInt(0x63) << BigInt(32 * 8 * 1 - 8))
                             )
-                            .digest('hex')}`,
-                        ) & MASK_250
-                      }`,
+                              .toString(16)
+                              .padEnd(32 * (8 / 4) * 3, '0'),
+                            'hex',
+                          )
+                          .digest('hex')}`,
+                      )}`,
                     ],
                     order: 0,
                   },
@@ -2414,24 +2410,22 @@ export const expectations = flatten(
                       // 5,
                       // 7,
                       // 11,
-                      `${
-                        BigInt(
-                          `0x${createKeccakHash('keccak256')
-                            .update(
-                              (
-                                (BigInt(2) << BigInt(32 * 8 * 4)) |
-                                (BigInt(3) << BigInt(32 * 8 * 3)) |
-                                (BigInt(5) << BigInt(32 * 8 * 2)) |
-                                (BigInt(7) << BigInt(32 * 8 * 1)) |
-                                BigInt(11)
-                              )
-                                .toString(16)
-                                .padStart(32 * 5 * 2, '0'),
-                              'hex',
+                      `${BigInt(
+                        `0x${createKeccakHash('keccak256')
+                          .update(
+                            (
+                              (BigInt(2) << BigInt(32 * 8 * 4)) |
+                              (BigInt(3) << BigInt(32 * 8 * 3)) |
+                              (BigInt(5) << BigInt(32 * 8 * 2)) |
+                              (BigInt(7) << BigInt(32 * 8 * 1)) |
+                              BigInt(11)
                             )
-                            .digest('hex')}`,
-                        ) & MASK_250
-                      }`,
+                              .toString(16)
+                              .padStart(32 * 5 * 2, '0'),
+                            'hex',
+                          )
+                          .digest('hex')}`,
+                      )}`,
                     ],
                     order: 0,
                   },
@@ -2460,25 +2454,23 @@ export const expectations = flatten(
                       // '7',
                       // '11',
                       // '13',
-                      `${
-                        BigInt(
-                          `0x${createKeccakHash('keccak256')
-                            .update(
-                              (
-                                (BigInt(2) << BigInt(32 * 8 * 5)) |
-                                (BigInt(3) << BigInt(32 * 8 * 4)) |
-                                (BigInt(5) << BigInt(32 * 8 * 3)) |
-                                (BigInt(7) << BigInt(32 * 8 * 2)) |
-                                (BigInt(11) << BigInt(32 * 8 * 1)) |
-                                BigInt(13)
-                              )
-                                .toString(16)
-                                .padStart(32 * 6 * 2, '0'),
-                              'hex',
+                      `${BigInt(
+                        `0x${createKeccakHash('keccak256')
+                          .update(
+                            (
+                              (BigInt(2) << BigInt(32 * 8 * 5)) |
+                              (BigInt(3) << BigInt(32 * 8 * 4)) |
+                              (BigInt(5) << BigInt(32 * 8 * 3)) |
+                              (BigInt(7) << BigInt(32 * 8 * 2)) |
+                              (BigInt(11) << BigInt(32 * 8 * 1)) |
+                              BigInt(13)
                             )
-                            .digest('hex')}`,
-                        ) & MASK_250
-                      }`,
+                              .toString(16)
+                              .padStart(32 * 6 * 2, '0'),
+                            'hex',
+                          )
+                          .digest('hex')}`,
+                      )}`,
                     ],
                     order: 0,
                   },
@@ -2535,16 +2527,11 @@ export const expectations = flatten(
                           'string',
                         ]),
                       ),
-                      `${
-                        BigInt(
-                          `0x${createKeccakHash('keccak256')
-                            .update(
-                              ((BigInt(0x41) << BigInt(8)) | BigInt(0x42)).toString(16),
-                              'hex',
-                            )
-                            .digest('hex')}`,
-                        ) & MASK_250
-                      }`,
+                      `${BigInt(
+                        `0x${createKeccakHash('keccak256')
+                          .update(((BigInt(0x41) << BigInt(8)) | BigInt(0x42)).toString(16), 'hex')
+                          .digest('hex')}`,
+                      )}`,
                     ],
                     order: 0,
                   },
@@ -2633,13 +2620,11 @@ export const expectations = flatten(
                           'string',
                         ]),
                       ),
-                      `${
-                        BigInt(
-                          `0x${createKeccakHash('keccak256')
-                            .update(BigInt(0x61).toString(16), 'hex')
-                            .digest('hex')}`,
-                        ) & MASK_250
-                      }`,
+                      `${BigInt(
+                        `0x${createKeccakHash('keccak256')
+                          .update(BigInt(0x61).toString(16), 'hex')
+                          .digest('hex')}`,
+                      )}`,
                     ],
                     order: 1,
                   },

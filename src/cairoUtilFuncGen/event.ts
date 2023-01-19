@@ -23,7 +23,6 @@ import {
 import { StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 
-export const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
 
@@ -186,13 +185,13 @@ export class EventFunction extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
-    this.requireImport('warplib.keccak', 'warp_keccak_felt');
+    this.requireImport('warplib.keccak', 'warp_keccak');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
 
     return [
       `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
-      `   let (keccak_hash: felt) = warp_keccak_felt(mem_encode);`,
-      `   let (keccak_hash256: Uint256) = felt_to_uint256(keccak_hash);`,
+      `   let (keccak_hash256: Uint256) = warp_keccak(mem_encode);`,
+      // `   let (keccak_hash256: Uint256) = felt_to_uint256(keccak_hash);`,
       `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
     ].join('\n');
   }
