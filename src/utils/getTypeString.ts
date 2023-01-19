@@ -4,6 +4,7 @@ import {
   ArrayType,
   ASTNode,
   BoolType,
+  BuiltinFunctionType,
   BuiltinStructType,
   BuiltinType,
   BytesType,
@@ -11,22 +12,24 @@ import {
   ContractKind,
   DataLocation,
   EnumDefinition,
+  Expression,
   FixedBytesType,
   FunctionDefinition,
   FunctionType,
   FunctionVisibility,
   generalizeType,
   ImportRefType,
+  InferType,
   IntLiteralType,
   IntType,
   LiteralKind,
   MappingType,
-  ModuleType,
   PointerType,
   specializeType,
   StringLiteralType,
   StringType,
   StructDefinition,
+  TupleExpression,
   TupleType,
   TypeNameType,
   TypeNode,
@@ -38,7 +41,7 @@ import { AST } from '../ast/ast';
 import { RationalLiteral } from '../passes/literalExpressionEvaluator/rationalLiteral';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
-import { safeGetNodeTypeInCtx } from './nodeTypeProcessing';
+import { safeGetNodeType, safeGetNodeTypeInCtx } from './nodeTypeProcessing';
 
 export function getDeclaredTypeString(declaration: VariableDeclarationStatement): string {
   if (declaration.assignments.length === 1) {
@@ -76,12 +79,12 @@ export function getEnumTypeString(node: EnumDefinition): string {
 
 export function getFunctionTypeString(
   node: FunctionDefinition,
-  compilerVersion: string,
+  inference: InferType,
   nodeInSourceUnit?: ASTNode,
 ): string {
   const inputs = node.vParameters.vParameters
     .map((decl) => {
-      const baseType = safeGetNodeTypeInCtx(decl, compilerVersion, nodeInSourceUnit ?? decl);
+      const baseType = safeGetNodeTypeInCtx(decl, inference, nodeInSourceUnit ?? decl);
       if (
         baseType instanceof ArrayType ||
         baseType instanceof BytesType ||
@@ -127,7 +130,7 @@ export function getReturnTypeString(
   const retParams = node.vReturnParameters.vParameters;
   const parametersTypeString = retParams
     .map((decl) => {
-      const type = safeGetNodeTypeInCtx(decl, ast.compilerVersion, nodeInSourceUnit ?? decl);
+      const type = safeGetNodeTypeInCtx(decl, ast.inference, nodeInSourceUnit ?? decl);
       return type instanceof PointerType
         ? type
         : specializeType(generalizeType(type)[0], decl.storageLocation);
@@ -185,12 +188,52 @@ function instanceOfNonRecursivePP(type: TypeNode): boolean {
     type instanceof ImportRefType ||
     type instanceof IntLiteralType ||
     type instanceof IntType ||
-    type instanceof ModuleType ||
     type instanceof RationalLiteral ||
     type instanceof StringLiteralType ||
     type instanceof StringType ||
     type instanceof UserDefinedType
   );
+}
+
+export function generateExpressionTypeStringForASTNode(
+  node: Expression,
+  type: TypeNode,
+  inference: InferType,
+): string {
+  if (
+    type instanceof IntLiteralType ||
+    type instanceof StringLiteralType ||
+    type instanceof BuiltinFunctionType
+  ) {
+    return node.typeString;
+  }
+  if (node instanceof TupleExpression) {
+    if (node.isInlineArray === true) {
+      const type = safeGetNodeType(node, inference);
+      if (type instanceof TupleType) {
+        return `${type.elements[0].getFields()[0]} memory`;
+      } else if (type instanceof ArrayType || type instanceof PointerType) {
+        return generateExpressionTypeString(type);
+      }
+    }
+    if (node.vComponents.length === 0) {
+      // E.g. `return abi.decode(data, (address, uint256));`
+      assert(type instanceof TupleType);
+      return `tuple(${type.elements
+        .map((element) => generateExpressionTypeString(element))
+        .join(',')})`;
+    }
+    return `tuple(${node.vComponents
+      .map((element) =>
+        generateExpressionTypeStringForASTNode(
+          element,
+          safeGetNodeType(element, inference),
+          inference,
+        ),
+      )
+      .join(',')})`;
+  }
+  return generateExpressionTypeString(type);
 }
 
 export function generateExpressionTypeString(type: TypeNode): string {

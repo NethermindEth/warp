@@ -47,7 +47,7 @@ function getTypestring(node: ASTNode, ast: AST): string {
   }
 
   if (node instanceof FunctionDefinition) {
-    return getFunctionTypeString(node, ast.compilerVersion);
+    return getFunctionTypeString(node, ast.inference);
   }
 
   if (node instanceof StructDefinition) {

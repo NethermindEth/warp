@@ -9,14 +9,14 @@ import { typeNameFromTypeNode } from '../../../utils/utils';
 
 export function functionaliseFixedBytesConversion(conversion: FunctionCall, ast: AST): void {
   const arg = conversion.vArguments[0];
-  const fromType = generalizeType(safeGetNodeType(arg, ast.compilerVersion))[0];
+  const fromType = generalizeType(safeGetNodeType(arg, ast.inference))[0];
   assert(
     fromType instanceof FixedBytesType,
     `Argument of fixed bytes conversion expected to be fixed bytes type. Got ${printTypeNode(
       fromType,
     )} at ${printNode(conversion)}`,
   );
-  const toType = safeGetNodeType(conversion, ast.compilerVersion);
+  const toType = safeGetNodeType(conversion, ast.inference);
   assert(
     toType instanceof FixedBytesType,
     `Fixed bytes conversion expected to be fixed bytes type. Got ${printTypeNode(

@@ -48,7 +48,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
-      safeGetNodeType(push.vExpression.vExpression, this.ast.compilerVersion),
+      safeGetNodeType(push.vExpression.vExpression, this.ast.inference),
     )[0];
     assert(
       arrayType instanceof ArrayType ||
@@ -61,7 +61,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       `Attempted to treat push without argument as push with argument`,
     );
     const [argType, argLoc] = generalizeType(
-      safeGetNodeType(push.vArguments[0], this.ast.compilerVersion),
+      safeGetNodeType(push.vArguments[0], this.ast.inference),
     );
 
     const name = this.getOrCreate(

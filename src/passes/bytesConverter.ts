@@ -6,7 +6,6 @@ import {
   generalizeType,
   IntType,
   PointerType,
-  typeNameToTypeNode,
   TupleType,
   VariableDeclaration,
   FunctionType,
@@ -18,7 +17,7 @@ import {
   Literal,
   BytesType,
   StringType,
-  IntLiteralType,
+  StringLiteralType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -45,21 +44,22 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitExpression(node: Expression, ast: AST): void {
-    const typeNode = safeGetNodeType(node, ast.compilerVersion);
-    if (!(typeNode instanceof IntLiteralType)) {
-      node.typeString = generateExpressionTypeString(replaceBytesType(typeNode));
+    const typeNode = safeGetNodeType(node, ast.inference);
+    if (typeNode instanceof StringLiteralType) {
+      return;
     }
+    node.typeString = generateExpressionTypeString(replaceBytesType(typeNode));
     this.commonVisit(node, ast);
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const typeNode = replaceBytesType(safeGetNodeType(node, ast.compilerVersion));
+    const typeNode = replaceBytesType(safeGetNodeType(node, ast.inference));
     node.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(node, ast);
   }
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
-    const typeNode = typeNameToTypeNode(node);
+    const typeNode = ast.inference.typeNameToTypeNode(node);
     if (typeNode instanceof StringType || typeNode instanceof BytesType) {
       ast.replaceNode(node, createArrayTypeName(createUint8TypeName(ast), ast));
       return;
@@ -77,7 +77,7 @@ export class BytesConverter extends ASTMapper {
     if (
       !(
         node.vIndexExpression &&
-        generalizeType(safeGetNodeType(node.vBaseExpression, ast.compilerVersion))[0] instanceof
+        generalizeType(safeGetNodeType(node.vBaseExpression, ast.inference))[0] instanceof
           FixedBytesType
       )
     ) {
@@ -86,7 +86,7 @@ export class BytesConverter extends ASTMapper {
     }
 
     const baseTypeName = typeNameFromTypeNode(
-      safeGetNodeType(node.vBaseExpression, ast.compilerVersion),
+      safeGetNodeType(node.vBaseExpression, ast.inference),
       ast,
     );
 
@@ -95,7 +95,7 @@ export class BytesConverter extends ASTMapper {
     const indexTypeName =
       node.vIndexExpression instanceof Literal
         ? createUint256TypeName(ast)
-        : typeNameFromTypeNode(safeGetNodeType(node.vIndexExpression, ast.compilerVersion), ast);
+        : typeNameFromTypeNode(safeGetNodeType(node.vIndexExpression, ast.inference), ast);
 
     const stubParams: [string, TypeName][] = [
       ['base', baseTypeName],
@@ -123,13 +123,13 @@ export class BytesConverter extends ASTMapper {
       selectWarplibFunction(baseTypeName, indexTypeName),
     );
     ast.replaceNode(node, call, node.parent);
-    const typeNode = replaceBytesType(safeGetNodeType(call, ast.compilerVersion));
+    const typeNode = replaceBytesType(safeGetNodeType(call, ast.inference));
     call.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(call, ast);
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
-    const typeNode = safeGetNodeType(node, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node, ast.inference);
     const replacementTypeNode = replaceBytesType(typeNode);
     if (typeNode.pp() !== replacementTypeNode.pp()) {
       const typeString = replacementTypeNode.pp();
@@ -151,6 +151,7 @@ function replaceBytesType(type: TypeNode): TypeNode {
       type.returns.map(replaceBytesType),
       type.visibility,
       type.mutability,
+      type.implicitFirstArg,
       type.src,
     );
   } else if (type instanceof MappingType) {

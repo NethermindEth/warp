@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "build": "rm -rf ./build; yarn tsc",
+    "build-type-parser": "tspegjs -o src/utils/typeStrings/typeString_parser.ts --custom-header-file src/utils/typeStrings/typeString_parser_header.ts --cache src/utils/typeStrings/typeString_grammar.pegjs",
     "dev": "yarn tsc -w",
     "genparser": "yarn tspegjs -o src/utils/functionSignatureParser.ts_temp src/utils/functionSignatureParser.peg && echo \"import { toUintOrFelt } from '../utils/utils';\\n\" > src/utils/functionSignatureParser.ts && cat src/utils/functionSignatureParser.ts_temp >> src/utils/functionSignatureParser.ts && rm src/utils/functionSignatureParser.ts_temp ",
     "prepare": "husky install",
@@ -79,7 +80,7 @@
     "keccak": "^3.0.2",
     "peggy": "^1.2.0",
     "prompts": "^2.4.2",
-    "solc-typed-ast": "^9.1.2",
+    "solc-typed-ast": "^11.0.2",
     "ts-pegjs": "^1.2.2",
     "web3": "^1.7.3"
   }
