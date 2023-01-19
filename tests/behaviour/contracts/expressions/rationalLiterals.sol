@@ -53,19 +53,16 @@ contract WARP {
     return 18/6;
   }
 
-  function and() pure public returns (int8) {
+  function bitwiseAnd() pure public returns (int8) {
     return 18&6;
   }
 
-  function or() pure public returns (int8) {
+  function bitwiseOr() pure public returns (int8) {
     return 18|6;
   }
 
-  function xor() pure public returns (int8) {
+  function bitwiseXor() pure public returns (int8) {
     return 18^6;
   }
 
-  function not() pure public returns (int8) {
-    return ~3;
-  }
 }

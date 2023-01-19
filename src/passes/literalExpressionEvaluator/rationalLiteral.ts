@@ -138,26 +138,23 @@ export class RationalLiteral {
     return `${this.numerator}/${this.denominator}`;
   }
 
-  and(other: RationalLiteral): RationalLiteral {
+  bitwiseAnd(other: RationalLiteral): RationalLiteral {
     return new RationalLiteral(
       this.numerator & other.numerator,
       this.denominator & other.denominator,
     );
   }
-  or(other: RationalLiteral): RationalLiteral {
+  bitwiseOr(other: RationalLiteral): RationalLiteral {
     return new RationalLiteral(
       this.numerator | other.numerator,
       this.denominator | other.denominator,
     );
   }
-  xor(other: RationalLiteral): RationalLiteral {
+  bitwiseXor(other: RationalLiteral): RationalLiteral {
     return new RationalLiteral(
       this.numerator ^ other.numerator,
       this.denominator ^ other.denominator,
     );
-  }
-  not(): RationalLiteral {
-    return new RationalLiteral(~this.numerator, this.denominator);
   }
 }
 

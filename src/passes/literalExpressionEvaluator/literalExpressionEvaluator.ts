@@ -134,9 +134,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
     } else if (typeof notNullMember === 'boolean') {
       switch (node.operator) {
         case '&&': // false && x = false
-          return notNullMember && false;
+          return notNullMember ? null : false;
         case '||': // true || x = true
-          return notNullMember || true;
+          return notNullMember ? true : false;
         default:
           if (!['==', '!='].includes(node.operator)) {
             throw new TranspileFailedError(
@@ -227,13 +227,11 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
       case '>>':
         return left.shiftRight(right);
       case '&':
-        return left.and(right);
+        return left.bitwiseAnd(right);
       case '|':
-        return left.or(right);
+        return left.bitwiseOr(right);
       case '^':
-        return left.xor(right);
-      case '~':
-        return left.not();
+        return left.bitwiseXor(right);
       default:
         throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
     }
