@@ -7,6 +7,7 @@ contract WARP{
     //Event Definitions
     event uintEvent(uint indexed);
     event arrayEvent(uint[] indexed);
+    event arrayStringEvent(string[] indexed);
     event nestedArrayEvent(uint[][] indexed);
     event structEvent(C indexed);
 
@@ -20,6 +21,14 @@ contract WARP{
         a[1] = 3;
         a[2] = 5;
         emit arrayEvent(a);
+    }
+
+    function arrayString() public {
+        string[] memory a = new string[](3);
+        a[0] = "a";
+        a[1] = "b";
+        a[2] = "c";
+        emit arrayStringEvent(a);
     }
 
     function nestedArray() public {

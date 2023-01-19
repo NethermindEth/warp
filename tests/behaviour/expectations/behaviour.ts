@@ -2363,6 +2363,42 @@ export const expectations = flatten(
                 ],
               ],
             ]),
+            new Expect('arrayString', [
+              [
+                'arrayString',
+                [],
+                [],
+                '0',
+                undefined,
+                [
+                  {
+                    data: [],
+                    keys: [
+                      cairoUint256toBigIntHex(
+                        warpEventCanonicalSignaturehash256('arrayStringEvent', ['string[]']),
+                      ),
+                      `${
+                        BigInt(
+                          `0x${createKeccakHash('keccak256')
+                            .update(
+                              (
+                                (BigInt(0x61) << BigInt(32 * 8 * 3 - 8)) |
+                                (BigInt(0x62) << BigInt(32 * 8 * 2 - 8)) |
+                                (BigInt(0x63) << BigInt(32 * 8 * 1 - 8))
+                              )
+                                .toString(16)
+                                .padEnd(32 * (8 / 4) * 3, '0'),
+                              'hex',
+                            )
+                            .digest('hex')}`,
+                        ) & MASK_250
+                      }`,
+                    ],
+                    order: 0,
+                  },
+                ],
+              ],
+            ]),
             new Expect('nestedArray', [
               [
                 'nestedArray',
