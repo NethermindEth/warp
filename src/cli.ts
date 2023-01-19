@@ -154,7 +154,7 @@ program
   .option('--order <passOrder>', 'Use a custom set of transpilation passes')
   .option('-o, --output-dir <path>', 'Output directory for transformed Solidity files')
   .option('--print-trees', 'Debug: Print all the intermediate ASTs')
-  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using print-trees')
+  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
   .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
   .option('--until <pass>', 'Pass to transform to')
   .option('--no-warnings', 'Suppress printed warnings')
