@@ -45,7 +45,7 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
 
     const contracts = node.vContracts.map((v) => writer.write(v));
 
-    const generatedUtilFunctions = this.ast.getUtilFuncGen(node).getGeneratedCode();
+    // const generatedUtilFunctions = this.ast.getUtilFuncGen(node).getGeneratedCode();
     const imports = writeImports(this.ast.getImports(node));
     return [
       removeExcessNewlines(
@@ -54,7 +54,7 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
           [imports],
           ...constants,
           ...structs,
-          generatedUtilFunctions,
+          // generatedUtilFunctions,
           ...functions,
           ...contracts,
         ].join('\n\n\n'),

@@ -88,6 +88,10 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, _ast: AST): Set<Implicits> {
     this.visited.add(node);
+    // TODO: Do we need to add other instances of Cairo Functions such as:
+    //  * generated functions
+    //  * import functions
+    //  Since this two will already have the right imports when defined!!!
     return node.implicits;
   }
 
