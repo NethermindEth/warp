@@ -18,7 +18,6 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
-  warpEventCanonicalSignaturehash,
   EMIT_PREFIX,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
