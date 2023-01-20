@@ -3,7 +3,6 @@
 import assert from 'assert';
 import {
   ArrayType,
-  FunctionDefinition,
   generalizeType,
   SourceUnit,
   StructDefinition,
@@ -11,11 +10,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import {
-  CairoFunctionDefinition,
-  createCairoGeneratedFunction,
-  parseCairoImplicits,
-} from '../../export';
+import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
@@ -283,14 +278,7 @@ export class AbiEncode extends AbiBase {
       code,
       functionsCalled: [...importedFuncs, valueEncoding, tailEncoding],
     };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -345,14 +333,7 @@ export class AbiEncode extends AbiBase {
       code,
       functionsCalled: [...importedFuncs, ...functionsCalled, readFunc],
     };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -410,14 +391,7 @@ export class AbiEncode extends AbiBase {
       code,
       functionsCalled: [importedFunc, inlineEncoding, valueEncoding],
     };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -471,14 +445,7 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const genFuncInfo = { name, code, functionsCalled: [...functionsCalled, readFunc] };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -542,14 +509,7 @@ export class AbiEncode extends AbiBase {
       code,
       functionsCalled: [...importedFunc, inlineEncoding, valueEncoding],
     };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -611,14 +571,7 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const genFuncInfo = { name, code, functionsCalled };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;

@@ -7,12 +7,7 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import {
-  CairoFunctionDefinition,
-  createCairoGeneratedFunction,
-  GeneratedFunctionInfo,
-  parseCairoImplicits,
-} from '../../export';
+import { CairoFunctionDefinition, GeneratedFunctionInfo } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
@@ -242,14 +237,7 @@ export class AbiEncodePacked extends AbiBase {
       : [];
 
     const genFuncInfo = { name, code, functionsCalled: [...importedFuncs] };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;

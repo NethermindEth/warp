@@ -32,7 +32,6 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
           : [`param${index}`, typeNameFromTypeNode(exprT, this.ast), DataLocation.Memory],
       ),
       [['result', createBytesTypeName(this.ast), DataLocation.Memory]],
-      ['bitwise_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       sourceUnit ?? this.sourceUnit,
     );

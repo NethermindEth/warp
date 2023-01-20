@@ -14,15 +14,11 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoFunctionDefinition } from '../../export';
+import { CairoFunctionDefinition, GeneratedFunctionInfo } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
   getByteSize,
@@ -38,7 +34,7 @@ import {
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from '../base';
-import { MemoryWriteGen, parseCairoImplicits } from '../export';
+import { MemoryWriteGen } from '../memory/memoryWrite';
 import { removeSizeInfo } from './base';
 
 const IMPLICITS =
@@ -67,17 +63,16 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     );
     const typesToDecode = types instanceof TupleType ? types.elements : [types];
 
-    const functionName = this.getOrCreate(typesToDecode.map((t) => generalizeType(t)[0]));
+    const funcInfo = this.getOrCreate(typesToDecode.map((t) => generalizeType(t)[0]));
 
-    const functionStub = createCairoFunctionStub(
-      functionName,
+    const functionStub = createCairoGeneratedFunction(
+      funcInfo,
       [['data', createBytesTypeName(this.ast), DataLocation.Memory]],
       typesToDecode.map((t, index) =>
         isValueType(t)
           ? [`result${index}`, typeNameFromTypeNode(t, this.ast)]
           : [`result${index}`, typeNameFromTypeNode(t, this.ast), DataLocation.Memory],
       ),
-      ['bitwise_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       sourceUnit ?? this.sourceUnit,
     );
@@ -85,11 +80,11 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     return createCallToFunction(functionStub, [expressions[0]], this.ast);
   }
 
-  public getOrCreate(types: TypeNode[]): string {
+  public getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
     const key = types.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const [returnParams, decodings, functionsCalled] = types.reduce(
@@ -141,7 +136,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const cairoFunc = { name: funcName, code: code, functionsCalled: functionsCalled };
     this.generatedFunctions.set(key, cairoFunc);
-    return cairoFunc.name;
+    return cairoFunc;
   }
 
   public getOrCreateDecoding(type: TypeNode): CairoFunctionDefinition {
@@ -363,14 +358,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
 
     const funcInfo = { name, code, functionsCalled: [...functionsCalled, writeToMemFunc] };
-    const generatedFunc = createCairoGeneratedFunction(
-      funcInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const generatedFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, generatedFunc);
     return generatedFunc;
@@ -437,14 +425,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       code,
       functionsCalled: [...importedFuncs, ...functionsCalled, writeToMemFunc],
     };
-    const generatedFunc = createCairoGeneratedFunction(
-      funcInfo,
-      [],
-      [],
-      parseCairoImplicits(IMPLICITS),
-      this.ast,
-      this.sourceUnit,
-    );
+    const generatedFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, generatedFunc);
     return generatedFunc;
@@ -515,14 +496,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       code,
       functionsCalled: [...importedFuncs, ...functionsCalled],
     };
-    const auxFunc = createCairoGeneratedFunction(
-      genFuncInfo,
-      [],
-      [],
-      [],
-      this.ast,
-      this.sourceUnit,
-    );
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
