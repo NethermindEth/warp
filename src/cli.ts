@@ -76,7 +76,7 @@ program
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
   .option(
     '-d, --debug-info',
-    'Include debug information in the compiled bytecode produced by --compile-cario',
+    'Include debug information in the compiled bytecode produced by --compile-cairo',
     false,
   )
   .option('--print-trees', 'Debug: Print all the intermediate ASTs')
@@ -156,7 +156,7 @@ program
   .option('--print-trees', 'Debug: Print all the intermediate ASTs')
   .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
   .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
-  .option('--until <pass>', 'Pass to transform to')
+  .option('--until <pass>', 'Stop processing at specified pass')
   .option('--no-warnings', 'Suppress printed warnings')
   .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
   .option('--base-path <path>', 'Pass through to solc --base-path option')
@@ -214,7 +214,7 @@ export interface IOptionalNetwork {
 
 program
   .command('status <tx_hash>')
-  .description('Get the satus of a transaction')
+  .description('Get the status of a transaction')
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .action((tx_hash: string, options: IOptionalNetwork) => {
     runStarknetStatus(tx_hash, options);
@@ -243,7 +243,7 @@ export interface SolcInterfaceGenOptions {
 program
   .command('gen_interface <file>')
   .description(
-    'Use native Cario conracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
+    'Use native Cairo contracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
   )
   .option('--cairo-path <cairo-path>', 'Cairo libraries/modules import path')
   .option(
