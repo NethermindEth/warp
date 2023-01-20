@@ -77,7 +77,7 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
     new PrettyFormatter(4, 0),
-    ast.compilerVersion,
+    ast.inference.version,
   );
   return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
@@ -87,7 +87,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
     new PrettyFormatter(4, 0),
-    ast.compilerVersion,
+    ast.inference.version,
   );
   return cairoAST.roots.map((sourceUnit) => [
     sourceUnit.absolutePath,

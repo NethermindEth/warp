@@ -45,7 +45,7 @@ export class ExternalReturnReceiver extends ASTMapper {
       .filter(
         (decl) =>
           decl.storageLocation === DataLocation.CallData &&
-          isDynamicArray(safeGetNodeType(decl, ast.compilerVersion)),
+          isDynamicArray(safeGetNodeType(decl, ast.inference)),
       )
       .forEach((decl) => {
         const [statement, newId] = generatePackStatement(decl, ast);

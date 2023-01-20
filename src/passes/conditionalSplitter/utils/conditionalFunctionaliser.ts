@@ -53,19 +53,11 @@ export function getConditionalReturn(
   nameCounter: Generator<number, number, unknown>,
   ast: AST,
 ): VariableDeclaration[] {
-  const conditionalType = safeGetNodeType(node, ast.compilerVersion);
+  const conditionalType = safeGetNodeType(node, ast.inference);
   const variables =
     conditionalType instanceof TupleType
       ? getAllVariables(conditionalType, funcId, nameCounter, ast)
-      : [
-          getVar(
-            safeGetNodeType(node, ast.compilerVersion),
-            node.typeString,
-            funcId,
-            nameCounter,
-            ast,
-          ),
-        ];
+      : [getVar(safeGetNodeType(node, ast.inference), node.typeString, funcId, nameCounter, ast)];
   return variables;
 }
 
@@ -193,7 +185,7 @@ export function addStatementsToCallFunction(
       conditionalResult,
       toSingleExpression(
         conditionalResult.map((v) =>
-          getDefaultValue(safeGetNodeTypeInCtx(v, ast.compilerVersion, node), node, ast),
+          getDefaultValue(safeGetNodeTypeInCtx(v, ast.inference, node), node, ast),
         ),
         ast,
       ),

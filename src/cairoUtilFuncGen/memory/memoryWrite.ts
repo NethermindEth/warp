@@ -19,7 +19,7 @@ import { add, StringIndexedFuncGen } from '../base';
 */
 export class MemoryWriteGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, writeValue: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const typeToWrite = safeGetNodeType(memoryRef, this.ast.compilerVersion);
+    const typeToWrite = safeGetNodeType(memoryRef, this.ast.inference);
     const name = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
     const functionStub = createCairoFunctionStub(
