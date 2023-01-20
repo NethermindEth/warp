@@ -5,7 +5,6 @@ import {
   FunctionVisibility,
   ParameterList,
 } from 'solc-typed-ast';
-import { Implicits } from '../../utils/implicits';
 import { CairoRawStringFunctionDefinition } from './cairoRawStringFunctionDefinition';
 
 export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefinition {
