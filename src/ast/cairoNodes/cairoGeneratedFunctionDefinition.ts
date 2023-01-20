@@ -38,6 +38,10 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
       returnParameters,
       rawStringDefinition,
     );
-    this.functionsCalled = functionsCalled;
+    this.functionsCalled = removeRepeatedFunction(functionsCalled);
   }
+}
+
+function removeRepeatedFunction(functionsCalled: FunctionDefinition[]) {
+  return [...new Set(functionsCalled)];
 }

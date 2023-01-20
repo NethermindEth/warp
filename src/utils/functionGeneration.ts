@@ -22,7 +22,6 @@ import {
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
-import { CairoImportFunctionDefinition } from '../ast/cairoNodes/cairoImportFunctionDefinition';
 import { GeneratedFunctionInfo } from '../export';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
