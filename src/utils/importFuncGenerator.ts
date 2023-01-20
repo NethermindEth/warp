@@ -59,8 +59,6 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
   switch (path + name) {
     case STARKWARE_CAIRO_COMMON_ALLOC + ALLOC:
       return createAllocImportFuncDef(node, ast);
-    case STARKWARE_CAIRO_COMMON_CAIROBUILTINS + BITWISE_BUILTIN:
-      return createBitwiseBuiltinImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_DICT + DICT_WRITE:
       return createDictWriteImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256:
