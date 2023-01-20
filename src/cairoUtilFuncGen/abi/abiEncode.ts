@@ -105,7 +105,6 @@ export class AbiEncode extends AbiBase {
 
     const importedFuncs = [
       this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-      this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin'),
       this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
       this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
       this.requireImport('warplib.memory', 'wm_new'),
