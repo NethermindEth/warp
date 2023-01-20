@@ -17,7 +17,11 @@ import {
 import { AST } from '../ast/ast';
 import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { CairoImportFunctionDefinition } from '../ast/cairoNodes/cairoImportFunctionDefinition';
-import { CairoFunctionDefinition, createCairoImportFunction } from '../export';
+import {
+  CairoFunctionDefinition,
+  createCairoGeneratedFunction,
+  createCairoImportFunction,
+} from '../export';
 import { TranspileFailedError } from '../utils/errors';
 import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
@@ -89,6 +93,13 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
 export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
   protected auxiliarGeneratedFunctions: Map<string, CairoFunctionDefinition> = new Map();
 
+  protected createAuxiliarGeneratedFunction(
+    genFuncInfo: GeneratedFunctionInfo,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
+    return createCairoGeneratedFunction(genFuncInfo, [], [], ast, sourceUnit);
+  }
   // getGeneratedCode(): string {
   //   return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
   //     .map((func) => func.code)

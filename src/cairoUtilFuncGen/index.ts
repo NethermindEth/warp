@@ -232,22 +232,22 @@ export class CairoUtilFuncGen {
   getImports(): Map<string, Set<string>> {
     return mergeImports(...this.getAllChildren().map((c) => c.getImports()));
   }
-  getGeneratedCode(): string {
-    return this.getAllChildren()
-      .map((c) => c.getGeneratedCode())
-      .sort((a, b) => {
-        // This sort is needed to make sure the structs generated from CairoUtilGen are before the generated functions that
-        // reference them. This sort is also order preserving in that it will only make sure the structs come before
-        // any functions and not sort the struct/functions within their respective groups.
-        if (a.slice(0, 1) < b.slice(0, 1)) {
-          return 1;
-        } else if (a.slice(0, 1) > b.slice(0, 1)) {
-          return -1;
-        }
-        return 0;
-      })
-      .join('\n\n');
-  }
+  //  getGeneratedCode(): string {
+  //    return this.getAllChildren()
+  //      .map((c) => c.getGeneratedCode())
+  //      .sort((a, b) => {
+  //        // This sort is needed to make sure the structs generated from CairoUtilGen are before the generated functions that
+  //        // reference them. This sort is also order preserving in that it will only make sure the structs come before
+  //        // any functions and not sort the struct/functions within their respective groups.
+  //        if (a.slice(0, 1) < b.slice(0, 1)) {
+  //          return 1;
+  //        } else if (a.slice(0, 1) > b.slice(0, 1)) {
+  //          return -1;
+  //        }
+  //        return 0;
+  //      })
+  //      .join('\n\n');
+  //  }
   private getAllChildren(): CairoUtilFuncGenBase[] {
     return getAllGenerators(this);
   }

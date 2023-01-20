@@ -121,7 +121,6 @@ export function createCairoGeneratedFunction(
   genFuncInfo: GeneratedFunctionInfo,
   inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
   returns: ([string, TypeName] | [string, TypeName, DataLocation])[],
-  implicits: Implicits[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
   options: CairoFunctionStubOptions = {
@@ -134,7 +133,7 @@ export function createCairoGeneratedFunction(
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
 
-  return new CairoGeneratedFunctionDefinition(
+  const funcDef = new CairoGeneratedFunctionDefinition(
     funcDefId,
     '',
     sourceUnit.id,
@@ -144,36 +143,37 @@ export function createCairoGeneratedFunction(
     options.mutability ?? FunctionStateMutability.Payable,
     createParameterList(createParameters(inputs, funcDefId, ast), ast),
     createParameterList(createParameters(returns, funcDefId, ast), ast),
-    new Set(implicits),
     genFuncInfo.code,
-    genFuncInfo.functionCalls,
+    genFuncInfo.functionsCalled,
   );
+
+  ast.setContextRecursive(funcDef);
+  sourceUnit.insertAtBeginning(funcDef);
+
+  return funcDef;
 }
 
-export function createCairoImportFunction(
-  name: string,
-  path: string,
-  implicits: Implicits[],
-  ast: AST,
-  nodeInSourceUnit: ASTNode,
-): CairoImportFunctionDefinition {
-  const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
-  const funcDefId = ast.reserveId();
-
-  return new CairoImportFunctionDefinition(
-    funcDefId,
-    sourceUnit.id,
-    FunctionKind.Function,
-    name,
-    FunctionVisibility.Private,
-    FunctionStateMutability.NonPayable,
-    createParameterList([], ast),
-    createParameterList([], ast),
-    new Set(implicits),
-    path,
-    FunctionStubKind.FunctionDefStub,
-  );
-}
+// export function createCairoImportFunction(
+//   name: string,
+//   path: string,
+//   ast: AST,
+//   nodeInSourceUnit: ASTNode,
+// ): CairoImportFunctionDefinition {
+//   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
+//   const funcDefId = ast.reserveId();
+//
+//   return new CairoImportFunctionDefinition(
+//     funcDefId,
+//     sourceUnit.id,
+//     FunctionKind.Function,
+//     name,
+//     FunctionVisibility.Private,
+//     FunctionStateMutability.NonPayable,
+//     createParameterList([], ast),
+//     createParameterList([], ast),
+//     path,
+//   );
+// }
 
 function createParameters(
   inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
