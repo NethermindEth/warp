@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   AddressType,
   ArrayType,
+  ASTNode,
   DataLocation,
   EnumDefinition,
   Expression,
@@ -49,6 +50,7 @@ import { MemoryWriteGen } from './memoryWrite';
 const IMPLICITS = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
 
 export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
   constructor(
     private memoryWrite: MemoryWriteGen,
     private memoryRead: MemoryReadGen,
@@ -109,6 +111,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 
   gen(source: Expression, targetType: TypeNode): FunctionCall {
+    this.genNode = source;
     const sourceType = safeGetNodeType(source, this.ast.inference);
 
     const funcInfo = this.getOrCreate(targetType, sourceType);
@@ -194,17 +197,17 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
       sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)});`;
     } else {
-      const funcCalledInfo = this.memoryRead.getOrCreate(cairoSourceElementType);
-      funcsCalled.push(...funcCalledInfo.functionsCalled);
-      sourceLocationCode = `let (source_elem) = ${funcCalledInfo.name}(${sourceLoc});`;
+      const funcCalledDef = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
+      funcsCalled.push(funcCalledDef);
+      sourceLocationCode = `let (source_elem) = ${funcCalledDef.name}(${sourceLoc});`;
     }
 
     const conversionCode = this.generateScalingCode(targetType.elementT, sourceType.elementT);
 
     const targetLoc = `${getOffset('target', 'index', cairoTargetElementType.width)}`;
-    const targetCopyCode = `${this.memoryWrite.getOrCreate(
-      targetType.elementT,
-    )}(${targetLoc}, target_elem);`;
+    const memoryWriteDef = this.memoryWrite.getOrCreateFuncDef(targetType.elementT, this.genNode);
+    funcsCalled.push(memoryWriteDef);
+    const targetCopyCode = `${memoryWriteDef.name}(${targetLoc}, target_elem);`;
 
     const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
     const funcName = `memory_conversion_static_to_static${this.generatedFunctions.size}`;
@@ -264,8 +267,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         )}, ${uint256(idAllocSize)});`,
       );
     } else {
-      const calledFunc = this.memoryRead.getOrCreate(cairoSourceElementType);
-      funcsCalled.push(...calledFunc.functionsCalled);
+      const calledFunc = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
+      funcsCalled.push(calledFunc);
       sourceLocationCode.push(
         `let (source_elem) = ${calledFunc.name}(${getOffset(
           'source',
@@ -277,11 +280,14 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const conversionCode = this.generateScalingCode(targetType.elementT, sourceType.elementT);
 
-    const memoryWriteFuncInfo = this.memoryWrite.getOrCreate(targetType.elementT);
-    funcsCalled.push(...memoryWriteFuncInfo.functionsCalled);
+    const memoryWriteFuncDef = this.memoryWrite.getOrCreateFuncDef(
+      targetType.elementT,
+      this.genNode,
+    );
+    funcsCalled.push(memoryWriteFuncDef);
     const targetCopyCode = [
       `let (target_elem_loc) = wm_index_dyn(target, index, ${uint256(targetTWidth)});`,
-      `${memoryWriteFuncInfo.name}(target_elem_loc, target_elem);`,
+      `${memoryWriteFuncDef.name}(target_elem_loc, target_elem);`,
     ];
 
     const funcName = `memory_conversion_static_to_dynamic${this.generatedFunctions.size}`;
@@ -339,18 +345,18 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         `let (source_elem) = wm_read_id(source_elem_loc, ${uint256(idAllocSize)});`,
       );
     } else {
-      const memoryReadInfo = this.memoryRead.getOrCreate(cairoSourceElementType);
-      funcsCalled.push(...memoryReadInfo.functionsCalled);
-      sourceLocationCode.push(`let (source_elem) = ${memoryReadInfo.name}(source_elem_loc);`);
+      const memoryReadDef = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
+      funcsCalled.push(memoryReadDef);
+      sourceLocationCode.push(`let (source_elem) = ${memoryReadDef.name}(source_elem_loc);`);
     }
 
     const conversionCode = this.generateScalingCode(targetType.elementT, sourceType.elementT);
 
-    const memoryWriteInfo = this.memoryWrite.getOrCreate(targetType.elementT);
-    funcsCalled.push(...memoryWriteInfo.functionsCalled);
+    const memoryWriteDef = this.memoryWrite.getOrCreateFuncDef(targetType.elementT, this.genNode);
+    funcsCalled.push(memoryWriteDef);
     const targetCopyCode = [
       `let (target_elem_loc) = wm_index_dyn(target, index, ${uint256(targetTWidth)});`,
-      `${memoryWriteInfo.name}(target_elem_loc, target_elem);`,
+      `${memoryWriteDef.name}(target_elem_loc, target_elem);`,
     ];
 
     const targetWidth = cairoTargetElementType.width;

@@ -5,6 +5,7 @@ import {
   BytesType,
   DataLocation,
   Expression,
+  FunctionCall,
   FunctionDefinition,
   FunctionStateMutability,
   generalizeType,
@@ -44,6 +45,8 @@ import { StorageDeleteGen } from '../storage/storageDelete';
 */
 
 export class MemoryToStorageGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageDeleteGen: StorageDeleteGen,
@@ -56,9 +59,16 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     storageLocation: Expression,
     memoryLocation: Expression,
     nodeInSourceUnit?: ASTNode,
-  ): Expression {
+  ): FunctionCall {
+    this.genNode = storageLocation;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     const type = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
+    const funcDef = this.getOrCreateFuncDef(type, storageLocation, nodeInSourceUnit);
 
+    return createCallToFunction(funcDef, [storageLocation, memoryLocation], this.ast);
+  }
+
+  getOrCreateFuncDef(type: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
     const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -69,10 +79,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? storageLocation,
+      nodeInSourceUnit ?? node,
       { mutability: FunctionStateMutability.View },
     );
-    return createCallToFunction(funcDef, [storageLocation, memoryLocation], this.ast);
+    return funcDef;
   }
 
   getOrCreate(type: TypeNode): GeneratedFunctionInfo {
@@ -298,10 +308,14 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_id'));
     }
 
-    const elemMappingInfo = this.dynArrayGen.gen(
+    const elemMappingDef = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
+      this.genNode,
+      this.genNodeInSourceUnit,
     );
-    const lengthMappingName = elemMappingInfo.name + '_LENGTH';
+    funcsCalled.push(elemMappingDef);
+    const elemMappingName = elemMappingDef.name;
+    const lengthMappingName = elemMappingName + '_LENGTH';
 
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -350,12 +364,12 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `        return ();`,
         `    }`,
         `    let (index) = uint256_sub(length, Uint256(1,0));`,
-        `    let (storage_loc) = ${elemMappingInfo.name}.read(storage_name, index);`,
+        `    let (storage_loc) = ${elemMappingName}.read(storage_name, index);`,
         `    let mem_loc = mem_loc - ${elementMemoryWidth};`,
         `    if (storage_loc == 0){`,
         `        let (storage_loc) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(storage_loc + ${elementStorageWidth});`,
-        `        ${elemMappingInfo.name}.write(storage_name, index, storage_loc);`,
+        `        ${elemMappingName}.write(storage_name, index, storage_loc);`,
         copyCode,
         `    return ${funcName}_elem(storage_name, mem_loc, index);`,
         `    }else{`,

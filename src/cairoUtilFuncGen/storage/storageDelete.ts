@@ -38,6 +38,8 @@ import { StorageReadGen } from './storageRead';
 
 export class StorageDeleteGen extends StringIndexedFuncGen {
   private nothingHandlerGen: boolean;
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageReadGen: StorageReadGen,
@@ -49,6 +51,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
+    this.genNode = node;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     const nodeType = dereferenceType(safeGetNodeType(node, this.ast.inference));
 
     const funcInfo = this.getOrCreate(nodeType);
@@ -146,13 +150,18 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   ): GeneratedFunctionInfo {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
-    const elementT = dereferenceType(getElementType(type));
-    const arrayInfo = this.dynArrayGen.gen(
-      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
-    );
-    const lengthName = arrayInfo.name + '_LENGTH';
-
     const funcsCalled: FunctionDefinition[] = [];
+
+    const elementT = dereferenceType(getElementType(type));
+    const arrayDef = this.dynArrayGen.gen(
+      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
+      this.genNode,
+      this.genNodeInSourceUnit,
+    );
+    funcsCalled.push(arrayDef);
+    const arrayName = arrayDef.name;
+    const lengthName = arrayName + '_LENGTH';
+
     funcsCalled.push(
       this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
       this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
@@ -175,7 +184,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     if (stop == 1){`,
       `        return ();`,
       `     }`,
-      `     let (elem_loc) = ${arrayInfo.name}.read(loc, index);`,
+      `     let (elem_loc) = ${arrayName}.read(loc, index);`,
       ...deleteCode,
       `     let (next_index, _) = uint256_add(index, ${uint256(1)});`,
       `     return ${funcName}_elem(loc, next_index, length);`,
@@ -296,9 +305,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const deleteCode = requiresReadBeforeRecursing(varType)
       ? [
           `   let (elem_id) = ${this.storageReadGen.genFuncName(varType)}(${deleteLoc});`,
-          `   ${this.getOrCreate(varType)}(elem_id);`,
+          `   ${this.getOrCreate(varType).name}(elem_id);`,
         ]
-      : [`    ${this.getOrCreate(varType)}(${deleteLoc});`];
+      : [`    ${this.getOrCreate(varType).name}(${deleteLoc});`];
 
     return [
       ...deleteCode,

@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ASTNode,
   DataLocation,
+  Expression,
   FunctionCall,
   FunctionDefinition,
   IndexAccess,
@@ -19,11 +20,15 @@ import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
+    this.genNode = node;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
     const base = node.vBaseExpression;
     const index = node.vIndexExpression;
     assert(index !== undefined);
@@ -32,12 +37,18 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const baseType = safeGetNodeType(base, this.ast.inference);
 
     assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
+
+    const funcDef = this.getOrCreateFuncDef(nodeType, node, nodeInSourceUnit);
+    return createCallToFunction(funcDef, [base, index], this.ast);
+  }
+
+  getOrCreateFuncDef(nodeType: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
     const funcInfo = this.getOrCreate(nodeType);
 
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
-        ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
+        // ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
         ['offset', createUint256TypeName(this.ast)],
       ],
       [['resLoc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
@@ -45,8 +56,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? node,
     );
-
-    return createCallToFunction(funcDef, [base, index], this.ast);
+    return funcDef;
   }
 
   getOrCreate(valueType: TypeNode): GeneratedFunctionInfo {
@@ -67,9 +77,11 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
     );
 
-    const arrayInfo = this.dynArrayGen.gen(valueCairoType);
-    const lengthName = arrayInfo.name + '_LENGTH';
-    const funcName = `${arrayInfo.name}_IDX`;
+    const arrayDef = this.dynArrayGen.gen(valueCairoType, this.genNode, this.genNodeInSourceUnit);
+    funcsCalled.push(arrayDef);
+    const arrayName = arrayDef.name;
+    const lengthName = arrayName + '_LENGTH';
+    const funcName = `${arrayName}_IDX`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -78,11 +90,11 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         `    let (length) = ${lengthName}.read(ref);`,
         `    let (inRange) = uint256_lt(index, length);`,
         `    assert inRange = 1;`,
-        `    let (existing) = ${arrayInfo.name}.read(ref, index);`,
+        `    let (existing) = ${arrayName}.read(ref, index);`,
         `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(used + ${valueCairoType.width});`,
-        `        ${arrayInfo.name}.write(ref, index, used);`,
+        `        ${arrayName}.write(ref, index, used);`,
         `        return (used,);`,
         `    }else{`,
         `        return (existing,);`,

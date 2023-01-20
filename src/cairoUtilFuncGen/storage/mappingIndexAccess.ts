@@ -26,12 +26,17 @@ import { DynArrayGen } from './dynArray';
 
 export class MappingIndexAccessGen extends StringIndexedFuncGen {
   private generatedHashFunctionNumber = 0;
+  private genNode: Expression = new Expression(0, '', '');
+  private genNodeInSourceUnit?: ASTNode;
 
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
+    this.genNode = node;
+    this.genNodeInSourceUnit = nodeInSourceUnit;
+
     const base = node.vBaseExpression;
     let index = node.vIndexExpression;
     assert(index !== undefined);
@@ -161,9 +166,11 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.alloc', 'alloc'),
         this.requireImport('warplib.string_hash', 'string_hash'),
       );
-      const dataInfo = this.dynArrayGen.gen(indexCairoType);
-      const lenName = dataInfo.name + '_LENGTH';
-      const key = `${dataInfo.name}/${lenName}_hash`;
+      const arrayDef = this.dynArrayGen.gen(indexCairoType, this.genNode, this.genNodeInSourceUnit);
+      funcsCalled.push(arrayDef);
+      const arrayName = arrayDef.name;
+      const lenName = arrayName + '_LENGTH';
+      const key = `${arrayName}/${lenName}_hash`;
       let funcName = `ws_string_hash${this.generatedHashFunctionNumber}`;
       const helperFuncName = `ws_to_felt_array${this.generatedHashFunctionNumber}`;
 
@@ -182,7 +189,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
             `    }`,
             `    let index = len - 1;`,
             `    let (index256) = felt_to_uint256(index);`,
-            `    let (loc) = ${dataInfo.name}.read(name, index256);`,
+            `    let (loc) = ${arrayName}.read(name, index256);`,
             `    let (value) = WARP_STORAGE.read(loc);`,
             `    assert ptr[index] = value;`,
             `    ${helperFuncName}(name, ptr, index);`,
