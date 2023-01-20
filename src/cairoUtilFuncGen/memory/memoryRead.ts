@@ -10,7 +10,7 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
-import { typeNameFromTypeNode } from '../../export';
+import { CairoFunctionDefinition, typeNameFromTypeNode } from '../../export';
 import {
   CairoFelt,
   CairoType,
@@ -59,10 +59,10 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, args, this.ast);
   }
 
-  getOrCreateFuncDef(typeToRead: TypeNode) {
+  getOrCreateFuncDef(typeToRead: TypeNode): CairoFunctionDefinition {
     const typeToReadName = typeNameFromTypeNode(typeToRead, this.ast);
     const resultCairoType = CairoType.fromSol(typeToRead, this.ast);
-    let funcDef: FunctionDefinition;
+    let funcDef: CairoFunctionDefinition;
     if (resultCairoType instanceof MemoryLocation) {
       funcDef = this.requireImport('warplib.memory', 'wm_read_id');
     } else if (resultCairoType instanceof CairoFelt) {

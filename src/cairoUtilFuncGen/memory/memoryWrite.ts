@@ -21,11 +21,11 @@ import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 export class MemoryWriteGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, writeValue: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const typeToWrite = safeGetNodeType(memoryRef, this.ast.inference);
-    const funcDef = this.getOrCreateFuncDef(typeToWrite, memoryRef, nodeInSourceUnit);
+    const funcDef = this.getOrCreateFuncDef(typeToWrite);
     return createCallToFunction(funcDef, [memoryRef, writeValue], this.ast);
   }
 
-  getOrCreateFuncDef(typeToWrite: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
+  getOrCreateFuncDef(typeToWrite: TypeNode) {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
 
     if (cairoTypeToWrite instanceof CairoFelt) {
@@ -56,7 +56,7 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
       ],
       ['warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
     );
     return funcDef;
   }
