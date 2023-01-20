@@ -14,7 +14,6 @@ import { assert } from 'console';
 
 // Paths
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
-const STARKWARE_CAIRO_COMMON_CAIROBUILTINS = 'starkware.cairo.common.cairo_builtins';
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
