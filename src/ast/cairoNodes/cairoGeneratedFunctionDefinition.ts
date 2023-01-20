@@ -23,7 +23,6 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
     stateMutability: FunctionStateMutability,
     parameters: ParameterList,
     returnParameters: ParameterList,
-    implicits: Set<Implicits>,
     rawStringDefinition: string,
     functionsCalled: FunctionDefinition[],
   ) {
@@ -37,7 +36,6 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
       stateMutability,
       parameters,
       returnParameters,
-      implicits,
       rawStringDefinition,
     );
     this.functionsCalled = functionsCalled;
