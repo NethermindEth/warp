@@ -337,9 +337,8 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       'array_index',
       elementTWidth,
     )};`;
-    const writeToMemCode = `${this.memoryWrite.getOrCreate(
-      type.elementT,
-    )}(write_to_mem_location, element);`;
+    const writeToMemFunc = this.memoryWrite.getOrCreateFuncDef(type.elementT);
+    const writeToMemCode = `${writeToMemFunc.name}(write_to_mem_location, element)`;
 
     const name = `${this.functionName}_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
@@ -363,7 +362,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
 
-    const funcInfo = { name, code, functionsCalled };
+    const funcInfo = { name, code, functionsCalled: [...functionsCalled, writeToMemFunc] };
     const generatedFunc = createCairoGeneratedFunction(
       funcInfo,
       [],
@@ -397,9 +396,8 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         elemenTWidth,
       )});`,
     ].join('\n');
-    const writeToMemCode = `${this.memoryWrite.getOrCreate(
-      elementT,
-    )}(write_to_mem_location, element);`;
+    const writeToMemFunc = this.memoryWrite.getOrCreateFuncDef(elementT);
+    const writeToMemCode = `${writeToMemFunc.name}(write_to_mem_location, element);`;
 
     const name = `${this.functionName}_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
@@ -434,7 +432,11 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       this.requireImport('warplib.maths.utils', 'narrow_safe'),
     ];
 
-    const funcInfo = { name, code, functionsCalled: [...importedFuncs, ...functionsCalled] };
+    const funcInfo = {
+      name,
+      code,
+      functionsCalled: [...importedFuncs, ...functionsCalled, writeToMemFunc],
+    };
     const generatedFunc = createCairoGeneratedFunction(
       funcInfo,
       [],
@@ -471,9 +473,9 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         indexWalked += Number(getByteSize(type, this.ast.inference));
         structWriteLocation += index * elemWidth;
         const getMemLocCode = `let mem_to_write_loc = ${add('struct_ptr', structWriteLocation)};`;
-        const writeMemLocCode = `${this.memoryWrite.getOrCreate(
-          type,
-        )}(mem_to_write_loc, member${index});`;
+
+        const writeMemLocFunc = this.memoryWrite.getOrCreateFuncDef(type);
+        const writeMemLocCode = `${writeMemLocFunc.name}(mem_to_write_loc, member${index});`;
         return [
           [
             `// Decoding member ${member.name}`,
@@ -481,7 +483,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
             `${getMemLocCode}`,
             `${writeMemLocCode}`,
           ].join('\n'),
-          functionsCalled,
+          [...functionsCalled, writeMemLocFunc],
         ];
       },
     );
@@ -508,7 +510,11 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     ].join('\n');
 
     const importedFuncs = [this.requireImport('warplib.maths.utils', 'felt_to_uint256')];
-    const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...functionsCalled] };
+    const genFuncInfo = {
+      name,
+      code,
+      functionsCalled: [...importedFuncs, ...functionsCalled],
+    };
     const auxFunc = createCairoGeneratedFunction(
       genFuncInfo,
       [],

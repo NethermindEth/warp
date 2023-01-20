@@ -3,6 +3,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  FunctionDefinition,
   generalizeType,
   SourceUnit,
   StructDefinition,
@@ -304,7 +305,7 @@ export class AbiEncode extends AbiBase {
     const elementT = getElementType(type);
     const elemntTSize = CairoType.fromSol(elementT, this.ast).width;
 
-    const readElement = this.readMemory(elementT, 'elem_loc');
+    const [readElement, readFunc] = this.readMemory(elementT, 'elem_loc');
     const [headEncodingCode, functionsCalled] = this.generateEncodingCode(
       elementT,
       'new_bytes_index',
@@ -340,7 +341,11 @@ export class AbiEncode extends AbiBase {
       this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
     ];
 
-    const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...functionsCalled] };
+    const genFuncInfo = {
+      name,
+      code,
+      functionsCalled: [...importedFuncs, ...functionsCalled, readFunc],
+    };
     const auxFunc = createCairoGeneratedFunction(
       genFuncInfo,
       [],
@@ -426,7 +431,7 @@ export class AbiEncode extends AbiBase {
 
     const elementTWidth = CairoType.fromSol(type.elementT, this.ast).width;
 
-    const readElement = this.readMemory(type.elementT, 'elem_loc');
+    const [readElement, readFunc] = this.readMemory(type.elementT, 'elem_loc');
 
     const [headEncodingCode, functionsCalled] = this.generateEncodingCode(
       type.elementT,
@@ -466,8 +471,7 @@ export class AbiEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    // add this.readmemory
-    const genFuncInfo = { name, code, functionsCalled: [...functionsCalled] };
+    const genFuncInfo = { name, code, functionsCalled: [...functionsCalled, readFunc] };
     const auxFunc = createCairoGeneratedFunction(
       genFuncInfo,
       [],
@@ -564,7 +568,7 @@ export class AbiEncode extends AbiBase {
       (member, index) => {
         const type = generalizeType(safeGetNodeType(member, this.ast.inference))[0];
         const elemWidth = CairoType.fromSol(type, this.ast).width;
-        const readFunc = this.readMemory(type, 'mem_ptr');
+        const [readElement, readFunc] = this.readMemory(type, 'mem_ptr');
         const [encoding, funcsCalled] = this.generateEncodingCode(
           type,
           'bytes_index',
@@ -575,11 +579,11 @@ export class AbiEncode extends AbiBase {
         return [
           [
             `// Encoding member ${member.name}`,
-            `let (elem${index}) = ${readFunc};`,
+            `let (elem${index}) = ${readElement};`,
             `${encoding}`,
             `let mem_ptr = mem_ptr + ${elemWidth};`,
           ].join('\n'),
-          funcsCalled,
+          [...funcsCalled, readFunc],
         ];
       },
     );
@@ -631,13 +635,13 @@ export class AbiEncode extends AbiBase {
     return this.requireImport('warplib.dynamic_arrays_util', funcName);
   }
 
-  protected readMemory(type: TypeNode, arg: string) {
+  protected readMemory(type: TypeNode, arg: string): [string, CairoFunctionDefinition] {
+    const func = this.memoryRead.getOrCreateFuncDef(type);
     const cairoType = CairoType.fromSol(type, this.ast);
-    const funcName = this.memoryRead.getOrCreate(cairoType);
     const args =
       cairoType instanceof MemoryLocation
         ? [arg, isDynamicArray(type) ? uint256(2) : uint256(0)]
         : [arg];
-    return `${funcName}(${args.join(',')})`;
+    return [`${func.name}(${args.join(',')})`, func];
   }
 }
