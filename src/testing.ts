@@ -139,8 +139,9 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/inheritance/super/mid.sol', 'Success'],
     ['example_contracts/inheritance/variables.sol', 'Success'],
     // Requires struct imports
-    ['example_contracts/interfaces.sol', 'Success'],
     ['example_contracts/interfaceFromBaseContract.sol', 'Success'],
+    ['example_contracts/interfaces.sol', 'Success'],
+    ['example_contracts/internal_functions.sol', 'Success'],
     ['example_contracts/invalidSolidity.sol', 'SolCompileFailed'],
     ['example_contracts/lib.sol', 'Success'],
     ['example_contracts/libraries/using_for_star.sol', 'Success'],
