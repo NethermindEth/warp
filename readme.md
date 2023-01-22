@@ -302,6 +302,8 @@ If you like to contribute, the first step is to install Warp from source for dev
 
 To look what features we are currently working on or tasks that are pending to do, please checkout the project on github [here](https://github.com/orgs/NethermindEth/projects/30/views/3)
 
+Also, please take a look through our [Contribution Guidelines](CONTRIBUTING.md)
+
 ### Developing tips :honey_pot:
 
 While developing your code, remembering to compile the project every time some minor changes are applied could be annoying. You could start a process that watch for changes and automatically recompile it.
