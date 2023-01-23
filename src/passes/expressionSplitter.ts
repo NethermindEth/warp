@@ -38,6 +38,16 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
   }
 }
 
+function getRootIdentifier(node: Identifier | IndexAccess): Identifier | IndexAccess {
+  if (node instanceof IndexAccess) {
+    assert(
+      node.vBaseExpression instanceof Identifier || node.vBaseExpression instanceof IndexAccess,
+    );
+    return getRootIdentifier(node.vBaseExpression);
+  }
+  return node;
+}
+
 export class ExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator(SPLIT_EXPRESSION_PREFIX);
 
@@ -113,19 +123,14 @@ export class ExpressionSplitter extends ASTMapper {
       assert(sourceDecl instanceof VariableDeclaration && sourceDecl.vType !== undefined);
       typeName = cloneASTNode(sourceDecl.vType, ast);
     } else {
+      assert(node.vLeftHandSide instanceof IndexAccess);
+      const identifier = getRootIdentifier(node.vLeftHandSide);
       assert(
-        node.vLeftHandSide instanceof IndexAccess &&
-          node.vLeftHandSide.vBaseExpression instanceof Identifier &&
-          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration !== undefined &&
-          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration instanceof
-            VariableDeclaration &&
-          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration.vType !== undefined &&
-          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration.vType instanceof ArrayTypeName,
+        identifier instanceof Identifier &&
+          identifier.vReferencedDeclaration instanceof VariableDeclaration &&
+          identifier.vReferencedDeclaration.vType instanceof ArrayTypeName,
       );
-      typeName = cloneASTNode(
-        node.vLeftHandSide.vBaseExpression.vReferencedDeclaration.vType.vBaseType,
-        ast,
-      );
+      typeName = cloneASTNode(identifier.vReferencedDeclaration.vType.vBaseType, ast);
     }
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
