@@ -2,7 +2,6 @@ import assert from 'assert';
 import {
   AddressType,
   ArrayType,
-  ASTNode,
   DataLocation,
   EnumDefinition,
   Expression,
@@ -20,20 +19,11 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import {
-  CairoFunction,
-  delegateBasedOnType,
-  GeneratedFunctionInfo,
-  StringIndexedFuncGen,
-} from '../base';
+import { delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { MemoryReadGen } from './memoryRead';
 import { MemoryWriteGen } from './memoryWrite';
 

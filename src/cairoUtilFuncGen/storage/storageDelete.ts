@@ -17,22 +17,11 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { TranspileFailedError } from '../../utils/errors';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import {
-  add,
-  CairoFunction,
-  delegateBasedOnType,
-  GeneratedFunctionInfo,
-  StringIndexedFuncGen,
-} from '../base';
+import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 

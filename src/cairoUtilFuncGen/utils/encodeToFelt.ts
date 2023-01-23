@@ -75,7 +75,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
    * @param sourceUnit source unit where the expression is defined
    * @returns a function call that serializes the value of `expressions`
    */
-  gen(expressions: Expression[], expectedTypes: TypeNode[], sourceUnit?: SourceUnit): FunctionCall {
+  gen(expressions: Expression[], expectedTypes: TypeNode[]): FunctionCall {
     assert(expectedTypes.length === expressions.length);
     expectedTypes = expectedTypes.map((type) => generalizeType(type)[0]);
     const funcInfo = this.getOrCreate(expectedTypes);
@@ -87,9 +87,8 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
         return isValueType(exprT) ? input : [...input, DataLocation.CallData];
       }),
       [['result', createBytesTypeName(this.ast), DataLocation.CallData]],
-      [],
       this.ast,
-      sourceUnit ?? this.sourceUnit,
+      this.sourceUnit,
     );
     return createCallToFunction(functionStub, expressions, this.ast);
   }
@@ -100,13 +99,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
    * @param typesToEncode type list
    * @returns the name of the generated function
    */
-  getOrCreate(typesToEncode: TypeNode[]): GeneratedFunctionInfo {
-    const key = typesToEncode.map((t) => t.pp()).join(',');
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
+  private getOrCreate(typesToEncode: TypeNode[]): GeneratedFunctionInfo {
     const parameters: string[] = [];
     const encodeCode: string[] = [];
     const functionsCalled: FunctionDefinition[] = [];
@@ -166,17 +159,17 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
       }
     });
 
-    const resultStruct = this.externalArrayGen.getOrCreate(new BytesType());
+    const resultStruct = this.externalArrayGen.getOrCreateFuncDef(new BytesType());
 
     const cairoParams = parameters.join(',');
-    const funcName = `encode_as_felt${this.generatedFunctions.size}`;
+    const funcName = `encode_as_felt${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (calldata_array : ${resultStruct}){`,
       `   alloc_locals;`,
       `   let total_size : felt = 0;`,
       `   let (decode_array : felt*) = alloc();`,
       ...encodeCode,
-      `   let result = ${resultStruct}(total_size, decode_array);`,
+      `   let result = ${resultStruct.name}(total_size, decode_array);`,
       `   return (result,);`,
       `}`,
     ].join('\n');
@@ -186,9 +179,8 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
     const funcInfo = {
       name: funcName,
       code: code,
-      functionsCalled: [importFunc, ...functionsCalled],
+      functionsCalled: [importFunc, ...functionsCalled, resultStruct],
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
@@ -282,7 +274,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
       functionsCalled: [],
     };
 
-    return createCairoGeneratedFunction(funcInfo, [], [], [], this.ast, this.sourceUnit);
+    return createCairoGeneratedFunction(funcInfo, [], [], this.ast, this.sourceUnit);
   }
 
   private generateStructEncodeFunction(type: UserDefinedType): CairoGeneratedFunctionDefinition {
@@ -311,7 +303,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
     ];
 
     const funcInfo = { name: funcName, code: code.join('\n'), functionsCalled: [] };
-    return createCairoGeneratedFunction(funcInfo, [], [], [], this.ast, this.sourceUnit);
+    return createCairoGeneratedFunction(funcInfo, [], [], this.ast, this.sourceUnit);
   }
 
   private generateStaticArrayEncodeFunction(type: ArrayType): CairoGeneratedFunctionDefinition {
@@ -336,6 +328,6 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
     ];
 
     const funcInfo = { name: funcName, code: code.join('\n'), functionsCalled: [] };
-    return createCairoGeneratedFunction(funcInfo, [], [], [], this.ast, this.sourceUnit);
+    return createCairoGeneratedFunction(funcInfo, [], [], this.ast, this.sourceUnit);
   }
 }

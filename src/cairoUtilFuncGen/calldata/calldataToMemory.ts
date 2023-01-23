@@ -14,19 +14,9 @@ import {
   FunctionDefinition,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import {
-  add,
-  CairoFunction,
-  delegateBasedOnType,
-  GeneratedFunctionInfo,
-  StringIndexedFuncGen,
-} from '../base';
+import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { uint256 } from '../../warplib/utils';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';

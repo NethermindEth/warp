@@ -1,11 +1,4 @@
-import {
-  Expression,
-  FunctionCall,
-  TypeNode,
-  ASTNode,
-  DataLocation,
-  PointerType,
-} from 'solc-typed-ast';
+import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';

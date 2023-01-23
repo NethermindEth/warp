@@ -19,7 +19,7 @@ import {
 } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
-import { CairoUtilFuncGenBase, CairoFunction, add, GeneratedFunctionInfo } from '../base';
+import { CairoUtilFuncGenBase, add, GeneratedFunctionInfo } from '../base';
 
 /*
   Produces a separate function for each struct type and member name, that when given

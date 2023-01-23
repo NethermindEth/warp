@@ -16,15 +16,11 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { isDynamicStorageArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, CairoFunction, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { getBaseType } from '../memory/implicitConversion';
 import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';

@@ -12,14 +12,10 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
-import { CairoUtilFuncGenBase, CairoFunction, add, GeneratedFunctionInfo } from '../base';
+import { CairoUtilFuncGenBase, add, GeneratedFunctionInfo } from '../base';
 
 export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
   // TODO: Check if is not more appropriate to extend from StringIndexedFuncGen instead of CairoUtilFuncGenBase
