@@ -67,21 +67,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const funcName = `cd_to_memory${this.generatedFunctions.size}`;
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
-
+    const funcName = `cd_to_memory${this.generatedFunctionsDef.size}`;
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from calldata to memory not implemented yet`,
@@ -96,8 +82,6 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
-
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 

@@ -74,13 +74,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
+  private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from calldata to storage is not supported yet`,
@@ -89,18 +83,15 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
     return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynamicArrayCopyFunction(key, type),
-      (type) => this.createStaticArrayCopyFunction(key, type),
-      (type) => this.createStructCopyFunction(key, type),
+      (type) => this.createDynamicArrayCopyFunction(type),
+      (type) => this.createStaticArrayCopyFunction(type),
+      (type) => this.createStructCopyFunction(type),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
   }
 
-  private createStructCopyFunction(
-    key: string,
-    structType: UserDefinedType,
-  ): GeneratedFunctionInfo {
+  private createStructCopyFunction(structType: UserDefinedType): GeneratedFunctionInfo {
     assert(structType.definition instanceof StructDefinition);
     const structDef = structType.definition;
     const cairoStruct = CairoType.fromSol(
@@ -130,11 +121,10 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     ].join('\n');
 
     const funcInfo = { name: funcName, code: code, functionsCalled: funcsCalled };
-    this.generatedFunctions.set(key, { name: funcName, code: code, functionsCalled: [] });
     return funcInfo;
   }
 
-  private createStaticArrayCopyFunction(key: string, arrayType: ArrayType): GeneratedFunctionInfo {
+  private createStaticArrayCopyFunction(arrayType: ArrayType): GeneratedFunctionInfo {
     assert(arrayType.size !== undefined);
 
     const funcsCalled: FunctionDefinition[] = [];
@@ -151,7 +141,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     );
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-    const funcName = `cd_static_array_to_storage${this.generatedFunctions.size}`;
+    const funcName = `cd_static_array_to_storage${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}${implicits}(loc : felt, static_array : ${cairoType.toString()}) -> (loc : felt){`,
       `   alloc_locals;`,
@@ -161,13 +151,10 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     ].join('\n');
 
     const funcInfo = { name: funcName, code: code, functionsCalled: funcsCalled };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 
   private createDynamicArrayCopyFunction(
-    key: string,
     arrayType: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
     const elementT = getElementType(arrayType);
@@ -193,7 +180,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const pointerType = `${cairoElementType.toString()}*`;
 
     funcsCalled.push(this.requireImport('warplib.maths.int_conversions', 'warp_uint256'));
-    const funcName = `cd_dynamic_array_to_storage${this.generatedFunctions.size}`;
+    const funcName = `cd_dynamic_array_to_storage${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}_write${implicits}(loc : felt, index : felt, len : felt, elem: ${pointerType}){`,
       `   alloc_locals;`,
@@ -228,8 +215,6 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 

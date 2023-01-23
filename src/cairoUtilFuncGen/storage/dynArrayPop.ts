@@ -83,12 +83,6 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const key = cairoElementType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
       this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
@@ -126,8 +120,6 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 }

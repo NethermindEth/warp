@@ -65,13 +65,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
-    const key = typeToRead.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const funcName = `WS${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
+    const funcName = `WS${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
     const funcInfo: GeneratedFunctionInfo = {
@@ -85,8 +79,6 @@ export class StorageReadGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 }

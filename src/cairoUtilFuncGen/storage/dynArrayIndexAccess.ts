@@ -61,17 +61,12 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(valueType: TypeNode): GeneratedFunctionInfo {
+  private getOrCreate(valueType: TypeNode): GeneratedFunctionInfo {
     const valueCairoType = CairoType.fromSol(
       valueType,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const key = valueCairoType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -105,7 +100,6 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 }

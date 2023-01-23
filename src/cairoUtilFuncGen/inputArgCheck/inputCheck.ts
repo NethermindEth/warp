@@ -97,21 +97,15 @@ export class InputCheckGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode, takesUint = false): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(`Input check for ${printTypeNode(type)} not defined yet.`);
     };
 
     return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynArrayInputCheck(key, this.generateFuncName(key).name, type),
-      (type) => this.createStaticArrayInputCheck(key, this.generateFuncName(key).name, type),
-      (type) => this.createStructInputCheck(key, this.generateFuncName(key).name, type),
+      (type) => this.createDynArrayInputCheck(this.generateFuncName().name, type),
+      (type) => this.createStaticArrayInputCheck(this.generateFuncName().name, type),
+      (type) => this.createStructInputCheck(this.generateFuncName().name, type),
       unexpectedTypeFunc,
       (type) => {
         if (type instanceof FixedBytesType) {
@@ -121,7 +115,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         } else if (type instanceof BoolType) {
           return this.createBoolInputCheck();
         } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
-          return this.createEnumInputCheck(key, type, takesUint);
+          return this.createEnumInputCheck(type, takesUint);
         } else if (
           type instanceof AddressType ||
           (type instanceof UserDefinedType && type.definition instanceof ContractDefinition)
@@ -134,10 +128,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
     );
   }
 
-  private generateFuncName(key: string): GeneratedFunctionInfo {
-    const funcName = `extern_input_check${this.generatedFunctions.size}`;
+  private generateFuncName(): GeneratedFunctionInfo {
+    const funcName = `extern_input_check${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = { name: funcName, code: '', functionsCalled: [] };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
@@ -165,11 +158,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return { name: funcName, code: '', functionsCalled: funcsCalled };
   }
 
-  private createStructInputCheck(
-    key: string,
-    funcName: string,
-    type: UserDefinedType,
-  ): GeneratedFunctionInfo {
+  private createStructInputCheck(funcName: string, type: UserDefinedType): GeneratedFunctionInfo {
     const implicits = '{range_check_ptr : felt}';
 
     const structDef = type.definition;
@@ -198,15 +187,10 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
-  private createStaticArrayInputCheck(
-    key: string,
-    funcName: string,
-    type: ArrayType,
-  ): GeneratedFunctionInfo {
+  private createStaticArrayInputCheck(funcName: string, type: ArrayType): GeneratedFunctionInfo {
     const implicits = '{range_check_ptr : felt}';
 
     assert(type.size !== undefined);
@@ -232,7 +216,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
@@ -248,12 +231,8 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return { name: funcName, code: '', functionsCalled: funcsCalled };
   }
 
-  private createEnumInputCheck(
-    key: string,
-    type: UserDefinedType,
-    takesUint = false,
-  ): GeneratedFunctionInfo {
-    const funcName = `extern_input_check${this.generatedFunctions.size}`;
+  private createEnumInputCheck(type: UserDefinedType, takesUint = false): GeneratedFunctionInfo {
+    const funcName = `extern_input_check${this.generatedFunctionsDef.size}`;
     const implicits = '{range_check_ptr : felt}';
 
     const funcsCalled: FunctionDefinition[] = [];
@@ -281,12 +260,10 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
   private createDynArrayInputCheck(
-    key: string,
     funcName: string,
     type: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
@@ -319,7 +296,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 }

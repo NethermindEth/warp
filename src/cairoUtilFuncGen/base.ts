@@ -79,7 +79,6 @@ export abstract class CairoUtilFuncGenBase {
   usually the cairo type of the input that the function's code depends on
 */
 export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
-  protected generatedFunctions: Map<string, GeneratedFunctionInfo> = new Map();
   protected generatedFunctionsDef: Map<string, FunctionDefinition> = new Map();
 
   // getGeneratedCode(): string {

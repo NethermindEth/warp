@@ -91,17 +91,11 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(indexType: CairoType, valueType: CairoType): GeneratedFunctionInfo {
-    const key = `${indexType.fullStringRepresentation}/${valueType.fullStringRepresentation}`;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const funcName = `WS${this.generatedFunctions.size - this.generatedHashFunctionNumber}_INDEX_${
-      indexType.typeName
-    }_to_${valueType.typeName}`;
+    const funcName = `WS${
+      this.generatedFunctionsDef.size - this.generatedHashFunctionNumber
+    }_INDEX_${indexType.typeName}_to_${valueType.typeName}`;
     const mappingName = `WARP_MAPPING${
-      this.generatedFunctions.size - this.generatedHashFunctionNumber
+      this.generatedFunctionsDef.size - this.generatedHashFunctionNumber
     }`;
     const indexTypeString = indexType.toString();
     const funcInfo: GeneratedFunctionInfo = {
@@ -125,7 +119,6 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
@@ -173,46 +166,40 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       let funcName = `ws_string_hash${this.generatedHashFunctionNumber}`;
       const helperFuncName = `ws_to_felt_array${this.generatedHashFunctionNumber}`;
 
-      const existing = this.generatedFunctions.get(key);
-      let funcInfo: GeneratedFunctionInfo;
-      if (existing === undefined) {
-        funcInfo = {
-          name: funcName,
-          code: [
-            `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-            `    name : felt, ptr : felt*, len : felt`,
-            `){`,
-            `    alloc_locals;`,
-            `    if (len == 0){`,
-            `        return ();`,
-            `    }`,
-            `    let index = len - 1;`,
-            `    let (index256) = felt_to_uint256(index);`,
-            `    let (loc) = ${arrayName}.read(name, index256);`,
-            `    let (value) = WARP_STORAGE.read(loc);`,
-            `    assert ptr[index] = value;`,
-            `    ${helperFuncName}(name, ptr, index);`,
-            `    return ();`,
-            `}`,
-            `func ${funcName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-            `    name : felt`,
-            `) -> (hashedValue : felt){`,
-            `    alloc_locals;`,
-            `    let (len256) = ${lenName}.read(name);`,
-            `    let (len) = narrow_safe(len256);`,
-            `    let (ptr) = alloc();`,
-            `    ${helperFuncName}(name, ptr, len);`,
-            `    let (hashValue) = string_hash(len, ptr);`,
-            `    return (hashValue,);`,
-            `}`,
-          ].join('\n'),
-          functionsCalled: funcsCalled,
-        };
-        this.generatedFunctions.set(key, funcInfo);
-        this.generatedHashFunctionNumber++;
-      } else {
-        funcInfo = existing;
-      }
+      const funcInfo: GeneratedFunctionInfo = {
+        name: funcName,
+        code: [
+          `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
+          `    name : felt, ptr : felt*, len : felt`,
+          `){`,
+          `    alloc_locals;`,
+          `    if (len == 0){`,
+          `        return ();`,
+          `    }`,
+          `    let index = len - 1;`,
+          `    let (index256) = felt_to_uint256(index);`,
+          `    let (loc) = ${arrayName}.read(name, index256);`,
+          `    let (value) = WARP_STORAGE.read(loc);`,
+          `    assert ptr[index] = value;`,
+          `    ${helperFuncName}(name, ptr, index);`,
+          `    return ();`,
+          `}`,
+          `func ${funcName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
+          `    name : felt`,
+          `) -> (hashedValue : felt){`,
+          `    alloc_locals;`,
+          `    let (len256) = ${lenName}.read(name);`,
+          `    let (len) = narrow_safe(len256);`,
+          `    let (ptr) = alloc();`,
+          `    ${helperFuncName}(name, ptr, len);`,
+          `    let (hashValue) = string_hash(len, ptr);`,
+          `    return (hashValue,);`,
+          `}`,
+        ].join('\n'),
+        functionsCalled: funcsCalled,
+      };
+      this.generatedHashFunctionNumber++;
+
       const funcDef = createCairoGeneratedFunction(
         funcInfo,
         [['name', indexTypeName, DataLocation.Storage]],

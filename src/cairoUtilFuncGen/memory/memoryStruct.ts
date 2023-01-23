@@ -84,13 +84,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(structType: CairoStruct): GeneratedFunctionInfo {
-    const key = structType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const funcName = `WM${this.generatedFunctions.size}_struct_${structType.name}`;
+    const funcName = `WM${this.generatedFunctionsDef.size}_struct_${structType.name}`;
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
       this.requireImport('warplib.memory', 'wm_alloc'),
@@ -122,8 +116,6 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 }

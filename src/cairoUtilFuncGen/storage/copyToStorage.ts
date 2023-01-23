@@ -81,22 +81,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(toType: TypeNode, fromType: TypeNode): GeneratedFunctionInfo {
-    const key = `${fromType.pp()}->${toType.pp()}`;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const funcName = `ws_copy${this.generatedFunctions.size}`;
-
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
+  private getOrCreate(toType: TypeNode, fromType: TypeNode): GeneratedFunctionInfo {
+    const funcName = `ws_copy${this.generatedFunctionsDef.size}`;
 
     const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       toType,
@@ -133,8 +119,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         }
       },
     );
-
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 

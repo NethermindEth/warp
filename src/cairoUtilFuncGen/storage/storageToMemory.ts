@@ -69,12 +69,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from storage to memory not implemented yet`,
@@ -83,18 +77,18 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
 
     return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynamicArrayCopyFunction(key, type),
-      (type) => this.createStaticArrayCopyFunction(key, type),
-      (type) => this.createStructCopyFunction(key, type),
+      (type) => this.createDynamicArrayCopyFunction(type),
+      (type) => this.createStaticArrayCopyFunction(type),
+      (type) => this.createStructCopyFunction(type),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
   }
 
-  private createStructCopyFunction(key: string, type: UserDefinedType): GeneratedFunctionInfo {
+  private createStructCopyFunction(type: UserDefinedType): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
-    const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
@@ -104,7 +98,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       code: '',
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -129,19 +122,17 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 
-  private createStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
+  private createStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined, 'Expected static array with known size');
     return type.size <= 5
-      ? this.createSmallStaticArrayCopyFunction(key, type)
-      : this.createLargeStaticArrayCopyFunction(key, type);
+      ? this.createSmallStaticArrayCopyFunction(type)
+      : this.createLargeStaticArrayCopyFunction(type);
   }
 
-  private createSmallStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
+  private createSmallStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
     const funcsCalled: FunctionDefinition[] = [];
@@ -150,17 +141,9 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       this.requireImport('warplib.memory', 'wm_alloc'),
     );
 
-    const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
@@ -180,14 +163,13 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
 
     return funcInfo;
   }
 
-  private createLargeStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
+  private createLargeStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined, 'Expected static array with known size');
-    const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
     const length = narrowBigIntSafe(
       type.size,
       `Failed to narrow size of ${printTypeNode(type)} in memory->storage copy generation`,
@@ -202,14 +184,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
       this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
     );
-
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const elementMemoryWidth = CairoType.fromSol(type.elementT, this.ast).width;
     const elementStorageWidth = CairoType.fromSol(
@@ -253,18 +227,15 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 
   private createDynamicArrayCopyFunction(
-    key: string,
     type: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
     const elementT = getElementType(type);
     const memoryElementType = CairoType.fromSol(elementT, this.ast);
-    const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -281,8 +252,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       code: '',
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, emptyFuncInfo);
-
     const elemMappingDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(elemMappingDef);
     const elemMappingName = elemMappingDef.name;
@@ -326,7 +295,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
 
     return funcInfo;
   }

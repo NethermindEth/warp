@@ -50,13 +50,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
   }
 
   getOrCreate(valueCairoType: CairoType) {
-    const key = valueCairoType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const mappingName = `WARP_DARRAY${this.generatedFunctions.size}_${valueCairoType.typeName}`;
+    const mappingName = `WARP_DARRAY${this.generatedFunctionsDef.size}_${valueCairoType.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: mappingName,
       code: [

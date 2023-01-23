@@ -90,11 +90,6 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       })
       .join('');
 
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const implicits = argTypes.some(
       (type) => type instanceof IntType || type instanceof FixedBytesType,
     )
@@ -102,13 +97,12 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       : '{range_check_ptr : felt, warp_memory : DictAccess*}';
 
     const funcInfo = this.generateBytesConcat(argTypes, implicits);
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
   private generateBytesConcat(argTypes: TypeNode[], implicits: string): GeneratedFunctionInfo {
     const argAmount = argTypes.length;
-    const funcName = `concat${this.generatedFunctions.size}_${argAmount}`;
+    const funcName = `concat${this.generatedFunctionsDef.size}_${argAmount}`;
     const funcsCalled: FunctionDefinition[] = [];
 
     if (argAmount === 0) {

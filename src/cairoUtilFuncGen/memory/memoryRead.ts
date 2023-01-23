@@ -102,17 +102,11 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
-  getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
+  private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const funcsCalled: FunctionDefinition[] = [];
 
-    const key = typeToRead.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_read'));
-    const funcName = `WM${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
+    const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
     const funcInfo: GeneratedFunctionInfo = {
@@ -126,7 +120,6 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 }

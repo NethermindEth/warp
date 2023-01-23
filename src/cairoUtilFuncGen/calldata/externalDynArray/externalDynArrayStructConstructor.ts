@@ -88,31 +88,24 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(type: ArrayType | BytesType | StringType): GeneratedFunctionInfo {
+  private getOrCreate(type: ArrayType | BytesType | StringType): GeneratedFunctionInfo {
     const elemType = getElementType(type);
     const elementCairoType = CairoType.fromSol(
       elemType,
       this.ast,
       TypeConversionContext.CallDataRef,
     );
-    const key = generateCallDataDynArrayStructName(elemType, this.ast);
-
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
+    const structName = generateCallDataDynArrayStructName(elemType, this.ast);
     const funcInfo: GeneratedFunctionInfo = {
-      name: key,
+      name: structName,
       code: [
-        `struct ${key}{`,
+        `struct ${structName}{`,
         `${INDENT} len : felt ,`,
         `${INDENT} ptr : ${elementCairoType.toString()}*,`,
         `}`,
       ].join('\n'),
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 }
