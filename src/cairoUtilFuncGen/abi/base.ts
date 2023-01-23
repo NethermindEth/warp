@@ -22,21 +22,34 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
     const exprTypes = expressions.map(
       (expr) => generalizeType(safeGetNodeType(expr, this.ast.inference))[0],
     );
-    const genFuncInfo = this.getOrCreate(exprTypes);
 
+    const generatedFunction = this.getOrCreateFuncDef(exprTypes);
+
+    return createCallToFunction(generatedFunction, expressions, this.ast);
+  }
+
+  public getOrCreateFuncDef(types: TypeNode[]): CairoFunctionDefinition {
+    const key = types.map((t) => t.pp()).join(',');
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const genFuncInfo = this.getOrCreate(types);
     const functionStub = createCairoGeneratedFunction(
       genFuncInfo,
-      exprTypes.map((exprT, index) =>
+      types.map((exprT, index) =>
         isValueType(exprT)
           ? [`param${index}`, typeNameFromTypeNode(exprT, this.ast)]
           : [`param${index}`, typeNameFromTypeNode(exprT, this.ast), DataLocation.Memory],
       ),
       [['result', createBytesTypeName(this.ast), DataLocation.Memory]],
       this.ast,
-      sourceUnit ?? this.sourceUnit,
+      this.sourceUnit,
     );
 
-    return createCallToFunction(functionStub, expressions, this.ast);
+    this.generatedFunctionsDef.set(key, functionStub);
+    return functionStub;
   }
 
   public getOrCreate(_types: TypeNode[]): GeneratedFunctionInfo {

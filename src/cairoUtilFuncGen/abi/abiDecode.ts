@@ -14,7 +14,6 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { CairoFunctionDefinition, GeneratedFunctionInfo } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -50,7 +49,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     this.memoryWrite = memoryWrite;
   }
 
-  public gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
+  public gen(expressions: Expression[]): FunctionCall {
     assert(
       expressions.length === 2,
       'ABI decode must recieve two arguments: data to decode, and types to decode into',
@@ -64,38 +63,39 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     );
     const typesToDecode = types instanceof TupleType ? types.elements : [types];
 
-    const funcInfo = this.getOrCreate(typesToDecode.map((t) => generalizeType(t)[0]));
-
-    const functionStub = createCairoGeneratedFunction(
-      funcInfo,
-      [['data', createBytesTypeName(this.ast), DataLocation.Memory]],
-      typesToDecode.map((t, index) =>
-        isValueType(t)
-          ? [`result${index}`, typeNameFromTypeNode(t, this.ast)]
-          : [`result${index}`, typeNameFromTypeNode(t, this.ast), DataLocation.Memory],
-      ),
-      this.ast,
-      sourceUnit ?? this.sourceUnit,
+    const generatedFunction = this.getOrCreateFuncDef(
+      typesToDecode.map((t) => generalizeType(t)[0]),
     );
 
-    return createCallToFunction(functionStub, [expressions[0]], this.ast);
+    return createCallToFunction(generatedFunction, [expressions[0]], this.ast);
   }
 
-  public getOrCreateFuncDef(types: TypeNode[]): CairoGeneratedFunctionDefinition {
+  public getOrCreateFuncDef(types: TypeNode[]): CairoFunctionDefinition {
     const key = types.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctionsDef.get(key);
     if (existing !== undefined) {
       return existing;
     }
+
+    const funcInfo = this.getOrCreate(types);
+
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['data', createBytesTypeName(this.ast), DataLocation.Memory]],
+      types.map((t, index) =>
+        isValueType(t)
+          ? [`result${index}`, typeNameFromTypeNode(t, this.ast)]
+          : [`result${index}`, typeNameFromTypeNode(t, this.ast), DataLocation.Memory],
+      ),
+      this.ast,
+      this.sourceUnit,
+    );
+
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
-    const key = types.map((t) => t.pp()).join(',');
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const [returnParams, decodings, functionsCalled] = types.reduce(
       ([returnParams, decodings, functionsCalled], type, index) => {
         const newReturnParams = [
@@ -131,7 +131,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const returnCairoParams = returnParams.map((r) => `${r.name} : ${r.type}`).join(',');
     const returnValues = returnParams.map((r) => `${r.name} = ${r.name}`).join(',');
-    const funcName = `${this.functionName}${this.generatedFunctions.size}`;
+    const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(mem_ptr : felt) -> (${returnCairoParams}){`,
       `  alloc_locals;`,
@@ -144,7 +144,6 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     ].join('\n');
 
     const cairoFunc = { name: funcName, code: code, functionsCalled: functionsCalled };
-    this.generatedFunctions.set(key, cairoFunc);
     return cairoFunc;
   }
 

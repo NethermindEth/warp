@@ -46,12 +46,6 @@ export class AbiEncode extends AbiBase {
   }
 
   public getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
-    const key = types.map((t) => t.pp()).join(',');
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const [params, encodings, functionsCalled] = types.reduce(
       ([params, encodings, functionsCalled], type, index) => {
         const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
@@ -83,7 +77,7 @@ export class AbiEncode extends AbiBase {
     );
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
-    const funcName = `${this.functionName}${this.generatedFunctions.size}`;
+    const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
@@ -111,7 +105,6 @@ export class AbiEncode extends AbiBase {
       code: code,
       functionsCalled: [...importedFuncs, ...functionsCalled],
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 

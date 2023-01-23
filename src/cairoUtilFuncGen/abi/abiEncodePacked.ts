@@ -39,12 +39,6 @@ export class AbiEncodePacked extends AbiBase {
   }
 
   public getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
-    const key = types.map((t) => t.pp()).join(',');
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const [params, encodings, functionsCalled] = types.reduce(
       ([params, encodings, functionsCalled], type, index) => {
         const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
@@ -67,7 +61,7 @@ export class AbiEncodePacked extends AbiBase {
     );
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
-    const funcName = `${this.functionName}${this.generatedFunctions.size}`;
+    const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
@@ -94,7 +88,6 @@ export class AbiEncodePacked extends AbiBase {
       code: code,
       functionsCalled: [...importedFuncs, ...functionsCalled],
     };
-    this.generatedFunctions.set(key, cairoFuncInfo);
 
     return cairoFuncInfo;
   }
@@ -198,8 +191,8 @@ export class AbiEncodePacked extends AbiBase {
         ].join('\n')
       : `let elem_loc : felt = mem_ptr + ${mul('mem_index', cairoElementT.width)};`;
 
-    const readFunc = this.memoryRead.getOrCreate(cairoElementT);
-    const readCode = `let (elem) = ${readFunc}(elem_loc);`;
+    const readFunc = this.memoryRead.getOrCreateFuncDef(elementT);
+    const readCode = `let (elem) = ${readFunc.name}(elem_loc);`;
 
     const encodingCode = this.generateEncodingCode(elementT, 'new_bytes_index', 'elem');
 

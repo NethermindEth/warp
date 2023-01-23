@@ -49,23 +49,16 @@ export abstract class CairoUtilFuncGenBase {
     this.sourceUnit = sourceUnit;
   }
 
-  // import file -> import symbols
-  getImports(): Map<string, Set<string>> {
-    return this.imports;
-  }
-
-  // Concatenate all the generated cairo code into a single string
-  // abstract getGeneratedCode(): string;
-
   protected requireImport(location: string, name: string): CairoImportFunctionDefinition {
     return createImportFuncDefinition(location, name, this.sourceUnit, this.ast);
   }
 
-  protected checkForImport(type: TypeNode): void {
-    if (type instanceof IntType && type.nBits === 256) {
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    }
-  }
+  // TODO: Erase this
+  // protected checkForImport(type: TypeNode): void {
+  //   if (type instanceof IntType && type.nBits === 256) {
+  //     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+  //   }
+  // }
 }
 
 /*
@@ -73,7 +66,7 @@ export abstract class CairoUtilFuncGenBase {
   usually the cairo type of the input that the function's code depends on
 */
 export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
-  protected generatedFunctionsDef: Map<string, FunctionDefinition> = new Map();
+  protected generatedFunctionsDef: Map<string, CairoFunctionDefinition> = new Map();
 }
 
 export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
