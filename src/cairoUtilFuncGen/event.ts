@@ -191,7 +191,6 @@ export class EventFunction extends StringIndexedFuncGen {
     return [
       `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
       `   let (keccak_hash256: Uint256) = warp_keccak(mem_encode);`,
-      // `   let (keccak_hash256: Uint256) = felt_to_uint256(keccak_hash);`,
       `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
     ].join('\n');
   }
