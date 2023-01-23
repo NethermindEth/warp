@@ -38,8 +38,6 @@ import { StorageReadGen } from './storageRead';
 
 export class StorageDeleteGen extends StringIndexedFuncGen {
   private nothingHandlerGen: boolean;
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageReadGen: StorageReadGen,
@@ -51,20 +49,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    this.genNode = node;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
     const nodeType = dereferenceType(safeGetNodeType(node, this.ast.inference));
 
-    const funcInfo = this.getOrCreate(nodeType);
-
-    const funcDef = createCairoGeneratedFunction(
-      funcInfo,
-      [['loc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
-      [],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? node,
-    );
+    const funcDef = this.getOrCreateFuncDef(nodeType);
     return createCallToFunction(funcDef, [node], this.ast);
   }
 
@@ -75,6 +62,26 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   // TODO: Check what this function does
   genAuxFuncName(node: TypeNode): string {
     return `${this.getOrCreate(node)}_elem`;
+  }
+
+  getOrCreateFuncDef(type: TypeNode) {
+    const key = `staticArrayIndexAccess(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(type);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
+      [],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      this.ast,
+      this.sourceUnit,
+    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
@@ -153,11 +160,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const funcsCalled: FunctionDefinition[] = [];
 
     const elementT = dereferenceType(getElementType(type));
-    const arrayDef = this.dynArrayGen.gen(
-      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(arrayDef);
     const arrayName = arrayDef.name;
     const lengthName = arrayName + '_LENGTH';

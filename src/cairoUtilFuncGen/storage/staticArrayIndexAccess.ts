@@ -7,6 +7,7 @@ import {
   FunctionDefinition,
   IndexAccess,
   PointerType,
+  TypeNode,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import {
@@ -17,43 +18,26 @@ import {
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { CairoUtilFuncGenBase, GeneratedFunctionInfo } from '../base';
+import { CairoUtilFuncGenBase, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
-export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
+export class StorageStaticArrayIndexAccessGen extends StringIndexedFuncGen {
   private generatedFunctionInfo: GeneratedFunctionInfo | undefined = undefined;
 
   getGeneratedCode(): GeneratedFunctionInfo | undefined {
     return this.generatedFunctionInfo ?? undefined;
   }
 
-  gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
+  gen(node: IndexAccess): FunctionCall {
     assert(node.vIndexExpression !== undefined);
-
-    const funcInfo = this.getOrCreate();
-
     const arrayType = safeGetNodeType(node.vBaseExpression, this.ast.inference);
     assert(
       arrayType instanceof PointerType &&
         arrayType.to instanceof ArrayType &&
         arrayType.to.size !== undefined,
     );
-
     const valueType = safeGetNodeType(node, this.ast.inference);
 
-    const funcDef = createCairoGeneratedFunction(
-      funcInfo,
-      [
-        ['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage],
-        ['index', createUint256TypeName(this.ast)],
-        ['size', createUint256TypeName(this.ast)],
-        ['limit', createUint256TypeName(this.ast)],
-      ],
-      [['resLoc', typeNameFromTypeNode(valueType, this.ast), DataLocation.Storage]],
-      ['range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? node,
-    );
-
+    const funcDef = this.getOrCreateFuncDef(arrayType, valueType);
     return createCallToFunction(
       funcDef,
       [
@@ -68,6 +52,31 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       ],
       this.ast,
     );
+  }
+
+  getOrCreateFuncDef(arrayType: TypeNode, valueType: TypeNode) {
+    const key = `staticArrayIndexAccess(${arrayType.pp()},${valueType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate();
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [
+        ['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage],
+        ['index', createUint256TypeName(this.ast)],
+        ['size', createUint256TypeName(this.ast)],
+        ['limit', createUint256TypeName(this.ast)],
+      ],
+      [['resLoc', typeNameFromTypeNode(valueType, this.ast), DataLocation.Storage]],
+      // ['range_check_ptr'],
+      this.ast,
+      this.sourceUnit,
+    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(): GeneratedFunctionInfo {

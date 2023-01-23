@@ -7,6 +7,8 @@ import {
   UserDefinedType,
   VariableDeclaration,
   DataLocation,
+  TypeNode,
+  TypeName,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -20,6 +22,7 @@ import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
 import { CairoUtilFuncGenBase, CairoFunction, add, GeneratedFunctionInfo } from '../base';
 
 export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
+  // TODO: Check if is not more appropriate to extend from StringIndexedFuncGen instead of CairoUtilFuncGenBase
   // cairoType -> property name -> code
   private generatedFunctions: Map<string, Map<string, GeneratedFunctionInfo>> = new Map();
 
@@ -39,20 +42,36 @@ export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const funcInfo = this.getOrCreate(structCairoType, memberAccess.memberName);
     const referencedDeclaration = memberAccess.vReferencedDeclaration;
     assert(referencedDeclaration instanceof VariableDeclaration);
     const outType = referencedDeclaration.vType;
     assert(outType !== undefined);
+    const funcDef = this.getOrCreateFuncDef(
+      structCairoType,
+      memberAccess.memberName,
+      solType,
+      outType,
+    );
+    return createCallToFunction(funcDef, [memberAccess.vExpression], this.ast);
+  }
+
+  private getOrCreateFuncDef(
+    structCairoType: CairoType,
+    memberName: string,
+    solType: TypeNode,
+    outType: TypeName,
+  ) {
+    // TODO: Review arguments to be only TypeNodes. Save the func def
+    const funcInfo = this.getOrCreate(structCairoType, memberName);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['loc', typeNameFromTypeNode(solType, this.ast), DataLocation.Storage]],
       [['memberLoc', cloneASTNode(outType, this.ast), DataLocation.Storage]],
-      [],
+      // [],
       this.ast,
-      nodeInSourceUnit ?? memberAccess,
+      this.sourceUnit,
     );
-    return createCallToFunction(funcDef, [memberAccess.vExpression], this.ast);
+    return funcDef;
   }
 
   private getOrCreate(structCairoType: CairoType, memberName: string): GeneratedFunctionInfo {

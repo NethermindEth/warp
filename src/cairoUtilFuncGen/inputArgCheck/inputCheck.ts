@@ -48,11 +48,7 @@ import { cloneASTNode } from '../../utils/cloning';
 import { GettersGenerator } from '../../export';
 
 export class InputCheckGen extends StringIndexedFuncGen {
-  gen(
-    nodeInput: VariableDeclaration | Expression,
-    typeToCheck: TypeNode,
-    nodeInSourceUnit: ASTNode,
-  ): FunctionCall {
+  gen(nodeInput: VariableDeclaration | Expression, typeToCheck: TypeNode): FunctionCall {
     let functionInput;
     let isUint256 = false;
     if (nodeInput instanceof VariableDeclaration) {
@@ -64,7 +60,18 @@ export class InputCheckGen extends StringIndexedFuncGen {
       isUint256 = inputType instanceof IntType && inputType.nBits === 256;
       this.requireImport('warplib.maths.utils', 'narrow_safe');
     }
-    this.sourceUnit = this.ast.getContainingRoot(nodeInSourceUnit);
+
+    const funcDef = this.getOrCreateFuncDef(typeToCheck, isUint256);
+    return createCallToFunction(funcDef, [functionInput], this.ast);
+  }
+
+  private getOrCreateFuncDef(typeToCheck: TypeNode, isUint256: boolean) {
+    const key = `dynArrayPop(${typeToCheck.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
     const funcInfo = this.getOrCreate(typeToCheck, isUint256);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -76,16 +83,17 @@ export class InputCheckGen extends StringIndexedFuncGen {
         ],
       ],
       [],
-      ['range_check_ptr'],
+      // ['range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? nodeInput,
+      this.sourceUnit,
       {
         mutability: FunctionStateMutability.Pure,
         stubKind: FunctionStubKind.FunctionDefStub,
         acceptsRawDArray: isDynamicArray(typeToCheck),
       },
     );
-    return createCallToFunction(funcDef, [functionInput], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(type: TypeNode, takesUint = false): GeneratedFunctionInfo {

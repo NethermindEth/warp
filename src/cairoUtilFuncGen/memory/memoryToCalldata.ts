@@ -55,18 +55,29 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     if (isDynamicArray(type)) {
       this.dynamicArrayStructGen.gen(node, nodeInSourceUnit);
     }
+    const funcDef = this.getOrCreateFuncDef(type);
+    return createCallToFunction(funcDef, [node], this.ast);
+  }
+
+  getOrCreateFuncDef(type: TypeNode) {
+    const key = `memoryToCalldata(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
 
     const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       [['retData', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
       { mutability: FunctionStateMutability.Pure },
     );
-    return createCallToFunction(funcDef, [node], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {

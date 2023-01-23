@@ -20,15 +20,11 @@ import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
-  gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
-    this.genNode = node;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
+  gen(node: IndexAccess): FunctionCall {
     const base = node.vBaseExpression;
     const index = node.vIndexExpression;
     assert(index !== undefined);
@@ -38,13 +34,18 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
 
     assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
 
-    const funcDef = this.getOrCreateFuncDef(nodeType, node, nodeInSourceUnit);
+    const funcDef = this.getOrCreateFuncDef(nodeType);
     return createCallToFunction(funcDef, [base, index], this.ast);
   }
 
-  getOrCreateFuncDef(nodeType: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
-    const funcInfo = this.getOrCreate(nodeType);
+  getOrCreateFuncDef(nodeType: TypeNode) {
+    const key = `dynArrayIndexAccess(${nodeType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
 
+    const funcInfo = this.getOrCreate(nodeType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
@@ -52,10 +53,11 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         ['offset', createUint256TypeName(this.ast)],
       ],
       [['resLoc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
     );
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 
@@ -77,7 +79,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
     );
 
-    const arrayDef = this.dynArrayGen.gen(valueCairoType, this.genNode, this.genNodeInSourceUnit);
+    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(valueType);
     funcsCalled.push(arrayDef);
     const arrayName = arrayDef.name;
     const lengthName = arrayName + '_LENGTH';

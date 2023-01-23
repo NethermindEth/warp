@@ -42,8 +42,6 @@ import { StorageDeleteGen } from './storageDelete';
 */
 
 export class StorageToStorageGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageDeleteGen: StorageDeleteGen,
@@ -52,22 +50,20 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   ) {
     super(ast, sourceUnit);
   }
-  gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    this.genNode = to;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
+  gen(to: Expression, from: Expression): FunctionCall {
     const toType = generalizeType(safeGetNodeType(to, this.ast.inference))[0];
     const fromType = generalizeType(safeGetNodeType(from, this.ast.inference))[0];
-    const funcDef = this.getOrCreateFuncDef(toType, fromType, to, nodeInSourceUnit);
+    const funcDef = this.getOrCreateFuncDef(toType, fromType);
 
     return createCallToFunction(funcDef, [to, from], this.ast);
   }
 
-  getOrCreateFuncDef(
-    toType: TypeNode,
-    fromType: TypeNode,
-    node: Expression,
-    nodeInSourceUnit?: ASTNode,
-  ) {
+  getOrCreateFuncDef(toType: TypeNode, fromType: TypeNode) {
+    const key = `copyToStorage(${toType.pp()}->${fromType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
     const funcInfo = this.getOrCreate(toType, fromType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -76,11 +72,12 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         ['fromLoc', typeNameFromTypeNode(fromType, this.ast), DataLocation.Storage],
       ],
       [['retLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
       { mutability: FunctionStateMutability.View },
     );
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 
@@ -289,18 +286,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const fromElementMappingDef = this.dynArrayGen.gen(
-      fromElementCairoType,
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const fromElementMappingDef = this.dynArrayGen.getOrCreateFuncDef(fromElementT);
     const fromElementMappingName = fromElementMappingDef.name;
     const fromLengthMappingName = fromElementMappingName + '_LENGTH';
-    const toElementMappingDef = this.dynArrayGen.gen(
-      toElementCairoType,
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const toElementMappingDef = this.dynArrayGen.getOrCreateFuncDef(toElementT);
     const toElementMappingName = toElementMappingDef.name;
     const toLengthMappingName = toElementMappingName + '_LENGTH';
     funcsCalled.push(fromElementMappingDef, toElementMappingDef);
@@ -386,11 +375,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const toElementMappingDef = this.dynArrayGen.gen(
-      toElementCairoType,
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const toElementMappingDef = this.dynArrayGen.getOrCreateFuncDef(toElementT);
     const toElementMappingName = toElementMappingDef.name;
     const toLengthMappingName = toElementMappingName + '_LENGTH';
     const copyCode = createElementCopy(

@@ -7,6 +7,8 @@ import {
   IdentifierPath,
   PointerType,
   StructDefinition,
+  TypeName,
+  TypeNode,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -28,15 +30,22 @@ export class MemoryStructGen extends StringIndexedFuncGen {
   gen(node: FunctionCall): FunctionCall {
     const structDef = node.vReferencedDeclaration;
     assert(structDef instanceof StructDefinition);
+    const nodeType = safeGetNodeType(node, this.ast.inference);
+    const funcDef = this.getOrCreateFuncDef(nodeType, structDef);
+    structDef.vScope.acceptChildren();
+    return createCallToFunction(funcDef, node.vArguments, this.ast);
+  }
 
-    const cairoType = CairoType.fromSol(
-      safeGetNodeType(node, this.ast.inference),
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    );
+  getOrCreateFuncDef(nodeType: TypeNode, structDef: StructDefinition) {
+    const key = `memoryStruct(${nodeType.pp()},${structDef.name})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const cairoType = CairoType.fromSol(nodeType, this.ast, TypeConversionContext.MemoryAllocation);
     assert(cairoType instanceof CairoStruct);
     const funcInfo = this.getOrCreate(cairoType);
-
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       structDef.vMembers.map((decl) => {
@@ -66,14 +75,12 @@ export class MemoryStructGen extends StringIndexedFuncGen {
           DataLocation.Memory,
         ],
       ],
-      ['range_check_ptr', 'warp_memory'],
+      // ['range_check_ptr', 'warp_memory'],
       this.ast,
-      node,
+      this.sourceUnit,
     );
-
-    structDef.vScope.acceptChildren();
-
-    return createCallToFunction(funcDef, node.vArguments, this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(structType: CairoStruct): GeneratedFunctionInfo {

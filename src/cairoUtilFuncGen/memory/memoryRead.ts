@@ -59,7 +59,13 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, args, this.ast);
   }
 
-  getOrCreateFuncDef(typeToRead: TypeNode): CairoFunctionDefinition {
+  getOrCreateFuncDef(typeToRead: TypeNode) {
+    const key = `memoryRead(${typeToRead.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
     const typeToReadName = typeNameFromTypeNode(typeToRead, this.ast);
     const resultCairoType = CairoType.fromSol(typeToRead, this.ast);
     let funcDef: CairoFunctionDefinition;
@@ -87,12 +93,13 @@ export class MemoryReadGen extends StringIndexedFuncGen {
             locationIfComplexType(typeToRead, DataLocation.Memory),
           ],
         ],
-        ['range_check_ptr', 'warp_memory'],
+        // ['range_check_ptr', 'warp_memory'],
         this.ast,
         this.sourceUnit,
         { mutability: FunctionStateMutability.View },
       );
     }
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
   getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {

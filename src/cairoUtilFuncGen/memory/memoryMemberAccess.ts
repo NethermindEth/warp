@@ -7,6 +7,8 @@ import {
   UserDefinedType,
   VariableDeclaration,
   DataLocation,
+  TypeNode,
+  TypeName,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -27,6 +29,7 @@ import { CairoUtilFuncGenBase, CairoFunction, add, GeneratedFunctionInfo } from 
   node could serve as an optimisation here
 */
 export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
+  // TODO: Check if is not more appropriate to extend from StringIndexedFuncGen instead of CairoUtilFuncGenBase
   // cairoType -> property name -> code
   private generatedFunctions: Map<string, Map<string, GeneratedFunctionInfo>> = new Map();
 
@@ -47,20 +50,35 @@ export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-    const funcInfo = this.getOrCreate(structCairoType, memberAccess.memberName);
     const referencedDeclaration = memberAccess.vReferencedDeclaration;
     assert(referencedDeclaration instanceof VariableDeclaration);
     const outType = referencedDeclaration.vType;
     assert(outType !== undefined);
+    const funcDef = this.getOrCreateFuncDef(
+      structCairoType,
+      memberAccess.memberName,
+      solType,
+      outType,
+    );
+    return createCallToFunction(funcDef, [memberAccess.vExpression], this.ast);
+  }
+
+  private getOrCreateFuncDef(
+    structCairoType: CairoType,
+    memberName: string,
+    solType: TypeNode,
+    outType: TypeName,
+  ) {
+    const funcInfo = this.getOrCreate(structCairoType, memberName);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['loc', typeNameFromTypeNode(solType, this.ast), DataLocation.Memory]],
       [['memberLoc', cloneASTNode(outType, this.ast), DataLocation.Memory]],
-      [],
+      // [],
       this.ast,
-      nodeInSourceUnit ?? memberAccess,
+      this.sourceUnit,
     );
-    return createCallToFunction(funcDef, [memberAccess.vExpression], this.ast);
+    return funcDef;
   }
 
   private getOrCreate(structCairoType: CairoType, memberName: string): GeneratedFunctionInfo {

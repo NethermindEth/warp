@@ -50,7 +50,6 @@ import { MemoryWriteGen } from './memoryWrite';
 const IMPLICITS = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
 
 export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
   constructor(
     private memoryWrite: MemoryWriteGen,
     private memoryRead: MemoryReadGen,
@@ -111,21 +110,30 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 
   gen(source: Expression, targetType: TypeNode): FunctionCall {
-    this.genNode = source;
     const sourceType = safeGetNodeType(source, this.ast.inference);
 
-    const funcInfo = this.getOrCreate(targetType, sourceType);
+    const funcDef = this.getOrCreateFuncDef(targetType, sourceType);
+    return createCallToFunction(funcDef, [source], this.ast);
+  }
 
+  getOrCreateFuncDef(targetType: TypeNode, sourceType: TypeNode) {
+    const key = `implicitConversion(${targetType.pp()},${sourceType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(targetType, sourceType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['source', typeNameFromTypeNode(sourceType, this.ast), DataLocation.Memory]],
       [['target', typeNameFromTypeNode(targetType, this.ast), DataLocation.Memory]],
-      ['range_check_ptr', 'bitwise_ptr', 'warp_memory'],
+      // ['range_check_ptr', 'bitwise_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
     );
-
-    return createCallToFunction(funcDef, [source], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   getOrCreate(targetType: TypeNode, sourceType: TypeNode): GeneratedFunctionInfo {
@@ -205,7 +213,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const conversionCode = this.generateScalingCode(targetType.elementT, sourceType.elementT);
 
     const targetLoc = `${getOffset('target', 'index', cairoTargetElementType.width)}`;
-    const memoryWriteDef = this.memoryWrite.getOrCreateFuncDef(targetType.elementT, this.genNode);
+    const memoryWriteDef = this.memoryWrite.getOrCreateFuncDef(targetType.elementT);
     funcsCalled.push(memoryWriteDef);
     const targetCopyCode = `${memoryWriteDef.name}(${targetLoc}, target_elem);`;
 
@@ -280,10 +288,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const conversionCode = this.generateScalingCode(targetType.elementT, sourceType.elementT);
 
-    const memoryWriteFuncDef = this.memoryWrite.getOrCreateFuncDef(
-      targetType.elementT,
-      this.genNode,
-    );
+    const memoryWriteFuncDef = this.memoryWrite.getOrCreateFuncDef(targetType.elementT);
     funcsCalled.push(memoryWriteFuncDef);
     const targetCopyCode = [
       `let (target_elem_loc) = wm_index_dyn(target, index, ${uint256(targetTWidth)});`,
@@ -352,7 +357,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const conversionCode = this.generateScalingCode(targetType.elementT, sourceType.elementT);
 
-    const memoryWriteDef = this.memoryWrite.getOrCreateFuncDef(targetType.elementT, this.genNode);
+    const memoryWriteDef = this.memoryWrite.getOrCreateFuncDef(targetType.elementT);
     funcsCalled.push(memoryWriteDef);
     const targetCopyCode = [
       `let (target_elem_loc) = wm_index_dyn(target, index, ${uint256(targetTWidth)});`,

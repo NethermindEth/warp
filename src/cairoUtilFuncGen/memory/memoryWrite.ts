@@ -26,8 +26,13 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
   }
 
   getOrCreateFuncDef(typeToWrite: TypeNode) {
-    const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
+    const key = `dynArrayPop(${typeToWrite.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
 
+    const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
     if (cairoTypeToWrite instanceof CairoFelt) {
       return this.requireImport('warplib.memory', 'wm_write_felt');
     } else if (
@@ -54,10 +59,11 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
           typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
         ],
       ],
-      ['warp_memory'],
+      // ['warp_memory'],
       this.ast,
       this.sourceUnit,
     );
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 

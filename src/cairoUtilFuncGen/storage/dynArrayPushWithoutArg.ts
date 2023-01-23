@@ -7,10 +7,16 @@ import {
   FunctionDefinition,
   MemberAccess,
   SourceUnit,
+  TypeName,
+  TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -29,28 +35,41 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
     assert(push.vExpression instanceof MemberAccess);
     const arrayType = safeGetNodeType(push.vExpression.vExpression, this.ast.inference);
     const elementType = safeGetNodeType(push, this.ast.inference);
+    const funcDef = this.getOrCreateFuncDef(arrayType, elementType);
 
-    const name = this.getOrCreate(
-      CairoType.fromSol(elementType, this.ast, TypeConversionContext.StorageAllocation),
-    );
-
-    const functionStub = createCairoFunctionStub(
-      name,
-      [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
-      [['newElemLoc', typeNameFromTypeNode(elementType, this.ast), DataLocation.Storage]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? push,
-    );
-
-    return createCallToFunction(functionStub, [push.vExpression.vExpression], this.ast);
+    return createCallToFunction(funcDef, [push.vExpression.vExpression], this.ast);
   }
 
-  private getOrCreate(elementType: CairoType): string {
+  getOrCreateFuncDef(arrayType: TypeNode, elementType: TypeNode) {
+    const key = `dynArrayPushWithoutArg(${arrayType.pp()},${elementType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(elementType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
+      [['newElemLoc', typeNameFromTypeNode(elementType, this.ast), DataLocation.Storage]],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      this.ast,
+      this.sourceUnit,
+    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
+  }
+
+  private getOrCreate(elementTypeName: TypeNode): GeneratedFunctionInfo {
+    const elementType = CairoType.fromSol(
+      elementTypeName,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
     const key = elementType.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const funcsCalled: FunctionDefinition[] = [];
@@ -59,7 +78,7 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
     );
 
-    const arrayDef = this.dynArrayGen.gen(elementType, this.genNode, this.genNodeInSourceUnit);
+    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementTypeName);
     funcsCalled.push(arrayDef);
     const arrayName = arrayDef.name;
     const lengthName = arrayName + '_LENGTH';
@@ -88,6 +107,6 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
     };
     this.generatedFunctions.set(key, funcInfo);
 
-    return funcName;
+    return funcInfo;
   }
 }

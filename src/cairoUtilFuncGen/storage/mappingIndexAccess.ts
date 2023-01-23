@@ -10,6 +10,7 @@ import {
   MappingType,
   PointerType,
   SourceUnit,
+  TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -26,42 +27,44 @@ import { DynArrayGen } from './dynArray';
 
 export class MappingIndexAccessGen extends StringIndexedFuncGen {
   private generatedHashFunctionNumber = 0;
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
 
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
-    this.genNode = node;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
-
     const base = node.vBaseExpression;
     let index = node.vIndexExpression;
     assert(index !== undefined);
-
     const nodeType = safeGetNodeType(node, this.ast.inference);
     const baseType = safeGetNodeType(base, this.ast.inference);
-
     assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
 
+    if (isReferenceType(baseType.to.keyType)) {
+      const stringLoc = generalizeType(safeGetNodeType(index, this.ast.inference))[1];
+      assert(stringLoc !== undefined);
+      const call = this.createStringHashFunction(node, stringLoc);
+      index = call;
+    }
+    const funcDef = this.getOrCreateFuncDef(baseType, nodeType);
+    return createCallToFunction(funcDef, [base, index], this.ast);
+  }
+
+  getOrCreateFuncDef(baseType: TypeNode, nodeType: TypeNode) {
+    const key = `mappingIndexAccess(${baseType.pp()},${nodeType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
     const indexCairoType = CairoType.fromSol(baseType.to.keyType, this.ast);
     const valueCairoType = CairoType.fromSol(
       nodeType,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-
-    if (isReferenceType(baseType.to.keyType)) {
-      const stringLoc = generalizeType(safeGetNodeType(index, this.ast.inference))[1];
-      assert(stringLoc !== undefined);
-      const call = this.createStringHashFunction(node, stringLoc, indexCairoType);
-      index = call;
-    }
-
     const funcInfo = this.getOrCreate(indexCairoType, valueCairoType);
-
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
@@ -79,12 +82,12 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
           locationIfComplexType(nodeType, DataLocation.Storage),
         ],
       ],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
     );
-
-    return createCallToFunction(funcDef, [base, index], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(indexType: CairoType, valueType: CairoType): GeneratedFunctionInfo {
@@ -126,11 +129,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     return funcInfo;
   }
 
-  private createStringHashFunction(
-    node: IndexAccess,
-    loc: DataLocation,
-    indexCairoType: CairoType,
-  ): FunctionCall {
+  private createStringHashFunction(node: IndexAccess, loc: DataLocation): FunctionCall {
     assert(node.vIndexExpression instanceof Expression);
     const indexType = safeGetNodeType(node.vIndexExpression, this.ast.inference);
     const indexTypeName = typeNameFromTypeNode(indexType, this.ast);
@@ -166,7 +165,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.alloc', 'alloc'),
         this.requireImport('warplib.string_hash', 'string_hash'),
       );
-      const arrayDef = this.dynArrayGen.gen(indexCairoType, this.genNode, this.genNodeInSourceUnit);
+      const arrayDef = this.dynArrayGen.getOrCreateFuncDef(indexType);
       funcsCalled.push(arrayDef);
       const arrayName = arrayDef.name;
       const lenName = arrayName + '_LENGTH';
@@ -218,7 +217,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         funcInfo,
         [['name', indexTypeName, DataLocation.Storage]],
         [['hashedStr', createUint8TypeName(this.ast), DataLocation.Default]],
-        ['pedersen_ptr', 'range_check_ptr', 'syscall_ptr'],
+        // ['pedersen_ptr', 'range_check_ptr', 'syscall_ptr'],
         this.ast,
         node,
       );

@@ -46,24 +46,40 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     ];
 
     const argTypes = args.map((e) => safeGetNodeType(e, this.ast.inference));
+
+    const funcDef = this.getOrCreateFuncDef(argTypes, inputs, output);
+    return createCallToFunction(funcDef, args, this.ast);
+  }
+
+  getOrCreateFuncDef(
+    argTypes: TypeNode[],
+    inputs: [string, TypeName, DataLocation][],
+    output: [string, TypeName, DataLocation],
+  ) {
+    // TODO Remove arguments that are not TypeNodes
+
+    const key = `storageToCallData(${argTypes.map((t) => `${t.pp()}`).flat()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
     const funcInfo = this.getOrCreate(argTypes);
-
-    const implicits: Implicits[] = argTypes.some(
-      (type) => type instanceof IntType || type instanceof FixedBytesType,
-    )
-      ? ['bitwise_ptr', 'range_check_ptr', 'warp_memory']
-      : ['range_check_ptr', 'warp_memory'];
-
+    // const implicits: Implicits[] = argTypes.some(
+    //   (type) => type instanceof IntType || type instanceof FixedBytesType,
+    // )
+    //   ? ['bitwise_ptr', 'range_check_ptr', 'warp_memory']
+    //   : ['range_check_ptr', 'warp_memory'];
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       inputs,
       [output],
-      implicits,
+      // implicits,
       this.ast,
-      concat,
+      this.sourceUnit,
     );
-
-    return createCallToFunction(funcDef, args, this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(argTypes: TypeNode[]): GeneratedFunctionInfo {

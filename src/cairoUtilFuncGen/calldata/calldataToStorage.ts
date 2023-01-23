@@ -30,8 +30,6 @@ import { DynArrayGen } from '../storage/dynArray';
 import { StorageWriteGen } from '../storage/storageWrite';
 
 export class CalldataToStorageGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageWriteGen: StorageWriteGen,
@@ -46,26 +44,20 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     calldataLocation: Expression,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
-    this.genNode = storageLocation;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
     const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
     const calldataType = generalizeType(safeGetNodeType(calldataLocation, this.ast.inference))[0];
-    const funcDef = this.getOrCreateFuncDef(
-      calldataType,
-      storageType,
-      storageLocation,
-      nodeInSourceUnit,
-    );
+    const funcDef = this.getOrCreateFuncDef(calldataType, storageType);
 
     return createCallToFunction(funcDef, [storageLocation, calldataLocation], this.ast);
   }
 
-  getOrCreateFuncDef(
-    calldataType: TypeNode,
-    storageType: TypeNode,
-    node: Expression,
-    nodeInSourceUnit?: ASTNode,
-  ) {
+  getOrCreateFuncDef(calldataType: TypeNode, storageType: TypeNode) {
+    const key = `calldataToStorage(${calldataType.pp()},${storageType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
     const funcInfo = this.getOrCreate(calldataType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -74,10 +66,11 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
         ['dynarray', typeNameFromTypeNode(calldataType, this.ast), DataLocation.CallData],
       ],
       [['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
     );
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 
@@ -183,11 +176,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
     const funcsCalled: FunctionDefinition[] = [];
 
-    const arrayDef = this.dynArrayGen.gen(
-      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(arrayDef);
     const lenName = arrayDef.name + '_LENGTH';
     const cairoElementType = CairoType.fromSol(
@@ -196,11 +185,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const writeDef = this.storageWriteGen.getOrCreateFuncDef(
-      elementT,
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const writeDef = this.storageWriteGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(writeDef);
     const copyCode = `${writeDef.name}(elem_loc, elem[index]);`;
 
@@ -261,11 +246,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
         TypeConversionContext.CallDataRef,
       ).width;
 
-      const writeDef = this.storageWriteGen.getOrCreateFuncDef(
-        varType,
-        this.genNode,
-        this.genNodeInSourceUnit,
-      );
+      const writeDef = this.storageWriteGen.getOrCreateFuncDef(varType);
       funcsCalled.push(writeDef);
       const location = add('loc', offset);
 

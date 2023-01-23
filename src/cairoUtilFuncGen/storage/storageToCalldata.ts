@@ -29,8 +29,6 @@ import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
 export class StorageToCalldataGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageReadGen: StorageReadGen,
@@ -42,20 +40,29 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression) {
-    this.genNode = storageLocation;
     const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
 
-    const funcInfo = this.getOrCreate(storageType);
+    const funcDef = this.getOrCreateFuncDef(storageType);
+    return createCallToFunction(funcDef, [storageLocation], this.ast);
+  }
+
+  getOrCreateFuncDef(type: TypeNode) {
+    const key = `storageToCallData(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+    const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
-      [['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage]],
-      [['obj', typeNameFromTypeNode(storageType, this.ast), DataLocation.CallData]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
+      [['obj', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      storageLocation,
+      this.sourceUnit,
     );
-
-    return createCallToFunction(funcDef, [storageLocation], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
@@ -167,10 +174,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     );
 
     this.externalDynArrayStructConstructor.getOrCreate(arrayType);
-    const arrayDef = this.dynArrayGen.gen(
-      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
-      this.genNode,
-    );
+    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(arrayDef);
     const arrayName = arrayDef.name;
     const lenName = arrayName + '_LENGTH';

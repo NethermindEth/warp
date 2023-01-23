@@ -40,8 +40,6 @@ import { Func } from 'mocha';
 import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageWrite: StorageWriteGen,
@@ -55,9 +53,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
-    this.genNode = push;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
+  gen(push: FunctionCall): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
       safeGetNodeType(push.vExpression.vExpression, this.ast.inference),
@@ -76,15 +72,30 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       safeGetNodeType(push.vArguments[0], this.ast.inference),
     );
 
+    const funcDef = this.getOrCreateFuncDef(arrayType, argType, argLoc);
+    return createCallToFunction(
+      funcDef,
+      [push.vExpression.vExpression, push.vArguments[0]],
+      this.ast,
+    );
+  }
+
+  getOrCreateFuncDef(arrayType: TypeNode, argType: TypeNode, argLoc: DataLocation | undefined) {
+    const key = `dynArrayPushWithArg(${arrayType.pp()},${argType.pp()},${argLoc})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
     const funcInfo = this.getOrCreate(
       getElementType(arrayType),
       argType,
       argLoc ?? DataLocation.Default,
     );
-    const implicits: Implicits[] =
-      argLoc === DataLocation.Memory
-        ? ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory']
-        : ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'];
+    // const implicits: Implicits[] =
+    //   argLoc === DataLocation.Memory
+    //     ? ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory']
+    //     : ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'];
 
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -93,16 +104,12 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         ['value', typeNameFromTypeNode(argType, this.ast), argLoc ?? DataLocation.Default],
       ],
       [],
-      implicits,
+      // implicits,
       this.ast,
-      nodeInSourceUnit ?? push,
+      this.sourceUnit,
     );
-
-    return createCallToFunction(
-      funcDef,
-      [push.vExpression.vExpression, push.vArguments[0]],
-      this.ast,
-    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(
@@ -116,37 +123,22 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       return existing;
     }
 
-    let elementWriteDef: CairoGeneratedFunctionDefinition;
+    let elementWriteDef: FunctionDefinition;
     let inputType: string;
     if (argLoc === DataLocation.Memory) {
-      elementWriteDef = this.memoryToStorage.getOrCreateFuncDef(
-        elementType,
-        this.genNode,
-        this.genNodeInSourceUnit,
-      );
+      elementWriteDef = this.memoryToStorage.getOrCreateFuncDef(elementType);
       inputType = 'felt';
     } else if (argLoc === DataLocation.Storage) {
-      elementWriteDef = this.storageToStorage.getOrCreateFuncDef(
-        elementType,
-        argType,
-        this.genNode,
-        this.genNodeInSourceUnit,
-      );
+      elementWriteDef = this.storageToStorage.getOrCreateFuncDef(elementType, argType);
       inputType = 'felt';
     } else if (argLoc === DataLocation.CallData) {
       if (elementType.pp() !== argType.pp()) {
         elementWriteDef = this.calldataToStorageConversion.getOrCreateFuncDef(
           specializeType(elementType, DataLocation.Storage),
           specializeType(argType, DataLocation.CallData),
-          this.genNode,
         );
       } else {
-        // TODO: check storage type parameter
-        elementWriteDef = this.calldataToStorage.getOrCreateFuncDef(
-          elementType,
-          this.genNode,
-          this.genNodeInSourceUnit,
-        );
+        elementWriteDef = this.calldataToStorage.getOrCreateFuncDef(elementType, argType);
       }
       inputType = CairoType.fromSol(
         argType,
@@ -154,11 +146,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         TypeConversionContext.CallDataRef,
       ).toString();
     } else {
-      elementWriteDef = this.storageWrite.getOrCreateFuncDef(
-        elementType,
-        this.genNode,
-        this.genNodeInSourceUnit,
-      );
+      elementWriteDef = this.storageWrite.getOrCreateFuncDef(elementType);
       inputType = CairoType.fromSol(elementType, this.ast).toString();
     }
 
@@ -174,11 +162,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const arrayDef = this.dynArrayGen.gen(
-      allocationCairoType,
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementType);
     const arrayName = arrayDef.name;
     const lengthName = arrayName + '_LENGTH';
     const funcName = `${arrayName}_PUSHV${this.generatedFunctions.size}`;

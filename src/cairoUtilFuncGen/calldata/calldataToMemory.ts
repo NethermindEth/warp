@@ -41,18 +41,29 @@ import {
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
+    const funcDef = this.getOrCreateFuncDef(type);
+    return createCallToFunction(funcDef, [node], this.ast);
+  }
+
+  private getOrCreateFuncDef(type: TypeNode) {
+    const key = `calldataToMemory(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
 
     const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['calldata', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
       { mutability: FunctionStateMutability.Pure },
     );
-    return createCallToFunction(funcDef, [node], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {

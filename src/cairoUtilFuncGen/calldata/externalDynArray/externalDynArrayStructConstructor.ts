@@ -50,21 +50,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       `Attempted to create dynArray struct for non-dynarray type ${printTypeNode(type)}`,
     );
 
-    const funcInfo = this.getOrCreate(type);
-    const funcDef = createCairoGeneratedFunction(
-      funcInfo,
-      [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      [['darray_struct', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      [],
-      this.ast,
-      nodeInSourceUnit ?? astNode,
-      {
-        mutability: FunctionStateMutability.View,
-        stubKind: FunctionStubKind.StructDefStub,
-        acceptsRawDArray: true,
-      },
-    );
-
+    const funcDef = this.getOrCreateFuncDef(type);
     if (astNode instanceof VariableDeclaration) {
       const functionInputs: Identifier[] = [
         createIdentifier(astNode, this.ast, DataLocation.CallData, nodeInSourceUnit ?? astNode),
@@ -75,6 +61,31 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       // the StructDefinition to be in the contract.
       return;
     }
+  }
+
+  getOrCreateFuncDef(type: ArrayType | BytesType | StringType) {
+    const key = `externalDynArrayStructConstructor(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(type);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
+      [['darray_struct', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
+      // [],
+      this.ast,
+      this.sourceUnit,
+      {
+        mutability: FunctionStateMutability.View,
+        stubKind: FunctionStubKind.StructDefStub,
+        acceptsRawDArray: true,
+      },
+    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   getOrCreate(type: ArrayType | BytesType | StringType): GeneratedFunctionInfo {

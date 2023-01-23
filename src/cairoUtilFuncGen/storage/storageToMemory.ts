@@ -37,28 +37,35 @@ import { DynArrayGen } from './dynArray';
 */
 
 export class StorageToMemoryGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
-
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
-  gen(node: Expression, nodeInSourceUnit?: ASTNode): Expression {
-    this.genNode = node;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
+  gen(node: Expression): Expression {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
+
+    const funcDef = this.getOrCreateFuncDef(type);
+    return createCallToFunction(funcDef, [node], this.ast);
+  }
+
+  getOrCreateFuncDef(type: TypeNode) {
+    const key = `storageToMemory(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
 
     const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
       { mutability: FunctionStateMutability.View },
     );
-    return createCallToFunction(funcDef, [node], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
@@ -276,11 +283,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     };
     this.generatedFunctions.set(key, emptyFuncInfo);
 
-    const elemMappingDef = this.dynArrayGen.gen(
-      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const elemMappingDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(elemMappingDef);
     const elemMappingName = elemMappingDef.name;
     const lengthMappingName = elemMappingDef.name + '_LENGTH';

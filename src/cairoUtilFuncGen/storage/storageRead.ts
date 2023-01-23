@@ -21,33 +21,47 @@ import { serialiseReads } from '../serialisation';
 export class StorageReadGen extends StringIndexedFuncGen {
   gen(storageLocation: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
     const valueType = safeGetNodeType(storageLocation, this.ast.inference);
-    const resultCairoType = CairoType.fromSol(
-      valueType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
-    const funcInfo = this.getOrCreate(resultCairoType);
-    const funcDef = createCairoGeneratedFunction(
-      funcInfo,
-      [['loc', cloneASTNode(type, this.ast), DataLocation.Storage]],
-      [
-        [
-          'val',
-          cloneASTNode(type, this.ast),
-          locationIfComplexType(valueType, DataLocation.Storage),
-        ],
-      ],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? storageLocation,
-      { mutability: FunctionStateMutability.View },
-    );
+
+    const funcDef = this.getOrCreateFuncDef(valueType, type);
     return createCallToFunction(funcDef, [storageLocation], this.ast);
   }
 
   genFuncName(type: TypeNode) {
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
     return this.getOrCreate(cairoType);
+  }
+
+  // TODO: Check typeName param
+  getOrCreateFuncDef(valueType: TypeNode, typeName: TypeName) {
+    const resultCairoType = CairoType.fromSol(
+      valueType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+    const key = `storageRead(${valueType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(resultCairoType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['loc', cloneASTNode(typeName, this.ast), DataLocation.Storage]],
+      [
+        [
+          'val',
+          cloneASTNode(typeName, this.ast),
+          locationIfComplexType(valueType, DataLocation.Storage),
+        ],
+      ],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      this.ast,
+      this.sourceUnit,
+      { mutability: FunctionStateMutability.View },
+    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {

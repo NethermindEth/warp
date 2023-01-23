@@ -14,17 +14,19 @@ import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class StorageWriteGen extends StringIndexedFuncGen {
-  gen(
-    storageLocation: Expression,
-    writeValue: Expression,
-    nodeInSourceUnit?: ASTNode,
-  ): FunctionCall {
+  gen(storageLocation: Expression, writeValue: Expression): FunctionCall {
     const typeToWrite = safeGetNodeType(storageLocation, this.ast.inference);
-    const funcDef = this.getOrCreateFuncDef(typeToWrite, storageLocation, nodeInSourceUnit);
+    const funcDef = this.getOrCreateFuncDef(typeToWrite);
     return createCallToFunction(funcDef, [storageLocation, writeValue], this.ast);
   }
 
-  getOrCreateFuncDef(typeToWrite: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
+  getOrCreateFuncDef(typeToWrite: TypeNode) {
+    const key = `dynArrayPop(${typeToWrite.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
     const funcInfo = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
     const funcDef = createCairoGeneratedFunction(
@@ -44,10 +46,11 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           typeToWrite instanceof PointerType ? DataLocation.Storage : DataLocation.Default,
         ],
       ],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
     );
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 

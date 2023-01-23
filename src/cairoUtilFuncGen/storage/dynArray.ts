@@ -5,6 +5,7 @@ import {
   FunctionCall,
   FunctionStateMutability,
   generalizeType,
+  TypeNode,
 } from 'solc-typed-ast';
 import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
 import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
@@ -14,27 +15,37 @@ import {
   safeGetNodeType,
   typeNameFromTypeNode,
 } from '../../export';
-import { CairoType } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class DynArrayGen extends StringIndexedFuncGen {
-  gen(
-    valueCairoType: CairoType,
-    node: Expression,
-    nodeInSourceUnit?: ASTNode,
-  ): CairoGeneratedFunctionDefinition {
+  gen(valueType: TypeNode, node: Expression) {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
-    const funcInfo = this.getOrCreate(valueCairoType);
+    // TODO: Other gens create a func call node, but this one just return the func def node.
+    // Check if this is necessary given that is inconsistent with other gen logic.
+    return this.getOrCreateFuncDef(valueType);
+  }
+
+  getOrCreateFuncDef(type: TypeNode) {
+    const key = `dynArray(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
+    const funcInfo = this.getOrCreate(cairoType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [],
       [],
-      [],
+      // [],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
       { mutability: FunctionStateMutability.View },
     );
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 

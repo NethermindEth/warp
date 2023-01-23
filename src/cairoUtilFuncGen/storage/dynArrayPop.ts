@@ -32,8 +32,6 @@ import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
 
 export class DynArrayPopGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageDelete: StorageDeleteGen,
@@ -43,9 +41,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  gen(pop: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
-    this.genNode = pop;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
+  gen(pop: FunctionCall): FunctionCall {
     assert(pop.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
       safeGetNodeType(pop.vExpression.vExpression, this.ast.inference),
@@ -56,18 +52,28 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         arrayType instanceof StringType,
     );
 
-    const funcInfo = this.getOrCreate(getElementType(arrayType));
+    const funcDef = this.getOrCreateFuncDef(arrayType);
+    return createCallToFunction(funcDef, [pop.vExpression.vExpression], this.ast);
+  }
 
+  getOrCreateFuncDef(arrayType: TypeNode) {
+    const key = `dynArrayPop(${arrayType.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(getElementType(arrayType));
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? pop,
+      this.sourceUnit,
     );
-
-    return createCallToFunction(funcDef, [pop.vExpression.vExpression], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   private getOrCreate(elementType: TypeNode): GeneratedFunctionInfo {
@@ -90,7 +96,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
     );
 
-    const arrayDef = this.dynArrayGen.gen(cairoElementType, this.genNode, this.genNodeInSourceUnit);
+    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementType);
     const arrayName = arrayDef.name;
     const lengthName = arrayName + '_LENGTH';
     const deleteFuncInfo = this.storageDelete.genFuncName(elementType);

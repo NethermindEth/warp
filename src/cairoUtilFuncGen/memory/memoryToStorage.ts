@@ -45,8 +45,6 @@ import { StorageDeleteGen } from '../storage/storageDelete';
 */
 
 export class MemoryToStorageGen extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageDeleteGen: StorageDeleteGen,
@@ -55,20 +53,20 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
   ) {
     super(ast, sourceUnit);
   }
-  gen(
-    storageLocation: Expression,
-    memoryLocation: Expression,
-    nodeInSourceUnit?: ASTNode,
-  ): FunctionCall {
-    this.genNode = storageLocation;
-    this.genNodeInSourceUnit = nodeInSourceUnit;
+  gen(storageLocation: Expression, memoryLocation: Expression): FunctionCall {
     const type = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
-    const funcDef = this.getOrCreateFuncDef(type, storageLocation, nodeInSourceUnit);
+    const funcDef = this.getOrCreateFuncDef(type);
 
     return createCallToFunction(funcDef, [storageLocation, memoryLocation], this.ast);
   }
 
-  getOrCreateFuncDef(type: TypeNode, node: Expression, nodeInSourceUnit?: ASTNode) {
+  getOrCreateFuncDef(type: TypeNode) {
+    const key = `memoryToStorage(${type.pp()})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
     const funcInfo = this.getOrCreate(type);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -77,11 +75,12 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         ['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory],
       ],
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
+      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
       { mutability: FunctionStateMutability.View },
     );
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 
@@ -308,11 +307,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_id'));
     }
 
-    const elemMappingDef = this.dynArrayGen.gen(
-      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
-      this.genNode,
-      this.genNodeInSourceUnit,
-    );
+    const elemMappingDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(elemMappingDef);
     const elemMappingName = elemMappingDef.name;
     const lengthMappingName = elemMappingName + '_LENGTH';
