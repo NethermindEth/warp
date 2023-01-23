@@ -35,7 +35,7 @@ export class StoredPointerDereference extends ReferenceSubPass {
     if (actualLoc === DataLocation.Storage && (isDynamicArray(nodeType) || isMapping(nodeType))) {
       readFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
     } else if (actualLoc === DataLocation.Memory && isReferenceType(nodeType)) {
-      readFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
+      readFunc = utilFuncGen.memory.read.gen(node, parent);
     }
     if (readFunc !== null) {
       this.replace(node, readFunc, parent, actualLoc, expectedLoc, ast);

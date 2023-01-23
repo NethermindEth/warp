@@ -11,6 +11,7 @@ import {
 } from '../utils/implicits';
 import { createParameterList } from './nodeTemplates';
 import { assert } from 'console';
+import { TranspileFailedError } from './export';
 
 // Paths
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
@@ -101,9 +102,7 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
     case WARPLIB_KECCAK + WARP_KECCAK:
       return createWarpKeccakImportFuncDef(node, ast);
     default:
-      // TODO: Throw a not matched import error
-      return createWarpKeccakImportFuncDef(node, ast);
-      break;
+      throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
 }
 
@@ -388,10 +387,10 @@ function createImportFuncFuncDefinition(
     scope,
     funcName,
     path,
-    false,
     implicits,
     params,
     retParams,
+    false,
   );
   ast.setContextRecursive(funcDef);
   node.insertAtBeginning(funcDef);
@@ -414,10 +413,10 @@ function createImportStructFuncDefinition(
     scope,
     structName,
     path,
-    true,
     implicits,
     params,
     retParams,
+    true,
   );
   ast.setContextRecursive(funcDef);
   node.insertAtBeginning(funcDef);

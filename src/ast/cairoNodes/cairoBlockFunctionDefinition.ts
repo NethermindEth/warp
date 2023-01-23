@@ -4,7 +4,6 @@ import {
   FunctionVisibility,
   ParameterList,
 } from 'solc-typed-ast';
-import { Implicits } from '../../utils/implicits';
 import { CairoRawStringFunctionDefinition } from './cairoRawStringFunctionDefinition';
 
 export class CairoFunctionStub extends CairoRawStringFunctionDefinition {
@@ -18,7 +17,6 @@ export class CairoFunctionStub extends CairoRawStringFunctionDefinition {
     stateMutability: FunctionStateMutability,
     parameters: ParameterList,
     returnParameters: ParameterList,
-    implicits: Set<Implicits>,
     rawStringDefinition: string,
   ) {
     super(
@@ -31,7 +29,6 @@ export class CairoFunctionStub extends CairoRawStringFunctionDefinition {
       stateMutability,
       parameters,
       returnParameters,
-      implicits,
       rawStringDefinition,
     );
   }

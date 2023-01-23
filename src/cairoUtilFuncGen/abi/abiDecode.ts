@@ -14,6 +14,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { CairoFunctionDefinition, GeneratedFunctionInfo } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -80,7 +81,15 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     return createCallToFunction(functionStub, [expressions[0]], this.ast);
   }
 
-  public getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
+  public getOrCreateFuncDef(types: TypeNode[]): CairoGeneratedFunctionDefinition {
+    const key = types.map((t) => t.pp()).join(',');
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
+    }
+  }
+
+  private getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
     const key = types.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
