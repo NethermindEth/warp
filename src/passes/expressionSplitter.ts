@@ -12,6 +12,9 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
+  TypeName,
+  IndexAccess,
+  ArrayTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -104,6 +107,26 @@ export class ExpressionSplitter extends ASTMapper {
     const initialValue = node.vRightHandSide;
     const location =
       generalizeType(safeGetNodeType(initialValue, ast.inference))[1] ?? DataLocation.Default;
+    let typeName: TypeName;
+    if (node.vLeftHandSide instanceof Identifier) {
+      const sourceDecl = node.vLeftHandSide.vReferencedDeclaration;
+      assert(sourceDecl instanceof VariableDeclaration && sourceDecl.vType !== undefined);
+      typeName = cloneASTNode(sourceDecl.vType, ast);
+    } else {
+      assert(
+        node.vLeftHandSide instanceof IndexAccess &&
+          node.vLeftHandSide.vBaseExpression instanceof Identifier &&
+          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration !== undefined &&
+          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration instanceof
+            VariableDeclaration &&
+          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration.vType !== undefined &&
+          node.vLeftHandSide.vBaseExpression.vReferencedDeclaration.vType instanceof ArrayTypeName,
+      );
+      typeName = cloneASTNode(
+        node.vLeftHandSide.vBaseExpression.vReferencedDeclaration.vType.vBaseType,
+        ast,
+      );
+    }
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
       '', // src
@@ -116,6 +139,8 @@ export class ExpressionSplitter extends ASTMapper {
       StateVariableVisibility.Internal,
       Mutability.Constant,
       node.vLeftHandSide.typeString,
+      undefined,
+      typeName,
     );
 
     const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
