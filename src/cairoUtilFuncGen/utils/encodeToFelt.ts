@@ -78,9 +78,19 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
   gen(expressions: Expression[], expectedTypes: TypeNode[]): FunctionCall {
     assert(expectedTypes.length === expressions.length);
     expectedTypes = expectedTypes.map((type) => generalizeType(type)[0]);
-    const funcInfo = this.getOrCreate(expectedTypes);
+    const funcDef = this.getOrCreateFuncDef(expectedTypes);
+    return createCallToFunction(funcDef, expressions, this.ast);
+  }
 
-    const functionStub = createCairoGeneratedFunction(
+  private getOrCreateFuncDef(expectedTypes: TypeNode[]) {
+    const expectedTypesName = expectedTypes.map((value) => `${value.pp()}`).flat();
+    const key = `encodeToFelt(${expectedTypesName})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+    const funcInfo = this.getOrCreate(expectedTypes);
+    const funcDef = createCairoGeneratedFunction(
       funcInfo,
       expectedTypes.map((exprT, index) => {
         const input: [string, TypeName] = [`arg${index}`, typeNameFromTypeNode(exprT, this.ast)];
@@ -90,7 +100,8 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
       this.ast,
       this.sourceUnit,
     );
-    return createCallToFunction(functionStub, expressions, this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
   /**

@@ -3,6 +3,7 @@ import {
   EmitStatement,
   EventDefinition,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   SourceUnit,
   TypeNode,
@@ -18,6 +19,8 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
+  GeneratedFunctionInfo,
+  createCairoGeneratedFunction,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
@@ -57,34 +60,41 @@ export class EventFunction extends StringIndexedFuncGen {
     const argsTypes: TypeNode[] = node.vEventCall.vArguments.map(
       (arg) => generalizeType(safeGetNodeType(arg, this.ast.inference))[0],
     );
-
-    const funcName = this.getOrCreate(refEventDef);
-
-    const functionStub = createCairoFunctionStub(
-      funcName,
+    const funcDef = this.getOrCreateFuncDef(refEventDef, argsTypes);
+    return createCallToFunction(funcDef, node.vEventCall.vArguments, this.ast);
+  }
+  private getOrCreateFuncDef(refEventDef: EventDefinition, argsTypes: TypeNode[]) {
+    const key = `event(${refEventDef.name}])`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+    const funcInfo = this.getOrCreate(refEventDef);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       argsTypes.map((argT, index) =>
         isValueType(argT)
           ? [`param${index}`, typeNameFromTypeNode(argT, this.ast)]
           : [`param${index}`, typeNameFromTypeNode(argT, this.ast), DataLocation.Memory],
       ),
       [],
-      ['bitwise_ptr', 'range_check_ptr', 'warp_memory', 'keccak_ptr'],
       this.ast,
       this.sourceUnit,
     );
-
-    return createCallToFunction(functionStub, node.vEventCall.vArguments, this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
-  private getOrCreate(node: EventDefinition): string {
+  private getOrCreate(node: EventDefinition) {
     // Add the canonicalSignatureHash so that generated function names don't collide when overloaded
     const key = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
-    const existing = this.generatedFunctions.get(key);
-
-    if (existing !== undefined) {
-      return existing.name;
-    }
-
+    const funcsCalled: FunctionDefinition[] = [];
+    funcsCalled.push(
+      this.requireImport('starkware.starknet.common.syscalls', 'emit_event'),
+      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+      this.requireImport('warplib.keccak', 'pack_bytes_felt'),
+      this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin'),
+    );
     const [params, keysInsertions, dataInsertions] = node.vParameters.vParameters.reduce(
       ([params, keysInsertions, dataInsertions], param, index) => {
         const paramType = generalizeType(safeGetNodeType(param, this.ast.inference))[0];
@@ -105,7 +115,7 @@ export class EventFunction extends StringIndexedFuncGen {
             // function: more at:
             //   https://docs.soliditylang.org/en/v0.8.14/abi-spec.html#encoding-of-indexed-event-parameters
             keysInsertions.push(
-              this.generateComplexEncodingCode(paramType, 'keys', `param${index}`),
+              this.generateComplexEncodingCode(paramType, 'keys', `param${index}`, funcsCalled),
             );
           }
         } else {
@@ -133,6 +143,7 @@ export class EventFunction extends StringIndexedFuncGen {
         node.anonymous,
         topic,
         this.ast.inference.signature(node, ABIEncoderVersion.V2),
+        funcsCalled,
       ),
       ...keysInsertions,
       `   // keys: pack 31 byte felts into a single 248 bit felt`,
@@ -148,19 +159,25 @@ export class EventFunction extends StringIndexedFuncGen {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.starknet.common.syscalls', 'emit_event');
-    this.requireImport('starkware.cairo.common.alloc', 'alloc');
-    this.requireImport('warplib.keccak', 'pack_bytes_felt');
-    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
-
-    this.generatedFunctions.set(key, { name: `${this.funcName}${key}`, code: code });
-    return `${this.funcName}${key}`;
+    const funcInfo: GeneratedFunctionInfo = {
+      name: `${this.funcName}${key}`,
+      code: code,
+      functionsCalled: funcsCalled,
+    };
+    return funcInfo;
   }
 
-  private generateAnonymizeCode(isAnonymous: boolean, topic: string, eventSig: string): string {
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
-    this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
+  private generateAnonymizeCode(
+    isAnonymous: boolean,
+    topic: string,
+    eventSig: string,
+    funcsCalled: FunctionDefinition[],
+  ): string {
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
+      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl'),
+    );
     if (isAnonymous) {
       return [`// Event is anonymous, topic won't be added to keys`].join('\n');
     }
@@ -183,16 +200,23 @@ export class EventFunction extends StringIndexedFuncGen {
     ].join('\n');
   }
 
-  private generateComplexEncodingCode(type: TypeNode, arrayName: string, argName: string): string {
+  private generateComplexEncodingCode(
+    type: TypeNode,
+    arrayName: string,
+    argName: string,
+    funcsCalled: FunctionDefinition[],
+  ): string {
     const abiFunc = this.indexEncode.getOrCreate([type]);
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
-    this.requireImport('warplib.keccak', 'warp_keccak_felt');
-    this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
+    funcsCalled.push(
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
+      this.requireImport('warplib.keccak', 'warp_keccak_felt'),
+      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl'),
+    );
 
     return [
-      `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
+      `   let (mem_encode: felt) = ${abiFunc.name}(${argName});`,
       `   let (keccak_hash: felt) = warp_keccak_felt(mem_encode);`,
       `   let (keccak_hash256: Uint256) = felt_to_uint256(keccak_hash);`,
       `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
