@@ -9,7 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
-import { CairoFunctionDefinition, createCairoGeneratedFunction } from '../../export';
+import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';

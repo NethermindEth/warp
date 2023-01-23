@@ -1,6 +1,4 @@
 import { AST } from '../ast/ast';
-import { mergeImports } from '../utils/utils';
-import { CairoUtilFuncGenBase } from './base';
 import { InputCheckGen } from './inputArgCheck/inputCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
 import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
@@ -228,33 +226,4 @@ export class CairoUtilFuncGen {
       encodeAsFelt: new EncodeAsFelt(externalDynArrayStructConstructor, ast, sourceUnit),
     };
   }
-
-  getImports(): Map<string, Set<string>> {
-    return mergeImports(...this.getAllChildren().map((c) => c.getImports()));
-  }
-  //  getGeneratedCode(): string {
-  //    return this.getAllChildren()
-  //      .map((c) => c.getGeneratedCode())
-  //      .sort((a, b) => {
-  //        // This sort is needed to make sure the structs generated from CairoUtilGen are before the generated functions that
-  //        // reference them. This sort is also order preserving in that it will only make sure the structs come before
-  //        // any functions and not sort the struct/functions within their respective groups.
-  //        if (a.slice(0, 1) < b.slice(0, 1)) {
-  //          return 1;
-  //        } else if (a.slice(0, 1) > b.slice(0, 1)) {
-  //          return -1;
-  //        }
-  //        return 0;
-  //      })
-  //      .join('\n\n');
-  //  }
-  private getAllChildren(): CairoUtilFuncGenBase[] {
-    return getAllGenerators(this);
-  }
-}
-
-function getAllGenerators(container: unknown): CairoUtilFuncGenBase[] {
-  if (typeof container !== 'object' || container === null) return [];
-  if (container instanceof CairoUtilFuncGenBase) return [container];
-  return Object.values(container).flatMap(getAllGenerators);
 }
