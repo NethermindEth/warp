@@ -15,17 +15,11 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { CairoImportFunctionDefinition } from '../ast/cairoNodes/cairoImportFunctionDefinition';
 import { CairoFunctionDefinition, createCairoGeneratedFunction } from '../export';
 import { TranspileFailedError } from '../utils/errors';
 import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
-
-export type CairoFunction = {
-  name: string;
-  code: string;
-};
 
 export type CairoStructDef = {
   name: string;
@@ -81,10 +75,6 @@ export abstract class CairoUtilFuncGenBase {
 export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   protected generatedFunctions: Map<string, GeneratedFunctionInfo> = new Map();
   protected generatedFunctionsDef: Map<string, FunctionDefinition> = new Map();
-
-  // getGeneratedCode(): string {
-  //   return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
-  // }
 }
 
 export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
@@ -97,11 +87,6 @@ export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
   ) {
     return createCairoGeneratedFunction(genFuncInfo, [], [], ast, sourceUnit);
   }
-  // getGeneratedCode(): string {
-  //   return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
-  //     .map((func) => func.code)
-  //     .join('\n\n');
-  // }
 }
 
 // Quick shortcut for writing `${base} + ${offset}` that also shortens it in the case of +0

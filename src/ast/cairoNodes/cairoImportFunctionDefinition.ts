@@ -9,17 +9,15 @@ import { Implicits } from '../../utils/implicits';
 
 export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
   path: string;
-  is_struct: boolean;
-  is_function: boolean;
   constructor(
     id: number,
     scope: number,
     name: string,
     path: string,
-    is_struct: boolean,
     implicits: Set<Implicits>,
     parameters: ParameterList,
     returnParameters: ParameterList,
+    isStruct: boolean,
   ) {
     super(
       id,
@@ -29,23 +27,16 @@ export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
       name,
       false,
       FunctionVisibility.Internal,
-      FunctionStateMutability.NonPayable, // TODO: This needs review
+      FunctionStateMutability.NonPayable,
       false,
       parameters,
       returnParameters,
       [],
       implicits,
-      FunctionStubKind.FunctionDefStub, // TODO: This is gonna be removed
+      isStruct ? FunctionStubKind.StructDefStub : FunctionStubKind.FunctionDefStub,
       false,
       false,
     );
     this.path = path;
-    if (is_struct) {
-      this.is_struct = true;
-      this.is_function = false;
-    } else {
-      this.is_struct = false;
-      this.is_function = true;
-    }
   }
 }
