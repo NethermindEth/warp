@@ -151,7 +151,6 @@ function replaceBytesType(type: TypeNode): TypeNode {
       type.returns.map(replaceBytesType),
       type.visibility,
       type.mutability,
-      type.implicitFirstArg,
       type.src,
     );
   } else if (type instanceof MappingType) {

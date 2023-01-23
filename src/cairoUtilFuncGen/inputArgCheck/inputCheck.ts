@@ -172,7 +172,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `alloc_locals;`,
         ...structDef.vMembers.map((decl) => {
           const memberType = safeGetNodeType(decl, this.ast.inference);
-          this.checkForImport(memberType);
           if (checkableType(memberType)) {
             const memberCheckInfo = this.getOrCreate(memberType);
             funcsCalled.push(...memberCheckInfo.functionsCalled);
@@ -198,7 +197,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const elementType = generalizeType(type.elementT)[0];
-    this.checkForImport(elementType);
     const funcsCalled: FunctionDefinition[] = [];
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
@@ -272,7 +270,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
     assert(cairoType instanceof CairoDynArray);
     const ptrType = cairoType.vPtr;
     const elementType = generalizeType(getElementType(type))[0];
-    this.checkForImport(elementType);
 
     const funcsCalled: FunctionDefinition[] = [];
 
