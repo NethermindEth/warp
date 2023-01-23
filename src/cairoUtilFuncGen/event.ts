@@ -19,6 +19,7 @@ import {
   TypeConversionContext,
   typeNameFromTypeNode,
   warpEvenSignatureHash256FromString,
+  EMIT_PREFIX,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
@@ -34,7 +35,6 @@ const IMPLICITS =
  * Then replace the emit statement with a call to the generated function.
  */
 export class EventFunction extends StringIndexedFuncGen {
-  private funcName = '_emit_';
   private abiEncode: AbiEncode;
   private indexEncode: IndexEncode;
 
@@ -116,7 +116,7 @@ export class EventFunction extends StringIndexedFuncGen {
     );
 
     const code = [
-      `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
+      `func ${EMIT_PREFIX}${key}${IMPLICITS}(${cairoParams}){`,
       `   alloc_locals;`,
       `   // keys arrays`,
       `   let keys_len: felt = 0;`,
@@ -146,8 +146,8 @@ export class EventFunction extends StringIndexedFuncGen {
     this.requireImport('warplib.keccak', 'pack_bytes_felt');
     this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
 
-    this.generatedFunctions.set(key, { name: `${this.funcName}${key}`, code: code });
-    return `${this.funcName}${key}`;
+    this.generatedFunctions.set(key, { name: `${EMIT_PREFIX}${key}`, code: code });
+    return `${EMIT_PREFIX}${key}`;
   }
 
   private generateAnonymizeCode(
