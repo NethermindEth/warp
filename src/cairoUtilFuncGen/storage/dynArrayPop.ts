@@ -68,7 +68,6 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -82,12 +81,6 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-
-    const key = cairoElementType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -126,8 +119,6 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 }

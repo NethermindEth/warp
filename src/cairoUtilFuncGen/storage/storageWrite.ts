@@ -46,7 +46,6 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           typeToWrite instanceof PointerType ? DataLocation.Storage : DataLocation.Default,
         ],
       ],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -54,20 +53,15 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
+  private getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
     const cairoTypeToWrite = CairoType.fromSol(
       typeToWrite,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const key = cairoTypeToWrite.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
 
     const cairoTypeString = cairoTypeToWrite.toString();
-    const funcName = `WS_WRITE${this.generatedFunctions.size}`;
+    const funcName = `WS_WRITE${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -80,8 +74,6 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 }

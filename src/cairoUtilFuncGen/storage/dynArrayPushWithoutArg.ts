@@ -52,7 +52,6 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [['newElemLoc', typeNameFromTypeNode(elementType, this.ast), DataLocation.Storage]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -66,12 +65,6 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const key = elementType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
       this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
@@ -105,7 +98,6 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
 
     return funcInfo;
   }

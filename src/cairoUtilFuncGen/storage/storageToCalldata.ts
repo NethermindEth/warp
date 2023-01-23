@@ -57,7 +57,6 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       [['obj', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -66,12 +65,6 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from storage to calldata is not supported yet`,
@@ -80,18 +73,15 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynamicArrayCopyFunction(key, type),
-      (type) => this.createStaticArrayCopyFunction(key, type),
-      (type) => this.createStructCopyFunction(key, type),
+      (type) => this.createDynamicArrayCopyFunction(type),
+      (type) => this.createStaticArrayCopyFunction(type),
+      (type) => this.createStructCopyFunction(type),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
   }
 
-  private createStructCopyFunction(
-    key: string,
-    structType: UserDefinedType,
-  ): GeneratedFunctionInfo {
+  private createStructCopyFunction(structType: UserDefinedType): GeneratedFunctionInfo {
     assert(structType.definition instanceof StructDefinition);
 
     const structDef = structType.definition;
@@ -123,12 +113,10 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 
-  private createStaticArrayCopyFunction(key: string, arrayType: ArrayType): GeneratedFunctionInfo {
+  private createStaticArrayCopyFunction(arrayType: ArrayType): GeneratedFunctionInfo {
     assert(arrayType.size !== undefined);
 
     const cairoType = CairoType.fromSol(arrayType, this.ast, TypeConversionContext.CallDataRef);
@@ -139,7 +127,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     );
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-    const funcName = `ws_static_array_to_calldata${this.generatedFunctions.size}`;
+    const funcName = `ws_static_array_to_calldata${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
       `    alloc_locals;`,
@@ -153,13 +141,11 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, funcInfo);
 
     return funcInfo;
   }
 
   private createDynamicArrayCopyFunction(
-    key: string,
     arrayType: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
     const elementT = getElementType(arrayType);
@@ -173,7 +159,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.alloc', 'alloc'),
     );
 
-    this.externalDynArrayStructConstructor.getOrCreate(arrayType);
+    this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
     const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(arrayDef);
     const arrayName = arrayDef.name;
@@ -187,7 +173,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const ptrType = `${cairoElementType.toString()}*`;
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
-    const funcName = `ws_dynamic_array_to_calldata${this.generatedFunctions.size}`;
+    const funcName = `ws_dynamic_array_to_calldata${this.generatedFunctionsDef.size}`;
     const storageReadInfo = this.storageReadGen.genFuncName(elementT);
     funcsCalled.push(...storageReadInfo.functionsCalled);
     const code = [
@@ -223,8 +209,6 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 

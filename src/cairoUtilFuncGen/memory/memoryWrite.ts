@@ -59,7 +59,6 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
           typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
         ],
       ],
-      // ['warp_memory'],
       this.ast,
       this.sourceUnit,
     );
@@ -67,19 +66,14 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
+  private getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
-    const key = cairoTypeToWrite.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_write'));
 
     const cairoTypeString = cairoTypeToWrite.toString();
-    const funcName = `WM_WRITE${this.generatedFunctions.size}`;
+    const funcName = `WM_WRITE${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -92,8 +86,6 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 }

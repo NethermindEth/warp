@@ -76,7 +76,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       [],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -85,28 +84,14 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const cairoFuncName = delegateBasedOnType<string>(
       type,
-      () => `WS${this.generatedFunctions.size}_DYNAMIC_ARRAY_DELETE`,
-      () => `WS${this.generatedFunctions.size}_STATIC_ARRAY_DELETE`,
+      () => `WS${this.generatedFunctionsDef.size}_DYNAMIC_ARRAY_DELETE`,
+      () => `WS${this.generatedFunctionsDef.size}_STATIC_ARRAY_DELETE`,
       (_type, def) => `WS_STRUCT_${def.name}_DELETE`,
       () => `WSMAP_DELETE`,
-      () => `WS${this.generatedFunctions.size}_DELETE`,
+      () => `WS${this.generatedFunctionsDef.size}_DELETE`,
     );
-
-    this.generatedFunctions.set(key, {
-      name: cairoFuncName,
-      get code(): string {
-        throw new TranspileFailedError('Tried accessing code yet to be generated');
-      },
-      functionsCalled: [],
-    });
 
     const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       type,
@@ -129,11 +114,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       this.nothingHandlerGen = true;
     } else if (funcInfo.name === 'WSMAP_DELETE' && this.nothingHandlerGen) {
       funcInfo.code = '';
-      this.generatedFunctions.set(key, funcInfo);
       return funcInfo;
     }
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 

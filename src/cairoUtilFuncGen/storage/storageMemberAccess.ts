@@ -67,7 +67,6 @@ export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
       funcInfo,
       [['loc', typeNameFromTypeNode(solType, this.ast), DataLocation.Storage]],
       [['memberLoc', cloneASTNode(outType, this.ast), DataLocation.Storage]],
-      // [],
       this.ast,
       this.sourceUnit,
     );

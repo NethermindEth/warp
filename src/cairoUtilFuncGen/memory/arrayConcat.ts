@@ -65,16 +65,10 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     }
 
     const funcInfo = this.getOrCreate(argTypes);
-    // const implicits: Implicits[] = argTypes.some(
-    //   (type) => type instanceof IntType || type instanceof FixedBytesType,
-    // )
-    //   ? ['bitwise_ptr', 'range_check_ptr', 'warp_memory']
-    //   : ['range_check_ptr', 'warp_memory'];
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       inputs,
       [output],
-      // implicits,
       this.ast,
       this.sourceUnit,
     );
@@ -90,11 +84,6 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       })
       .join('');
 
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const implicits = argTypes.some(
       (type) => type instanceof IntType || type instanceof FixedBytesType,
     )
@@ -102,13 +91,12 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       : '{range_check_ptr : felt, warp_memory : DictAccess*}';
 
     const funcInfo = this.generateBytesConcat(argTypes, implicits);
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
   private generateBytesConcat(argTypes: TypeNode[], implicits: string): GeneratedFunctionInfo {
     const argAmount = argTypes.length;
-    const funcName = `concat${this.generatedFunctions.size}_${argAmount}`;
+    const funcName = `concat${this.generatedFunctionsDef.size}_${argAmount}`;
     const funcsCalled: FunctionDefinition[] = [];
 
     if (argAmount === 0) {

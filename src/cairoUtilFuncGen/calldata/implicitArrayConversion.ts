@@ -126,7 +126,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         ['rhs', typeNameFromTypeNode(sourceType, this.ast), DataLocation.CallData],
       ],
       [],
-      // ['syscall_ptr', 'bitwise_ptr', 'range_check_ptr', 'pedersen_ptr', 'bitwise_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -134,7 +133,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(targetType: TypeNode, sourceType: TypeNode): GeneratedFunctionInfo {
+  private getOrCreate(targetType: TypeNode, sourceType: TypeNode): GeneratedFunctionInfo {
     const sourceRepForKey = CairoType.fromSol(
       generalizeType(sourceType)[0],
       this.ast,
@@ -150,30 +149,21 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       TypeConversionContext.CallDataRef,
     ).fullStringRepresentation;
 
-    const key = `${targetRepForKey}_${getBaseType(
-      targetType,
-    ).pp()} -> ${sourceRepForKey}_${getBaseType(sourceType).pp()}`;
-
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
     let funcInfo: GeneratedFunctionInfo;
     if (targetType.to.size === undefined && sourceType.to.size === undefined) {
-      funcInfo = this.DynamicToDynamicConversion(key, targetType, sourceType);
+      funcInfo = this.DynamicToDynamicConversion(targetType, sourceType);
     } else if (targetType.to.size === undefined && sourceType.to.size !== undefined) {
-      funcInfo = this.staticToDynamicConversion(key, targetType, sourceType);
+      funcInfo = this.staticToDynamicConversion(targetType, sourceType);
     } else {
-      funcInfo = this.staticToStaticConversion(key, targetType, sourceType);
+      funcInfo = this.staticToStaticConversion(targetType, sourceType);
     }
     return funcInfo;
   }
 
   private staticToStaticConversion(
-    key: string,
     targetType: TypeNode,
     sourceType: TypeNode,
   ): GeneratedFunctionInfo {
@@ -183,14 +173,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const targetElmType = targetType.to.elementT;
     const sourceElmType = sourceType.to.elementT;
 
-    const funcName = `CD_ST_TO_WS_ST${this.generatedFunctions.size}`;
+    const funcName = `CD_ST_TO_WS_ST${this.generatedFunctionsDef.size}`;
     const funcsCalled: FunctionDefinition[] = [];
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const cairoSourceType = CairoType.fromSol(
       sourceType,
@@ -223,7 +207,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       code: code,
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
@@ -299,7 +282,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   private staticToDynamicConversion(
-    key: string,
     targetType: TypeNode,
     sourceType: TypeNode,
   ): GeneratedFunctionInfo {
@@ -311,14 +293,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const targetElmType = targetType.to.elementT;
     const sourceElmType = sourceType.to.elementT;
 
-    const funcName = `CD_ST_TO_WS_DY${this.generatedFunctions.size}`;
+    const funcName = `CD_ST_TO_WS_DY${this.generatedFunctionsDef.size}`;
     const funcsCalled: FunctionDefinition[] = [];
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const cairoSourceType = CairoType.fromSol(
       sourceType,
@@ -360,7 +336,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       code: code,
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
@@ -370,11 +345,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     length: number,
     funcsCalled: FunctionDefinition[],
   ): string[] {
-    const cairoTargetElementType = CairoType.fromSol(
-      targetElmType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
     const instructions = mapRange(length, (index) => {
       if (targetElmType instanceof IntType) {
         assert(sourceElmType instanceof IntType);
@@ -458,7 +428,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   private DynamicToDynamicConversion(
-    key: string,
     targetType: TypeNode,
     sourceType: TypeNode,
   ): GeneratedFunctionInfo {
@@ -470,20 +439,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const targetElmType = targetType.to.elementT;
     const sourceElmType = sourceType.to.elementT;
 
-    const funcName = `CD_DY_TO_WS_DY${this.generatedFunctions.size}`;
+    const funcName = `CD_DY_TO_WS_DY${this.generatedFunctionsDef.size}`;
     const funcsCalled: FunctionDefinition[] = [];
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
-
-    const cairoTargetElementType = CairoType.fromSol(
-      targetType.to.elementT,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
 
     const cairoSourceType = CairoType.fromSol(
       sourceType,
@@ -497,7 +454,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const dynArrayLengthName = dynArrayDef.name + '_LENGTH';
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
-    const loaderName = `DY_LOADER${this.generatedFunctions.size}`;
+    const loaderName = `DY_LOADER${this.generatedFunctionsDef.size}`;
 
     const copyInstructions = this.generateDynCopyInstructions(
       targetElmType,
@@ -532,7 +489,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 

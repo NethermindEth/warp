@@ -75,7 +75,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         ['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory],
       ],
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
       { mutability: FunctionStateMutability.View },
@@ -84,13 +83,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
+  private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from memory to storage not implemented yet`,
@@ -99,9 +92,9 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
 
     return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynamicArrayCopyFunction(key, type),
-      (type) => this.createStaticArrayCopyFunction(key, type),
-      (type) => this.createStructCopyFunction(key, type),
+      (type) => this.createDynamicArrayCopyFunction(type),
+      (type) => this.createStaticArrayCopyFunction(type),
+      (type) => this.createStructCopyFunction(type),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
@@ -109,18 +102,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
 
   // This can also be used for static arrays, in which case they are treated
   // like structs with <length> members of the same type
-  private createStructCopyFunction(key: string, type: TypeNode): GeneratedFunctionInfo {
-    const funcName = `wm_to_storage${this.generatedFunctions.size}`;
+  private createStructCopyFunction(type: TypeNode): GeneratedFunctionInfo {
+    const funcName = `wm_to_storage${this.generatedFunctionsDef.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyInfo);
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -175,25 +160,23 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 
-  private createStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
+  private createStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined, 'Expected static array with known size');
     return type.size <= 5
-      ? this.createStructCopyFunction(key, type)
-      : this.createLargeStaticArrayCopyFunction(key, type);
+      ? this.createStructCopyFunction(type)
+      : this.createLargeStaticArrayCopyFunction(type);
   }
 
-  private createLargeStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
+  private createLargeStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined, 'Expected static array with known size');
     const length = narrowBigIntSafe(
       type.size,
       `Failed to narrow size of ${printTypeNode(type)} in memory->storage copy generation`,
     );
-    const funcName = `wm_to_storage${this.generatedFunctions.size}`;
+    const funcName = `wm_to_storage${this.generatedFunctionsDef.size}`;
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -205,14 +188,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     if (isReferenceType(type.elementT)) {
       funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_id'));
     }
-
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
-
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
@@ -274,23 +249,19 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
   private createDynamicArrayCopyFunction(
-    key: string,
     type: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
-    const funcName = `wm_to_storage${this.generatedFunctions.size}`;
+    const funcName = `wm_to_storage${this.generatedFunctionsDef.size}`;
 
     const emptyInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: '',
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, emptyInfo);
 
     const elementT = getElementType(type);
 
@@ -391,8 +362,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 }

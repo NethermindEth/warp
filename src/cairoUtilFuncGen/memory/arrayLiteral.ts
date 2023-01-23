@@ -122,7 +122,6 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         locationIfComplexType(type, DataLocation.Memory),
       ]),
       [['arr', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
-      // ['range_check_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
     );
@@ -132,13 +131,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
   private getOrCreate(type: TypeNode, size: number, dynamic: boolean): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(type, this.ast);
-    const key = `${dynamic ? 'd' : 's'}${size}${elementCairoType.fullStringRepresentation}`;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const funcName = `WM${this.generatedFunctions.size}_${dynamic ? 'd' : 's'}_arr`;
+    const funcName = `WM${this.generatedFunctionsDef.size}_${dynamic ? 'd' : 's'}_arr`;
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -175,7 +168,6 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 }

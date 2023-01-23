@@ -92,10 +92,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       argType,
       argLoc ?? DataLocation.Default,
     );
-    // const implicits: Implicits[] =
-    //   argLoc === DataLocation.Memory
-    //     ? ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory']
-    //     : ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'];
 
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -104,7 +100,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         ['value', typeNameFromTypeNode(argType, this.ast), argLoc ?? DataLocation.Default],
       ],
       [],
-      // implicits,
       this.ast,
       this.sourceUnit,
     );
@@ -117,12 +112,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     argType: TypeNode,
     argLoc: DataLocation,
   ): GeneratedFunctionInfo {
-    const key = `${elementType.pp()}->${argType.pp()}`;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     let elementWriteDef: FunctionDefinition;
     let inputType: string;
     if (argLoc === DataLocation.Memory) {
@@ -165,7 +154,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementType);
     const arrayName = arrayDef.name;
     const lengthName = arrayName + '_LENGTH';
-    const funcName = `${arrayName}_PUSHV${this.generatedFunctions.size}`;
+    const funcName = `${arrayName}_PUSHV${this.generatedFunctionsDef.size}`;
     const implicits =
       argLoc === DataLocation.Memory
         ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
@@ -199,8 +188,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 }

@@ -71,7 +71,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       funcInfo,
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       [['retData', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
       { mutability: FunctionStateMutability.Pure },
@@ -81,12 +80,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing;
-    }
-
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from memory to calldata not implemented yet`,
@@ -95,16 +88,16 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynamicArrayCopyFunction(key, type),
-      (type) => this.createStaticArrayCopyFunction(key, type),
-      (type) => this.createStructCopyFunction(key, type),
+      (type) => this.createDynamicArrayCopyFunction(type),
+      (type) => this.createStaticArrayCopyFunction(type),
+      (type) => this.createStructCopyFunction(type),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
   }
 
-  private createStructCopyFunction(key: string, type: TypeNode): GeneratedFunctionInfo {
-    const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
+  private createStructCopyFunction(type: TypeNode): GeneratedFunctionInfo {
+    const funcName = `wm_to_calldata${this.generatedFunctionsDef.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
@@ -119,7 +112,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       code: '',
       functionsCalled: [],
     };
-    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_read'));
@@ -167,13 +159,12 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
 
     return funcInfo;
   }
 
-  private createStaticArrayCopyFunction(key: string, type: ArrayType): GeneratedFunctionInfo {
-    const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
+  private createStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
+    const funcName = `wm_to_calldata${this.generatedFunctionsDef.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
@@ -181,14 +172,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     assert(type.size !== undefined);
     const length = narrowBigIntSafe(type.size);
     const elementT = type.elementT;
-
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -235,20 +218,11 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
-
     return funcInfo;
   }
 
-  private createDynamicArrayCopyFunction(key: string, type: TypeNode): GeneratedFunctionInfo {
-    const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
-    // Set an empty entry so recursive function generation doesn't clash.
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
+  private createDynamicArrayCopyFunction(type: TypeNode): GeneratedFunctionInfo {
+    const funcName = `wm_to_calldata${this.generatedFunctionsDef.size}`;
 
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -295,20 +269,11 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(key, funcInfo);
     return funcInfo;
   }
 
   private createDynArrayReader(elementT: TypeNode): GeneratedFunctionInfo {
-    const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
-    const key = elementT.pp() + 'dynReader';
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
-    this.generatedFunctions.set(key, emptyFuncInfo);
+    const funcName = `wm_to_calldata${this.generatedFunctionsDef.size}`;
 
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -363,7 +328,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: funcsCalled,
     };
-    this.generatedFunctions.set(funcName, funcInfo);
 
     return funcInfo;
   }
