@@ -65,16 +65,10 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     }
 
     const funcInfo = this.getOrCreate(argTypes);
-    // const implicits: Implicits[] = argTypes.some(
-    //   (type) => type instanceof IntType || type instanceof FixedBytesType,
-    // )
-    //   ? ['bitwise_ptr', 'range_check_ptr', 'warp_memory']
-    //   : ['range_check_ptr', 'warp_memory'];
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       inputs,
       [output],
-      // implicits,
       this.ast,
       this.sourceUnit,
     );

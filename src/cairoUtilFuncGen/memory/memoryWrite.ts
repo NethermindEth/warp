@@ -59,7 +59,6 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
           typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
         ],
       ],
-      // ['warp_memory'],
       this.ast,
       this.sourceUnit,
     );

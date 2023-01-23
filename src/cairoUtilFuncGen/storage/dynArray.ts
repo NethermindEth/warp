@@ -36,15 +36,9 @@ export class DynArrayGen extends StringIndexedFuncGen {
 
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
     const funcInfo = this.getOrCreate(cairoType);
-    const funcDef = createCairoGeneratedFunction(
-      funcInfo,
-      [],
-      [],
-      // [],
-      this.ast,
-      this.sourceUnit,
-      { mutability: FunctionStateMutability.View },
-    );
+    const funcDef = createCairoGeneratedFunction(funcInfo, [], [], this.ast, this.sourceUnit, {
+      mutability: FunctionStateMutability.View,
+    });
     this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }

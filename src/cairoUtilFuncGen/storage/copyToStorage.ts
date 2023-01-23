@@ -72,7 +72,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         ['fromLoc', typeNameFromTypeNode(fromType, this.ast), DataLocation.Storage],
       ],
       [['retLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'],
       this.ast,
       this.sourceUnit,
       { mutability: FunctionStateMutability.View },

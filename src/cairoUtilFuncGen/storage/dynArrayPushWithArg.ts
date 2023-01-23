@@ -92,10 +92,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       argType,
       argLoc ?? DataLocation.Default,
     );
-    // const implicits: Implicits[] =
-    //   argLoc === DataLocation.Memory
-    //     ? ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory']
-    //     : ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'];
 
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -104,7 +100,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         ['value', typeNameFromTypeNode(argType, this.ast), argLoc ?? DataLocation.Default],
       ],
       [],
-      // implicits,
       this.ast,
       this.sourceUnit,
     );

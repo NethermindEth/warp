@@ -93,7 +93,6 @@ export class MemoryReadGen extends StringIndexedFuncGen {
             locationIfComplexType(typeToRead, DataLocation.Memory),
           ],
         ],
-        // ['range_check_ptr', 'warp_memory'],
         this.ast,
         this.sourceUnit,
         { mutability: FunctionStateMutability.View },

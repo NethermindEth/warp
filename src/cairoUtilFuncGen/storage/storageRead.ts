@@ -55,7 +55,6 @@ export class StorageReadGen extends StringIndexedFuncGen {
           locationIfComplexType(valueType, DataLocation.Storage),
         ],
       ],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
       { mutability: FunctionStateMutability.View },

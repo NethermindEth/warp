@@ -57,7 +57,6 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       funcInfo,
       [['calldata', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
       { mutability: FunctionStateMutability.Pure },

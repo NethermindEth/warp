@@ -71,7 +71,6 @@ export class StorageStaticArrayIndexAccessGen extends StringIndexedFuncGen {
         ['limit', createUint256TypeName(this.ast)],
       ],
       [['resLoc', typeNameFromTypeNode(valueType, this.ast), DataLocation.Storage]],
-      // ['range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

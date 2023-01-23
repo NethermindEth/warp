@@ -82,7 +82,6 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
           locationIfComplexType(nodeType, DataLocation.Storage),
         ],
       ],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

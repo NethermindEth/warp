@@ -75,7 +75,6 @@ export class MemoryStructGen extends StringIndexedFuncGen {
           DataLocation.Memory,
         ],
       ],
-      // ['range_check_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
     );

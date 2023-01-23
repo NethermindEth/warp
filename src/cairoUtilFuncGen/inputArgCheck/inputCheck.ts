@@ -83,7 +83,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
         ],
       ],
       [],
-      // ['range_check_ptr'],
       this.ast,
       this.sourceUnit,
       {

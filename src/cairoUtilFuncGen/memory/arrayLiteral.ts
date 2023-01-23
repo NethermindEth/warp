@@ -122,7 +122,6 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         locationIfComplexType(type, DataLocation.Memory),
       ]),
       [['arr', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
-      // ['range_check_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
     );

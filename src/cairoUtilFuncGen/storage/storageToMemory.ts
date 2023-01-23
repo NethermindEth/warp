@@ -59,7 +59,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
       { mutability: FunctionStateMutability.View },

@@ -75,7 +75,6 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       funcInfo,
       [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [['darray_struct', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      // [],
       this.ast,
       this.sourceUnit,
       {

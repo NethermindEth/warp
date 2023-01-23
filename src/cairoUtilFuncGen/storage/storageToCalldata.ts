@@ -57,7 +57,6 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       [['obj', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

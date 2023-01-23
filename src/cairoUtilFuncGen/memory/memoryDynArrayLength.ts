@@ -16,6 +16,7 @@ export class MemoryDynArrayLengthGen extends StringIndexedFuncGen {
     // const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
     // const functionStub = createCairoFunctionStub(
     //   'wm_dyn_array_length',
+    // TODO: Perhaps this input and output definitions can be used while creating the node
     //   [['arrayLoc', arrayTypeName, DataLocation.Memory]],
     //   [['len', createUint256TypeName(this.ast)]],
     //   ['warp_memory'],

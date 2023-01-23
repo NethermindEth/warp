@@ -66,7 +66,6 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
         ['dynarray', typeNameFromTypeNode(calldataType, this.ast), DataLocation.CallData],
       ],
       [['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

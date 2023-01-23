@@ -128,7 +128,6 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       funcInfo,
       [['source', typeNameFromTypeNode(sourceType, this.ast), DataLocation.Memory]],
       [['target', typeNameFromTypeNode(targetType, this.ast), DataLocation.Memory]],
-      // ['range_check_ptr', 'bitwise_ptr', 'warp_memory'],
       this.ast,
       this.sourceUnit,
     );

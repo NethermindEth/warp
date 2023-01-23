@@ -68,7 +68,6 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

@@ -46,7 +46,6 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           typeToWrite instanceof PointerType ? DataLocation.Storage : DataLocation.Default,
         ],
       ],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

@@ -52,7 +52,6 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       funcInfo,
       [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [['newElemLoc', typeNameFromTypeNode(elementType, this.ast), DataLocation.Storage]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

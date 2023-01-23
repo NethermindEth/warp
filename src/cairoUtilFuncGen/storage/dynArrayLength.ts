@@ -56,7 +56,6 @@ export class DynArrayLengthGen extends StringIndexedFuncGen {
       arrayInfo,
       [['name', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [['len', createUint256TypeName(this.ast)]],
-      // ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       this.sourceUnit,
     );

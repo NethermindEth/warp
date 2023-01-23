@@ -126,7 +126,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         ['rhs', typeNameFromTypeNode(sourceType, this.ast), DataLocation.CallData],
       ],
       [],
-      // ['syscall_ptr', 'bitwise_ptr', 'range_check_ptr', 'pedersen_ptr', 'bitwise_ptr'],
       this.ast,
       this.sourceUnit,
     );
@@ -346,11 +345,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     length: number,
     funcsCalled: FunctionDefinition[],
   ): string[] {
-    const cairoTargetElementType = CairoType.fromSol(
-      targetElmType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
     const instructions = mapRange(length, (index) => {
       if (targetElmType instanceof IntType) {
         assert(sourceElmType instanceof IntType);
