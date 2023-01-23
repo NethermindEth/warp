@@ -60,11 +60,11 @@ export function warpEventCanonicalSignaturehash256(
   const funcSignature = `${eventName}(${argTypes.map(getArgStringRepresentation).join(',')})`;
   const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
 
-  const splitHash: bigint[] = toUintOrFelt(BigInt(`0x${funcSignatureHash}`), 256);
+  const [low, high] = toUintOrFelt(BigInt(`0x${funcSignatureHash}`), 256);
 
   return {
-    low: `0x${splitHash[0].toString(16)}`,
-    high: `0x${splitHash[1].toString(16)}`,
+    low: `0x${low.toString(16)}`,
+    high: `0x${high.toString(16)}`,
   };
 }
 
