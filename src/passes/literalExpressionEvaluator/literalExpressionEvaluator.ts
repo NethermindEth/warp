@@ -1,8 +1,10 @@
+/* eslint-disable prettier/prettier */
 import {
   BinaryOperation,
   Expression,
   Literal,
   LiteralKind,
+  replaceNode,
   TupleExpression,
   UnaryOperation,
 } from 'solc-typed-ast';
@@ -23,7 +25,6 @@ import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
   >, <, <=, >=
   ==, !=
   &&, ||
-
   Hence all literal nodes are of type Literal | UnaryOperation | BinaryOperation
 */
 
@@ -38,7 +39,7 @@ export class LiteralExpressionEvaluator extends ASTMapper {
     // It is sometimes possible to avoid any calculation and take the value from the type
     // This is not always possible because boolean literals do not contain their value in the type,
     // and because very large int and rational literals omit some digits
-    const result = createLiteralFromType(node.typeString) ?? evaluateLiteralExpression(node);
+    const result = createLiteralFromType(node.typeString) || evaluateLiteralExpression(node);
 
     if (result === null) {
       this.commonVisit(node, ast);
@@ -128,16 +129,41 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
   if (left === null || right === null) {
     // In some cases a binary expression could be calculated at
     // compile time, even when only one argument is a literal.
-    const notNullMember = left === null ? right : left;
+    let rightExpression;
+    if (left === null) {
+      rightExpression = true;
+    } else {
+      rightExpression = false;
+    }
+    const notNullMember = left ?? right;
     if (notNullMember === null) {
       return null;
-    }
-    if (typeof notNullMember === 'boolean') {
+    } else if (typeof notNullMember === 'boolean') {
       switch (node.operator) {
         case '&&': // false && x = false
-          return notNullMember ? null : false;
+          if (notNullMember === true) {
+            if (rightExpression) {
+              replaceNode(node, node.vRightExpression);
+            } else {
+              replaceNode(node, node.vLeftExpression);
+            }
+            return null;
+          } else {
+            return false;
+          }
+        //return notNullMember ? null : false;
         case '||': // true || x = true
-          return notNullMember ? true : false;
+          if (notNullMember === false) {
+            if (rightExpression) {
+              replaceNode(node, node.vRightExpression);
+            } else {
+              replaceNode(node, node.vLeftExpression);
+            }
+            return false;
+          } else {
+            return true;
+          }
+        // return notNullMember ? true : false;
         default:
           if (!['==', '!='].includes(node.operator)) {
             throw new TranspileFailedError(
@@ -153,23 +179,14 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
         case '*': // 0*x = x*0 = 0
           return is_zero ? new RationalLiteral(0n, 1n) : null;
         case '**': // x**0 = 1   1**x = 1
-          if (right && is_zero) {
-            return new RationalLiteral(1n, 1n);
-          } else if (left && is_one) {
-            return new RationalLiteral(1n, 1n);
-          } else return null;
+          return (is_zero && right) || (is_one && left) ? new RationalLiteral(1n, 1n) : null;
         case '<<': // 0<<x = 0   x<<n(n>255) = 0
-          if (left && is_zero) {
-            return new RationalLiteral(0n, 1n);
-          } else if (right && notNullMember.greaterThan(new RationalLiteral(255n, 1n))) {
-            return new RationalLiteral(0n, 1n);
-          } else return null;
+          return (is_zero && left) ||
+            (right && notNullMember.greaterThan(new RationalLiteral(255n, 1n)))
+            ? new RationalLiteral(0n, 1n)
+            : null;
         case '>>': // 0>>x = 0   1>>x = 0
-          if (left && is_zero) {
-            return new RationalLiteral(0n, 1n);
-          } else if (left && is_one) {
-            return new RationalLiteral(0n, 1n);
-          } else return null;
+          return left && (is_zero || is_one) ? new RationalLiteral(0n, 1n) : null;
         default: {
           const otherOp = [
             '/',
@@ -236,6 +253,12 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
         return left.shiftLeft(right);
       case '>>':
         return left.shiftRight(right);
+      case '&':
+        return left.bitwiseAnd(right);
+      case '|':
+        return left.bitwiseOr(right);
+      case '^':
+        return left.bitwiseXor(right);
       default:
         throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
     }
@@ -245,11 +268,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
 }
 
 function evaluateTupleLiteral(node: TupleExpression): RationalLiteral | boolean | null {
-  if (node.vOriginalComponents.length === 1 && node.vOriginalComponents[0] !== null) {
-    return evaluateLiteralExpression(node.vOriginalComponents[0]);
-  }
-
-  return null;
+  return node.vOriginalComponents.length === 1 && node.vOriginalComponents[0] !== null
+    ? evaluateLiteralExpression(node.vOriginalComponents[0])
+    : null;
 }
 
 function isConstType(typeString: string): boolean {
