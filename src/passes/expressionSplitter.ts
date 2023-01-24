@@ -16,6 +16,7 @@ import {
   IndexAccess,
   ArrayTypeName,
   MemberAccess,
+  Mapping,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -128,10 +129,17 @@ export class ExpressionSplitter extends ASTMapper {
       const identifier = getRootIdentifier(node.vLeftHandSide);
       assert(
         identifier instanceof Identifier &&
-          identifier.vReferencedDeclaration instanceof VariableDeclaration &&
-          identifier.vReferencedDeclaration.vType instanceof ArrayTypeName,
+          identifier.vReferencedDeclaration instanceof VariableDeclaration,
       );
-      typeName = cloneASTNode(identifier.vReferencedDeclaration.vType.vBaseType, ast);
+      let originalTypeName;
+      const vType = identifier.vReferencedDeclaration.vType;
+      if (vType instanceof ArrayTypeName) {
+        originalTypeName = vType.vBaseType;
+      } else {
+        assert(vType instanceof Mapping);
+        originalTypeName = vType.vValueType;
+      }
+      typeName = cloneASTNode(originalTypeName, ast);
     }
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
