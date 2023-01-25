@@ -12,14 +12,14 @@ import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../../utils/utils';
-import { generateFile, forAllWidths, getIntOrFixedByteBitWidth } from '../../utils';
+import { forAllWidths, getIntOrFixedByteBitWidth, WarplibFunctionInfo } from '../../utils';
 
 // rhs is always unsigned, and signed and unsigned shl are the same
-export function shl(): void {
+export function shl(): WarplibFunctionInfo {
   //Need to provide an implementation with 256bit rhs and <256bit lhs
-  generateFile(
-    'shl',
-    [
+  return {
+    fileName: 'shl',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math import split_felt',
@@ -27,7 +27,7 @@ export function shl(): void {
       'from starkware.cairo.common.uint256 import Uint256, uint256_shl',
       'from warplib.maths.pow2 import pow2',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_shl256{range_check_ptr}(lhs : Uint256, rhs : felt) -> (result : Uint256){',
@@ -68,7 +68,7 @@ export function shl(): void {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseShl(node: BinaryOperation, ast: AST): void {

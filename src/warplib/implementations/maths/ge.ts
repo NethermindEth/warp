@@ -2,12 +2,12 @@ import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import { generateFile, forAllWidths, Comparison } from '../../utils';
+import { forAllWidths, Comparison, WarplibFunctionInfo } from '../../utils';
 
-export function ge_signed() {
-  generateFile(
-    'ge_signed',
-    [
+export function ge_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'ge_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_le',
@@ -15,7 +15,7 @@ export function ge_signed() {
         ', ',
       )}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_ge_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){',
@@ -33,7 +33,7 @@ export function ge_signed() {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseGe(node: BinaryOperation, ast: AST): void {

@@ -13,25 +13,25 @@ import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import {
-  generateFile,
   forAllWidths,
   bound,
   msb,
   mask,
   getIntOrFixedByteBitWidth,
+  WarplibFunctionInfo,
 } from '../../utils';
 
-export function shr(): void {
-  generateFile(
-    'shr',
-    [
+export function shr(): WarplibFunctionInfo {
+  return {
+    fileName: 'shr',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and, bitwise_not',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le, is_le_felt',
       'from starkware.cairo.common.uint256 import Uint256, uint256_and',
       'from warplib.maths.pow2 import pow2',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_shr256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : felt) -> (`,
@@ -125,13 +125,13 @@ export function shr(): void {
         ];
       }
     }),
-  );
+  };
 }
 
-export function shr_signed(): void {
-  generateFile(
-    'shr_signed',
-    [
+export function shr_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'shr_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le, is_le_felt',
@@ -139,7 +139,7 @@ export function shr_signed(): void {
       'from warplib.maths.pow2 import pow2',
       `from warplib.maths.shr import ${mapRange(32, (n) => `warp_shr${8 * n + 8}`).join(', ')}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_shr_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : felt) -> (res : Uint256){`,
@@ -214,7 +214,7 @@ export function shr_signed(): void {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseShr(node: BinaryOperation, ast: AST): void {

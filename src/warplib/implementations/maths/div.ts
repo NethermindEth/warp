@@ -2,12 +2,18 @@ import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import { forAllWidths, generateFile, IntxIntFunction, mask } from '../../utils';
+import {
+  forAllWidths,
+  generateFile,
+  IntxIntFunction,
+  mask,
+  WarplibFunctionInfo,
+} from '../../utils';
 
-export function div_signed() {
-  generateFile(
-    'div_signed',
-    [
+export function div_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'div_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_div_rem, uint256_eq',
@@ -18,7 +24,7 @@ export function div_signed() {
       ).join(', ')}, ${mapRange(31, (n) => `warp_int256_to_int${8 * n + 8}`).join(', ')}`,
       `from warplib.maths.mul_signed import ${mapRange(32, (n) => `warp_mul_signed${8 * n + 8}`)}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_div_signed256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
@@ -58,13 +64,13 @@ export function div_signed() {
         ];
       }
     }),
-  );
+  };
 }
 
-export function div_signed_unsafe() {
-  generateFile(
-    'div_signed_unsafe',
-    [
+export function div_signed_unsafe(): WarplibFunctionInfo {
+  return {
+    fileName: 'div_signed_unsafe',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_div_rem, uint256_eq',
@@ -78,7 +84,7 @@ export function div_signed_unsafe() {
         (n) => `warp_mul_signed_unsafe${8 * n + 8}`,
       )}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_div_signed_unsafe256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
@@ -118,7 +124,7 @@ export function div_signed_unsafe() {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseDiv(node: BinaryOperation, unsafe: boolean, ast: AST): void {

@@ -2,12 +2,12 @@ import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import { forAllWidths, generateFile, IntxIntFunction } from '../../utils';
+import { forAllWidths, generateFile, IntxIntFunction, WarplibFunctionInfo } from '../../utils';
 
-export function mod_signed() {
-  generateFile(
-    'mod_signed',
-    [
+export function mod_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'mod_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_div_rem',
@@ -17,7 +17,7 @@ export function mod_signed() {
         (n) => `warp_int${8 * n + 8}_to_int256`,
       ).join(', ')}, ${mapRange(31, (n) => `warp_int256_to_int${8 * n + 8}`).join(', ')}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_mod_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
@@ -48,7 +48,7 @@ export function mod_signed() {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseMod(node: BinaryOperation, ast: AST): void {

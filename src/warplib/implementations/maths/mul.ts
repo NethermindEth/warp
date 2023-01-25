@@ -3,7 +3,6 @@ import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import {
-  generateFile,
   forAllWidths,
   uint256,
   pow2,
@@ -11,18 +10,19 @@ import {
   mask,
   msb,
   IntxIntFunction,
+  WarplibFunctionInfo,
 } from '../../utils';
 
-export function mul(): void {
-  generateFile(
-    'mul',
-    [
+export function mul(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul',
+    imports: [
       'from starkware.cairo.common.uint256 import Uint256, uint256_mul',
       'from starkware.cairo.common.math_cmp import is_le_felt',
       'from warplib.maths.ge import warp_ge256',
       'from warplib.maths.utils import felt_to_uint256',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_mul256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
@@ -55,19 +55,19 @@ export function mul(): void {
         ];
       }
     }),
-  );
+  };
 }
 
-export function mul_unsafe(): void {
-  generateFile(
-    'mul_unsafe',
-    [
+export function mul_unsafe(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul_unsafe',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_mul',
       'from warplib.maths.utils import felt_to_uint256',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_mul_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
@@ -95,13 +95,13 @@ export function mul_unsafe(): void {
         ];
       }
     }),
-  );
+  };
 }
 
-export function mul_signed(): void {
-  generateFile(
-    'mul_signed',
-    [
+export function mul_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
@@ -113,7 +113,7 @@ export function mul_signed(): void {
         ', ',
       )}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_mul_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -186,13 +186,13 @@ export function mul_signed(): void {
         ];
       }
     }),
-  );
+  };
 }
 
-export function mul_signed_unsafe(): void {
-  generateFile(
-    'mul_signed_unsafe',
-    [
+export function mul_signed_unsafe(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul_signed_unsafe',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
@@ -206,7 +206,7 @@ export function mul_signed_unsafe(): void {
       )}`,
       'from warplib.maths.utils import felt_to_uint256',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_mul_signed_unsafe256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -240,7 +240,7 @@ export function mul_signed_unsafe(): void {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseMul(node: BinaryOperation, unsafe: boolean, ast: AST): void {

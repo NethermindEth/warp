@@ -2,12 +2,12 @@ import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import { generateFile, forAllWidths, Comparison } from '../../utils';
+import { forAllWidths, Comparison, WarplibFunctionInfo } from '../../utils';
 
-export function lt_signed() {
-  generateFile(
-    'lt_signed',
-    [
+export function lt_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'lt_signed',
+    imports: [
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_lt',
       'from warplib.maths.utils import felt_to_uint256',
@@ -15,7 +15,7 @@ export function lt_signed() {
         ', ',
       )}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_lt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){',
@@ -36,7 +36,7 @@ export function lt_signed() {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseLt(node: BinaryOperation, ast: AST): void {

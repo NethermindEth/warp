@@ -1,18 +1,18 @@
 import { UnaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
-import { bound, forAllWidths, generateFile, IntFunction, mask } from '../../utils';
+import { bound, forAllWidths, IntFunction, mask, WarplibFunctionInfo } from '../../utils';
 
 // This satisfies the solidity convention of -type(intX).min = type(intX).min
-export function negate(): void {
-  generateFile(
-    'negate',
-    [
+export function negate(): WarplibFunctionInfo {
+  return {
+    fileName: 'negate',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_neg',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_negate256{range_check_ptr}(op : Uint256) -> (res : Uint256){',
@@ -31,7 +31,7 @@ export function negate(): void {
         ];
       }
     }),
-  );
+  };
 }
 
 export function functionaliseNegate(node: UnaryOperation, ast: AST): void {

@@ -11,29 +11,29 @@ import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
-import { forAllWidths, generateFile, getIntOrFixedByteBitWidth, mask } from '../../utils';
+import { forAllWidths, getIntOrFixedByteBitWidth, mask, WarplibFunctionInfo } from '../../utils';
 
 export function exp() {
-  createExp(false, false);
+  return createExp(false, false);
 }
 
 export function exp_signed() {
-  createExp(true, false);
+  return createExp(true, false);
 }
 
 export function exp_unsafe() {
-  createExp(false, true);
+  return createExp(false, true);
 }
 
 export function exp_signed_unsafe() {
-  createExp(true, true);
+  return createExp(true, true);
 }
 
-function createExp(signed: boolean, unsafe: boolean) {
+function createExp(signed: boolean, unsafe: boolean): WarplibFunctionInfo {
   const suffix = `${signed ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`;
-  generateFile(
-    `exp${suffix}`,
-    [
+  return {
+    fileName: `exp${suffix}`,
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_sub',
@@ -42,7 +42,7 @@ function createExp(signed: boolean, unsafe: boolean) {
         (n) => `warp_mul${suffix}${8 * n + 8}`,
       ).join(', ')}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func _repeated_multiplication${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : Uint256, count : felt) -> (res : Uint256){`,
@@ -141,7 +141,7 @@ function createExp(signed: boolean, unsafe: boolean) {
         ];
       }
     }),
-  );
+  };
 }
 
 function getNegativeOneShortcutCode(signed: boolean, lhsWidth: number, rhsWide: boolean): string[] {

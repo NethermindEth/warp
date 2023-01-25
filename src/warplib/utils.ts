@@ -20,6 +20,12 @@ import { Implicits } from '../utils/implicits';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
+export type WarplibFunctionInfo = {
+  fileName: string;
+  imports: string[];
+  functions: string[];
+};
+
 export function forAllWidths(funcGen: (width: number) => string[]): string[] {
   return mapRange(32, (n) => 8 * (n + 1)).flatMap(funcGen);
 }
@@ -55,12 +61,14 @@ export function msbAndNext(width: number): string {
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-export function generateFile(name: string, imports: string[], functions: string[]): void {
+export function generateFile(warpFunc: WarplibFunctionInfo): void {
+  const pathToFile = path.join('.', 'warplib', 'maths', `${warpFunc.fileName}.cairo`);
+
   fs.writeFileSync(
-    `./warplib/maths/${name}.cairo`,
-    `//AUTO-GENERATED\n${imports.join('\n')}\n\n${functions.join('\n')}\n`,
+    pathToFile,
+    `//AUTO-GENERATED\n${warpFunc.imports.join('\n')}\n\n${warpFunc.functions.join('\n')}\n`,
   );
-  execSync(`${warpVenvPrefix} cairo-format -i ./warplib/maths/${name}.cairo`);
+  execSync(`${warpVenvPrefix} cairo-format -i ${pathToFile}`);
 }
 
 export function IntxIntFunction(

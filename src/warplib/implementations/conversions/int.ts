@@ -4,18 +4,26 @@ import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { Implicits } from '../../../utils/implicits';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
-import { bound, forAllWidths, generateFile, IntFunction, mask, msb, uint256 } from '../../utils';
+import {
+  bound,
+  forAllWidths,
+  IntFunction,
+  mask,
+  msb,
+  uint256,
+  WarplibFunctionInfo,
+} from '../../utils';
 
-export function int_conversions(): void {
-  generateFile(
-    'int_conversions',
-    [
+export function int_conversions(): WarplibFunctionInfo {
+  return {
+    fileName: 'int_conversions',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math import split_felt',
       'from starkware.cairo.common.uint256 import Uint256, uint256_add',
     ],
-    [
+    functions: [
       ...forAllWidths((from) => {
         return forAllWidths((to) => {
           if (from < to) {
@@ -83,7 +91,7 @@ export function int_conversions(): void {
       '    return (Uint256(low=split.low, high=split.high),);',
       '}',
     ],
-  );
+  };
 }
 
 function sign_extend_value(from: number, to: number): bigint {
