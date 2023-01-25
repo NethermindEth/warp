@@ -83,7 +83,7 @@ program
   .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
   .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
   .option('--until <pass>', 'Stops transpilation after the specified pass')
-  .option('--no-warnings', 'Suppress printed warnings')
+  .option('--no-warnings', 'Suppress warnings from the Solidity compiler')
   .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
   .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTranspile);
