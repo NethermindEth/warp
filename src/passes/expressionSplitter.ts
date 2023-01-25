@@ -40,16 +40,6 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
   }
 }
 
-function getRootIdentifier(node: Identifier | IndexAccess): Identifier | IndexAccess {
-  if (node instanceof IndexAccess) {
-    assert(
-      node.vBaseExpression instanceof Identifier || node.vBaseExpression instanceof IndexAccess,
-    );
-    return getRootIdentifier(node.vBaseExpression);
-  }
-  return node;
-}
-
 export class ExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator(SPLIT_EXPRESSION_PREFIX);
 
@@ -181,6 +171,16 @@ export class ExpressionSplitter extends ASTMapper {
     ast.insertStatementBefore(node, updateVal);
     ast.replaceNode(node, createIdentifier(tempVar, ast));
   }
+}
+
+function getRootIdentifier(node: Identifier | IndexAccess): Identifier | IndexAccess {
+  if (node instanceof IndexAccess) {
+    assert(
+      node.vBaseExpression instanceof Identifier || node.vBaseExpression instanceof IndexAccess,
+    );
+    return getRootIdentifier(node.vBaseExpression);
+  }
+  return node;
 }
 
 function identifierReferenceStateVar(id: Identifier) {
