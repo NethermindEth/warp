@@ -18,7 +18,7 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
-  warpEvenSignatureHash256FromString,
+  warpEventSignatureHash256FromString,
   EMIT_PREFIX,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
@@ -111,7 +111,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    const topic: { low: string; high: string } = warpEvenSignatureHash256FromString(
+    const topic: { low: string; high: string } = warpEventSignatureHash256FromString(
       this.ast.inference.signature(node, ABIEncoderVersion.V2),
     );
 
