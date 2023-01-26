@@ -256,16 +256,16 @@ export class CairoStaticArray extends CairoType {
     return `[Tuple]${`(${this.type.fullStringRepresentation})`.repeat(this.size)}`;
   }
   toString(): string {
-    return `(${this.type.toString()}` + `${`,` + this.type.toString()}`.repeat(this.size - 1);
+    return `(${this.type.toString()}` + `${`,` + this.type.toString()}`.repeat(this.size - 1) + `)`;
   }
   get typeName(): string {
-    return `(${this.type.typeName}` + `${`,` + this.type.typeName}`.repeat(this.size - 1);
+    return `${this.type.typeName}` + `${`,` + this.type.typeName}`.repeat(this.size - 1);
   }
   get width(): number {
     return this.type.width * this.size;
   }
   serialiseMembers(name: string): string[] {
-    let serializedMembers: string[] = [];
+    const serializedMembers: string[] = [];
     for (let index = 0; index < this.size; ++index) {
       serializedMembers.concat(this.type.serialiseMembers(`${name}[${index}]`));
     }
