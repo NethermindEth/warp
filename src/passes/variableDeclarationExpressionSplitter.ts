@@ -82,7 +82,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
       'Expected variables to be initialised when running variable declaration expression splitter (did you run variable declaration initialiser?)',
     );
 
-    const initialValueType = safeGetNodeType(initialValue, ast.compilerVersion);
+    const initialValueType = safeGetNodeType(initialValue, ast.inference);
 
     if (!(initialValueType instanceof TupleType)) {
       return [node];

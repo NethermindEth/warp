@@ -20,7 +20,7 @@ export class FunctionTypeStringMatcher extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const funcType = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const funcType = safeGetNodeType(node.vExpression, ast.inference);
     if (
       node.vArguments.length === 0 ||
       node.kind === FunctionCallKind.TypeConversion ||
@@ -33,11 +33,11 @@ export class FunctionTypeStringMatcher extends ASTMapper {
     }
 
     const inputTypes = node.vReferencedDeclaration.vParameters.vParameters.map((varDecl) => {
-      const type = safeGetNodeType(varDecl, ast.compilerVersion);
+      const type = safeGetNodeType(varDecl, ast.inference);
       return isReferenceType(type) ? specializeType(type, varDecl.storageLocation) : type;
     });
     const outputTypes = node.vReferencedDeclaration.vReturnParameters.vParameters.map((varDecl) => {
-      const type = safeGetNodeType(varDecl, ast.compilerVersion);
+      const type = safeGetNodeType(varDecl, ast.inference);
       return isReferenceType(type) ? specializeType(type, varDecl.storageLocation) : type;
     });
 
@@ -47,6 +47,7 @@ export class FunctionTypeStringMatcher extends ASTMapper {
       outputTypes,
       funcType.visibility,
       funcType.mutability,
+      funcType.implicitFirstArg,
       funcType.src,
     );
 

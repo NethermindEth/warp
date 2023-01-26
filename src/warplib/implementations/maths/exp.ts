@@ -165,9 +165,9 @@ function getNegativeOneShortcutCode(signed: boolean, lhsWidth: number, rhsWide: 
 }
 
 export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AST) {
-  const lhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
-  const retType = safeGetNodeType(node, ast.compilerVersion);
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
+  const retType = safeGetNodeType(node, ast.inference);
   assert(
     retType instanceof IntType,
     `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with **`,

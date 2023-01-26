@@ -31,7 +31,7 @@ export class DeleteHandler extends ASTMapper {
       return this.commonVisit(node, ast);
     }
 
-    const nodeType = safeGetNodeType(node.vSubExpression, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node.vSubExpression, ast.inference);
     // Deletetion from storage is handled in References
     if (
       (nodeType instanceof PointerType && nodeType.location === DataLocation.Storage) ||
@@ -70,7 +70,7 @@ export class DeleteHandler extends ASTMapper {
   visitReturn(node: Return, ast: AST): void {
     let visited = false;
     if (node.vExpression) {
-      const nodeType = safeGetNodeType(node.vExpression, ast.compilerVersion);
+      const nodeType = safeGetNodeType(node.vExpression, ast.inference);
       if (nodeType instanceof TupleType && nodeType.getChildren().length === 0) {
         const statement = new ExpressionStatement(
           ast.reserveId(),

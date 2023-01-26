@@ -27,7 +27,7 @@ export class ReturnVariableInitializer extends ASTMapper {
           '',
           [newDecl.id],
           [newDecl],
-          getDefaultValue(safeGetNodeType(decl, ast.compilerVersion), newDecl, ast),
+          getDefaultValue(safeGetNodeType(decl, ast.inference), newDecl, ast),
         );
         identifiers.forEach((identifier) => {
           identifier.referencedDeclaration = newDecl.id;

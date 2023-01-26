@@ -35,7 +35,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
     this.commonVisit(node, ast);
     if (node.kind !== FunctionCallKind.TypeConversion) return;
 
-    const typeNameType = safeGetNodeType(node.vExpression, ast.compilerVersion);
+    const typeNameType = safeGetNodeType(node.vExpression, ast.inference);
 
     assert(node.vArguments.length === 1, `Expecting typeconversion to have one child`);
 
@@ -62,7 +62,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
       `Unexpected node type ${node.vExpression.type}`,
     );
     const typeTo = generalizeType(typeNameType.type)[0];
-    const argType = generalizeType(safeGetNodeType(node.vArguments[0], ast.compilerVersion))[0];
+    const argType = generalizeType(safeGetNodeType(node.vArguments[0], ast.inference))[0];
 
     if (typeTo instanceof IntType) {
       if (argType instanceof FixedBytesType) {

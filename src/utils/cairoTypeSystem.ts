@@ -118,7 +118,7 @@ export abstract class CairoType {
               tp.definition.vMembers.map((decl) => [
                 decl.name,
                 CairoType.fromSol(
-                  safeGetNodeType(decl, ast.compilerVersion),
+                  safeGetNodeType(decl, ast.inference),
                   ast,
                   TypeConversionContext.Ref,
                 ),
@@ -131,7 +131,7 @@ export abstract class CairoType {
             new Map(
               tp.definition.vMembers.map((decl) => [
                 decl.name,
-                CairoType.fromSol(safeGetNodeType(decl, ast.compilerVersion), ast, context),
+                CairoType.fromSol(safeGetNodeType(decl, ast.inference), ast, context),
               ]),
             ),
           );
@@ -140,7 +140,7 @@ export abstract class CairoType {
         return new CairoFelt();
       } else if (tp.definition instanceof UserDefinedValueTypeDefinition) {
         return CairoType.fromSol(
-          safeGetNodeType(tp.definition.underlyingType, ast.compilerVersion),
+          safeGetNodeType(tp.definition.underlyingType, ast.inference),
           ast,
           context,
         );

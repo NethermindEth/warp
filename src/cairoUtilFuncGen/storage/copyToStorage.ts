@@ -49,8 +49,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
   gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): Expression {
-    const toType = generalizeType(safeGetNodeType(to, this.ast.compilerVersion))[0];
-    const fromType = generalizeType(safeGetNodeType(from, this.ast.compilerVersion))[0];
+    const toType = generalizeType(safeGetNodeType(to, this.ast.inference))[0];
+    const fromType = generalizeType(safeGetNodeType(from, this.ast.inference))[0];
 
     const name = this.getOrCreate(toType, fromType);
     const functionStub = createCairoFunctionStub(
@@ -123,7 +123,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   private createStructCopyFunction(funcName: string, type: UserDefinedType): CairoFunction {
     const def = type.definition;
     assert(def instanceof StructDefinition);
-    const members = def.vMembers.map((decl) => safeGetNodeType(decl, this.ast.compilerVersion));
+    const members = def.vMembers.map((decl) => safeGetNodeType(decl, this.ast.inference));
 
     let offset = 0;
     return {

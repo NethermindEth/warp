@@ -92,14 +92,14 @@ function sign_extend_value(from: number, to: number): bigint {
 
 export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): void {
   const arg = conversion.vArguments[0];
-  const fromType = generalizeType(safeGetNodeType(arg, ast.compilerVersion))[0];
+  const fromType = generalizeType(safeGetNodeType(arg, ast.inference))[0];
   assert(
     fromType instanceof IntType,
     `Argument of int conversion expected to be int type. Got ${printTypeNode(
       fromType,
     )} at ${printNode(conversion)}`,
   );
-  const toType = safeGetNodeType(conversion, ast.compilerVersion);
+  const toType = safeGetNodeType(conversion, ast.inference);
   assert(
     toType instanceof IntType,
     `Int conversion expected to be int type. Got ${printTypeNode(toType)} at ${printNode(

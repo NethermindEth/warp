@@ -13,11 +13,11 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
-  FunctionType,
+  FunctionLikeType,
   generalizeType,
-  getNodeType,
-  getNodeTypeInCtx,
+  InferType,
   IntType,
+  Literal, // eslint-disable-line
   MappingType,
   PackedArrayType,
   PointerType,
@@ -25,12 +25,10 @@ import {
   StructDefinition,
   TupleType,
   TypeName,
-  typeNameToTypeNode,
   TypeNameType,
   TypeNode,
   UserDefinedType,
   VariableDeclaration,
-  variableDeclarationToTypeNode,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import createKeccakHash from 'keccak';
@@ -39,6 +37,7 @@ import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
 import { error } from './formatting';
 import { getContainingSourceUnit } from './utils';
+import { getNodeType, getNodeTypeInCtx } from './typeStrings/typeString_parser';
 
 /*
 Normal function calls and struct constructors require different methods for
@@ -46,14 +45,14 @@ getting the expected types of their arguments, this centralises that process
 Does not handle type conversion functions, as they don't have a specific input type
 */
 export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNode[] {
-  const functionType = safeGetNodeType(functionCall.vExpression, ast.compilerVersion);
+  const functionType = safeGetNodeType(functionCall.vExpression, ast.inference);
   switch (functionCall.kind) {
     case FunctionCallKind.FunctionCall:
       assert(
-        functionType instanceof FunctionType,
-        `Expected ${printNode(functionCall.vExpression)} to be FunctionType, got ${printTypeNode(
-          functionType,
-        )}`,
+        functionType instanceof FunctionLikeType,
+        `Expected ${printNode(
+          functionCall.vExpression,
+        )} to be FunctionLikeType, got ${printTypeNode(functionType)}`,
       );
       return functionType.parameters;
 
@@ -73,7 +72,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
       );
       const structDef = functionType.type.to.definition;
       assert(structDef instanceof StructDefinition);
-      return structDef.vMembers.map(variableDeclarationToTypeNode);
+      return structDef.vMembers.map(ast.inference.variableDeclarationToTypeNode, ast.inference);
     }
 
     case FunctionCallKind.TypeConversion:
@@ -85,8 +84,12 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
   }
 }
 
-export function typeNameToSpecializedTypeNode(typeName: TypeName, loc: DataLocation): TypeNode {
-  return specializeType(typeNameToTypeNode(typeName), loc);
+export function typeNameToSpecializedTypeNode(
+  typeName: TypeName,
+  loc: DataLocation,
+  inference: InferType,
+): TypeNode {
+  return specializeType(inference.typeNameToTypeNode(typeName), loc);
 }
 
 export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode {
@@ -281,29 +284,42 @@ export function isStorageSpecificType(
   ) {
     visitedStructs.push(type.definition.id);
     return type.definition.vMembers.some((m) =>
-      isStorageSpecificType(safeGetNodeType(m, ast.compilerVersion), ast, visitedStructs),
+      isStorageSpecificType(safeGetNodeType(m, ast.inference), ast, visitedStructs),
     );
   }
   return false;
 }
 
-export function safeGetNodeType(node: Expression | VariableDeclaration, version: string): TypeNode {
+export function safeGetNodeType(
+  node: Expression | VariableDeclaration,
+  inference: InferType,
+): TypeNode {
   getContainingSourceUnit(node);
-  return getNodeType(node, version);
+  // if (node instanceof Literal) {
+  //   return getNodeType(node, inference);
+  // }
+  // if (node instanceof VariableDeclaration) {
+  //   return inference.variableDeclarationToTypeNode(node);
+  // }
+  // if (node instanceof TypeName) {
+  //   return inference.typeNameToTypeNode(node)
+  // }
+  // return inference.typeOf(node);
+  return getNodeType(node, inference);
 }
 
 export function safeGetNodeTypeInCtx(
   arg: string | VariableDeclaration | Expression,
-  version: string,
+  inference: InferType,
   ctx: ASTNode,
 ): TypeNode {
   getContainingSourceUnit(ctx);
-  return getNodeTypeInCtx(arg, version, ctx);
+  return getNodeTypeInCtx(arg, inference, ctx);
 }
 
 export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
   const hasMappingArg = f.vParameters.vParameters.some((p) =>
-    hasMapping(safeGetNodeType(p, ast.compilerVersion)),
+    hasMapping(safeGetNodeType(p, ast.inference)),
   );
   if (hasMappingArg) {
     const typeString = `${f.name}(${f.vParameters.vParameters.map((p) => p.typeString).join(',')})`;
@@ -314,7 +330,7 @@ export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
       .slice(0, 4);
     return hash;
   } else {
-    return f.canonicalSignatureHash(ABIEncoderVersion.V2);
+    return ast.inference.signatureHash(f, ABIEncoderVersion.V2);
   }
 }
 
@@ -330,7 +346,7 @@ export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
  *  @param version required for calculating structs byte size
  *  @returns returns the types byte representation using packed abi encoding
  */
-export function getPackedByteSize(type: TypeNode, version: string): number | bigint {
+export function getPackedByteSize(type: TypeNode, inference: InferType): number | bigint {
   if (type instanceof IntType) {
     return type.nBits / 8;
   }
@@ -348,20 +364,19 @@ export function getPackedByteSize(type: TypeNode, version: string): number | big
   }
 
   if (type instanceof ArrayType && type.size !== undefined) {
-    return type.size * BigInt(getPackedByteSize(type.elementT, version));
+    return type.size * BigInt(getPackedByteSize(type.elementT, inference));
   }
 
   const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
-    return acc + BigInt(getPackedByteSize(cv, version));
+    return acc + BigInt(getPackedByteSize(cv, inference));
   };
   if (type instanceof TupleType) {
     return type.elements.reduce(sumMemberSize, 0n);
   }
 
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    assert(version !== undefined, 'Struct byte size calculation requires compiler version');
     return type.definition.vMembers
-      .map((varDecl) => getNodeType(varDecl, version))
+      .map((varDecl) => getNodeType(varDecl, inference))
       .reduce(sumMemberSize, 0n);
   }
 
@@ -379,50 +394,53 @@ export function getPackedByteSize(type: TypeNode, version: string): number | big
  *  @param version parameter required for calculating struct byte size
  *  @returns returns the types byte representation using abi encoding
  */
-export function getByteSize(type: TypeNode, version: string): number | bigint {
-  if (isValueType(type) || isDynamicallySized(type, version)) {
+export function getByteSize(type: TypeNode, inference: InferType): number | bigint {
+  if (isValueType(type) || isDynamicallySized(type, inference)) {
     return 32;
   }
 
   if (type instanceof ArrayType) {
     assert(type.size !== undefined);
-    return type.size * BigInt(getByteSize(type.elementT, version));
+    return type.size * BigInt(getByteSize(type.elementT, inference));
   }
 
   const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
-    return acc + BigInt(getByteSize(cv, version));
+    return acc + BigInt(getByteSize(cv, inference));
   };
   if (type instanceof TupleType) {
     return type.elements.reduce(sumMemberSize, 0n);
   }
 
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    assert(version !== undefined, 'Struct byte size calculation requires compiler version');
+    assert(
+      inference.version !== undefined,
+      'Struct byte size calculation requires compiler version',
+    );
     return type.definition.vMembers
-      .map((varDecl) => safeGetNodeType(varDecl, version))
+      .map((varDecl) => safeGetNodeType(varDecl, inference))
       .reduce(sumMemberSize, 0n);
   }
 
   throw new TranspileFailedError(`Cannot calculate byte size for ${printTypeNode(type)}`);
 }
 
-export function isDynamicallySized(type: TypeNode, version: string): boolean {
+export function isDynamicallySized(type: TypeNode, inference: InferType): boolean {
   if (isDynamicArray(type)) {
     return true;
   }
   if (type instanceof PointerType) {
-    return isDynamicallySized(type.to, version);
+    return isDynamicallySized(type.to, inference);
   }
   if (type instanceof ArrayType) {
-    return isDynamicallySized(type.elementT, version);
+    return isDynamicallySized(type.elementT, inference);
   }
   if (type instanceof TupleType) {
-    return type.elements.some((t) => isDynamicallySized(t, version));
+    return type.elements.some((t) => isDynamicallySized(t, inference));
   }
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    assert(version !== undefined);
+    assert(inference.version !== undefined);
     return type.definition.vMembers.some((v) =>
-      isDynamicallySized(safeGetNodeType(v, version), version),
+      isDynamicallySized(safeGetNodeType(v, inference), inference),
     );
   }
   return false;

@@ -4,13 +4,12 @@ import {
   Expression,
   FunctionCall,
   FunctionType,
-  IntLiteralType,
+  InferType,
   MappingType,
   MemberAccess,
   PointerType,
   TupleType,
   TypeName,
-  typeNameToTypeNode,
   TypeNameType,
   TypeNode,
   UserDefinedType,
@@ -21,7 +20,10 @@ import {
 import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { generateExpressionTypeString } from '../utils/getTypeString';
+import {
+  generateExpressionTypeString,
+  generateExpressionTypeStringForASTNode,
+} from '../utils/getTypeString';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
@@ -39,14 +41,17 @@ export class UserDefinedTypesConverter extends ASTMapper {
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
-    const replacementNode = replaceUserDefinedType(safeGetNodeType(node, ast.compilerVersion));
+    const replacementNode = replaceUserDefinedType(
+      safeGetNodeType(node, ast.inference),
+      ast.inference,
+    );
     node.typeString = generateExpressionTypeString(replacementNode);
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
     this.commonVisit(node, ast);
-    const tNode = safeGetNodeType(node, ast.compilerVersion);
-    const replacementNode = replaceUserDefinedType(tNode);
+    const tNode = safeGetNodeType(node, ast.inference);
+    const replacementNode = replaceUserDefinedType(tNode, ast.inference);
     if (tNode.pp() !== replacementNode.pp()) {
       node.typeString = generateExpressionTypeString(replacementNode);
     }
@@ -54,15 +59,13 @@ export class UserDefinedTypesConverter extends ASTMapper {
 
   visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
-    const nodeType = safeGetNodeType(node, ast.compilerVersion);
-    if (!(nodeType instanceof IntLiteralType)) {
-      const replacementNode = replaceUserDefinedType(nodeType);
-      node.typeString = generateExpressionTypeString(replacementNode);
-    }
+    const nodeType = safeGetNodeType(node, ast.inference);
+    const replacementNode = replaceUserDefinedType(nodeType, ast.inference);
+    node.typeString = generateExpressionTypeStringForASTNode(node, replacementNode, ast.inference);
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
-    const typeNode = safeGetNodeType(node, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node, ast.inference);
     assert(typeNode instanceof UserDefinedType, 'Expected UserDefinedType');
     if (!(typeNode.definition instanceof UserDefinedValueTypeDefinition)) return;
 
@@ -80,7 +83,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.vExpression instanceof MemberAccess) {
       if (['unwrap', 'wrap'].includes(node.vExpression.memberName)) {
-        const typeNode = safeGetNodeType(node.vExpression.vExpression, ast.compilerVersion);
+        const typeNode = safeGetNodeType(node.vExpression.vExpression, ast.inference);
         this.commonVisit(node, ast);
         if (!(typeNode instanceof TypeNameType)) return;
         if (!(typeNode.type instanceof UserDefinedType)) return;
@@ -105,33 +108,32 @@ export class UserDefinedTypesConverter extends ASTMapper {
   }
 }
 
-function replaceUserDefinedType(type: TypeNode): TypeNode {
+function replaceUserDefinedType(type: TypeNode, inference: InferType): TypeNode {
+  const callSelf = (type: TypeNode) => replaceUserDefinedType(type, inference);
+
   if (type instanceof ArrayType) {
-    return new ArrayType(replaceUserDefinedType(type.elementT), type.size, type.src);
+    return new ArrayType(callSelf(type.elementT), type.size, type.src);
   } else if (type instanceof FunctionType) {
     return new FunctionType(
       type.name,
-      type.parameters.map(replaceUserDefinedType),
-      type.returns.map(replaceUserDefinedType),
+      type.parameters.map(callSelf),
+      type.returns.map(callSelf),
       type.visibility,
       type.mutability,
+      type.implicitFirstArg,
       type.src,
     );
   } else if (type instanceof MappingType) {
-    return new MappingType(
-      replaceUserDefinedType(type.keyType),
-      replaceUserDefinedType(type.valueType),
-      type.src,
-    );
+    return new MappingType(callSelf(type.keyType), callSelf(type.valueType), type.src);
   } else if (type instanceof PointerType) {
-    return new PointerType(replaceUserDefinedType(type.to), type.location, type.kind, type.src);
+    return new PointerType(callSelf(type.to), type.location, type.kind, type.src);
   } else if (type instanceof TupleType) {
-    return new TupleType(type.elements.map(replaceUserDefinedType), type.src);
+    return new TupleType(type.elements.map(callSelf), type.src);
   } else if (type instanceof TypeNameType) {
-    return new TypeNameType(replaceUserDefinedType(type.type), type.src);
+    return new TypeNameType(callSelf(type.type), type.src);
   } else if (type instanceof UserDefinedType) {
     if (type.definition instanceof UserDefinedValueTypeDefinition) {
-      return typeNameToTypeNode(type.definition.underlyingType);
+      return inference.typeNameToTypeNode(type.definition.underlyingType);
     } else return type;
   } else {
     return type;

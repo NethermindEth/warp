@@ -128,7 +128,7 @@ export class UnloadingAssignment extends ASTMapper {
   private extractIndividualSubExpression(node: Expression, ast: AST): VariableDeclarationStatement {
     return ast.extractToConstant(
       node,
-      typeNameFromTypeNode(safeGetNodeType(node, ast.compilerVersion), ast),
+      typeNameFromTypeNode(safeGetNodeType(node, ast.inference), ast),
       `${COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX}${this.counter++}`,
     )[1];
   }

@@ -108,11 +108,11 @@ export class IndexEncode extends AbiBase {
           ? this.createStringOrBytesHeadEncoding()
           : this.createStringOrBytesHeadEncodingWithoutPadding(),
       (type) =>
-        isDynamicallySized(type, this.ast.compilerVersion)
+        isDynamicallySized(type, this.ast.inference)
           ? this.createStaticArrayHeadEncoding(type)
           : this.createArrayInlineEncoding(type),
       (type, def) =>
-        isDynamicallySized(type, this.ast.compilerVersion)
+        isDynamicallySized(type, this.ast.inference)
           ? this.createStructHeadEncoding(type, def)
           : this.createStructInlineEncoding(type, def),
       unexpectedType,
@@ -135,7 +135,7 @@ export class IndexEncode extends AbiBase {
     padding = true,
   ): string {
     const funcName = this.getOrCreateEncoding(type, padding);
-    if (isDynamicallySized(type, this.ast.compilerVersion) || isStruct(type)) {
+    if (isDynamicallySized(type, this.ast.inference) || isStruct(type)) {
       return [
         `let (${newIndexVar}) = ${funcName}(`,
         `  bytes_index,`,
@@ -160,7 +160,7 @@ export class IndexEncode extends AbiBase {
     }
 
     // Is value type
-    const size = getPackedByteSize(type, this.ast.compilerVersion);
+    const size = getPackedByteSize(type, this.ast.inference);
     const instructions: string[] = [];
     // packed size of addresses is 32 bytes, but they are treated as felts,
     // so they should be converted to Uint256 accordingly
@@ -368,7 +368,7 @@ export class IndexEncode extends AbiBase {
     if (existing !== undefined) return existing.name;
 
     const instructions = def.vMembers.map((member, index) => {
-      const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
+      const type = generalizeType(safeGetNodeType(member, this.ast.inference))[0];
       const elemWidth = CairoType.fromSol(type, this.ast).width;
       const readFunc = this.readMemory(type, 'mem_ptr');
       const encoding = this.generateEncodingCode(type, 'bytes_index', `elem${index}`);
