@@ -4,6 +4,7 @@ import {
   FunctionVisibility,
   ParameterList,
 } from 'solc-typed-ast';
+import { FunctionStubKind } from './cairoFunctionDefinition';
 import { CairoRawStringFunctionDefinition } from './cairoRawStringFunctionDefinition';
 
 export class CairoFunctionStub extends CairoRawStringFunctionDefinition {
@@ -29,6 +30,7 @@ export class CairoFunctionStub extends CairoRawStringFunctionDefinition {
       stateMutability,
       parameters,
       returnParameters,
+      FunctionStubKind.FunctionDefStub,
       rawStringDefinition,
     );
   }

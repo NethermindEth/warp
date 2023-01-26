@@ -11,6 +11,7 @@ export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
   path: string;
   constructor(
     id: number,
+    src: string,
     scope: number,
     name: string,
     path: string,
@@ -21,7 +22,7 @@ export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
   ) {
     super(
       id,
-      '',
+      src,
       scope,
       FunctionKind.Function,
       name,

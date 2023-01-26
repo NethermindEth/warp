@@ -5,6 +5,7 @@ import {
   FunctionVisibility,
   ParameterList,
 } from 'solc-typed-ast';
+import { FunctionStubKind } from './cairoFunctionDefinition';
 import { CairoRawStringFunctionDefinition } from './cairoRawStringFunctionDefinition';
 
 export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefinition {
@@ -22,6 +23,7 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
     stateMutability: FunctionStateMutability,
     parameters: ParameterList,
     returnParameters: ParameterList,
+    functionStubKind: FunctionStubKind,
     rawStringDefinition: string,
     functionsCalled: FunctionDefinition[],
   ) {
@@ -35,6 +37,7 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
       stateMutability,
       parameters,
       returnParameters,
+      functionStubKind,
       rawStringDefinition,
     );
     this.functionsCalled = removeRepeatedFunction(functionsCalled);
