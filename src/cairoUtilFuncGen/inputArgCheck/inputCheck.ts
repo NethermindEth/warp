@@ -1,11 +1,8 @@
 import assert from 'assert';
 import {
-  AddressType,
   ArrayType,
-  ASTNode,
   BoolType,
   BytesType,
-  ContractDefinition,
   DataLocation,
   EnumDefinition,
   Expression,
@@ -21,15 +18,11 @@ import {
   UserDefinedType,
   VariableDeclaration,
 } from 'solc-typed-ast';
-import { FunctionStubKind } from '../../ast/cairoNodes';
+import { CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import {
@@ -41,11 +34,11 @@ import {
 import {
   checkableType,
   getElementType,
+  isAddressType,
   isDynamicArray,
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
-import { GettersGenerator } from '../../export';
 
 export class InputCheckGen extends StringIndexedFuncGen {
   gen(nodeInput: VariableDeclaration | Expression, typeToCheck: TypeNode): FunctionCall {
@@ -65,21 +58,42 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, [functionInput], this.ast);
   }
 
-  private getOrCreateFuncDef(typeToCheck: TypeNode, isUint256: boolean) {
-    const key = `dynArrayPop(${typeToCheck.pp()})`;
+  private getOrCreateFuncDef(type: TypeNode, isUint256: boolean): CairoFunctionDefinition {
+    const key = type.pp();
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
     }
 
-    const funcInfo = this.getOrCreate(typeToCheck, isUint256);
+    if (type instanceof FixedBytesType)
+      return this.requireImport(
+        'warplib.maths.external_input_check_ints',
+        `warp_external_input_check_int${type.size * 8}`,
+      );
+    if (type instanceof IntType)
+      return this.requireImport(
+        'warplib.maths.external_input_check_ints',
+        `warp_external_input_check_int${type.nBits}`,
+      );
+    if (isAddressType(type))
+      return this.requireImport(
+        'warplib.maths.external_input_check_address',
+        `warp_external_input_check_address`,
+      );
+    if (type instanceof BoolType)
+      return this.requireImport(
+        'warplib.maths.external_input_check_bool',
+        `warp_external_input_check_bool`,
+      );
+
+    const funcInfo = this.getOrCreate(type, isUint256);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
         [
           'ref_var',
-          typeNameFromTypeNode(typeToCheck, this.ast),
-          locationIfComplexType(typeToCheck, DataLocation.CallData),
+          typeNameFromTypeNode(type, this.ast),
+          locationIfComplexType(type, DataLocation.CallData),
         ],
       ],
       [],
@@ -88,7 +102,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       {
         mutability: FunctionStateMutability.Pure,
         stubKind: FunctionStubKind.FunctionDefStub,
-        acceptsRawDArray: isDynamicArray(typeToCheck),
+        acceptsRawDArray: isDynamicArray(type),
       },
     );
     this.generatedFunctionsDef.set(key, funcDef);
@@ -100,61 +114,19 @@ export class InputCheckGen extends StringIndexedFuncGen {
       throw new NotSupportedYetError(`Input check for ${printTypeNode(type)} not defined yet.`);
     };
 
+    const funcName = `extern_input_check${this.generatedFunctionsDef.size}`;
     return delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynArrayInputCheck(this.generateFuncName().name, type),
-      (type) => this.createStaticArrayInputCheck(this.generateFuncName().name, type),
-      (type) => this.createStructInputCheck(this.generateFuncName().name, type),
+      (type) => this.createDynArrayInputCheck(funcName, type),
+      (type) => this.createStaticArrayInputCheck(funcName, type),
+      (type) => this.createStructInputCheck(funcName, type),
       unexpectedTypeFunc,
       (type) => {
-        if (type instanceof FixedBytesType) {
-          return this.createIntInputCheck(type.size * 8);
-        } else if (type instanceof IntType) {
-          return this.createIntInputCheck(type.nBits);
-        } else if (type instanceof BoolType) {
-          return this.createBoolInputCheck();
-        } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
+        if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition)
           return this.createEnumInputCheck(type, takesUint);
-        } else if (
-          type instanceof AddressType ||
-          (type instanceof UserDefinedType && type.definition instanceof ContractDefinition)
-        ) {
-          return this.createAddressInputCheck();
-        } else {
-          return unexpectedTypeFunc();
-        }
+        return unexpectedTypeFunc();
       },
     );
-  }
-
-  private generateFuncName(): GeneratedFunctionInfo {
-    const funcName = `extern_input_check${this.generatedFunctionsDef.size}`;
-    const funcInfo: GeneratedFunctionInfo = { name: funcName, code: '', functionsCalled: [] };
-    return funcInfo;
-  }
-
-  private createIntInputCheck(bitWidth: number): GeneratedFunctionInfo {
-    const funcName = `warp_external_input_check_int${bitWidth}`;
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport(
-        'warplib.maths.external_input_check_ints',
-        `warp_external_input_check_int${bitWidth}`,
-      ),
-    );
-    return { name: funcName, code: '', functionsCalled: funcsCalled };
-  }
-
-  private createAddressInputCheck(): GeneratedFunctionInfo {
-    const funcName = 'warp_external_input_check_address';
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport(
-        'warplib.maths.external_input_check_address',
-        `warp_external_input_check_address`,
-      ),
-    );
-    return { name: funcName, code: '', functionsCalled: funcsCalled };
   }
 
   private createStructInputCheck(funcName: string, type: UserDefinedType): GeneratedFunctionInfo {
