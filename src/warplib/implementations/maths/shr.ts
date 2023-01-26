@@ -95,7 +95,7 @@ export function shr(): WarplibFunctionInfo {
           `    }`,
           `    return (Uint256(0, 0),);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_shr${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -122,7 +122,7 @@ export function shr(): WarplibFunctionInfo {
           `        return (0,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -177,7 +177,7 @@ export function shr_signed(): WarplibFunctionInfo {
           `        return (res,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_shr_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -211,7 +211,7 @@ export function shr_signed(): WarplibFunctionInfo {
           `        return (res,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };

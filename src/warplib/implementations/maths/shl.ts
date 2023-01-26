@@ -39,7 +39,7 @@ export function shl(): WarplibFunctionInfo {
           '    let (res) = uint256_shl(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_shl${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -65,7 +65,7 @@ export function shl(): WarplibFunctionInfo {
           `        return (0,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };

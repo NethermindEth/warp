@@ -19,7 +19,7 @@ export function negate(): WarplibFunctionInfo {
           '    let (res) = uint256_neg(op);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         // Could also have if op == 0: 0 else limit-op
         return [
@@ -28,7 +28,7 @@ export function negate(): WarplibFunctionInfo {
           `    let (res) = bitwise_and(raw_res, ${mask(width)});`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };

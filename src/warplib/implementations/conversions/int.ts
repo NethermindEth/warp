@@ -25,7 +25,7 @@ export function int_conversions(): WarplibFunctionInfo {
     ],
     functions: [
       ...forAllWidths((from) => {
-        return forAllWidths((to) => {
+        const x = forAllWidths((to) => {
           if (from < to) {
             if (to === 256) {
               return [
@@ -84,12 +84,14 @@ export function int_conversions(): WarplibFunctionInfo {
             }
           }
         });
+        return x.map((f) => f.join('\n')).join('\n');
       }),
-      '',
-      'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256){',
-      '    let split = split_felt(op);',
-      '    return (Uint256(low=split.low, high=split.high),);',
-      '}',
+      [
+        'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256){',
+        '    let split = split_felt(op);',
+        '    return (Uint256(low=split.low, high=split.high),);',
+        '}',
+      ].join('\n'),
     ],
   };
 }

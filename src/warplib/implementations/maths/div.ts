@@ -41,7 +41,7 @@ export function div_signed(): WarplibFunctionInfo {
           '    let (res : Uint256, _) = uint256_signed_div_rem(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_div_signed${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -61,7 +61,7 @@ export function div_signed(): WarplibFunctionInfo {
           `    let (truncated) = warp_int256_to_int${width}(res256);`,
           `    return (truncated,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -101,7 +101,7 @@ export function div_signed_unsafe(): WarplibFunctionInfo {
           '    let (res : Uint256, _) = uint256_signed_div_rem(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_div_signed_unsafe${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -121,7 +121,7 @@ export function div_signed_unsafe(): WarplibFunctionInfo {
           `    let (truncated) = warp_int256_to_int${width}(res256);`,
           `    return (truncated,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };

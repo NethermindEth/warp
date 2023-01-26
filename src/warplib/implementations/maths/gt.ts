@@ -22,7 +22,7 @@ export function gt_signed(): WarplibFunctionInfo {
           '    let (res) =  uint256_signed_lt(rhs, lhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_gt_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
@@ -30,7 +30,7 @@ export function gt_signed(): WarplibFunctionInfo {
           `    let (res) = warp_lt_signed${width}(rhs, lhs);`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };

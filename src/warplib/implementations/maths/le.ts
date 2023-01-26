@@ -19,7 +19,7 @@ export function le_signed(): WarplibFunctionInfo {
           '    let (res) = uint256_signed_le(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_le_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
@@ -51,7 +51,7 @@ export function le_signed(): WarplibFunctionInfo {
           `        }`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };

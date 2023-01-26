@@ -24,7 +24,7 @@ export function add(): WarplibFunctionInfo {
         `    assert carry = 0;`,
         `    return (res,);`,
         `}`,
-      ];
+      ].join('\n');
     } else {
       return [
         `func warp_add${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -33,7 +33,7 @@ export function add(): WarplibFunctionInfo {
         `    assert inRange = 1;`,
         `    return (res,);`,
         `}`,
-      ];
+      ].join('\n');
     }
   });
 
@@ -56,7 +56,7 @@ export function add_unsafe(): WarplibFunctionInfo {
           `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_add_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
@@ -64,7 +64,7 @@ export function add_unsafe(): WarplibFunctionInfo {
           `    let (res) = bitwise_and(lhs + rhs, ${mask(width)});`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -93,7 +93,7 @@ export function add_signed(): WarplibFunctionInfo {
           `    assert msb = carry_lsb;`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_add_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
@@ -109,7 +109,7 @@ export function add_signed(): WarplibFunctionInfo {
           `    let (res) =  bitwise_and(big_res, ${mask(width)});`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -131,7 +131,7 @@ export function add_signed_unsafe(): WarplibFunctionInfo {
           `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_add_signed_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(`,
@@ -139,7 +139,7 @@ export function add_signed_unsafe(): WarplibFunctionInfo {
           `    let (res) = bitwise_and(lhs + rhs, ${mask(width)});`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };

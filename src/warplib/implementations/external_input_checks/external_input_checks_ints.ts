@@ -21,7 +21,7 @@ export function external_input_check_ints(): WarplibFunctionInfo {
           `${INDENT}}`,
           `${INDENT}return();`,
           `}\n`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_external_input_check_int${int_width}{range_check_ptr}(x : felt){`,
@@ -31,7 +31,7 @@ export function external_input_check_ints(): WarplibFunctionInfo {
           `${INDENT}}`,
           `${INDENT}return ();`,
           `}\n`,
-        ];
+        ].join('\n');
       }
     }),
   };

@@ -86,7 +86,7 @@ function createExp(signed: boolean, unsafe: boolean): WarplibFunctionInfo {
           `    let (res) = _repeated_multiplication_256_${width}(lhs, rhs);`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func _repeated_multiplication${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : felt, count : felt) -> (res : felt){`,
@@ -138,7 +138,7 @@ function createExp(signed: boolean, unsafe: boolean): WarplibFunctionInfo {
           `    let (res) = _repeated_multiplication_256_${width}(lhs, rhs);`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };

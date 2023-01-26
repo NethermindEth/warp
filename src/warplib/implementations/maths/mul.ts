@@ -31,7 +31,7 @@ export function mul(): WarplibFunctionInfo {
           '    assert overflow.high = 0;',
           '    return (result,);',
           '}',
-        ];
+        ].join('\n');
       } else if (width >= 128) {
         return [
           `func warp_mul${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -43,7 +43,7 @@ export function mul(): WarplibFunctionInfo {
           '    assert outOfRange = 0;',
           `    return (res.low + ${bound(128)} * res.high,);`,
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -52,7 +52,7 @@ export function mul(): WarplibFunctionInfo {
           '    assert inRange = 1;',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -74,7 +74,7 @@ export function mul_unsafe(): WarplibFunctionInfo {
           `    let (res : Uint256, _) = uint256_mul(lhs, rhs);`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else if (width >= 128) {
         return [
           `func warp_mul_unsafe${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -85,14 +85,14 @@ export function mul_unsafe(): WarplibFunctionInfo {
           `    let (high) = bitwise_and(res.high, ${mask(width - 128)});`,
           `    return (res.low + ${bound(128)} * high,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
           `    let (res) = bitwise_and(lhs * rhs, ${mask(width)});`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -142,7 +142,7 @@ export function mul_signed(): WarplibFunctionInfo {
           `        return (res_abs,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -183,7 +183,7 @@ export function mul_signed(): WarplibFunctionInfo {
           `        }`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -220,7 +220,7 @@ export function mul_signed_unsafe(): WarplibFunctionInfo {
           `    let (res) = uint256_cond_neg(res_abs, (lhs_nn + rhs_nn) * (2 - lhs_nn - rhs_nn));`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul_signed_unsafe${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -237,7 +237,7 @@ export function mul_signed_unsafe(): WarplibFunctionInfo {
           `        return (res,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };

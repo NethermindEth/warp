@@ -22,7 +22,7 @@ export function ge_signed(): WarplibFunctionInfo {
           '     let (res) =  uint256_signed_le(rhs, lhs);',
           '     return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_ge_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
@@ -30,7 +30,7 @@ export function ge_signed(): WarplibFunctionInfo {
           `    let (res) = warp_le_signed${width}(rhs, lhs);`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };

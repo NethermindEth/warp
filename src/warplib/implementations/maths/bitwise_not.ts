@@ -18,14 +18,14 @@ export function bitwise_not(): WarplibFunctionInfo {
           '    let (res) = uint256_not(op);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_bitwise_not${width}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt){`,
           `    let (res) = bitwise_xor(op, ${mask(width)});`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
   };

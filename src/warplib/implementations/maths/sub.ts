@@ -42,7 +42,7 @@ export function sub_unsafe(): WarplibFunctionInfo {
           `        return (Uint256(low_safe, high),);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_sub_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
@@ -51,7 +51,7 @@ export function sub_unsafe(): WarplibFunctionInfo {
           `    let (res) = bitwise_and(res, ${mask(width)});`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -91,7 +91,7 @@ export function sub_signed(): WarplibFunctionInfo {
           `    // Narrow and return`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_sub_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
@@ -114,7 +114,7 @@ export function sub_signed(): WarplibFunctionInfo {
           `    let (res) = bitwise_and(extended_res, ${mask(width)});`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };
@@ -135,7 +135,7 @@ export function sub_signed_unsafe(): WarplibFunctionInfo {
           '    let (res) =  uint256_sub(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_sub_signed_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(`,
@@ -154,7 +154,7 @@ export function sub_signed_unsafe(): WarplibFunctionInfo {
           `    let (res) = bitwise_and(extended_res, ${mask(width)});`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
   };

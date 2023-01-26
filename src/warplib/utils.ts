@@ -26,8 +26,8 @@ export type WarplibFunctionInfo = {
   functions: string[];
 };
 
-export function forAllWidths(funcGen: (width: number) => string[]): string[] {
-  return mapRange(32, (n) => 8 * (n + 1)).flatMap(funcGen);
+export function forAllWidths<T>(funcGen: (width: number) => T): T[] {
+  return mapRange(32, (n) => 8 * (n + 1)).map(funcGen);
 }
 
 export function pow2(n: number): bigint {
