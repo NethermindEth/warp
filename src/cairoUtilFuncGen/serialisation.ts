@@ -1,5 +1,6 @@
 import {
   CairoFelt,
+  CairoStaticArray,
   CairoStruct,
   CairoTuple,
   CairoType,
@@ -40,6 +41,9 @@ function producePackExpression(type: CairoType): (string | Read)[] {
   if (type instanceof CairoFelt) return [Read.Felt];
   if (type instanceof CairoTuple) {
     return ['(', ...type.members.flatMap((member) => [...producePackExpression(member), ',']), ')'];
+  }
+  if (type instanceof CairoStaticArray) {
+    return ['(', ...Array(type.size).fill(producePackExpression(type.type)).flat(), ')'];
   }
   if (type instanceof CairoStruct) {
     return [

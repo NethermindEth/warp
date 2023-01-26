@@ -71,7 +71,7 @@ export abstract class CairoType {
           tp.size,
           `Arrays of very large size (${tp.size.toString()}) are not supported`,
         );
-        return new CairoTuple(Array(narrowedLength).fill(elementType));
+        return new CairoStaticArray(elementType, narrowedLength);
       }
     } else if (tp instanceof BoolType) {
       return new CairoFelt();
@@ -245,6 +245,31 @@ export class CairoTuple extends CairoType {
     return this.members.flatMap((memberType, index) =>
       memberType.serialiseMembers(`${name}[${index}]`),
     );
+  }
+}
+
+export class CairoStaticArray extends CairoType {
+  constructor(public type: CairoType, public size: number) {
+    super();
+  }
+  get fullStringRepresentation(): string {
+    return `[Tuple]${`(${this.type.fullStringRepresentation})`.repeat(this.size)}`;
+  }
+  toString(): string {
+    return `(${this.type.toString()}` + `${`,` + this.type.toString()}`.repeat(this.size - 1);
+  }
+  get typeName(): string {
+    return `(${this.type.typeName}` + `${`,` + this.type.typeName}`.repeat(this.size - 1);
+  }
+  get width(): number {
+    return this.type.width * this.size;
+  }
+  serialiseMembers(name: string): string[] {
+    let serializedMembers: string[] = [];
+    for (let index = 0; index < this.size; ++index) {
+      serializedMembers.concat(this.type.serialiseMembers(`${name}[${index}]`));
+    }
+    return serializedMembers;
   }
 }
 
