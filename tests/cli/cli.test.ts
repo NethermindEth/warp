@@ -171,7 +171,7 @@ describe('Deploy the MyToken contract', function () {
 
   it('should deploy the ERC20 contract', async () => {
     const { stdout, stderr } = await sh(
-      `${WARP_BIN} deploy ${contractCairoFile} --inputs 500 0 --wallet ${WALLET} --feeder_gateway_url ${GATEWAY_URL} --gateway_url ${GATEWAY_URL} --network ${NETWORK} --account_dir ${STARKNET_ACCOUNT_DIR}`,
+      `${WARP_BIN} deploy ${contractCairoFile} --inputs 500  --wallet ${WALLET} --feeder_gateway_url ${GATEWAY_URL} --gateway_url ${GATEWAY_URL} --network ${NETWORK} --account_dir ${STARKNET_ACCOUNT_DIR}`,
     );
 
     expect(stderr).to.be.empty;
@@ -262,7 +262,7 @@ describe('Invoke MyToken contract functions', function () {
     );
 
     const transferToUser1 = await sh(
-      `${WARP_BIN} invoke ${contractCairoFile} --function transfer --inputs ${accountJSON[NETWORK].user1.address} 100 0 --address ${contractAddress} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL} --wallet ${WALLET} --account_dir ${STARKNET_ACCOUNT_DIR}`,
+      `${WARP_BIN} invoke ${contractCairoFile} --function transfer --inputs ${accountJSON[NETWORK].user1.address} 100  --address ${contractAddress} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL} --wallet ${WALLET} --account_dir ${STARKNET_ACCOUNT_DIR}`,
     );
 
     expect(transferToUser1.stderr).to.be.empty;
@@ -289,7 +289,7 @@ describe('Invoke MyToken contract functions', function () {
     );
 
     const approveToUser2 = await sh(
-      `${WARP_BIN} invoke ${contractCairoFile} --function approve --inputs ${accountJSON[NETWORK].user2.address} 200 0 --address ${contractAddress} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL} --wallet ${WALLET} --account_dir ${STARKNET_ACCOUNT_DIR}`,
+      `${WARP_BIN} invoke ${contractCairoFile} --function approve --inputs ${accountJSON[NETWORK].user2.address} 200  --address ${contractAddress} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL} --wallet ${WALLET} --account_dir ${STARKNET_ACCOUNT_DIR}`,
     );
 
     expect(approveToUser2.stderr).to.be.empty;
@@ -317,7 +317,7 @@ describe('Invoke MyToken contract functions', function () {
     );
 
     const transferFromUser2ToUser1 = await sh(
-      `${WARP_BIN} invoke ${contractCairoFile} --function transferFrom --inputs ${accountJSON[NETWORK].__default__.address} ${accountJSON[NETWORK].user1.address} 100 0 --address ${contractAddress} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL} --wallet ${WALLET} --account_dir ${STARKNET_ACCOUNT_DIR} --account user2`,
+      `${WARP_BIN} invoke ${contractCairoFile} --function transferFrom --inputs ${accountJSON[NETWORK].__default__.address} ${accountJSON[NETWORK].user1.address} 100  --address ${contractAddress} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL} --wallet ${WALLET} --account_dir ${STARKNET_ACCOUNT_DIR} --account user2`,
     );
 
     expect(transferFromUser2ToUser1.stderr).to.be.empty;
