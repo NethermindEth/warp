@@ -51,8 +51,8 @@ export class RefTypeModifier extends ASTMapper {
           ([decl]) =>
             node.vParameters.vParameters.includes(decl) &&
             decl.storageLocation === DataLocation.Memory &&
-            isReferenceType(safeGetNodeType(decl, ast.compilerVersion)) &&
-            !isDynamicArray(safeGetNodeType(decl, ast.compilerVersion)),
+            isReferenceType(safeGetNodeType(decl, ast.inference)) &&
+            !isDynamicArray(safeGetNodeType(decl, ast.inference)),
         )
         .forEach(([decl, ids]) => {
           const wmDecl = cloneASTNode(decl, ast);

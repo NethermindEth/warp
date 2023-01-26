@@ -22,8 +22,8 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     enumDef: EnumDefinition,
     nodeInSourceUnit: ASTNode,
   ): FunctionCall {
-    const nodeType = safeGetNodeType(node, this.ast.compilerVersion);
-    const inputType = safeGetNodeType(nodeInput, this.ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, this.ast.inference);
+    const inputType = safeGetNodeType(nodeInput, this.ast.inference);
 
     this.sourceUnit = this.ast.getContainingRoot(nodeInSourceUnit);
     const name = this.getOrCreate(inputType, enumDef);

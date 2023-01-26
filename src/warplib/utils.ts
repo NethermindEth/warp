@@ -72,15 +72,9 @@ export function IntxIntFunction(
   implicits: (width: number, signed: boolean) => Implicits[],
   ast: AST,
 ) {
-  const lhsType = typeNameFromTypeNode(
-    safeGetNodeType(node.vLeftExpression, ast.compilerVersion),
-    ast,
-  );
-  const rhsType = typeNameFromTypeNode(
-    safeGetNodeType(node.vRightExpression, ast.compilerVersion),
-    ast,
-  );
-  const retType = safeGetNodeType(node, ast.compilerVersion);
+  const lhsType = typeNameFromTypeNode(safeGetNodeType(node.vLeftExpression, ast.inference), ast);
+  const rhsType = typeNameFromTypeNode(safeGetNodeType(node.vRightExpression, ast.inference), ast);
+  const retType = safeGetNodeType(node, ast.inference);
   assert(
     retType instanceof IntType || retType instanceof FixedBytesType,
     `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with ${name}`,
@@ -143,9 +137,9 @@ export function Comparison(
   implicits: (wide: boolean, signed: boolean) => Implicits[],
   ast: AST,
 ): void {
-  const lhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
-  const retType = safeGetNodeType(node, ast.compilerVersion);
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const rhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const retType = safeGetNodeType(node, ast.inference);
   const wide =
     (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
     getIntOrFixedByteBitWidth(lhsType) === 256;
@@ -199,8 +193,8 @@ export function IntFunction(
   implicits: (wide: boolean) => Implicits[],
   ast: AST,
 ): void {
-  const opType = safeGetNodeType(argument, ast.compilerVersion);
-  const retType = safeGetNodeType(node, ast.compilerVersion);
+  const opType = safeGetNodeType(argument, ast.inference);
+  const retType = safeGetNodeType(node, ast.inference);
   assert(
     retType instanceof IntType || retType instanceof FixedBytesType,
     `Expected IntType or FixedBytes for ${name}, got ${printTypeNode(retType)}`,
@@ -236,9 +230,9 @@ export function IntFunction(
 }
 
 export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST): void {
-  const lhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
-  const retType = safeGetNodeType(node, ast.compilerVersion);
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
+  const retType = safeGetNodeType(node, ast.inference);
 
   assert(
     lhsType instanceof BoolType,

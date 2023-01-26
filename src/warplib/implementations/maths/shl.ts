@@ -72,9 +72,9 @@ export function shl(): void {
 }
 
 export function functionaliseShl(node: BinaryOperation, ast: AST): void {
-  const lhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
-  const retType = safeGetNodeType(node, ast.compilerVersion);
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
+  const retType = safeGetNodeType(node, ast.inference);
 
   assert(
     lhsType instanceof IntType || lhsType instanceof FixedBytesType,

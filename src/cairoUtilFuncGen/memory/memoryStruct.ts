@@ -24,7 +24,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
     assert(structDef instanceof StructDefinition);
 
     const cairoType = CairoType.fromSol(
-      safeGetNodeType(node, this.ast.compilerVersion),
+      safeGetNodeType(node, this.ast.inference),
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
@@ -35,7 +35,11 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       name,
       structDef.vMembers.map((decl) => {
         assert(decl.vType !== undefined);
-        const type = typeNameToSpecializedTypeNode(decl.vType, DataLocation.Memory);
+        const type = typeNameToSpecializedTypeNode(
+          decl.vType,
+          DataLocation.Memory,
+          this.ast.inference,
+        );
         return [
           decl.name,
           cloneASTNode(decl.vType, this.ast),
