@@ -12,13 +12,17 @@ import {
 import { createParameterList } from './nodeTemplates';
 import assert from 'assert';
 import { TranspileFailedError } from '../utils/errors';
+import { warplibImportInfo } from '../warplib/getWarplibImports';
 
 // Paths
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
 const STARKWARE_CAIRO_COMMON_BUILTINS = 'starkware.cairo.common.cairo_builtins';
+const STARKWARE_CAIRO_COMMON_DEFAULT_DICT = 'starkware.cairo.common.default_dict';
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
+const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
+const WARPLIB_MATHS_EXTERNAL_INPUT_CHECKS_INTS = 'warplib.maths.external_input_check_ints';
 const WARPLIB_MATHS_INT_CONVERSIONS = 'warplib.maths.int_conversions';
 const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
 const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
@@ -26,10 +30,9 @@ const WARPLIB_MEMORY = 'warplib.memory';
 const WARPLIB_KECCAK = 'warplib.keccak';
 
 export function createImportFuncDefinition(path: string, name: string, node: SourceUnit, ast: AST) {
-  // First check if the import was already added. If so, there's no need to add it again.
-  const foundImportFuncDef = findExistingImport(name, node);
-  if (foundImportFuncDef !== undefined) {
-    return foundImportFuncDef;
+  const existingImport = findExistingImport(name, node);
+  if (existingImport !== undefined) {
+    return existingImport;
   }
 
   const createFuncImport = (...implicits: Implicits[]) =>
@@ -50,23 +53,23 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createFuncImport();
     case STARKWARE_CAIRO_COMMON_BUILTINS + 'BitwiseBuiltin':
       return createStructImport();
-    case STARKWARE_CAIRO_COMMON_BUILTINS + 'DictAccess':
-      return createStructImport();
     case STARKWARE_CAIRO_COMMON_BUILTINS + 'HashBuiltin':
+      return createStructImport();
+    case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_new':
+      return createFuncImport();
+    case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_finalize':
+      return createFuncImport('range_check_ptr');
+    case STARKWARE_CAIRO_COMMON_DICT_ACCESS + 'DictAccess':
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_DICT + 'dict_write':
       return createFuncImport(DICT_PTR);
+    case STARKWARE_CAIRO_COMMON_DICT_ACCESS + 'DictAccess':
+      return createStructImport();
     case STARKWARE_CAIRO_COMMON_UINT256 + 'Uint256':
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_add':
       return createFuncImport(RANGE_CHECK_PTR);
-    case WARPLIB_MATHS_BYTES_ACCESS + 'byte256_at_index':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR);
-    case WARPLIB_MATHS_INT_CONVERSIONS + 'warp_uint256':
-      return createFuncImport(RANGE_CHECK_PTR);
-    case WARPLIB_MATHS_UTILS + 'felt_to_uint256':
-      return createFuncImport(RANGE_CHECK_PTR);
-    case WARPLIB_MATHS_UTILS + 'narrow_safe':
+    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_sub':
       return createFuncImport(RANGE_CHECK_PTR);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'byte_array_to_felt_value':
       return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
@@ -88,6 +91,16 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createFuncImport(RANGE_CHECK_PTR, WARP_MEMORY);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'memory_dyn_array_copy':
       return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+    case WARPLIB_MATHS_BYTES_ACCESS + 'byte256_at_index':
+      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR);
+    case WARPLIB_MATHS_EXTERNAL_INPUT_CHECKS_INTS + 'warp_external_input_check':
+      return createFuncImport(RANGE_CHECK_PTR);
+    case WARPLIB_MATHS_INT_CONVERSIONS + 'warp_uint256':
+      return createFuncImport(RANGE_CHECK_PTR);
+    case WARPLIB_MATHS_UTILS + 'felt_to_uint256':
+      return createFuncImport(RANGE_CHECK_PTR);
+    case WARPLIB_MATHS_UTILS + 'narrow_safe':
+      return createFuncImport(RANGE_CHECK_PTR);
     case WARPLIB_MEMORY + 'wm_alloc':
       return createFuncImport(RANGE_CHECK_PTR, WARP_MEMORY);
     case WARPLIB_MEMORY + 'wm_dyn_array_length':
@@ -103,8 +116,12 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
     case WARPLIB_KECCAK + 'warp_keccak':
       return createFuncImport(RANGE_CHECK_PTR, BITWISE_PTR, WARP_MEMORY, KECCAK_PTR);
     default:
-      assert(false, `cannot import ${name} from ${path}`);
-      throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
+      const warplibFunc = warplibImportInfo.get(path)?.get(name);
+      if (warplibFunc === undefined) {
+        assert(false, `cannot import ${name} from ${path}`);
+        throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
+      }
+      return createFuncImport(...warplibFunc);
   }
 }
 
@@ -116,6 +133,8 @@ function findExistingImport(name: string, node: SourceUnit) {
 
   return found.length === 1 ? (found[0] as CairoImportFunctionDefinition) : undefined;
 }
+
+function processAutoGeneratedImportNames(name: string) {}
 
 function createImportFuncFuncDefinition(
   funcName: string,
