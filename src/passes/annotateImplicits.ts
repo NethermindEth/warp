@@ -15,6 +15,7 @@ import { TranspileFailedError } from '../utils/errors';
 import { Implicits, implicitTypes, registerImportsForImplicit } from '../utils/implicits';
 import { isExternallyVisible, union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
+import { EMIT_PREFIX } from '../export';
 
 export class AnnotateImplicits extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -123,7 +124,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 
     const sourceUnit = node.getClosestParentByType(SourceUnit);
     const referencedSourceUnit = node.vReferencedDeclaration?.getClosestParentByType(SourceUnit);
-    if (referencedSourceUnit !== sourceUnit || node.vFunctionName.startsWith('_emit_')) {
+    if (referencedSourceUnit !== sourceUnit || node.vFunctionName.startsWith(EMIT_PREFIX)) {
       result.add('range_check_ptr');
       result.add('syscall_ptr');
     }

@@ -62,3 +62,6 @@ export const INIT_FUNCTION_PREFIX = '__warp_init_';
 // Used in ExternalContractHandler
 // Used in SourceUnitWriter (to distinguish generated interfaces from user defined ones)
 export const TEMP_INTERFACE_SUFFIX = '@interface';
+
+// Used in cairoUtilGenFunc/event.ts
+export const EMIT_PREFIX = '__warp_emit_';

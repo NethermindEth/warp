@@ -12,6 +12,7 @@ import {
   runStarknetDeclare,
   runStarknetDeploy,
   runStarknetDeployAccount,
+  runStarknetNewAccount,
   runStarknetStatus,
 } from './starknetCli';
 import chalk from 'chalk';
@@ -198,9 +199,19 @@ export interface IOptionalNetwork {
   network?: string;
 }
 
+export interface IOptionalFee {
+  max_fee?: number;
+}
+
 program
   .command('status <tx_hash>')
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
   .action((tx_hash: string, options: IOptionalNetwork) => {
     runStarknetStatus(tx_hash, options);
   });
@@ -243,7 +254,17 @@ interface IDeployProps_ {
   wallet?: string;
 }
 
-export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount & IOptionalDebugInfo;
+export interface IGatewayProps {
+  gateway_url?: string;
+  feeder_gateway_url?: string;
+}
+
+export type IDeployProps = IDeployProps_ &
+  IOptionalNetwork &
+  IOptionalAccount &
+  IOptionalDebugInfo &
+  IGatewayProps &
+  IOptionalFee;
 
 program
   .command('deploy <file>')
@@ -255,9 +276,21 @@ program
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
   .option('--no_wallet', 'Do not use a wallet for deployment.', false)
   .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
   .option('--account <account>', 'Account to use for deployment', undefined)
+  .option(
+    '--account_dir <account_dir>',
+    'The directory of the account.',
+    process.env.STARKNET_ACCOUNT_DIR,
+  )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetDeploy);
 
 interface IOptionalWallet {
@@ -266,8 +299,13 @@ interface IOptionalWallet {
 
 interface IOptionalAccount {
   account?: string;
+  account_dir?: string;
 }
-export type IDeployAccountProps = IOptionalAccount & IOptionalNetwork & IOptionalWallet;
+export type IDeployAccountProps = IOptionalAccount &
+  IOptionalNetwork &
+  IOptionalWallet &
+  IGatewayProps &
+  IOptionalFee;
 
 program
   .command('deploy_account')
@@ -275,12 +313,24 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
+  .option(
+    '--account_dir <account_dir>',
+    'The directory of the account.',
+    process.env.STARKNET_ACCOUNT_DIR,
+  )
   .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetDeployAccount);
 
 interface ICallOrInvokeProps_ {
@@ -292,7 +342,9 @@ interface ICallOrInvokeProps_ {
 export type ICallOrInvokeProps = ICallOrInvokeProps_ &
   IOptionalNetwork &
   IOptionalWallet &
-  IOptionalAccount;
+  IOptionalAccount &
+  IGatewayProps &
+  IOptionalFee;
 
 program
   .command('invoke <file>')
@@ -308,13 +360,27 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
+  .option(
+    '--account_dir <account_dir>',
+    'The directory of the account.',
+    process.env.STARKNET_ACCOUNT_DIR,
+  )
   .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
-  .action(runStarknetCallOrInvoke);
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
+  .action(async (file: string, options: ICallOrInvokeProps) => {
+    runStarknetCallOrInvoke(file, false, options);
+  });
 
 program
   .command('call <file>')
@@ -330,12 +396,24 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
+  .option(
+    '--account_dir <account_dir>',
+    'The directory of the account.',
+    process.env.STARKNET_ACCOUNT_DIR,
+  )
   .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
@@ -361,6 +439,10 @@ export interface IDeclareOptions {
   network?: string;
   wallet?: string;
   account?: string;
+  account_dir?: string;
+  gateway_url?: string;
+  feeder_gateway_url?: string;
+  max_fee?: string;
 }
 
 program
@@ -372,11 +454,55 @@ program
     'The name of the account. If not given, the default for the wallet will be used.',
   )
   .option(
+    '--account_dir <account_dir>',
+    'The directory of the account.',
+    process.env.STARKNET_ACCOUNT_DIR,
+  )
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
+  .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
   .action(runStarknetDeclare);
+
+export type StarkNetNewAccountOptions = IOptionalAccount &
+  IOptionalAccount &
+  IOptionalNetwork &
+  IGatewayProps &
+  IOptionalWallet;
+
+program
+  .command('new_account')
+  .description('Command to create a new account.')
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, account will be named "__default__". If it already exists, it will be overwritten.',
+  )
+  .option(
+    '--account_dir <account_dir>',
+    'The directory of the account.',
+    process.env.STARKNET_ACCOUNT_DIR,
+  )
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option(
+    '--feeder_gateway_url <feeder_gateway_url>',
+    'StarkNet feeder gateway URL.',
+    process.env.STARKNET_FEEDER_GATEWAY_URL,
+  )
+  .option(
+    '--wallet <wallet>',
+    'The name of the wallet, including the python module and wallet class.',
+    process.env.STARKNET_WALLET,
+  )
+  .action(runStarknetNewAccount);
 
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;

@@ -17,6 +17,7 @@ import {
   TypeConversionContext,
   typeNameFromTypeNode,
   createCairoGeneratedFunction,
+  EMIT_PREFIX,
 } from '../export';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
@@ -44,7 +45,6 @@ function signatureHash(funcSignature: string): string {
  * Then replace the emit statement with a call to the generated function.
  */
 export class EventFunction extends StringIndexedFuncGen {
-  private funcName = '_emit_';
   private abiEncode: AbiEncode;
   private indexEncode: IndexEncode;
 
@@ -61,13 +61,16 @@ export class EventFunction extends StringIndexedFuncGen {
     const funcDef = this.getOrCreateFuncDef(refEventDef, argsTypes);
     return createCallToFunction(funcDef, node.vEventCall.vArguments, this.ast);
   }
-  private getOrCreateFuncDef(refEventDef: EventDefinition, argsTypes: TypeNode[]) {
-    const key = `event(${refEventDef.name}])`;
+  private getOrCreateFuncDef(eventDef: EventDefinition, argsTypes: TypeNode[]) {
+    const key = `${eventDef.name}_${this.ast.inference.signatureHash(
+      eventDef,
+      ABIEncoderVersion.V2,
+    )}`;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
     }
-    const funcInfo = this.getOrCreate(refEventDef);
+    const funcInfo = this.getOrCreate(eventDef);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       argsTypes.map((argT, index) =>
@@ -85,7 +88,6 @@ export class EventFunction extends StringIndexedFuncGen {
 
   private getOrCreate(node: EventDefinition) {
     // Add the canonicalSignatureHash so that generated function names don't collide when overloaded
-    const key = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
       this.requireImport('starkware.starknet.common.syscalls', 'emit_event'),
@@ -130,8 +132,9 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const topic: string = signatureHash(this.ast.inference.signature(node, ABIEncoderVersion.V2));
 
+    const suffix = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
     const code = [
-      `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
+      `func ${EMIT_PREFIX}${suffix}${IMPLICITS}(${cairoParams}){`,
       `   alloc_locals;`,
       `   // keys arrays`,
       `   let keys_len: felt = 0;`,
@@ -158,7 +161,7 @@ export class EventFunction extends StringIndexedFuncGen {
     ].join('\n');
 
     const funcInfo: GeneratedFunctionInfo = {
-      name: `${this.funcName}${key}`,
+      name: `${EMIT_PREFIX}${suffix}`,
       code: code,
       functionsCalled: funcsCalled,
     };
