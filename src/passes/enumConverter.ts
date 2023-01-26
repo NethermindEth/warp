@@ -153,6 +153,7 @@ function replaceEnumType(type: TypeNode): TypeNode {
       type.returns.map(replaceEnumType),
       type.visibility,
       type.mutability,
+      type.implicitFirstArg,
       type.src,
     );
   } else if (type instanceof MappingType) {

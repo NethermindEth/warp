@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   Assignment,
   ASTNode,
@@ -22,7 +23,6 @@ import {
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
-import { GeneratedFunctionInfo } from '../export';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createIdentifier, createParameterList } from './nodeTemplates';
@@ -117,7 +117,7 @@ export function createCairoFunctionStub(
 }
 
 export function createCairoGeneratedFunction(
-  genFuncInfo: GeneratedFunctionInfo,
+  genFuncInfo: { name: string; code: string; functionsCalled: FunctionDefinition[] },
   inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
   returns: ([string, TypeName] | [string, TypeName, DataLocation])[],
   ast: AST,
@@ -131,7 +131,6 @@ export function createCairoGeneratedFunction(
 ): CairoGeneratedFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
-
   const funcDef = new CairoGeneratedFunctionDefinition(
     funcDefId,
     '',
@@ -139,9 +138,10 @@ export function createCairoGeneratedFunction(
     FunctionKind.Function,
     genFuncInfo.name,
     FunctionVisibility.Private,
-    options.mutability ?? FunctionStateMutability.Payable,
+    options.mutability ?? FunctionStateMutability.NonPayable,
     createParameterList(createParameters(inputs, funcDefId, ast), ast),
     createParameterList(createParameters(returns, funcDefId, ast), ast),
+    options.stubKind ?? FunctionStubKind.FunctionDefStub,
     genFuncInfo.code,
     genFuncInfo.functionsCalled,
   );

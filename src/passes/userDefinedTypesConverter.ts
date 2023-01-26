@@ -120,6 +120,7 @@ function replaceUserDefinedType(type: TypeNode, inference: InferType): TypeNode 
       type.returns.map(callSelf),
       type.visibility,
       type.mutability,
+      type.implicitFirstArg,
       type.src,
     );
   } else if (type instanceof MappingType) {

@@ -55,7 +55,6 @@ export class AnnotateImplicits extends ASTMapper {
       node.raw,
     );
     ast.replaceNode(node, annotatedFunction);
-    ast.copyRegisteredImports(node, annotatedFunction);
     implicits.forEach((i) => registerImportsForImplicit(ast, annotatedFunction, i));
     node.children.forEach((child) => this.dispatchVisit(child, ast));
   }
@@ -88,10 +87,6 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, _ast: AST): Set<Implicits> {
     this.visited.add(node);
-    // TODO: Do we need to add other instances of Cairo Functions such as:
-    //  * generated functions
-    //  * import functions
-    //  Since this two will already have the right imports when defined!!!
     return node.implicits;
   }
 
@@ -143,6 +138,8 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
   }
 }
 
+// TODO: There is code repetition here, but left to avoid conflicts with Carmen's PR
+// Should be erased before merging!
 function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicits>) {
   const cairoCode = getDocString(node.documentation);
   assert(cairoCode !== undefined);
