@@ -200,3 +200,14 @@ describe('Deploy the NoConstructor contract', function () {
     expect(contractAddress).to.not.be.empty;
   });
 });
+
+describe('Cleanup cli_test directory', function () {
+  this.timeout(TIME_LIMIT);
+
+  it('should remove the starknet account', async () => {
+    fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+    if (fs.existsSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'))) {
+      fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
+    }
+  });
+});
