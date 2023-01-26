@@ -9,22 +9,20 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import {
-  AbiEncode,
   AST,
   CairoType,
-  createCairoFunctionStub,
   createCallToFunction,
   isValueType,
-  IndexEncode,
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
-  GeneratedFunctionInfo,
   createCairoGeneratedFunction,
 } from '../export';
-import { StringIndexedFuncGen } from './base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import createKeccakHash from 'keccak';
+import { AbiEncode } from './abi/abiEncode';
+import { IndexEncode } from './abi/indexEncode';
 
 export const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 export const BYTES_IN_FELT_PACKING = 31;

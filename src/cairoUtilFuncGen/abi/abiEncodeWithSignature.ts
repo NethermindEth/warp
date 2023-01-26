@@ -16,7 +16,7 @@ import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { GeneratedFunctionInfo } from '../export';
+import { GeneratedFunctionInfo } from '../base';
 import { AbiEncodeWithSelector } from './abiEncodeWithSelector';
 
 const IMPLICITS =

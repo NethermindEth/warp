@@ -5,7 +5,6 @@ import {
   DataLocation,
   FunctionDefinition,
   generalizeType,
-  IntType,
   MappingType,
   PointerType,
   SourceUnit,
@@ -15,8 +14,8 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoImportFunctionDefinition } from '../ast/cairoNodes/cairoImportFunctionDefinition';
-import { CairoFunctionDefinition, createCairoGeneratedFunction } from '../export';
+import { CairoFunctionDefinition, CairoImportFunctionDefinition } from '../ast/cairoNodes';
+import { createCairoGeneratedFunction } from '../utils/functionGeneration';
 import { TranspileFailedError } from '../utils/errors';
 import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
@@ -26,11 +25,11 @@ export type CairoStructDef = {
   code: string;
 };
 
-export interface GeneratedFunctionInfo {
+export type GeneratedFunctionInfo = {
   name: string;
   code: string;
   functionsCalled: FunctionDefinition[];
-}
+};
 
 /*
   Base class for all specific cairo function generators
@@ -65,11 +64,12 @@ export abstract class CairoUtilFuncGenBase {
   Most subclasses of CairoUtilFuncGenBase index their CairoFunctions off a single string,
   usually the cairo type of the input that the function's code depends on
 */
-export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
+console.log('a');
+export abstract class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   protected generatedFunctionsDef: Map<string, CairoFunctionDefinition> = new Map();
 }
 
-export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
+export abstract class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
   protected auxiliarGeneratedFunctions: Map<string, CairoFunctionDefinition> = new Map();
 
   protected createAuxiliarGeneratedFunction(

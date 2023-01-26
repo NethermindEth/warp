@@ -1,5 +1,3 @@
-// TODO: read write util functions make add them to funcitonsCalled
-
 import assert from 'assert';
 import {
   ArrayType,

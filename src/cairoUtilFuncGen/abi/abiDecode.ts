@@ -14,7 +14,8 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoFunctionDefinition, GeneratedFunctionInfo } from '../../export';
+import { CairoFunctionDefinition } from '../../ast/cairoNodes';
+import { GeneratedFunctionInfo } from '../base';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';

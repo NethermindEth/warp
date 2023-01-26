@@ -6,7 +6,7 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { getByteSize } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
-import { GeneratedFunctionInfo } from '../export';
+import { GeneratedFunctionInfo } from '../base';
 import { AbiEncode } from './abiEncode';
 import { AbiBase } from './base';
 

@@ -38,8 +38,8 @@ import { AbiEncodePacked } from './abi/abiEncodePacked';
 import { AbiEncodeWithSelector } from './abi/abiEncodeWithSelector';
 import { AbiEncodeWithSignature } from './abi/abiEncodeWithSignature';
 import { AbiDecode } from './abi/abiDecode';
-import { EventFunction } from '../export';
 import { IndexEncode } from './abi/indexEncode';
+import { EventFunction } from './event';
 
 export class CairoUtilFuncGen {
   abi: {
