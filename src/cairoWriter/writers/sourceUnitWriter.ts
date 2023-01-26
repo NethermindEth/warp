@@ -1,10 +1,11 @@
 import assert from 'assert';
 import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
+import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { getStructsAndRemappings } from '../../freeStructWritter';
 import { removeExcessNewlines } from '../../utils/formatting';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
 import { CairoASTNodeWriter } from '../base';
-import { writeImports } from '../utils';
 
 // Used by:
 //  -> CairoContractWriter
@@ -41,20 +42,26 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
       writer.write(v),
     );
 
-    const functions = node.vFunctions.map((v) => writer.write(v));
+    const [importFunctions, generatedFunctions, functions] = node.vFunctions.reduce(
+      ([importFunctions, generatedFunctions, functions], funcDef) =>
+        funcDef instanceof CairoImportFunctionDefinition
+          ? [[writer.write(funcDef), ...importFunctions], generatedFunctions, functions]
+          : funcDef instanceof CairoGeneratedFunctionDefinition
+          ? [importFunctions, [writer.write(funcDef), ...generatedFunctions], functions]
+          : [importFunctions, generatedFunctions, [writer.write(funcDef), ...functions]],
+      [new Array<string>(), new Array<string>(), new Array<string>()],
+    );
 
     const contracts = node.vContracts.map((v) => writer.write(v));
 
-    // const generatedUtilFunctions = this.ast.getUtilFuncGen(node).getGeneratedCode();
-    const imports = writeImports(this.ast.getImports(node));
     return [
       removeExcessNewlines(
         [
           '%lang starknet',
-          [imports],
+          ...importFunctions,
           ...constants,
           ...structs,
-          // generatedUtilFunctions,
+          ...generatedFunctions,
           ...functions,
           ...contracts,
         ].join('\n\n\n'),
