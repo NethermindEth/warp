@@ -13,14 +13,13 @@ import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { Implicits } from '../../utils/implicits';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayConcat extends StringIndexedFuncGen {
-  gen(concat: FunctionCall) {
+  public gen(concat: FunctionCall) {
     const args = concat.vArguments;
     args.forEach((expr) => {
       const exprType = safeGetNodeType(expr, this.ast.inference);
@@ -51,18 +50,30 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, args, this.ast);
   }
 
-  getOrCreateFuncDef(
+  public getOrCreateFuncDef(
     argTypes: TypeNode[],
     inputs: [string, TypeName, DataLocation][],
     output: [string, TypeName, DataLocation],
   ) {
     // TODO Remove arguments that are not TypeNodes
 
-    const key = `storageToCallData(${argTypes.map((t) => `${t.pp()}`).flat()})`;
+    const key = argTypes
+      .map((type) => {
+        if (type instanceof PointerType) return 'A';
+        return `B${getIntOrFixedByteBitWidth(type)}`;
+      })
+      .join('');
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
     }
+
+    // const inputs2: [string, TypeName, DataLocation][] = argTypes.map((arg, index) => [
+    //   `arg_${index}`,
+    //   typeNameFromTypeNode(arg, this.ast),
+    //   DataLocation.Memory,
+    // ]);
+    // const output2;
 
     const funcInfo = this.getOrCreate(argTypes);
     const funcDef = createCairoGeneratedFunction(
@@ -77,13 +88,6 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   }
 
   private getOrCreate(argTypes: TypeNode[]): GeneratedFunctionInfo {
-    const key = argTypes
-      .map((type) => {
-        if (type instanceof PointerType) return 'A';
-        return `B${getIntOrFixedByteBitWidth(type)}`;
-      })
-      .join('');
-
     const implicits = argTypes.some(
       (type) => type instanceof IntType || type instanceof FixedBytesType,
     )
