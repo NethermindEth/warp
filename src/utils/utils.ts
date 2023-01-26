@@ -265,17 +265,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   return result;
 }
 
-export function mergeImports(...maps: Map<string, Set<string>>[]): Map<string, Set<string>> {
-  return maps.reduce((acc, curr) => {
-    curr.forEach((importedSymbols, location) => {
-      const accSet = acc.get(location) ?? new Set<string>();
-      importedSymbols.forEach((s) => accSet.add(s));
-      acc.set(location, accSet);
-    });
-    return acc;
-  }, new Map<string, Set<string>>());
-}
-
 export function groupBy<V, K>(arr: V[], groupFunc: (arg: V) => K): Map<K, Set<V>> {
   const grouped = new Map<K, Set<V>>();
   arr.forEach((v) => {
