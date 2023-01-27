@@ -46,10 +46,8 @@ export type PrintOptions = {
 
 export type OutputOptions = {
   compileCairo?: boolean;
-  compileErrors?: boolean;
   outputDir: string;
   formatCairo: boolean;
-  result: boolean;
 };
 
 type CliOptions = CompilationOptions &
@@ -64,7 +62,6 @@ program
   .command('transpile <files...>')
   .description('Transpile Solidity contracts into Cairo contracts')
   .option('--compile-cairo', 'Compile the output to bytecode')
-  .option('--no-compile-errors')
   .option('--check-trees', 'Debug: Run sanity checks on all intermediate ASTs')
   // for development mode
   .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
@@ -146,7 +143,6 @@ program
   .description(
     'Debug tool which applies any set of passes to the AST and writes out the transformed Solidity',
   )
-  .option('--no-compile-errors')
   .option('--check-trees', 'Debug: Run sanity checks on all intermediate ASTs')
   .option(
     '--highlight <ids...>',
@@ -458,7 +454,7 @@ program
   .command('install')
   .description('Install the python dependencies required for Warp')
   .option('--python <python>', 'Path to a python3.9 executable', 'python3.9')
-  .option('-v, --verbose')
+  .option('-v, --verbose', 'Display python setup info')
   .action(runVenvSetup);
 
 export interface IDeclareOptions {
@@ -533,8 +529,11 @@ program
 
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;
-program.command('version').action(() => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pjson = require('../package.json');
-  console.log(blue(`Warp Version `) + green(pjson.version));
-});
+program
+  .command('version')
+  .description('Warp version')
+  .action(() => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pjson = require('../package.json');
+    console.log(blue(`Warp Version `) + green(pjson.version));
+  });
