@@ -77,7 +77,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       if (actualLoc === DataLocation.Storage) {
         switch (expectedLoc) {
           case DataLocation.Default: {
-            copyFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast));
+            copyFunc = utilFuncGen.storage.read.gen(node);
             break;
           }
           case DataLocation.Memory: {
