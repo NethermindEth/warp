@@ -78,17 +78,18 @@ export class MemoryAllocations extends ReferenceSubPass {
       }`,
     );
 
-    const stub = createCairoFunctionStub(
-      'wm_new',
-      [
-        ['len', createUint256TypeName(ast)],
-        ['elemWidth', createUint256TypeName(ast)],
-      ],
-      [['loc', node.vExpression.vTypeName, DataLocation.Memory]],
-      ['range_check_ptr', 'warp_memory'],
-      ast,
-      node,
-    );
+    // TODO: Headache related with imports
+    // const stub = createCairoFunctionStub(
+    //   'wm_new',
+    //   [
+    //     ['len', createUint256TypeName(ast)],
+    //     ['elemWidth', createUint256TypeName(ast)],
+    //   ],
+    //   [['loc', node.vExpression.vTypeName, DataLocation.Memory]],
+    //   ['range_check_ptr', 'warp_memory'],
+    //   ast,
+    //   node,
+    // );
 
     const arrayType = generalizeType(safeGetNodeType(node, ast.inference))[0];
     assert(
@@ -103,14 +104,15 @@ export class MemoryAllocations extends ReferenceSubPass {
       TypeConversionContext.Ref,
     );
 
+    const funcImport = ast.registerImport(node, 'warplib.memory', 'wm_new');
+
     const call = createCallToFunction(
-      stub,
+      funcImport,
       [node.vArguments[0], createNumberLiteral(elementCairoType.width, ast, 'uint256')],
       ast,
     );
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
     this.replace(node, call, undefined, actualLoc, expectedLoc, ast);
-    ast.registerImport(call, 'warplib.memory', 'wm_new');
   }
 }

@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ArrayType,
-  ASTNode,
   BytesType,
   DataLocation,
   Expression,
@@ -18,11 +17,7 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -78,25 +73,21 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       type,
       (type) => this.createDynamicArrayCopyFunction(type),
       (type) => this.createStaticArrayCopyFunction(type),
-      (type) => this.createStructCopyFunction(type),
+      (type, def) => this.createStructCopyFunction(type, def),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
   }
 
-  private createStructCopyFunction(type: UserDefinedType): GeneratedFunctionInfo {
+  private createStructCopyFunction(
+    type: UserDefinedType,
+    def: StructDefinition,
+  ): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
-    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
+    const funcName = `ws_to_memory_struct_${def.name}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
 
     const funcsCalled: FunctionDefinition[] = [];
     funcsCalled.push(
@@ -140,7 +131,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       this.requireImport('warplib.memory', 'wm_alloc'),
     );
 
-    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
+    const funcName = `ws_to_memory_static_array${this.generatedFunctionsDef.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
@@ -245,12 +236,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       this.requireImport('warplib.memory', 'wm_index_dyn'),
     );
 
-    // Set an empty entry so recursive function generation doesn't clash
-    const emptyFuncInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: '',
-      functionsCalled: [],
-    };
     const elemMappingDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
     funcsCalled.push(elemMappingDef);
     const elemMappingName = elemMappingDef.name;

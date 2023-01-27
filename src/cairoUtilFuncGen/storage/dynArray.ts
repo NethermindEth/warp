@@ -1,40 +1,18 @@
-import {
-  ASTNode,
-  DataLocation,
-  Expression,
-  FunctionCall,
-  FunctionStateMutability,
-  generalizeType,
-  TypeNode,
-} from 'solc-typed-ast';
-import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
-import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
-import {
-  createCairoGeneratedFunction,
-  createCallToFunction,
-  safeGetNodeType,
-  typeNameFromTypeNode,
-} from '../../export';
+import { FunctionStateMutability, TypeNode } from 'solc-typed-ast';
+import { CairoFunctionDefinition, createCairoGeneratedFunction } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class DynArrayGen extends StringIndexedFuncGen {
-  gen(valueType: TypeNode, node: Expression) {
-    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
+  public getOrCreateFuncDef(type: TypeNode): CairoFunctionDefinition {
+    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
 
-    // TODO: Other gens create a func call node, but this one just return the func def node.
-    // Check if this is necessary given that is inconsistent with other gen logic.
-    return this.getOrCreateFuncDef(valueType);
-  }
-
-  getOrCreateFuncDef(type: TypeNode) {
-    const key = `dynArray(${type.pp()})`;
+    const key = cairoType.fullStringRepresentation;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
     }
 
-    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
     const funcInfo = this.getOrCreate(cairoType);
     const funcDef = createCairoGeneratedFunction(funcInfo, [], [], this.ast, this.sourceUnit, {
       mutability: FunctionStateMutability.View,
@@ -43,7 +21,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  getOrCreate(valueCairoType: CairoType) {
+  private getOrCreate(valueCairoType: CairoType): GeneratedFunctionInfo {
     const mappingName = `WARP_DARRAY${this.generatedFunctionsDef.size}_${valueCairoType.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: mappingName,

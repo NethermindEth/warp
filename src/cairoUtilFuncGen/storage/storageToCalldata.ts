@@ -4,7 +4,6 @@ import {
   BytesType,
   DataLocation,
   Expression,
-  FunctionDefinition,
   generalizeType,
   SourceUnit,
   StringType,
@@ -13,14 +12,11 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -39,15 +35,15 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  gen(storageLocation: Expression) {
+  public gen(storageLocation: Expression) {
     const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
 
     const funcDef = this.getOrCreateFuncDef(storageType);
     return createCallToFunction(funcDef, [storageLocation], this.ast);
   }
 
-  getOrCreateFuncDef(type: TypeNode) {
-    const key = `storageToCallData(${type.pp()})`;
+  public getOrCreateFuncDef(type: TypeNode) {
+    const key = type.pp();
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
@@ -93,7 +89,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const structName = `struct_${cairoStruct.toString()}`;
 
-    const [copyInstructions, members] = this.generateStructCopyInstructions(
+    const [copyInstructions, members, funcsCalled] = this.generateStructCopyInstructions(
       structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.inference)),
       'member',
     );
@@ -111,7 +107,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: code,
-      functionsCalled: [],
+      functionsCalled: funcsCalled,
     };
     return funcInfo;
   }
@@ -121,7 +117,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const cairoType = CairoType.fromSol(arrayType, this.ast, TypeConversionContext.CallDataRef);
 
-    const [copyInstructions, members] = this.generateStructCopyInstructions(
+    const [copyInstructions, members, funcsCalled] = this.generateStructCopyInstructions(
       mapRange(narrowBigIntSafe(arrayType.size), () => arrayType.elementT),
       'elem',
     );
@@ -136,13 +132,11 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `}`,
     ].join('\n');
 
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: code,
-      functionsCalled: [],
+      functionsCalled: funcsCalled,
     };
-
-    return funcInfo;
   }
 
   private createDynamicArrayCopyFunction(
@@ -152,16 +146,10 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const structDef = CairoType.fromSol(arrayType, this.ast, TypeConversionContext.CallDataRef);
     assert(structDef instanceof CairoDynArray);
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('warplib.maths.int_conversions', 'warp_uint256'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-    );
-
-    this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
+    const storageReadFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
+    const sturctDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
     const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
-    funcsCalled.push(arrayDef);
+
     const arrayName = arrayDef.name;
     const lenName = arrayName + '_LENGTH';
     const cairoElementType = CairoType.fromSol(
@@ -174,8 +162,6 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const funcName = `ws_dynamic_array_to_calldata${this.generatedFunctionsDef.size}`;
-    const storageReadInfo = this.storageReadGen.genFuncName(elementT);
-    funcsCalled.push(...storageReadInfo.functionsCalled);
     const code = [
       `func ${funcName}_write${implicits}(`,
       `   loc : felt,`,
@@ -188,7 +174,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `   }`,
       `   let (index_uint256) = warp_uint256(index);`,
       `   let (elem_loc) = ${arrayName}.read(loc, index_uint256);`, // elem_loc should never be zero
-      `   let (elem) = ${storageReadInfo.name}(elem_loc);`,
+      `   let (elem) = ${storageReadFunc.name}(elem_loc);`,
       `   assert ptr[index] = elem;`,
       `   return ${funcName}_write(loc, index + 1, len, ptr);`,
       `}`,
@@ -204,37 +190,50 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `}`,
     ].join('\n');
 
+    const importedFuncs = [
+      this.requireImport('warplib.maths.int_conversions', 'warp_uint256'),
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+    ];
+
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: code,
-      functionsCalled: funcsCalled,
+      functionsCalled: [...importedFuncs, sturctDynArray, arrayDef, storageReadFunc],
     };
     return funcInfo;
   }
 
+  // TODO: static arrays functions are going to be huge with big size. We should build
+  // a copy function for them instead of reusing structs
   private generateStructCopyInstructions(
     varDeclarations: TypeNode[],
     tempVarName: string,
-  ): [string[], string[]] {
-    const members: string[] = [];
-    let offset = 0;
-    const copyInstructions = varDeclarations.map((varType, index) => {
-      const varCairoTypeWidth = CairoType.fromSol(
-        varType,
-        this.ast,
-        TypeConversionContext.CallDataRef,
-      ).width;
+  ): [string[], string[], CairoFunctionDefinition[]] {
+    const [members, copyInstructions, funcsCalled, _offset] = varDeclarations.reduce(
+      ([members, copyInstructions, funcsCalled, offset], varType, index) => {
+        const varCairoTypeWidth = CairoType.fromSol(
+          varType,
+          this.ast,
+          TypeConversionContext.CallDataRef,
+        ).width;
 
-      const funcName = this.storageReadGen.genFuncName(varType);
-      const location = add('loc', offset);
-      const memberName = `${tempVarName}_${index}`;
+        const readFunc = this.storageReadGen.getOrCreateFuncDef(varType);
+        const location = add('loc', offset);
+        const memberName = `${tempVarName}_${index}`;
 
-      members.push(memberName);
-      offset += varCairoTypeWidth;
+        const instruction = `    let (${memberName}) = ${readFunc.name}(${location});`;
 
-      return `    let (${memberName}) = ${funcName}(${location});`;
-    });
+        return [
+          [...members, memberName],
+          [...copyInstructions, instruction],
+          [...funcsCalled, readFunc],
+          offset + varCairoTypeWidth,
+        ];
+      },
+      [new Array<string>(), new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
+    );
 
-    return [copyInstructions, members];
+    return [copyInstructions, members, funcsCalled];
   }
 }

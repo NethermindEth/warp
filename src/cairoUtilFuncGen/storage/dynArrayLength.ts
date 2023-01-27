@@ -2,7 +2,6 @@ import {
   MemberAccess,
   ArrayType,
   FunctionCall,
-  ASTNode,
   DataLocation,
   SourceUnit,
   BytesType,
@@ -11,15 +10,11 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { getElementType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { CairoUtilFuncGenBase, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
+import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayLengthGen extends StringIndexedFuncGen {
@@ -27,30 +22,15 @@ export class DynArrayLengthGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  getGeneratedCode(): string {
-    return '';
-  }
-
-  gen(node: MemberAccess, arrayType: ArrayType | BytesType | StringType): FunctionCall {
+  public gen(node: MemberAccess, arrayType: ArrayType | BytesType | StringType): FunctionCall {
     const funcDef = this.getOrCreateFuncDef(arrayType);
     return createCallToFunction(funcDef, [node.vExpression], this.ast);
   }
 
-  getOrCreateFuncDef(arrayType: TypeNode) {
-    const key = `dynArrayLength(${arrayType.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
-    }
+  public getOrCreateFuncDef(arrayType: TypeNode) {
+    const arrayFunc = this.dynArrayGen.getOrCreateFuncDef(getElementType(arrayType));
 
-    const arrayInfo = this.dynArrayGen.getOrCreate(
-      CairoType.fromSol(
-        getElementType(arrayType),
-        this.ast,
-        TypeConversionContext.StorageAllocation,
-      ),
-    );
-    arrayInfo.name += `.read`;
+    arrayFunc.name += `_LENGTH`;
     const funcDef = createCairoGeneratedFunction(
       // TODO: Check what about the .read
       arrayInfo,
@@ -59,7 +39,7 @@ export class DynArrayLengthGen extends StringIndexedFuncGen {
       this.ast,
       this.sourceUnit,
     );
-    this.generatedFunctionsDef.set(key, funcDef);
+
     return funcDef;
   }
 }

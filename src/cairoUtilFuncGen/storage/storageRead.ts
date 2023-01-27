@@ -1,38 +1,28 @@
 import {
   Expression,
-  TypeName,
   FunctionCall,
   DataLocation,
   FunctionStateMutability,
   TypeNode,
-  ASTNode,
 } from 'solc-typed-ast';
+import { typeNameFromTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
-  gen(storageLocation: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
+  // TODO: was typename safe to remove?
+  public gen(storageLocation: Expression): FunctionCall {
     const valueType = safeGetNodeType(storageLocation, this.ast.inference);
 
-    const funcDef = this.getOrCreateFuncDef(valueType, type);
+    const funcDef = this.getOrCreateFuncDef(valueType);
     return createCallToFunction(funcDef, [storageLocation], this.ast);
   }
 
-  genFuncName(type: TypeNode) {
-    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
-    return this.getOrCreate(cairoType);
-  }
-
-  // TODO: Check typeName param
-  getOrCreateFuncDef(valueType: TypeNode, typeName: TypeName) {
+  public getOrCreateFuncDef(valueType: TypeNode) {
     const resultCairoType = CairoType.fromSol(
       valueType,
       this.ast,
@@ -44,6 +34,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
       return value;
     }
 
+    const typeName = typeNameFromTypeNode(valueType, this.ast);
     const funcInfo = this.getOrCreate(resultCairoType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
