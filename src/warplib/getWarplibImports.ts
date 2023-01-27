@@ -1,4 +1,4 @@
-import { getRawCairoFunctionInfo, parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
+import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
 import { bitwise_not } from './implementations/maths/bitwise_not';
@@ -74,10 +74,10 @@ export const warplibImportInfo = warplibFunctions.reduce(
       .filter((funcInfo) => funcInfo.name.startsWith('warp_'))
       .forEach((funcInfo) => {
         const fullPath = `${LIBPATH}.${warplibFunc.fileName}`;
-        console.log(warplibFunc.fileName, funcInfo.name);
 
-        if (warplibMap.has(fullPath)) {
-          warplibMap.get(fullPath)!.set(funcInfo.name, funcInfo.implicits);
+        const fileMap = warplibMap.get(fullPath);
+        if (fileMap !== undefined) {
+          fileMap.set(funcInfo.name, funcInfo.implicits);
         } else {
           warplibMap.set(fullPath, new Map([[funcInfo.name, funcInfo.implicits]]));
         }

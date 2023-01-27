@@ -2,13 +2,7 @@ import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import {
-  forAllWidths,
-  generateFile,
-  IntxIntFunction,
-  mask,
-  WarplibFunctionInfo,
-} from '../../utils';
+import { forAllWidths, IntxIntFunction, mask, WarplibFunctionInfo } from '../../utils';
 
 export function div_signed(): WarplibFunctionInfo {
   return {

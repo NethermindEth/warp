@@ -7,11 +7,13 @@ export type RawCairoFunctionInfo = {
   implicits: Implicits[];
 };
 
+/**
+ * Given several Cairo function represented in plain text extracts information from it
+ *  @param rawFunctions Multiple cairo functions in a single text
+ *  @returns A list of each function information
+ */
 export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFunctionInfo[] {
   const functions = rawFunctions.matchAll(/func \w+\s*[{].*?[}]\s*[(].*?[)]\s*[{].*?[}]/gis);
-
-  // console.log(rawFunctions);
-  // console.log([...functions]);
 
   return [...functions].map((func) => getRawCairoFunctionInfo(func[0]));
 }
@@ -22,6 +24,7 @@ export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFu
  *  @returns The function implicits and it's name
  */
 export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionInfo {
+  // Todo: Update match so implicit can be empty and there is a version of them without keys
   const funcSignature = rawFunction.match(/func (?<name>.+)\{(?<implicits>.+)\}/);
   assert(
     funcSignature !== null && funcSignature.groups !== undefined,
@@ -56,8 +59,6 @@ export function parseImplicits(rawImplicits: string): Implicits[] {
 
   // implicits -> impl1 : type1, impl2, ..., impln : typen
   const implicits = matchedImplicits.groups.implicits;
-
-  console.log('matchedImplicits: ', implicits);
 
   // implicitsList -> [impl1 : type1, impl2, ...., impln : typen]
   const implicitsList = [...implicits.matchAll(/[A-Za-z][A-Za-z_: 0-9]*/g)].map((w) => w[0]);

@@ -36,9 +36,9 @@ import {
 const INDENT = ' '.repeat(4);
 
 export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
-  gen(astNode: VariableDeclaration, nodeInSourceUnit?: ASTNode): FunctionCall;
-  gen(astNode: Expression, nodeInSourceUnit?: ASTNode): void;
-  gen(
+  public gen(astNode: VariableDeclaration, nodeInSourceUnit?: ASTNode): FunctionCall;
+  public gen(astNode: Expression, nodeInSourceUnit?: ASTNode): void;
+  public gen(
     astNode: VariableDeclaration | Expression,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall | undefined {
@@ -57,13 +57,13 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       ];
       return createCallToFunction(funcDef, functionInputs, this.ast);
     } else {
-      // When CallData DynArrays are being returned and we do not need the StructConstructor to be returned, we just need
-      // the StructDefinition to be in the contract.
+      // When CallData DynArrays are being returned and we do not need the StructConstructor
+      // to be returned, we just need the StructDefinition to be in the contract.
       return;
     }
   }
 
-  getOrCreateFuncDef(type: ArrayType | BytesType | StringType) {
+  public getOrCreateFuncDef(type: ArrayType | BytesType | StringType) {
     const key = `externalDynArrayStructConstructor(${type.pp()})`;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
