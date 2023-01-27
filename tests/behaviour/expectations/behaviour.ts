@@ -3435,6 +3435,12 @@ export const expectations = flatten(
             new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
+        new Dir('largeSizeArray', [
+          File.Simple('large_size_array', [
+            Expect.Simple('getLength', [], ['100000000']),
+            Expect.Simple('setValue', ['10000000', '456'], ['456']),
+          ]),
+        ]),
         new Dir('libraries', [
           File.Simple('constantInitialization', [Expect.Simple('f', [], ['20001'])]),
           File.Simple('using_for', [

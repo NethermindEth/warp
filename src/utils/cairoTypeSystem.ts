@@ -256,10 +256,10 @@ export class CairoStaticArray extends CairoType {
     return `[Tuple]${`(${this.type.fullStringRepresentation})`.repeat(this.size)}`;
   }
   toString(): string {
-    return `(${this.type.toString()}` + `${`,` + this.type.toString()}`.repeat(this.size - 1) + `)`;
+    return `(${this.type.toString()}` + `${`, ` + this.type.toString()}`.repeat(this.size - 1) + `)`;
   }
   get typeName(): string {
-    return `${this.type.typeName}` + `${`,` + this.type.typeName}`.repeat(this.size - 1);
+    return `${this.type.typeName}` + `${`x` + this.type.typeName}`.repeat(this.size - 1);
   }
   get width(): number {
     return this.type.width * this.size;
