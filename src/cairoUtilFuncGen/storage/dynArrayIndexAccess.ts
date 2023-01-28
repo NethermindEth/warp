@@ -64,9 +64,9 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(valueType: TypeNode, valueCairoType: CairoType): GeneratedFunctionInfo {
-    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(valueType);
+    const [arrayDef, arrayLength] = this.dynArrayGen.getOrCreateFuncDef(valueType);
     const arrayName = arrayDef.name;
-    const lengthName = arrayName + '_LENGTH';
+    const lengthName = arrayLength.name;
     const funcName = `${arrayName}_IDX`;
     return {
       name: funcName,
@@ -91,6 +91,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
         this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
         arrayDef,
+        arrayLength,
       ],
     };
   }

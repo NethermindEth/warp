@@ -32,7 +32,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
+  public gen(node: IndexAccess): FunctionCall {
     const base = node.vBaseExpression;
     let index = node.vIndexExpression;
     assert(index !== undefined);
@@ -50,7 +50,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, [base, index], this.ast);
   }
 
-  getOrCreateFuncDef(baseType: TypeNode, nodeType: TypeNode) {
+  public getOrCreateFuncDef(baseType: TypeNode, nodeType: TypeNode) {
     const key = `mappingIndexAccess(${baseType.pp()},${nodeType.pp()})`;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
@@ -210,6 +210,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
 
       const call = createCallToFunction(funcDef, [node.vIndexExpression], this.ast);
       // TODO: Can this be deleted?
+
       this.ast.registerImport(call, 'warplib.maths.utils', 'narrow_safe');
       this.ast.registerImport(call, 'warplib.maths.utils', 'felt_to_uint256');
       this.ast.registerImport(call, 'starkware.cairo.common.alloc', 'alloc');

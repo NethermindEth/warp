@@ -262,12 +262,14 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const fromElementMappingDef = this.dynArrayGen.getOrCreateFuncDef(fromElementT);
-    const fromElementMappingName = fromElementMappingDef.name;
-    const fromLengthMappingName = fromElementMappingName + '_LENGTH';
-    const toElementMappingDef = this.dynArrayGen.getOrCreateFuncDef(toElementT);
-    const toElementMappingName = toElementMappingDef.name;
-    const toLengthMappingName = toElementMappingName + '_LENGTH';
+    const [fromElementMapping, fromLengthMapping] =
+      this.dynArrayGen.getOrCreateFuncDef(fromElementT);
+    const fromElementMappingName = fromElementMapping.name;
+    const fromLengthMappingName = fromLengthMapping.name;
+
+    const [toElementMapping, toLengthMapping] = this.dynArrayGen.getOrCreateFuncDef(toElementT);
+    const toElementMappingName = toElementMapping.name;
+    const toLengthMappingName = toLengthMapping.name;
 
     const copyCode = createElementCopy(
       toElementCairoType,
@@ -320,8 +322,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
         this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
         elementCopyFunc,
-        fromElementMappingDef,
-        toElementMappingDef,
+        fromElementMapping,
+        fromLengthMapping,
+        toElementMapping,
+        toLengthMapping,
         deleteCode,
       ],
     };
@@ -350,9 +354,9 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const toElementMappingDef = this.dynArrayGen.getOrCreateFuncDef(toElementT);
-    const toElementMappingName = toElementMappingDef.name;
-    const toLengthMappingName = toElementMappingName + '_LENGTH';
+    const [toElementMapping, toLengthMapping] = this.dynArrayGen.getOrCreateFuncDef(toElementT);
+    const toElementMappingName = toElementMapping.name;
+    const toLengthMappingName = toLengthMapping.name + '_LENGTH';
     const copyCode = createElementCopy(
       toElementCairoType,
       fromElementCairoType,
@@ -406,7 +410,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
         this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
         elementCopyFunc,
-        toElementMappingDef,
+        toElementMapping,
+        toLengthMapping,
         deleteFunc,
       ],
     };
