@@ -8,67 +8,63 @@ To query available commands, run `warp --help`.
 
 Available Commands:
 
-    transpile                   Transpile Solidity Code into Cairo
-    transform                   Transforms Solidity Code into Warp Format
-    test                        Transpile and starknet-compile test on example_contracts and checks feature supports
-    analyse                     Breaksdown and analyses a Solidity contract
-    status                      Returns the transaction status
-    compile                     Compiles a Cairo contract with StarkNet
-    delcare                     Declares a Cairo contract on a StarkNet Network and returns the class hash
-    deploy                      Compiles and deploys a Cairo contract
-    deploy_account              Deploys an account contract
-    invoke                      Sends a transaction to the StarkNet sequencer
-    call                        Calls a StarkNet contract without affecting the state
-    install                     Installs python dependencies
-    version                     Gets the current version
-    help                        Display for help command
+    transpile [options] <files...>      Transpile Solidity contracts into Cairo contracts
+    transform [options] <file>          Debug tool which applies any set of passes to the AST and writes out the transformed Solidity
+    test [options]                      Deprecated testing framework
+    analyse [options] <file>            Debug tool to analyse the AST
+    status [options] <tx_hash>          Get the status of a transaction
+    compile [options] <file>            Compile cairo files with warplib in the cairo-path
+    gen_interface [options] <file>      Use native Cairo contracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract
+    deploy [options] <file>             Deploy a warped cairo contract
+    deploy_account [options]            Deploy an account to StarkNet
+    invoke [options] <file>             Invoke a function on a warped contract using the Solidity abi
+    call [options] <file>               Call a function on a warped contract using the Solidity abi
+    install [options]                   Install the python dependencies required for Warp
+    declare [options] <cairo_contract>  Declare a Cairo contract
+    new_account [options]               Command to create a new account
+    version
+    help [command]                      display help for command
 
 Command Options:
 
 transpile `[options]` `<file...>`:
 
-    ---compile-cairo
-    --no-compile-errors
-    --check-trees
-    --highlight <ids...>
-    --order <passOrder>
-    -o, --output-dir <path>         (default: "warp_output")
-    --print-trees
-    --no-result
-    --no-stubs
-    --no-strict
-    --until <pass>
-    --no-warnings
-    --dev
-    -h, --help                      display help for command
+    --compile-cairo             Compile the output to bytecode
+    --check-trees               Debug: Run sanity checks on all intermediate ASTs
+    --dev                       Run AST sanity checks on every pass instead of the final AST only (default: false)
+    --format-cairo              Format the cairo output - can be slow on large contracts
+    --highlight <ids...>        Debug: Highlight selected ids in the AST printed by --print-trees
+    --order <passOrder>         Use a custom set of transpilation passes
+    -o, --output-dir <path>     Output directory for transpiled Cairo files. (default: "warp_output")
+    -d, --debug-info            Include debug information in the compiled bytecode produced by --compile-cairo (default: false)
+    --print-trees               Debug: Print all the intermediate ASTs
+    --no-stubs                  Debug: Hide the stubs in the intermedidate ASTs when using --print-trees
+    --no-strict                 Debug: Allow silent failure of AST consistency checks
+    --until <pass>              Stops transpilation after the specified pass
+    --no-warnings               Suppress warnings from the Solidity compiler
+    --include-paths <paths...>  Pass through to solc --include-path option
+    --base-path <path>          Pass through to solc --base-path option
+    -h, --help                  display help for command
 
 transform `[options]` `<file...>`:
 
-    --no-compile-errors
-    --check-trees
-    --highlight <ids...>
-    --order <passOrder>
-    -o, --output-dir <path>
-    --print-trees
-    --no-result
-    --no-stubs
-    --no-strict
-    --until <pass>
-    --no-warnings
-    -h, --help                      display help for command
-
-test `[options]`:
-
-    -f --force
-    -r --results
-    -u --unsafe
-    -e --exact
-    -h, --help                      display help for command
+    --check-trees               Debug: Run sanity checks on all intermediate ASTs
+    --highlight <ids...>        Debug: highlight selected ids in the AST printed by --print-trees
+    --order <passOrder>         Use a custom set of transpilation passes
+    -o, --output-dir <path>     Output directory for transformed Solidity files
+    --print-trees               Debug: Print all the intermediate ASTs
+    --no-stubs                  Debug: Hide the stubs in the intermedidate ASTs when using --print-trees
+    --no-strict                 Debug: Allow silent failure of AST consistency checks
+    --until <pass>              Stop processing at specified pass
+    --no-warnings               Suppress printed warnings
+    --include-paths <paths...>  Pass through to solc --include-path option
+    --base-path <path>          Pass through to solc --base-path option
+    -h, --help                  display help for command
 
 analyse `[options]` `<file...>`:
 
-    --highlight <ids...>
-    -h, --help                      display help for command
+    --highlight <ids...>  Highlight selected ids in the AST
+    -h, --help            display help for command
 
 status `[options]` `<tx_hash...>`:
 
@@ -82,54 +78,76 @@ compile `[options]` `<file...>`:
 
 declare `[options]` `<cairo_contract>`:
 
-    --network                       StarkNet network URL. (default: "alpha-goerli")
-    -h, --help                      display help for command
+    --network <network>                        StarkNet network URL
+    --account <account>                        The name of the account. If not given, the default for the wallet will be used.
+    --account_dir <account_dir>                The directory of the account
+    --gateway_url <gateway_url>                StarkNet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --wallet <wallet>                          The name of the wallet, including the python module and wallet class
+    --max_fee <max_fee>                        Maximum fee to pay for the transaction
+    -h, --help                                 display help for command
 
 deploy `[options]` `<file...>`:
 
-    -d, --debug_info                Compile include debug information. (default: false)
-    --inputs <inputs...>            Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.
-    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
-    --network <network>             Starknet network URL
-    --no_wallet                     Do not use a wallet for deployment. (default: false)
-    --wallet <wallet>               Wallet provider to use
-    --account <account>             Account to use for deployment
-    -h, --help                      display help for command
+    -d, --debug_info                           Compile include debug information (default: false)
+    --inputs <inputs...>                       Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists
+    --use_cairo_abi                            Use the cairo abi instead of solidity for the inputs (default: false)
+    --network <network>                        StarkNet network URL
+    --gateway_url <gateway_url>                StarkNet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --no_wallet                                Do not use a wallet for deployment (default: false)
+    --wallet <wallet>                          Wallet provider to use
+    --account <account>                        Account to use for deployment
+    --account_dir <account_dir>                The directory of the account.
+    --max_fee <max_fee>                        Maximum fee to pay for the transaction.
+    -h, --help                                 display help for command
 
 deploy_account `[options]`:
 
-    --account <account>             The name of the account. If not given, the default for the wallet will be used.
-    --network <network>             Starknet network URL.
-    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
-    -h, --help                      display help for command
+    --account <account>                        The name of the account. If not given, the default for the wallet will be used
+    --account_dir <account_dir>                The directory of the account.
+    --network <network>                        StarkNet network URL
+    --gateway_url <gateway_url>                StarkNet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --wallet <wallet>                          The name of the wallet, including the python module and wallet class
+    --max_fee <max_fee>                        Maximum fee to pay for the transaction.
+    -h, --help                                 display help for command
 
 invoke `[options]` `<file...>`:
 
-    --address <address>             Address of contract to invoke.
-    --function <function>           Function to invoke.
-    --inputs <inputs...>            Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
-    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
-    --account <account>             The name of the account. If not given, the default for the wallet will be used.
-    --network <network>             Starknet network URL.
-    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
-    -h, --help                      display help for command
+    --address <address>                        Address of contract to invoke
+    --function <function>                      Function to invoke
+    --inputs <inputs...>                       Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
+    --use_cairo_abi                            Use the cairo abi instead of solidity for the inputs (default: false)
+    --account <account>                        The name of the account. If not given, the default for the wallet will be used
+    --account_dir <account_dir>                The directory of the account
+    --network <network>                        StarkNet network URL
+    --gateway_url <gateway_url>                StarkNet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --wallet <wallet>                          The name of the wallet, including the python module and wallet class
+    --max_fee <max_fee>                        Maximum fee to pay for the transaction
+    -h, --help                                 display help for command
 
 call `[options]` `<file...>`:
 
-    --address <address>             Address of contract to call.
-    --function <function>           Function to call.
-    --inputs <inputs...>            Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
-    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
-    --account <account>             The name of the account. If not given, the default for the wallet will be used.
-    --network <network>             Starknet network URL.
-    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
-    -h, --help                      display help for command
+    --address <address>                        Address of contract to call
+    --function <function>                      Function to call
+    --inputs <inputs...>                       Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
+    --use_cairo_abi                            Use the cairo abi instead of solidity for the inputs (default: false)
+    --account <account>                        The name of the account. If not given, the default for the wallet will be used
+    --account_dir <account_dir>                The directory of the account
+    --network <network>                        StarkNet network URL
+    --gateway_url <gateway_url>                StarkNet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --wallet <wallet>                          The name of the wallet, including the python module and wallet class
+    --max_fee <max_fee>                        Maximum fee to pay for the transaction
+    -h, --help                                 display help for command
 
 install `[options]`:
 
-    --python <python>  Path to python3.7 executable. (default: "python3.7")
-    -v, --verbose
-    -h, --help                      display help for command
+    --python <python>  Path to a python3.9 executable (default: "python3.9")
+    -v, --verbose      Display python setup info
+    -h, --help         display help for command
 
 Global flags:
 

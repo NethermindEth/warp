@@ -64,11 +64,7 @@ export function outputResult(
   options: OutputOptions & TranspilationOptions,
   ast: AST,
 ): void {
-  if (options.outputDir === undefined) {
-    if (options.result) {
-      console.log(`//--- ${outputPath} ---\n${code}\n//---`);
-    }
-  } else {
+  if (options.outputDir !== undefined) {
     if (fs.existsSync(options.outputDir)) {
       const targetInformation = fs.lstatSync(options.outputDir);
       if (!targetInformation.isDirectory()) {

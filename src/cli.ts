@@ -46,10 +46,8 @@ export type PrintOptions = {
 
 export type OutputOptions = {
   compileCairo?: boolean;
-  compileErrors?: boolean;
   outputDir: string;
   formatCairo: boolean;
-  result: boolean;
 };
 
 type CliOptions = CompilationOptions &
@@ -62,24 +60,30 @@ export const program = new Command();
 
 program
   .command('transpile <files...>')
-  .option('--compile-cairo')
-  .option('--no-compile-errors')
-  .option('--check-trees')
+  .description('Transpile Solidity contracts into Cairo contracts')
+  .option('--compile-cairo', 'Compile the output to bytecode')
+  .option('--check-trees', 'Debug: Run sanity checks on all intermediate ASTs')
   // for development mode
   .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
-  .option('--format-cairo', 'Format cairo output')
-  .option('--highlight <ids...>')
-  .option('--order <passOrder>')
+  .option('--format-cairo', 'Format the cairo output - can be slow on large contracts')
+  .option(
+    '--highlight <ids...>',
+    'Debug: Highlight selected ids in the AST printed by --print-trees',
+  )
+  .option('--order <passOrder>', 'Use a custom set of transpilation passes')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
-  .option('-d, --debug-info', 'Include debug information.', false)
-  .option('--print-trees')
-  .option('--no-result')
-  .option('--no-stubs')
-  .option('--no-strict')
+  .option(
+    '-d, --debug-info',
+    'Include debug information in the compiled bytecode produced by --compile-cairo',
+    false,
+  )
+  .option('--print-trees', 'Debug: Print all the intermediate ASTs')
+  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
+  .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
   .option('--until <pass>', 'Stops transpilation after the specified pass')
-  .option('--no-warnings')
-  .option('--include-paths <paths...>')
-  .option('--base-path <path>')
+  .option('--no-warnings', 'Suppress warnings from the Solidity compiler')
+  .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
+  .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTranspile);
 
 export function runTranspile(files: string[], options: CliOptions) {
@@ -136,19 +140,23 @@ export function runTranspile(files: string[], options: CliOptions) {
 
 program
   .command('transform <file>')
-  .option('--no-compile-errors')
-  .option('--check-trees')
-  .option('--highlight <ids...>')
-  .option('--order <passOrder>')
-  .option('-o, --output-dir <path>')
-  .option('--print-trees')
-  .option('--no-result')
-  .option('--no-stubs')
-  .option('--no-strict')
-  .option('--until <pass>')
-  .option('--no-warnings')
-  .option('--include-paths <paths...>')
-  .option('--base-path <path>')
+  .description(
+    'Debug tool which applies any set of passes to the AST and writes out the transformed Solidity',
+  )
+  .option('--check-trees', 'Debug: Run sanity checks on all intermediate ASTs')
+  .option(
+    '--highlight <ids...>',
+    'Debug: highlight selected ids in the AST printed by --print-trees',
+  )
+  .option('--order <passOrder>', 'Use a custom set of transpilation passes')
+  .option('-o, --output-dir <path>', 'Output directory for transformed Solidity files')
+  .option('--print-trees', 'Debug: Print all the intermediate ASTs')
+  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
+  .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
+  .option('--until <pass>', 'Stop processing at specified pass')
+  .option('--no-warnings', 'Suppress printed warnings')
+  .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
+  .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTransform);
 
 export function runTransform(file: string, options: CliOptions) {
@@ -177,6 +185,7 @@ export function runTransform(file: string, options: CliOptions) {
 
 program
   .command('test')
+  .description('Deprecated testing framework')
   .option('-f --force')
   .option('-r --results')
   .option('-u --unsafe')
@@ -192,7 +201,8 @@ program
 
 program
   .command('analyse <file>')
-  .option('--highlight <ids...>')
+  .description('Debug tool to analyse the AST')
+  .option('--highlight <ids...>', 'Highlight selected ids in the AST')
   .action((file: string, options: PrintOptions) => analyseSol(file, options));
 
 export interface IOptionalNetwork {
@@ -205,11 +215,12 @@ export interface IOptionalFee {
 
 program
   .command('status <tx_hash>')
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .description('Get the status of a transaction')
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL.',
+    'StarkNet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .action((tx_hash: string, options: IOptionalNetwork) => {
@@ -222,7 +233,8 @@ export interface IOptionalDebugInfo {
 
 program
   .command('compile <file>')
-  .option('-d, --debug-info', 'Include debug information.', false)
+  .description('Compile cairo files with warplib in the cairo-path')
+  .option('-d, --debug-info', 'Include debug information', false)
   .action((file: string, options: IOptionalDebugInfo) => {
     runStarknetCompile(file, options);
   });
@@ -237,14 +249,20 @@ export interface SolcInterfaceGenOptions {
 
 program
   .command('gen_interface <file>')
+  .description(
+    'Use native Cairo contracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
+  )
   .option('--cairo-path <cairo-path>', 'Cairo libraries/modules import path')
-  .option('--output <output>', 'Output path for the generation of files')
+  .option(
+    '--output <output>',
+    'Output path for the Solidity interface and the Cairo translation contract',
+  )
   .option(
     '--contract-address <contract-address>',
-    'Address at which cairo contract has been deployed',
+    'Address at which the target cairo contract has been deployed',
   )
   .option('--class-hash <class-hash>', 'Class hash of the cairo contract')
-  .option('--solc-version <version>', 'Solc version to use.', '0.8.14')
+  .option('--solc-version <version>', 'Solc version to use', '0.8.14')
   .action(generateSolInterface);
 
 interface IDeployProps_ {
@@ -268,21 +286,22 @@ export type IDeployProps = IDeployProps_ &
 
 program
   .command('deploy <file>')
-  .option('-d, --debug_info', 'Compile include debug information.', false)
+  .description('Deploy a warped cairo contract')
+  .option('-d, --debug_info', 'Compile include debug information', false)
   .option(
     '--inputs <inputs...>',
-    'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
+    'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists',
     undefined,
   )
-  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL.',
+    'StarkNet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
-  .option('--no_wallet', 'Do not use a wallet for deployment.', false)
+  .option('--no_wallet', 'Do not use a wallet for deployment', false)
   .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
   .option('--account <account>', 'Account to use for deployment', undefined)
   .option(
@@ -309,25 +328,26 @@ export type IDeployAccountProps = IOptionalAccount &
 
 program
   .command('deploy_account')
+  .description('Deploy an account to StarkNet')
   .option(
     '--account <account>',
-    'The name of the account. If not given, the default for the wallet will be used.',
+    'The name of the account. If not given, the default for the wallet will be used',
   )
   .option(
     '--account_dir <account_dir>',
     'The directory of the account.',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL.',
+    'StarkNet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
@@ -348,72 +368,74 @@ export type ICallOrInvokeProps = ICallOrInvokeProps_ &
 
 program
   .command('invoke <file>')
-  .requiredOption('--address <address>', 'Address of contract to invoke.')
-  .requiredOption('--function <function>', 'Function to invoke.')
+  .description('Invoke a function on a warped contract using the Solidity abi')
+  .requiredOption('--address <address>', 'Address of contract to invoke')
+  .requiredOption('--function <function>', 'Function to invoke')
   .option(
     '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
-  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
   .option(
     '--account <account>',
-    'The name of the account. If not given, the default for the wallet will be used.',
+    'The name of the account. If not given, the default for the wallet will be used',
   )
   .option(
     '--account_dir <account_dir>',
-    'The directory of the account.',
+    'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL.',
+    'StarkNet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
-  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
   .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, false, options);
   });
 
 program
   .command('call <file>')
-  .requiredOption('--address <address>', 'Address of contract to call.')
-  .requiredOption('--function <function>', 'Function to call.')
+  .description('Call a function on a warped contract using the Solidity abi')
+  .requiredOption('--address <address>', 'Address of contract to call')
+  .requiredOption('--function <function>', 'Function to call')
   .option(
     '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
-  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
   .option(
     '--account <account>',
-    'The name of the account. If not given, the default for the wallet will be used.',
+    'The name of the account. If not given, the default for the wallet will be used',
   )
   .option(
     '--account_dir <account_dir>',
-    'The directory of the account.',
+    'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL.',
+    'StarkNet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
-  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
   .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
@@ -430,8 +452,9 @@ export type IInstallOptions = IInstallOptions_ & IOptionalVerbose;
 
 program
   .command('install')
-  .option('--python <python>', 'Path to python3.9 executable.', 'python3.9')
-  .option('-v, --verbose')
+  .description('Install the python dependencies required for Warp')
+  .option('--python <python>', 'Path to a python3.9 executable', 'python3.9')
+  .option('-v, --verbose', 'Display python setup info')
   .action(runVenvSetup);
 
 export interface IDeclareOptions {
@@ -447,29 +470,29 @@ export interface IDeclareOptions {
 
 program
   .command('declare <cairo_contract>')
-  .description('Command to declare Cairo contract on a StarkNet Network.')
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .description('Declare a Cairo contract')
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
   .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
   .option(
     '--account_dir <account_dir>',
-    'The directory of the account.',
+    'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL.',
+    'StarkNet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
-  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction.')
+  .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
   .action(runStarknetDeclare);
 
 export type StarkNetNewAccountOptions = IOptionalAccount &
@@ -480,34 +503,37 @@ export type StarkNetNewAccountOptions = IOptionalAccount &
 
 program
   .command('new_account')
-  .description('Command to create a new account.')
+  .description('Command to create a new account')
   .option(
     '--account <account>',
     'The name of the account. If not given, account will be named "__default__". If it already exists, it will be overwritten.',
   )
   .option(
     '--account_dir <account_dir>',
-    'The directory of the account.',
+    'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL.', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL.',
+    'StarkNet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
     '--wallet <wallet>',
-    'The name of the wallet, including the python module and wallet class.',
+    'The name of the wallet, including the python module and wallet class',
     process.env.STARKNET_WALLET,
   )
   .action(runStarknetNewAccount);
 
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;
-program.command('version').action(() => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pjson = require('../package.json');
-  console.log(blue(`Warp Version `) + green(pjson.version));
-});
+program
+  .command('version')
+  .description('Warp version')
+  .action(() => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pjson = require('../package.json');
+    console.log(blue(`Warp Version `) + green(pjson.version));
+  });
