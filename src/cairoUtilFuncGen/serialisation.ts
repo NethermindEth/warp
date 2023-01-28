@@ -43,7 +43,13 @@ function producePackExpression(type: CairoType): (string | Read)[] {
     return ['(', ...type.members.flatMap((member) => [...producePackExpression(member), ',']), ')'];
   }
   if (type instanceof CairoStaticArray) {
-    return ['(', ...Array(type.size).fill([...producePackExpression(type.type), ',']).flat(), ')'];
+    return [
+      '(',
+      ...Array(type.size)
+        .fill([...producePackExpression(type.type), ','])
+        .flat(),
+      ')',
+    ];
   }
   if (type instanceof CairoStruct) {
     return [

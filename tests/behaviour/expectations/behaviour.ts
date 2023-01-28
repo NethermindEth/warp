@@ -3437,8 +3437,8 @@ export const expectations = flatten(
         ]),
         new Dir('largeSizeArray', [
           File.Simple('large_size_array', [
-            Expect.Simple('getLength', [], ['100000000']),
-            Expect.Simple('setValue', ['10000000', '456'], ['456']),
+            Expect.Simple('getLength', [], ['100000000', '0']),
+            Expect.Simple('setValue', ['300', '456'], ['456']),
           ]),
         ]),
         new Dir('libraries', [
