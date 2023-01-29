@@ -129,19 +129,15 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
   if (left === null || right === null) {
     // In some cases a binary expression could be calculated at
     // compile time, even when only one argument is a literal.
-    let rightExpression;
-    if (left === null) {
-      rightExpression = true;
-    } else {
-      rightExpression = false;
-    }
+    const rightExpression = left === null;
+
     const notNullMember = left ?? right;
     if (notNullMember === null) {
       return null;
     } else if (typeof notNullMember === 'boolean') {
       switch (node.operator) {
         case '&&': // false && x = false
-          if (notNullMember === true) {
+          if (notNullMember) {
             if (rightExpression) {
               replaceNode(node, node.vRightExpression);
             } else {
@@ -151,19 +147,19 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
           } else {
             return false;
           }
-        //return notNullMember ? null : false;
+
         case '||': // true || x = true
-          if (notNullMember === false) {
+          if (!notNullMember) {
             if (rightExpression) {
               replaceNode(node, node.vRightExpression);
             } else {
               replaceNode(node, node.vLeftExpression);
             }
-            return false;
+            return null;
           } else {
             return true;
           }
-        // return notNullMember ? true : false;
+
         default:
           if (!['==', '!='].includes(node.operator)) {
             throw new TranspileFailedError(
