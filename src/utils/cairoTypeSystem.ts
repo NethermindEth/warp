@@ -269,7 +269,7 @@ export class CairoStaticArray extends CairoType {
   serialiseMembers(name: string): string[] {
     const serializedMembers: string[] = [];
     for (let index = 0; index < this.size; ++index) {
-      serializedMembers.concat(this.type.serialiseMembers(`${name}[${index}]`));
+      serializedMembers.push(...this.type.serialiseMembers(`${name}[${index}]`));
     }
     return serializedMembers;
   }
