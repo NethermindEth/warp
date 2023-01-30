@@ -1,14 +1,6 @@
 import { ASTNode } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 
-export const BITWISE_PTR = 'bitwise_ptr';
-export const PENDERSEN_PTR = 'pedersen_ptr';
-export const RANGE_CHECK_PTR = 'range_check_ptr';
-export const SYSCALL_PTR = 'syscall_ptr';
-export const WARP_MEMORY = 'warp_memory';
-export const KECCAK_PTR = 'keccak_ptr';
-export const DICT_PTR = 'dict_ptr';
-
 export type Implicits =
   | 'bitwise_ptr'
   | 'pedersen_ptr'

@@ -1,18 +1,15 @@
-import { ParameterList, SourceUnit } from 'solc-typed-ast';
+import { SourceUnit } from 'solc-typed-ast';
 import { CairoImportFunctionDefinition } from '../ast/cairoNodes';
 import { AST } from '../ast/ast';
-import {
-  BITWISE_PTR,
-  DICT_PTR,
-  Implicits,
-  KECCAK_PTR,
-  RANGE_CHECK_PTR,
-  WARP_MEMORY,
-} from '../utils/implicits';
-import { createParameterList } from './nodeTemplates';
 import assert from 'assert';
 import { TranspileFailedError } from '../utils/errors';
 import { warplibImportInfo } from '../warplib/getWarplibImports';
+import { Implicits } from './implicits';
+import {
+  createImportFuncFuncDefinition,
+  createImportStructFuncDefinition,
+  ParameterInfo,
+} from './functionGeneration';
 
 // Paths
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
@@ -29,7 +26,14 @@ const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
 const WARPLIB_MEMORY = 'warplib.memory';
 const WARPLIB_KECCAK = 'warplib.keccak';
 
-export function createImportFuncDefinition(path: string, name: string, node: SourceUnit, ast: AST) {
+export function createImportFuncDefinition(
+  path: string,
+  name: string,
+  node: SourceUnit,
+  ast: AST,
+  inputs?: ParameterInfo,
+  outputs?: ParameterInfo,
+) {
   const existingImport = findExistingImport(name, node);
   if (existingImport !== undefined) {
     return existingImport;
@@ -40,8 +44,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       name,
       path,
       new Set(implicits),
-      createParameterList([], ast),
-      createParameterList([], ast),
+      inputs ?? [],
+      outputs ?? [],
       ast,
       node,
     );
@@ -64,59 +68,59 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
     case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_finalize':
       return createFuncImport('range_check_ptr');
     case STARKWARE_CAIRO_COMMON_DICT + 'dict_write':
-      return createFuncImport(DICT_PTR);
+      return createFuncImport('dict_ptr');
     case STARKWARE_CAIRO_COMMON_DICT_ACCESS + 'DictAccess':
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_UINT256 + 'Uint256':
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_add':
-      return createFuncImport(RANGE_CHECK_PTR);
+      return createFuncImport('range_check_ptr');
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_sub':
-      return createFuncImport(RANGE_CHECK_PTR);
+      return createFuncImport('range_check_ptr');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'byte_array_to_felt_value':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'byte_array_to_uint256_value':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'bytes_to_felt_dynamic_array':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'bytes_to_felt_dynamic_array_spl':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'bytes_to_felt_dynamic_array_spl_without_padding':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'fixed_bytes256_to_felt_dynamic_array':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'fixed_bytes256_to_felt_dynamic_array_spl':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'fixed_bytes_to_felt_dynamic_array':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'felt_array_to_warp_memory_array':
-      return createFuncImport(RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'memory_dyn_array_copy':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_MATHS_BYTES_ACCESS + 'byte256_at_index':
-      return createFuncImport(BITWISE_PTR, RANGE_CHECK_PTR);
+      return createFuncImport('bitwise_ptr', 'range_check_ptr');
     case WARPLIB_MATHS_EXTERNAL_INPUT_CHECKS_INTS + 'warp_external_input_check':
-      return createFuncImport(RANGE_CHECK_PTR);
+      return createFuncImport('range_check_ptr');
     case WARPLIB_MATHS_INT_CONVERSIONS + 'warp_uint256':
-      return createFuncImport(RANGE_CHECK_PTR);
+      return createFuncImport('range_check_ptr');
     case WARPLIB_MATHS_UTILS + 'felt_to_uint256':
-      return createFuncImport(RANGE_CHECK_PTR);
+      return createFuncImport('range_check_ptr');
     case WARPLIB_MATHS_UTILS + 'narrow_safe':
-      return createFuncImport(RANGE_CHECK_PTR);
+      return createFuncImport('range_check_ptr');
     case WARPLIB_MEMORY + 'wm_alloc':
-      return createFuncImport(RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('range_check_ptr', 'warp_memory');
     case WARPLIB_MEMORY + 'wm_dyn_array_length':
-      return createFuncImport(WARP_MEMORY);
+      return createFuncImport('warp_memory');
     case WARPLIB_MEMORY + 'wm_index_dyn':
-      return createFuncImport(RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('range_check_ptr', 'warp_memory');
     case WARPLIB_MEMORY + 'wm_new':
-      return createFuncImport(RANGE_CHECK_PTR, WARP_MEMORY);
+      return createFuncImport('range_check_ptr', 'warp_memory');
     case WARPLIB_MEMORY + 'wm_read_256':
-      return createFuncImport(WARP_MEMORY);
+      return createFuncImport('warp_memory');
     case WARPLIB_MEMORY + 'wm_read_felt':
-      return createFuncImport(WARP_MEMORY);
+      return createFuncImport('warp_memory');
     case WARPLIB_KECCAK + 'warp_keccak':
-      return createFuncImport(RANGE_CHECK_PTR, BITWISE_PTR, WARP_MEMORY, KECCAK_PTR);
+      return createFuncImport('range_check_ptr', 'bitwise_ptr', 'warp_memory', 'keccak_ptr');
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
@@ -129,58 +133,4 @@ function findExistingImport(name: string, node: SourceUnit) {
   assert(found.length < 2, `More than 1 import functions where found with name: ${name}.`);
 
   return found.length === 1 ? (found[0] as CairoImportFunctionDefinition) : undefined;
-}
-
-function createImportFuncFuncDefinition(
-  funcName: string,
-  path: string,
-  implicits: Set<Implicits>,
-  params: ParameterList,
-  retParams: ParameterList,
-  ast: AST,
-  node: SourceUnit,
-): CairoImportFunctionDefinition {
-  const id = ast.reserveId();
-  const scope = node.id;
-  const funcDef = new CairoImportFunctionDefinition(
-    id,
-    '',
-    scope,
-    funcName,
-    path,
-    implicits,
-    params,
-    retParams,
-    false,
-  );
-  ast.setContextRecursive(funcDef);
-  node.insertAtBeginning(funcDef);
-  return funcDef;
-}
-
-function createImportStructFuncDefinition(
-  structName: string,
-  path: string,
-  ast: AST,
-  node: SourceUnit,
-): CairoImportFunctionDefinition {
-  const id = ast.reserveId();
-  const scope = node.id;
-  const implicits = new Set<Implicits>();
-  const params = createParameterList([], ast);
-  const retParams = createParameterList([], ast);
-  const funcDef = new CairoImportFunctionDefinition(
-    id,
-    '',
-    scope,
-    structName,
-    path,
-    implicits,
-    params,
-    retParams,
-    true,
-  );
-  ast.setContextRecursive(funcDef);
-  node.insertAtBeginning(funcDef);
-  return funcDef;
 }
