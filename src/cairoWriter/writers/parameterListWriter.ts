@@ -3,6 +3,7 @@ import {
   ContractDefinition,
   DataLocation,
   FunctionDefinition,
+  InferType,
   ParameterList,
   SrcDesc,
 } from 'solc-typed-ast';
@@ -25,7 +26,7 @@ export class ParameterListWriter extends CairoASTNodeWriter {
           : defContext;
 
       const tp = CairoType.fromSol(
-        safeGetNodeType(value, writer.targetCompilerVersion),
+        safeGetNodeType(value, new InferType(writer.targetCompilerVersion)),
         this.ast,
         varTypeConversionContext,
       );

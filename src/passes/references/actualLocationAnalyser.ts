@@ -10,6 +10,7 @@ import {
   IndexAccess,
   MemberAccess,
   PointerType,
+  TupleType,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -28,9 +29,11 @@ export class ActualLocationAnalyser extends ASTMapper {
   }
 
   visitExpression(node: Expression, ast: AST): void {
-    const type = safeGetNodeType(node, ast.compilerVersion);
+    const type = safeGetNodeType(node, ast.inference);
     if (type instanceof PointerType) {
       this.actualLocations.set(node, type.location);
+    } else if (type instanceof TupleType) {
+      this.actualLocations.set(node, DataLocation.Memory);
     } else {
       this.actualLocations.set(node, DataLocation.Default);
     }
@@ -61,7 +64,7 @@ export class ActualLocationAnalyser extends ASTMapper {
     const baseLocation = this.actualLocations.get(node.vExpression);
 
     if (baseLocation !== undefined) {
-      const baseType = safeGetNodeType(node.vExpression, ast.compilerVersion);
+      const baseType = safeGetNodeType(node.vExpression, ast.inference);
       if (baseType instanceof FixedBytesType) {
         this.actualLocations.set(node, DataLocation.Default);
       } else {
@@ -77,7 +80,7 @@ export class ActualLocationAnalyser extends ASTMapper {
     const baseLocation = this.actualLocations.get(node.vBaseExpression);
 
     if (baseLocation !== undefined) {
-      const baseType = safeGetNodeType(node.vBaseExpression, ast.compilerVersion);
+      const baseType = safeGetNodeType(node.vBaseExpression, ast.inference);
       if (baseType instanceof FixedBytesType) {
         this.actualLocations.set(node, DataLocation.Default);
       } else {
@@ -97,7 +100,7 @@ export class ActualLocationAnalyser extends ASTMapper {
     } else if (
       node.vReferencedDeclaration instanceof FunctionDefinition &&
       node.vReferencedDeclaration.visibility === FunctionVisibility.External &&
-      safeGetNodeType(node, ast.compilerVersion) instanceof PointerType
+      safeGetNodeType(node, ast.inference) instanceof PointerType
     ) {
       this.actualLocations.set(node, DataLocation.CallData);
       this.commonVisit(node, ast);

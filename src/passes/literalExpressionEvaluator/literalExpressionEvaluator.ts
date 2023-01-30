@@ -129,6 +129,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
   if (left === null || right === null) {
     // In some cases a binary expression could be calculated at
     // compile time, even when only one argument is a literal.
+
     const rightExpression = left === null;
 
     const notNullMember = left ?? right;

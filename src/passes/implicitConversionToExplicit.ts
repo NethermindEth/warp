@@ -23,7 +23,6 @@ import {
   IntType,
   Literal,
   MappingType,
-  ModuleType,
   PointerType,
   RationalLiteralType,
   Return,
@@ -77,18 +76,18 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     // Tuple returns handled by TupleAssignmentSplitter
     if (returnDeclarations.length !== 1) return;
 
-    const expectedRetType = safeGetNodeType(returnDeclarations[0], ast.compilerVersion);
+    const expectedRetType = safeGetNodeType(returnDeclarations[0], ast.inference);
     insertConversionIfNecessary(node.vExpression, expectedRetType, node, ast);
   }
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
 
-    const resultType = safeGetNodeType(node, ast.compilerVersion);
+    const resultType = safeGetNodeType(node, ast.inference);
 
     if (node.operator === '<<' || node.operator === '>>') {
       insertConversionIfNecessary(node.vLeftExpression, resultType, node, ast);
-      const rhsType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
+      const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
       if (rhsType instanceof IntLiteralType) {
         insertConversionIfNecessary(
           node.vRightExpression,
@@ -99,7 +98,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       }
       return;
     } else if (node.operator === '**') {
-      const rightNodeType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
+      const rightNodeType = safeGetNodeType(node.vRightExpression, ast.inference);
 
       insertConversionIfNecessary(node.vLeftExpression, resultType, node, ast);
       if (rightNodeType instanceof IntLiteralType) {
@@ -115,8 +114,8 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       insertConversionIfNecessary(node.vLeftExpression, resultType, node, ast);
       insertConversionIfNecessary(node.vRightExpression, resultType, node, ast);
     } else if (['<', '>', '<=', '>=', '==', '!='].includes(node.operator)) {
-      const leftNodeType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
-      const rightNodeType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
+      const leftNodeType = safeGetNodeType(node.vLeftExpression, ast.inference);
+      const rightNodeType = safeGetNodeType(node.vRightExpression, ast.inference);
 
       const targetType = pickLargerType(
         leftNodeType,
@@ -143,7 +142,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     insertConversionIfNecessary(
       node.vRightHandSide,
-      safeGetNodeType(node.vLeftHandSide, ast.compilerVersion),
+      safeGetNodeType(node.vLeftHandSide, ast.inference),
       node,
       ast,
     );
@@ -165,7 +164,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     insertConversionIfNecessary(
       node.vInitialValue,
-      safeGetNodeType(node.vDeclarations[0], ast.compilerVersion),
+      safeGetNodeType(node.vDeclarations[0], ast.inference),
       node,
       ast,
     );
@@ -251,7 +250,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     if (node.vIndexExpression === undefined) return;
 
     const [baseType, location] = generalizeType(
-      safeGetNodeType(node.vBaseExpression, ast.compilerVersion),
+      safeGetNodeType(node.vBaseExpression, ast.inference),
     );
 
     if (baseType instanceof MappingType) {
@@ -269,7 +268,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitTupleExpression(node: TupleExpression, ast: AST): void {
     if (!node.isInlineArray) return this.visitExpression(node, ast);
 
-    const type = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, ast.inference))[0];
 
     assert(
       type instanceof ArrayType,
@@ -284,7 +283,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
-    const nodeType = safeGetNodeType(node, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, ast.inference);
     if (nodeType instanceof IntLiteralType) {
       node.typeString = intTypeForLiteral(
         `int_const ${getLiteralValueBound(node.typeString)}`,
@@ -300,9 +299,8 @@ export function insertConversionIfNecessary(
   context: ASTNode,
   ast: AST,
 ): void {
-  const [currentType, currentLoc] = generalizeType(
-    safeGetNodeType(expression, ast.compilerVersion),
-  );
+  const type = safeGetNodeType(expression, ast.inference);
+  const [currentType, currentLoc] = generalizeType(type);
   const generalisedTargetType = generalizeType(targetType)[0];
 
   if (currentType instanceof AddressType) {
@@ -386,8 +384,6 @@ export function insertConversionIfNecessary(
     }
   } else if (currentType instanceof MappingType) {
     return;
-  } else if (currentType instanceof ModuleType) {
-    return;
   } else if (currentType instanceof StringType) {
     if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
       return;
@@ -464,7 +460,7 @@ function insertConversion(
     typeName instanceof ElementaryTypeName,
     `Attempted elementary conversion to non-elementary type: ${safeGetNodeType(
       expression,
-      ast.compilerVersion,
+      ast.inference,
     ).pp()} -> ${printTypeNode(targetType)}`,
   );
   const parent = expression.parent;
@@ -519,15 +515,7 @@ function pickLargerType(
   }
 
   if (typeA instanceof StringLiteralType) {
-    if (typeB instanceof StringLiteralType) {
-      const length = Math.max(typeA.literal.length, typeB.literal.length);
-      if (length >= 32) {
-        return new BytesType();
-      }
-      return new FixedBytesType(length);
-    } else {
-      return typeB;
-    }
+    return typeB;
   } else if (typeB instanceof StringLiteralType) {
     return typeA;
   }
@@ -613,10 +601,11 @@ function getLiteralValueBound(typeString: string): string {
 
 function handleConcatArgs(node: FunctionCall, ast: AST) {
   node.vArguments.forEach((arg) => {
-    const type = safeGetNodeType(arg, ast.compilerVersion);
+    const type = safeGetNodeType(arg, ast.inference);
     if (type instanceof StringLiteralType) {
-      if (type.literal.length < 32 && type.literal.length > 0) {
-        insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), node, ast);
+      const literal = (arg as Literal).value;
+      if (literal.length < 32 && literal.length > 0) {
+        insertConversionIfNecessary(arg, new FixedBytesType(literal.length), node, ast);
       } else {
         insertConversionIfNecessary(arg, new BytesType(), node, ast);
       }
@@ -626,7 +615,7 @@ function handleConcatArgs(node: FunctionCall, ast: AST) {
 
 function handleAbiEncodeArgs(args: Expression[], ast: AST) {
   args.forEach((arg) => {
-    const type = safeGetNodeType(arg, ast.compilerVersion);
+    const type = safeGetNodeType(arg, ast.inference);
     if (type instanceof StringLiteralType) {
       insertConversionIfNecessary(arg, new BytesType(), arg, ast);
     } else if (type instanceof IntLiteralType) {

@@ -27,7 +27,7 @@ export class VariableDeclarationInitialiser extends ASTMapper {
     }
 
     node.vInitialValue = getDefaultValue(
-      safeGetNodeType(declaration, ast.compilerVersion),
+      safeGetNodeType(declaration, ast.inference),
       declaration,
       ast,
     );

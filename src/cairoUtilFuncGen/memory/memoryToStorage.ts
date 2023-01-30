@@ -52,7 +52,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     memoryLocation: Expression,
     nodeInSourceUnit?: ASTNode,
   ): Expression {
-    const type = generalizeType(safeGetNodeType(storageLocation, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
 
     const name = this.getOrCreate(type);
     const functionStub = createCairoFunctionStub(
@@ -349,7 +349,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
   let members: TypeNode[];
 
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    members = type.definition.vMembers.map((decl) => safeGetNodeType(decl, ast.compilerVersion));
+    members = type.definition.vMembers.map((decl) => safeGetNodeType(decl, ast.inference));
   } else if (type instanceof ArrayType && type.size !== undefined) {
     const narrowedWidth = narrowBigIntSafe(type.size, `Array size ${type.size} not supported`);
     members = mapRange(narrowedWidth, () => type.elementT);

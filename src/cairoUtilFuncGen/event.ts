@@ -18,10 +18,11 @@ import {
   safeGetNodeType,
   TypeConversionContext,
   typeNameFromTypeNode,
-  warpEventCanonicalSignaturehash,
+  EMIT_PREFIX,
 } from '../export';
 import { StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
+import createKeccakHash from 'keccak';
 
 export const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 export const BYTES_IN_FELT_PACKING = 31;
@@ -30,12 +31,19 @@ const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte
 const IMPLICITS =
   '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*, keccak_ptr: felt*}';
 
+function signatureHash(funcSignature: string): string {
+  const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
+
+  return `0x${(
+    BigInt(`0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`) & MASK_250
+  ).toString(16)}`;
+}
+
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
  * Then replace the emit statement with a call to the generated function.
  */
 export class EventFunction extends StringIndexedFuncGen {
-  private funcName = '_emit_';
   private abiEncode: AbiEncode;
   private indexEncode: IndexEncode;
 
@@ -47,7 +55,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
   public gen(node: EmitStatement, refEventDef: EventDefinition): FunctionCall {
     const argsTypes: TypeNode[] = node.vEventCall.vArguments.map(
-      (arg) => generalizeType(safeGetNodeType(arg, this.ast.compilerVersion))[0],
+      (arg) => generalizeType(safeGetNodeType(arg, this.ast.inference))[0],
     );
 
     const funcName = this.getOrCreate(refEventDef);
@@ -70,7 +78,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
   private getOrCreate(node: EventDefinition): string {
     // Add the canonicalSignatureHash so that generated function names don't collide when overloaded
-    const key = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
+    const key = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
     const existing = this.generatedFunctions.get(key);
 
     if (existing !== undefined) {
@@ -79,7 +87,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const [params, keysInsertions, dataInsertions] = node.vParameters.vParameters.reduce(
       ([params, keysInsertions, dataInsertions], param, index) => {
-        const paramType = generalizeType(safeGetNodeType(param, this.ast.compilerVersion))[0];
+        const paramType = generalizeType(safeGetNodeType(param, this.ast.inference))[0];
         const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
 
         params.push({ name: `param${index}`, type: cairoType.toString() });
@@ -112,15 +120,10 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    const topic: string = warpEventCanonicalSignaturehash(
-      node.name,
-      node.vParameters.vParameters.map((param) =>
-        param.canonicalSignatureType(ABIEncoderVersion.V2),
-      ),
-    );
+    const topic: string = signatureHash(this.ast.inference.signature(node, ABIEncoderVersion.V2));
 
     const code = [
-      `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
+      `func ${EMIT_PREFIX}${key}${IMPLICITS}(${cairoParams}){`,
       `   alloc_locals;`,
       `   // keys arrays`,
       `   let keys_len: felt = 0;`,
@@ -129,7 +132,7 @@ export class EventFunction extends StringIndexedFuncGen {
       this.generateAnonymizeCode(
         node.anonymous,
         topic,
-        node.canonicalSignature(ABIEncoderVersion.V2),
+        this.ast.inference.signature(node, ABIEncoderVersion.V2),
       ),
       ...keysInsertions,
       `   // keys: pack 31 byte felts into a single 248 bit felt`,
@@ -150,8 +153,8 @@ export class EventFunction extends StringIndexedFuncGen {
     this.requireImport('warplib.keccak', 'pack_bytes_felt');
     this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
 
-    this.generatedFunctions.set(key, { name: `${this.funcName}${key}`, code: code });
-    return `${this.funcName}${key}`;
+    this.generatedFunctions.set(key, { name: `${EMIT_PREFIX}${key}`, code: code });
+    return `${EMIT_PREFIX}${key}`;
   }
 
   private generateAnonymizeCode(isAnonymous: boolean, topic: string, eventSig: string): string {

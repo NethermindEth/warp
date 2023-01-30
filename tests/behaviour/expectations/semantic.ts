@@ -24,6 +24,7 @@ import {
   UserDefinedValueTypeDefinition,
   StructDefinition,
   EnumDefinition,
+  InferType,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
@@ -96,8 +97,13 @@ const validTests = Object.entries(tests).reduce(
 // asynchronously
 const initialRun: Promise<CompileResult> =
   validTests.length > 0
-    ? compileSol(validTests[0][0], 'auto', [])
-    : Promise.resolve({ data: null, files: new Map(), inferredRemappings: new Map() });
+    ? compileSol(validTests[0][0], 'auto')
+    : Promise.resolve({
+        data: null,
+        files: new Map(),
+        inferredRemappings: new Map(),
+        resolvedFileNames: new Map(),
+      });
 
 export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTest => {
   try {
@@ -144,12 +150,12 @@ async function transcodeTests(
 
   const [abi, contractDef, ast] = await contractAbiDefAst;
 
-  const compilerVersion = ast.compilerVersion;
+  const inference = ast.inference;
   // Transcode each test
   return expectations
     .map((test) => {
       try {
-        return transcodeTest(abi, contractDef, test, compilerVersion, ast);
+        return transcodeTest(abi, contractDef, test, inference, ast);
       } catch (e) {
         console.log(error(`Failed to transcode ${test.signature}: ${e}`));
         throw e;
@@ -162,7 +168,7 @@ function transcodeTest(
   abi: FunABI[],
   contractDef: ContractDefinition,
   { signature, callData, expectations, failure }: ITestCalldata,
-  compilerVersion: string,
+  inference: InferType,
   ast: AST,
 ): Expect | null {
   if (signature === '' || signature === '()') {
@@ -182,17 +188,17 @@ function transcodeTest(
     contractDef,
     ast,
     signature,
-    compilerVersion,
+    inference,
   );
 
   const inputTypeNodes =
     funcDef instanceof FunctionDefinition
-      ? funcDef.vParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
-      : funcDef.getterFunType().parameters;
+      ? funcDef.vParameters.vParameters.map((cd) => safeGetNodeType(cd, inference))
+      : inference.getterFunType(funcDef).parameters;
   const outputTypeNodes =
     funcDef instanceof FunctionDefinition
-      ? funcDef.vReturnParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
-      : funcDef.getterFunType().returns;
+      ? funcDef.vReturnParameters.vParameters.map((cd) => safeGetNodeType(cd, inference))
+      : inference.getterFunType(funcDef).returns;
 
   let removePrefix = 10;
   if (signature.startsWith('constructor(')) {
@@ -204,17 +210,12 @@ function transcodeTest(
     funcAbi.inputs,
     inputTypeNodes,
     '0x' + callData.substring(removePrefix),
-    compilerVersion,
+    inference,
   );
 
-  const output = failure
-    ? null
-    : encode(funcAbi.outputs, outputTypeNodes, expectations, compilerVersion);
+  const output = failure ? null : encode(funcAbi.outputs, outputTypeNodes, expectations, inference);
 
-  const functionHash =
-    funcDef instanceof FunctionDefinition
-      ? funcDef.canonicalSignatureHash(ABIEncoderVersion.V2)
-      : funcDef.getterCanonicalSignatureHash(ABIEncoderVersion.V2);
+  const functionHash = inference.signatureHash(funcDef, ABIEncoderVersion.V2);
 
   return Expect.Simple(`${functionName}_${functionHash}`, input, output);
 }
@@ -223,7 +224,7 @@ function encode(
   abi: Parameter[],
   typeNodes: TypeNode[],
   encodedData: string,
-  compilerVersion: string,
+  inference: InferType,
 ): string[] {
   const inputs_ = abiCoder.decodeParameters(abi, encodedData);
   return (
@@ -234,13 +235,13 @@ function encode(
       .filter(([key, _]) => !isNaN(parseInt(key)))
       // borked types from import, see above
       .map(([_, val]) => val as SolValue)
-      .flatMap((v: SolValue, i) => encodeValue(typeNodes[i], v, compilerVersion))
+      .flatMap((v: SolValue, i) => encodeValue(typeNodes[i], v, inference))
   );
 }
 
 // ------------------- Encode solidity values as cairo values ----------------
 
-export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: string): string[] {
+export function encodeValue(tp: TypeNode, value: SolValue, inference: InferType): string[] {
   if (tp instanceof IntType) {
     return encodeAsUintOrFelt(tp, value, tp.nBits);
   } else if (tp instanceof ArrayType) {
@@ -250,10 +251,10 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
     if (tp.size === undefined) {
       return [
         value.length.toString(),
-        ...value.flatMap((v) => encodeValue(tp.elementT, v, compilerVersion)),
+        ...value.flatMap((v) => encodeValue(tp.elementT, v, inference)),
       ];
     } else {
-      return value.flatMap((v) => encodeValue(tp.elementT, v, compilerVersion));
+      return value.flatMap((v) => encodeValue(tp.elementT, v, inference));
     }
   } else if (tp instanceof BoolType) {
     if (typeof value !== 'boolean') {
@@ -298,20 +299,16 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
   } else if (tp instanceof UserDefinedType) {
     const definition = tp.definition;
     if (definition instanceof UserDefinedValueTypeDefinition) {
-      return encodeValue(
-        safeGetNodeType(definition.underlyingType, compilerVersion),
-        value,
-        compilerVersion,
-      );
+      return encodeValue(safeGetNodeType(definition.underlyingType, inference), value, inference);
     } else if (definition instanceof StructDefinition) {
       if (!(value instanceof Array)) {
         throw new Error(`Can't encode ${value} as structType`);
       }
       const membersEncoding: string[][] = [];
       for (let index = 0; index < value.length; index++) {
-        const memberTypeNode = safeGetNodeType(definition.vMembers[index], compilerVersion);
+        const memberTypeNode = safeGetNodeType(definition.vMembers[index], inference);
         const memberValue = value[index];
-        membersEncoding.push(encodeValue(memberTypeNode, memberValue, compilerVersion));
+        membersEncoding.push(encodeValue(memberTypeNode, memberValue, inference));
       }
       return membersEncoding.flat();
     } else if (definition instanceof EnumDefinition) {
@@ -322,7 +319,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
   } else if (tp instanceof FunctionType) {
     throw new NotSupportedYetError('Serialising FunctionType not supported yet');
   } else if (tp instanceof PointerType) {
-    return encodeValue(tp.to, value, compilerVersion);
+    return encodeValue(tp.to, value, inference);
   }
   throw new Error(`Don't know how to convert type ${printTypeNode(tp)}`);
 }
@@ -379,16 +376,16 @@ async function encodeConstructors(
       contractDef,
       ast,
       signature,
-      ast.compilerVersion,
+      ast.inference,
     );
     assert(
       constrDef instanceof FunctionDefinition,
       'Constructor must be of type functionDefinition',
     );
     const typeNodes = constrDef.vParameters.vParameters.map((cd) =>
-      safeGetNodeType(cd, ast.compilerVersion),
+      safeGetNodeType(cd, ast.inference),
     );
-    constructorArgs = encode(constrAbi.inputs, typeNodes, firstTest.callData, ast.compilerVersion);
+    constructorArgs = encode(constrAbi.inputs, typeNodes, firstTest.callData, ast.inference);
   }
 
   return constructorArgs;
@@ -423,20 +420,16 @@ function getFunctionAbiAndDefinition(
   contractDef: ContractDefinition,
   ast: AST,
   signature: string,
-  compilerVersion: string,
+  inference: InferType,
 ): [FunABI, FunctionDefinition | VariableDeclaration] {
   let defs: (FunctionDefinition | VariableDeclaration)[];
   if (functionName !== 'constructor') {
-    defs = Array.from(resolveAny(functionName, contractDef, compilerVersion, true)).filter(
-      (def) => {
-        if (def instanceof FunctionDefinition) {
-          return def.canonicalSignature(ABIEncoderVersion.V2) === signature;
-        } else if (def instanceof VariableDeclaration) {
-          return def.getterCanonicalSignature(ABIEncoderVersion.V2) === signature;
-        }
-        return false;
-      },
-    ) as (FunctionDefinition | VariableDeclaration)[];
+    defs = Array.from(resolveAny(functionName, contractDef, inference, true)).filter((def) => {
+      if (def instanceof FunctionDefinition || def instanceof VariableDeclaration) {
+        return inference.signature(def, ABIEncoderVersion.V2) === signature;
+      }
+      return false;
+    }) as (FunctionDefinition | VariableDeclaration)[];
   } else {
     if (contractDef.vConstructor === undefined) {
       // Need to create a default constructor and its abi
@@ -452,11 +445,8 @@ function getFunctionAbiAndDefinition(
       `No function definition found for test case ${signature} in the ast.\n` +
         `Defined functions:\n` +
         `\t${defs.map((d) => {
-          if (d instanceof FunctionDefinition) {
-            return d.canonicalSignature(ABIEncoderVersion.V2);
-          }
-          if (d instanceof VariableDeclaration) {
-            return d.getterCanonicalSignature(ABIEncoderVersion.V2);
+          if (d instanceof FunctionDefinition || d instanceof VariableDeclaration) {
+            return inference.signature(d, ABIEncoderVersion.V2);
           }
           return `Unknown def ${d}`;
         })}`,

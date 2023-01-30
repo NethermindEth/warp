@@ -12,7 +12,7 @@ export class MemoryDynArrayLengthGen extends CairoUtilFuncGenBase {
   }
 
   gen(node: MemberAccess, ast: AST): FunctionCall {
-    const arrayType = generalizeType(safeGetNodeType(node.vExpression, ast.compilerVersion))[0];
+    const arrayType = generalizeType(safeGetNodeType(node.vExpression, ast.inference))[0];
     const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
     const functionStub = createCairoFunctionStub(
       'wm_dyn_array_length',
