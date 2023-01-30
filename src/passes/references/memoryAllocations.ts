@@ -48,7 +48,7 @@ export class MemoryAllocations extends ReferenceSubPass {
         );
       }
     } else if (node.kind === FunctionCallKind.TypeConversion) {
-      const type = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
+      const type = generalizeType(safeGetNodeType(node, ast.inference))[0];
       const arg = node.vArguments[0];
       if ((type instanceof BytesType || type instanceof StringType) && arg instanceof Literal) {
         const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.stringGen(arg);
@@ -90,7 +90,7 @@ export class MemoryAllocations extends ReferenceSubPass {
       node,
     );
 
-    const arrayType = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
+    const arrayType = generalizeType(safeGetNodeType(node, ast.inference))[0];
     assert(
       arrayType instanceof ArrayType ||
         arrayType instanceof BytesType ||

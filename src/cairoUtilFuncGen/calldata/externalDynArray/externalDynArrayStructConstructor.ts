@@ -39,7 +39,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall | undefined {
     const type = generalizeType(
-      safeGetNodeTypeInCtx(astNode, this.ast.compilerVersion, nodeInSourceUnit ?? astNode),
+      safeGetNodeTypeInCtx(astNode, this.ast.inference, nodeInSourceUnit ?? astNode),
     )[0];
     assert(
       isDynamicArray(type),

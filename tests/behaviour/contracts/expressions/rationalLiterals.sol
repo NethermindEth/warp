@@ -52,4 +52,17 @@ contract WARP {
   function toInteger() pure public returns (int8) {
     return 18/6;
   }
+
+  function bitwiseAnd() pure public returns (int8) {
+    return 18&6;
+  }
+
+  function bitwiseOr() pure public returns (int8) {
+    return 18|6;
+  }
+
+  function bitwiseXor() pure public returns (int8) {
+    return 18^6;
+  }
+
 }

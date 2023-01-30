@@ -300,7 +300,9 @@ docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_co
 
 If you like to contribute, the first step is to install Warp from source for devs [steps here](#warp-installation-method-2-from-sourcefor-devs)
 
-To look what features we are currently working on or tasks that are pending to do, please checkout our database of open tickets [here](https://nethermind.notion.site/bb63e1485481427da72484457b4cc449?v=60e2e876b44740999a2e83fae29051db)
+To look what features we are currently working on or tasks that are pending to do, please checkout the project on github [here](https://github.com/orgs/NethermindEth/projects/30/views/3)
+
+Also, please take a look through our [Contribution Guidelines](CONTRIBUTING.md)
 
 ### Developing tips :honey_pot:
 

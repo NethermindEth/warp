@@ -34,12 +34,8 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression, calldataLocation: Expression, nodeInSourceUnit?: ASTNode) {
-    const storageType = generalizeType(
-      safeGetNodeType(storageLocation, this.ast.compilerVersion),
-    )[0];
-    const calldataType = generalizeType(
-      safeGetNodeType(calldataLocation, this.ast.compilerVersion),
-    )[0];
+    const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
+    const calldataType = generalizeType(safeGetNodeType(calldataLocation, this.ast.inference))[0];
 
     const name = this.getOrCreate(calldataType);
     const functionStub = createCairoFunctionStub(
@@ -93,7 +89,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
     const members = structDef.vMembers.map((varDecl) => `${structName}.${varDecl.name}`);
     const copyInstructions = this.generateStructCopyInstructions(
-      structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
+      structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.inference)),
       members,
     );
 

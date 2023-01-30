@@ -25,7 +25,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
 
   public gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
     const exprTypes = expressions.map(
-      (expr) => generalizeType(safeGetNodeType(expr, this.ast.compilerVersion))[0],
+      (expr) => generalizeType(safeGetNodeType(expr, this.ast.inference))[0],
     );
     const functionName = this.getOrCreate(exprTypes);
 
@@ -97,7 +97,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     );
 
     const initialOffset = types.reduce(
-      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion)),
+      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.inference)),
       4n,
     );
 

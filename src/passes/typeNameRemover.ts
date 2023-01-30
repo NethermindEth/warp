@@ -27,7 +27,7 @@ export class TypeNameRemover extends ASTMapper {
         node.vExpression instanceof MemberAccess ||
         node.vExpression instanceof Identifier ||
         node.vExpression instanceof ElementaryTypeNameExpression) &&
-      safeGetNodeType(node.vExpression, ast.compilerVersion) instanceof TypeNameType
+      safeGetNodeType(node.vExpression, ast.inference) instanceof TypeNameType
     ) {
       ast.removeStatement(node);
     } else if (node.vExpression instanceof TupleExpression) {
@@ -79,9 +79,7 @@ export class TypeNameRemover extends ASTMapper {
   isTypeNameType(rhs: TupleExpression | null, index: number, ast: AST): boolean {
     if (!(rhs instanceof TupleExpression)) return false;
     const elem = rhs.vOriginalComponents[index];
-    return elem !== null
-      ? safeGetNodeType(elem, ast.compilerVersion) instanceof TypeNameType
-      : false;
+    return elem !== null ? safeGetNodeType(elem, ast.inference) instanceof TypeNameType : false;
   }
 }
 

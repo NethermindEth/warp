@@ -26,7 +26,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const initialValueType = safeGetNodeType(node.vInitialValue, this.ast.compilerVersion);
+    const initialValueType = safeGetNodeType(node.vInitialValue, this.ast.inference);
 
     const getValueN = (n: number): TypeNode => {
       if (initialValueType instanceof TupleType) {
