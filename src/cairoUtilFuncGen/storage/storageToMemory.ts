@@ -125,12 +125,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   private createSmallStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      this.requireImport('warplib.memory', 'wm_alloc'),
-    );
-
     const funcName = `ws_to_memory_static_array${this.generatedFunctionsDef.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -151,7 +145,10 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        this.requireImport('warplib.memory', 'wm_alloc'),
+      ],
     };
 
     return funcInfo;
@@ -227,19 +224,9 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const memoryElementType = CairoType.fromSol(elementT, this.ast);
     const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.memory', 'wm_index_dyn'),
-    );
-
-    const elemMappingDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
-    funcsCalled.push(elemMappingDef);
-    const elemMappingName = elemMappingDef.name;
-    const lengthMappingName = elemMappingDef.name + '_LENGTH';
+    const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
+    const elemMappingName = dynArray.name;
+    const lengthMappingName = dynArrayLength.name;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
@@ -277,7 +264,15 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport('warplib.memory', 'wm_index_dyn'),
+        dynArray,
+        dynArrayLength,
+      ],
     };
 
     return funcInfo;

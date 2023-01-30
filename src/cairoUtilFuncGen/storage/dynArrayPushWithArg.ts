@@ -2,7 +2,6 @@ import assert from 'assert';
 import {
   ArrayType,
   MappingType,
-  ASTNode,
   BytesType,
   DataLocation,
   FunctionCall,
@@ -12,15 +11,10 @@ import {
   StringType,
   TypeNode,
   FunctionDefinition,
-  Expression,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { MemoryToStorageGen } from '../memory/memoryToStorage';
@@ -28,7 +22,6 @@ import { DynArrayGen } from './dynArray';
 import { StorageWriteGen } from './storageWrite';
 import { StorageToStorageGen } from './copyToStorage';
 import { CalldataToStorageGen } from '../calldata/calldataToStorage';
-import { Implicits } from '../../utils/implicits';
 import {
   getElementType,
   isDynamicArray,
@@ -36,11 +29,9 @@ import {
   specializeType,
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
-import { Func } from 'mocha';
-import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
-  constructor(
+  public constructor(
     private dynArrayGen: DynArrayGen,
     private storageWrite: StorageWriteGen,
     private memoryToStorage: MemoryToStorageGen,
@@ -53,7 +44,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  gen(push: FunctionCall): FunctionCall {
+  public gen(push: FunctionCall): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
       safeGetNodeType(push.vExpression.vExpression, this.ast.inference),
@@ -80,7 +71,11 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     );
   }
 
-  getOrCreateFuncDef(arrayType: TypeNode, argType: TypeNode, argLoc: DataLocation | undefined) {
+  public getOrCreateFuncDef(
+    arrayType: TypeNode,
+    argType: TypeNode,
+    argLoc: DataLocation | undefined,
+  ) {
     const key = `dynArrayPushWithArg(${arrayType.pp()},${argType.pp()},${argLoc})`;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
@@ -139,21 +134,14 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       inputType = CairoType.fromSol(elementType, this.ast).toString();
     }
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      elementWriteDef,
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-    );
-
     const allocationCairoType = CairoType.fromSol(
       elementType,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementType);
-    const arrayName = arrayDef.name;
-    const lengthName = arrayName + '_LENGTH';
+    const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementType);
+    const arrayName = dynArray.name;
+    const lengthName = dynArrayLength.name;
     const funcName = `${arrayName}_PUSHV${this.generatedFunctionsDef.size}`;
     const implicits =
       argLoc === DataLocation.Memory
@@ -165,7 +153,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         ? [`let (elem_id) = readId(${cairoVar});`, `${elementWriteDef.name}(elem_id, value);`]
         : [`${elementWriteDef.name}(${cairoVar}, value);`];
 
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc: felt, value: ${inputType}) -> (){`,
@@ -186,8 +174,13 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `    return ();`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        elementWriteDef,
+        dynArray,
+        dynArrayLength,
+      ],
     };
-    return funcInfo;
   }
 }

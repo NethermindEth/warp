@@ -80,10 +80,10 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
 
   private getOrCreate(elementType: TypeNode): GeneratedFunctionInfo {
     const deleteFunc = this.storageDelete.getOrCreateFuncDef(elementType);
-    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementType);
+    const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementType);
 
-    const arrayName = arrayDef.name;
-    const lengthName = arrayName + '_LENGTH';
+    const arrayName = dynArray.name;
+    const lengthName = dynArrayLength.name;
 
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
@@ -113,7 +113,8 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
         this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
         deleteFunc,
-        arrayDef,
+        dynArray,
+        dynArrayLength,
       ],
     };
   }

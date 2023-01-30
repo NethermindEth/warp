@@ -7,13 +7,13 @@ import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class StorageWriteGen extends StringIndexedFuncGen {
-  gen(storageLocation: Expression, writeValue: Expression): FunctionCall {
+  public gen(storageLocation: Expression, writeValue: Expression): FunctionCall {
     const typeToWrite = safeGetNodeType(storageLocation, this.ast.inference);
     const funcDef = this.getOrCreateFuncDef(typeToWrite);
     return createCallToFunction(funcDef, [storageLocation, writeValue], this.ast);
   }
 
-  getOrCreateFuncDef(typeToWrite: TypeNode) {
+  public getOrCreateFuncDef(typeToWrite: TypeNode) {
     const key = `dynArrayPop(${typeToWrite.pp()})`;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {

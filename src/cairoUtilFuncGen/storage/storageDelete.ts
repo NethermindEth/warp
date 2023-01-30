@@ -117,9 +117,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   ): GeneratedFunctionInfo {
     const elementT = generalizeType(getElementType(type))[0];
 
-    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
-    const arrayName = arrayDef.name;
-    const lengthName = arrayName + '_LENGTH';
+    const [dynArray, dynArrayLen] = this.dynArrayGen.getOrCreateFuncDef(elementT);
+    const arrayName = dynArray.name;
+    const lengthName = dynArrayLen.name;
 
     const readFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
     const auxDeleteFunc = this.getOrCreateFuncDef(elementT);
@@ -156,7 +156,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: deleteFunc,
-      functionsCalled: [...importedFuncs, arrayDef, readFunc, auxDeleteFunc],
+      functionsCalled: [...importedFuncs, dynArray, dynArrayLen, readFunc, auxDeleteFunc],
     };
   }
 

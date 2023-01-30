@@ -3,7 +3,6 @@ import {
   ArrayType,
   DataLocation,
   FunctionCall,
-  FunctionDefinition,
   MemberAccess,
   SourceUnit,
   TypeNode,
@@ -57,9 +56,9 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(elementType: TypeNode, cairoElementType: CairoType): GeneratedFunctionInfo {
-    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementType);
-    const arrayName = arrayDef.name;
-    const lengthName = `${arrayName}_LENGTH`;
+    const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementType);
+    const arrayName = dynArray.name;
+    const lengthName = dynArrayLength.name;
     const funcName = `${arrayName}_PUSH`;
     return {
       name: funcName,
@@ -82,9 +81,10 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        arrayDef,
         this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
         this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        dynArray,
+        dynArrayLength,
       ],
     };
   }

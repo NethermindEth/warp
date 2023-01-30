@@ -148,10 +148,10 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const storageReadFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
     const sturctDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
-    const arrayDef = this.dynArrayGen.getOrCreateFuncDef(elementT);
+    const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
 
-    const arrayName = arrayDef.name;
-    const lenName = arrayName + '_LENGTH';
+    const arrayName = dynArray.name;
+    const lenName = dynArrayLength.name;
     const cairoElementType = CairoType.fromSol(
       elementT,
       this.ast,
@@ -199,7 +199,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: code,
-      functionsCalled: [...importedFuncs, sturctDynArray, arrayDef, storageReadFunc],
+      functionsCalled: [...importedFuncs, sturctDynArray, dynArray, storageReadFunc],
     };
     return funcInfo;
   }
