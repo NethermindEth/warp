@@ -19,7 +19,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     writeValue: Expression,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
-    const typeToWrite = safeGetNodeType(storageLocation, this.ast.compilerVersion);
+    const typeToWrite = safeGetNodeType(storageLocation, this.ast.inference);
     const name = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
     const functionStub = createCairoFunctionStub(

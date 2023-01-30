@@ -34,7 +34,6 @@ import {
   IndexRangeAccess,
   InheritanceSpecifier,
   InlineAssembly,
-  InsaneASTError,
   Literal,
   Mapping,
   MemberAccess,
@@ -65,9 +64,10 @@ import {
 } from 'solc-typed-ast';
 import { pp } from 'solc-typed-ast/dist/misc/index';
 import { AST } from '../ast/ast';
-import { CairoAssert } from '../ast/cairoNodes';
+import { CairoAssert, CairoTempVarStatement } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
+import { InsaneASTError } from './errors';
 import { safeGetNodeType } from './nodeTypeProcessing';
 import { isNameless } from './utils';
 
@@ -669,6 +669,9 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
       checkDirectChildren(node, 'vSubExpression');
     } else if (node instanceof CairoAssert) {
       checkDirectChildren(node, 'vExpression');
+    } else if (node instanceof CairoTempVarStatement) {
+      // Not being checked because this node does not get affected by any
+      // other ast pass
     } else {
       throw new Error(`Unknown ASTNode type ${node.constructor.name}`);
     }
@@ -765,7 +768,7 @@ class NodeTypeResolutionChecker extends ASTMapper {
           child instanceof Expression || child instanceof VariableDeclaration,
       )
       .filter((child) => child.parent !== undefined && !(child.parent instanceof ImportDirective))
-      .forEach((child) => safeGetNodeType(child, ast.compilerVersion));
+      .forEach((child) => safeGetNodeType(child, ast.inference));
   }
 }
 

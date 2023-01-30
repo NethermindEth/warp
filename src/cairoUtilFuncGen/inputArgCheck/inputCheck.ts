@@ -48,7 +48,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       functionInput = createIdentifier(nodeInput, this.ast);
     } else {
       functionInput = cloneASTNode(nodeInput, this.ast);
-      const inputType = safeGetNodeType(nodeInput, this.ast.compilerVersion);
+      const inputType = safeGetNodeType(nodeInput, this.ast.inference);
       this.ast.setContextRecursive(functionInput);
       isUint256 = inputType instanceof IntType && inputType.nBits === 256;
       this.requireImport('warplib.maths.utils', 'narrow_safe');
@@ -152,7 +152,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
         `alloc_locals;`,
         ...structDef.vMembers.map((decl) => {
-          const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
+          const memberType = safeGetNodeType(decl, this.ast.inference);
           this.checkForImport(memberType);
           if (checkableType(memberType)) {
             const memberCheck = this.getOrCreate(memberType);

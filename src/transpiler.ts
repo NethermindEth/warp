@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { CompilationOptions, PrintOptions, TranspilationOptions } from '.';
+import { CompilationOptions, PrintOptions, TranspilationOptions } from './cli';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -25,7 +25,7 @@ import {
   FunctionTypeStringMatcher,
   IdentifierMangler,
   IdentityFunctionRemover,
-  IfFunctionaliser,
+  IfStatementTempVarPostpender,
   ImplicitConversionToExplicit,
   ImportDirectiveIdentifier,
   InheritanceInliner,
@@ -77,7 +77,7 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
     new PrettyFormatter(4, 0),
-    ast.compilerVersion,
+    ast.inference.version,
   );
   return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
@@ -87,7 +87,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
     new PrettyFormatter(4, 0),
-    ast.compilerVersion,
+    ast.inference.version,
   );
   return cairoAST.roots.map((sourceUnit) => [
     sourceUnit.absolutePath,
@@ -131,7 +131,6 @@ function applyPasses(
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
-    ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
     ['Sc', ShortCircuitToConditional],
     ['U', UnloadingAssignment],
@@ -152,6 +151,7 @@ function applyPasses(
     ['Fp', FunctionPruner],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
+    ['Lv', IfStatementTempVarPostpender],
     ['Ci', CairoUtilImporter],
     ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
@@ -176,8 +176,10 @@ function applyPasses(
   RejectPrefix.map(ast);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
+    printPassName(mapper.getPassName(), options);
     const newAst = mapper.map(ast);
     checkAST(ast, options, mapper.getPassName());
+    printAST(ast, options);
     return newAst;
   }, ast);
 

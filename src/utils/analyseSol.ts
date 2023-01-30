@@ -1,4 +1,4 @@
-import { PrintOptions } from '..';
+import { PrintOptions } from '../cli';
 import { isValidSolFile } from '../io';
 import { compileSolFiles } from '../solCompile';
 import { DefaultASTPrinter } from './astPrinter';

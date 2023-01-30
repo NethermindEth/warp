@@ -47,7 +47,7 @@ export class TupleFiller extends ASTMapper {
       .filter(notNull)
       .forEach((emptyIndex) => {
         if (shouldRemove(node.vRightHandSide, emptyIndex)) return;
-        const tupleType = safeGetNodeType(node.vRightHandSide, ast.compilerVersion);
+        const tupleType = safeGetNodeType(node.vRightHandSide, ast.inference);
         assert(
           tupleType instanceof TupleType,
           `Expected rhs of tuple assignment to be tuple type, got ${printTypeNode(

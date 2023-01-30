@@ -44,7 +44,7 @@ export class WarnSupportedFeatures extends ASTMapper {
       ['encodePacked'].includes(node.vFunctionName)
     ) {
       node.vArguments
-        .filter((arg) => safeGetNodeType(arg, ast.compilerVersion) instanceof AddressType)
+        .filter((arg) => safeGetNodeType(arg, ast.inference) instanceof AddressType)
         .forEach((arg) => this.addressesToAbiEncode.push(arg));
     }
 

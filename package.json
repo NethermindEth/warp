@@ -1,6 +1,6 @@
 {
   "name": "@nethermindeth/warp",
-  "version": "2.4.3",
+  "version": "2.4.5",
   "description": "Solidity to Cairo Transpiler",
   "main": "build/export.js",
   "author": "Nethermind",
@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "build": "rm -rf ./build; yarn tsc",
+    "build-type-parser": "tspegjs -o src/utils/typeStrings/typeString_parser.ts --custom-header-file src/utils/typeStrings/typeString_parser_header.ts --cache src/utils/typeStrings/typeString_grammar.pegjs",
     "dev": "yarn tsc -w",
     "genparser": "yarn tspegjs -o src/utils/functionSignatureParser.ts_temp src/utils/functionSignatureParser.peg && echo \"import { toUintOrFelt } from '../utils/utils';\\n\" > src/utils/functionSignatureParser.ts && cat src/utils/functionSignatureParser.ts_temp >> src/utils/functionSignatureParser.ts && rm src/utils/functionSignatureParser.ts_temp ",
     "prepare": "husky install",
@@ -27,11 +28,13 @@
     "lint:tests": "eslint ./tests/** --ignore-path .gitignore --fix",
     "lint:fix": "npm run lint -- --fix",
     "formatlib": "find warplib/ -iname *.cairo -exec cairo-format -i {} +",
-    "test": "yarn warplib && tests/behaviour/setup.sh && npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit",
-    "test:forwarder": "yarn tsc && npx mocha tests/interface_call_forwarder/interface_forwarder.test.ts --extension ts --require ts-node/register --exit",
-    "test:lib": "yarn warplib && npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",
-    "test:behaviour": "yarn tsc && npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
-    "test:semantic": "yarn tsc && yarn warplib && tests/behaviour/setup.sh && node build/semanticTestRunner.js",
+    "test": "tests/behaviour/setup.sh && npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit --exclude tests/cli/cli.test.ts",
+    "test:cli": "npx mocha tests/cli/**/*.test.ts --extension ts --require ts-node/register --exit",
+    "test:forwarder": "npx mocha tests/interface_call_forwarder/interface_forwarder.test.ts --extension ts --require ts-node/register --exit",
+    "test:lib": "npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",
+    "test:behaviour": "npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
+    "test:semantic": "tests/behaviour/setup.sh && node build/semanticTestRunner.js",
+    "test:examples": "npx mocha example_contracts/example_contracts.test.ts --extension ts --require ts-node/register --exit",
     "testnet": "python3 starknet-testnet/server.py",
     "testnet:benchmark": "python3 starknet-testnet/server.py benchmark",
     "testnet:benchmark_semantic": "python3 starknet-testnet/server.py benchmark > /dev/null 2>&1",
@@ -78,7 +81,7 @@
     "keccak": "^3.0.2",
     "peggy": "^1.2.0",
     "prompts": "^2.4.2",
-    "solc-typed-ast": "^9.1.2",
+    "solc-typed-ast": "^11.0.2",
     "ts-pegjs": "^1.2.2",
     "web3": "^1.7.3"
   }

@@ -8,6 +8,7 @@ import {
   ArrayTypeName,
   Assignment,
   ASTNode,
+  Block,
   BoolType,
   BytesType,
   CompileFailedError,
@@ -26,6 +27,7 @@ import {
   Identifier,
   IdentifierPath,
   IndexAccess,
+  InferType,
   IntLiteralType,
   IntType,
   Literal,
@@ -44,6 +46,7 @@ import {
   TupleExpression,
   TypeName,
   TypeNode,
+  UncheckedBlock,
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
@@ -66,7 +69,7 @@ import {
 } from './nodeTemplates';
 import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
-import { TranspilationOptions } from '..';
+import { TranspilationOptions } from '../cli';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
 
@@ -414,6 +417,10 @@ export function mangleOwnContractInterface(contractOrName: ContractDefinition | 
   return `${name}_interface`;
 }
 
+export function isBlock(node: ASTNode): node is Block | UncheckedBlock {
+  return node instanceof Block || node instanceof UncheckedBlock;
+}
+
 export function isExternalCall(node: FunctionCall): boolean {
   return (
     node.vReferencedDeclaration instanceof FunctionDefinition &&
@@ -423,7 +430,7 @@ export function isExternalCall(node: FunctionCall): boolean {
 
 // Detects when an identifier represents a memory dynamic arrays that's being treated as calldata
 // (which only occurs when the memory dynamic array is the output of a cross contract call function)
-export function isExternalMemoryDynArray(node: Identifier, compilerVersion: string): boolean {
+export function isExternalMemoryDynArray(node: Identifier, inference: InferType): boolean {
   const declaration = node.vReferencedDeclaration;
   if (
     !(declaration instanceof VariableDeclaration) ||
@@ -433,7 +440,7 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
     return false;
 
   const declarationLocation = declaration.storageLocation;
-  const [nodeType, typeLocation] = generalizeType(safeGetNodeType(node, compilerVersion));
+  const [nodeType, typeLocation] = generalizeType(safeGetNodeType(node, inference));
 
   return (
     isDynamicArray(nodeType) &&
@@ -443,9 +450,9 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
 }
 
 // Detects when an identifier represents a calldata dynamic array in solidity
-export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: string): boolean {
+export function isCalldataDynArrayStruct(node: Identifier, inference: InferType): boolean {
   return (
-    isDynamicCallDataArray(safeGetNodeType(node, compilerVersion)) &&
+    isDynamicCallDataArray(safeGetNodeType(node, inference)) &&
     ((node.getClosestParentByType(Return) !== undefined &&
       node.getClosestParentByType(IndexAccess) === undefined &&
       node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External &&

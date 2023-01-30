@@ -35,9 +35,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression) {
-    const storageType = generalizeType(
-      safeGetNodeType(storageLocation, this.ast.compilerVersion),
-    )[0];
+    const storageType = generalizeType(safeGetNodeType(storageLocation, this.ast.inference))[0];
 
     const name = this.getOrCreate(storageType);
     const functionStub = createCairoFunctionStub(
@@ -88,7 +86,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const structName = `struct_${cairoStruct.toString()}`;
 
     const [copyInstructions, members] = this.generateStructCopyInstructions(
-      structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
+      structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.inference)),
       'member',
     );
 

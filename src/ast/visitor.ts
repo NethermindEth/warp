@@ -65,7 +65,12 @@ import {
   StatementWithChildren,
   ASTNodeWithChildren,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  CairoTempVarStatement,
+} from './cairoNodes';
 
 import { AST } from './ast';
 
@@ -117,6 +122,7 @@ export abstract class ASTVisitor<T> {
     else if (node instanceof UnaryOperation) res = this.visitUnaryOperation(node, ast);
     else if (node instanceof CairoFunctionDefinition)
       res = this.visitCairoFunctionDefinition(node, ast);
+    else if (node instanceof CairoTempVarStatement) res = this.visitCairoTempVar(node, ast);
     else if (node instanceof FunctionDefinition) res = this.visitFunctionDefinition(node, ast);
     else if (node instanceof IdentifierPath) res = this.visitIdentifierPath(node, ast);
     else if (node instanceof ImportDirective) res = this.visitImportDirective(node, ast);
@@ -162,6 +168,9 @@ export abstract class ASTVisitor<T> {
   abstract commonVisit(node: ASTNode, ast: AST): T;
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): T {
     return this.visitFunctionDefinition(node, ast);
+  }
+  visitCairoTempVar(node: CairoTempVarStatement, ast: AST): T {
+    return this.commonVisit(node, ast);
   }
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): T {
     return this.visitTypeName(node, ast);

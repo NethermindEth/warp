@@ -30,7 +30,7 @@ export class ArgBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((decl) => {
-        const type = safeGetNodeType(decl, ast.compilerVersion);
+        const type = safeGetNodeType(decl, ast.inference);
         if (checkableType(type)) {
           const functionCall = ast
             .getUtilFuncGen(node)
@@ -55,7 +55,7 @@ export class ArgBoundChecker extends ASTMapper {
     if (
       node.kind === FunctionCallKind.TypeConversion &&
       node.vReferencedDeclaration instanceof EnumDefinition &&
-      safeGetNodeType(node.vArguments[0], ast.compilerVersion) instanceof IntType
+      safeGetNodeType(node.vArguments[0], ast.inference) instanceof IntType
     ) {
       const enumDef = node.vReferencedDeclaration;
       const enumCheckFuncCall = ast

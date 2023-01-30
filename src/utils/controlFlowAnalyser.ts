@@ -6,16 +6,10 @@ export function hasPathWithoutReturn(statement: Statement): boolean {
   } else if (statement instanceof IfStatement) {
     if (hasPathWithoutReturn(statement.vTrueBody)) {
       return true;
-    } else if (statement.vFalseBody === undefined || hasPathWithoutReturn(statement.vFalseBody)) {
-      return true;
-    } else {
-      return false;
     }
-  } else if (statement instanceof Return) {
-    return false;
-  } else {
-    return true;
+    return statement.vFalseBody === undefined || hasPathWithoutReturn(statement.vFalseBody);
   }
+  return !(statement instanceof Return);
 }
 
 // collects the reachable statements within the given one
