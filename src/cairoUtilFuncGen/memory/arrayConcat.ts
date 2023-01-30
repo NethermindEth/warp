@@ -1,61 +1,59 @@
 import assert from 'assert';
 import {
+  BytesType,
   DataLocation,
   FixedBytesType,
   FunctionCall,
-  FunctionDefinition,
   IntType,
   PointerType,
+  StringType,
   TypeName,
   TypeNode,
 } from 'solc-typed-ast';
-import { printNode, printTypeNode } from '../../utils/astPrinter';
+import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
+import { createBytesTypeName, createStringTypeName } from '../../export';
+import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import {
+  createCairoGeneratedFunction,
+  createCallToFunction,
+  ParameterInfo,
+} from '../../utils/functionGeneration';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayConcat extends StringIndexedFuncGen {
   public gen(concat: FunctionCall) {
-    const args = concat.vArguments;
-    args.forEach((expr) => {
+    const argTypes = concat.vArguments.map((expr) => {
       const exprType = safeGetNodeType(expr, this.ast.inference);
-      if (
-        !isDynamicArray(exprType) &&
-        !(exprType instanceof IntType || exprType instanceof FixedBytesType)
-      )
-        throw new TranspileFailedError(
-          `Unexpected type ${printTypeNode(exprType)} in ${printNode(expr)} to concatenate.` +
-            'Expected FixedBytes, IntType, ArrayType, BytesType, or StringType',
-        );
+      return exprType;
+      // TODO: Only string and bytes (with fixed bytes) are concatenable, why there are extra types here!!!
+      // if (
+      //   !isDynamicArray(exprType) &&
+      //   !(exprType instanceof IntType || exprType instanceof FixedBytesType)
+      // )
+      //   throw new TranspileFailedError(
+      //     `Unexpected type ${printTypeNode(exprType)} in ${printNode(expr)} to concatenate.` +
+      //       'Expected FixedBytes, IntType, ArrayType, BytesType, or StringType',
+      //   );
     });
 
-    const inputs: [string, TypeName, DataLocation][] = mapRange(args.length, (n) => [
-      `arg_${n}`,
-      typeNameFromTypeNode(safeGetNodeType(args[n], this.ast.inference), this.ast),
-      DataLocation.Memory,
-    ]);
-    const output: [string, TypeName, DataLocation] = [
-      'res_loc',
-      typeNameFromTypeNode(safeGetNodeType(concat, this.ast.inference), this.ast),
-      DataLocation.Memory,
-    ];
-
-    const argTypes = args.map((e) => safeGetNodeType(e, this.ast.inference));
-
-    const funcDef = this.getOrCreateFuncDef(argTypes, inputs, output);
-    return createCallToFunction(funcDef, args, this.ast);
+    const funcDef = this.getOrCreateFuncDef(argTypes);
+    return createCallToFunction(funcDef, concat.vArguments, this.ast);
   }
 
-  public getOrCreateFuncDef(
-    argTypes: TypeNode[],
-    inputs: [string, TypeName, DataLocation][],
-    output: [string, TypeName, DataLocation],
-  ) {
-    // TODO Remove arguments that are not TypeNodes
+  public getOrCreateFuncDef(argTypes: TypeNode[]) {
+    const areStringArgs = argTypes.every((type) => type instanceof StringType);
+    const areBytesArgs = argTypes.every(
+      (type) => type instanceof BytesType || type instanceof FixedBytesType,
+    );
+    assert(
+      areStringArgs || areBytesArgs,
+      'Concat arguments must be all of string type, or all of bytes (or fixed bytes) type.',
+    );
 
     const key = argTypes
       .map((type) => {
@@ -68,12 +66,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return value;
     }
 
-    // const inputs2: [string, TypeName, DataLocation][] = argTypes.map((arg, index) => [
-    //   `arg_${index}`,
-    //   typeNameFromTypeNode(arg, this.ast),
-    //   DataLocation.Memory,
-    // ]);
-    // const output2;
+    const inputs: ParameterInfo[] = argTypes.map((arg, index) => [
+      `arg_${index}`,
+      typeNameFromTypeNode(arg, this.ast),
+      DataLocation.Memory,
+    ]);
+
+    const outputTypeName: TypeName = areStringArgs
+      ? createStringTypeName(this.ast)
+      : createBytesTypeName(this.ast);
+    const output: ParameterInfo = ['res_loc', outputTypeName, DataLocation.Memory];
 
     const funcInfo = this.getOrCreate(argTypes);
     const funcDef = createCairoGeneratedFunction(
@@ -101,13 +103,8 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   private generateBytesConcat(argTypes: TypeNode[], implicits: string): GeneratedFunctionInfo {
     const argAmount = argTypes.length;
     const funcName = `concat${this.generatedFunctionsDef.size}_${argAmount}`;
-    const funcsCalled: FunctionDefinition[] = [];
 
     if (argAmount === 0) {
-      funcsCalled.push(
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('warplib.memory', 'wm_new'),
-      );
       return {
         name: funcName,
         code: [
@@ -117,63 +114,93 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `   return (res_loc,);`,
           `}`,
         ].join('\n'),
-        functionsCalled: funcsCalled,
+        functionsCalled: [
+          this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+          this.requireImport('warplib.memory', 'wm_new'),
+        ],
       };
     }
-
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-    );
 
     const cairoArgs = argTypes.map((type, index) => {
       const cairoType = CairoType.fromSol(type, this.ast).toString();
       return `arg_${index} : ${cairoType}`;
     });
+
+    const [argSizes, argSizesImports] = argTypes
+      .map((t, n) => this.getSize(t, n))
+      .reduce(([argSizes, argSizesImports], [sizeCode, sizeImport]) => {
+        return [`${argSizes}\n${sizeCode}`, [...argSizesImports, ...sizeImport]];
+      });
+
+    const [concatCode, concatImports] = argTypes.reduce(
+      ([concatCode, concatImports], argType, index) => {
+        const [copyCode, copyImport] = this.getCopyFunctionCall(argType, index);
+        const fullCopyCode = [
+          `let end_loc = start_loc + size_${index};`,
+          copyCode,
+          `let start_loc = end_loc;`,
+        ];
+        return [
+          [
+            ...concatCode,
+            index < argTypes.length - 1
+              ? fullCopyCode.join('\n')
+              : fullCopyCode.slice(0, -1).join('\n'),
+          ],
+          [...concatImports, copyImport],
+        ];
+      },
+      [new Array<string>(), new Array<CairoImportFunctionDefinition>()],
+    );
+
     const code = [
       `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt){`,
       `    alloc_locals;`,
       `    // Get all sizes`,
-      ...argTypes.map((t, n) => this.getSize(t, n, funcsCalled)),
+      argSizes,
       `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};`,
       `    let (total_length256) = felt_to_uint256(total_length);`,
       `    let (res_loc) = wm_new(total_length256, ${uint256(1)});`,
       `    // Copy values`,
       `    let start_loc = 0;`,
-      ...mapRange(argAmount, (n) => {
-        const copy = [
-          `let end_loc = start_loc + size_${n};`,
-          this.getCopyFunctionCall(argTypes[n], n, funcsCalled),
-          `let start_loc = end_loc;`,
-        ];
-        return n < argAmount - 1 ? copy.join('\n') : copy.slice(0, -1).join('\n');
-      }),
+      ...concatCode,
       `    return (res_loc,);`,
       `}`,
     ].join('\n');
 
-    return { name: funcName, code: code, functionsCalled: funcsCalled };
+    return {
+      name: funcName,
+      code: code,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport('warplib.memory', 'wm_new'),
+        ...argSizesImports,
+        ...concatImports,
+      ],
+    };
   }
 
-  private getSize(type: TypeNode, index: number, funcsCalled: FunctionDefinition[]): string {
+  private getSize(type: TypeNode, index: number): [string, CairoImportFunctionDefinition[]] {
     if (type instanceof PointerType) {
-      funcsCalled.push(
-        this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-        this.requireImport('warplib.maths.utils', 'narrow_safe'),
-      );
       return [
-        `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
-        `let (size_${index}) = narrow_safe(size256_${index});`,
-      ].join('\n');
+        [
+          `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
+          `let (size_${index}) = narrow_safe(size256_${index});`,
+        ].join('\n'),
+        [
+          this.requireImport('warplib.memory', 'wm_dyn_array_length'),
+          this.requireImport('warplib.maths.utils', 'narrow_safe'),
+        ],
+      ];
     }
 
     if (type instanceof IntType) {
-      return `let size_${index} = ${type.nBits / 8};`;
+      return [`let size_${index} = ${type.nBits / 8};`, []];
     }
 
     if (type instanceof FixedBytesType) {
-      return `let size_${index} = ${type.size};`;
+      return [`let size_${index} = ${type.size};`, []];
     }
 
     throw new TranspileFailedError(
@@ -184,26 +211,25 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   private getCopyFunctionCall(
     type: TypeNode,
     index: number,
-    funcsCalled: FunctionDefinition[],
-  ): string {
+  ): [string, CairoImportFunctionDefinition] {
     if (type instanceof PointerType) {
-      funcsCalled.push(
+      return [
+        `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0);`,
         this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt'),
-      );
-      return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0);`;
+      ];
     }
 
     assert(type instanceof FixedBytesType);
     if (type.size < 32) {
-      funcsCalled.push(
+      return [
+        `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index});`,
         this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes_to_dynamic_array'),
-      );
-      return `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index});`;
+      ];
     }
 
-    funcsCalled.push(
+    return [
+      `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0);`,
       this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_dynamic_array'),
-    );
-    return `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0);`;
+    ];
   }
 }
