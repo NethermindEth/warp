@@ -138,11 +138,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
       switch (node.operator) {
         case '&&': // false && x = false
           if (notNullMember) {
-            if (rightExpression) {
-              replaceNode(node, node.vRightExpression);
-            } else {
-              replaceNode(node, node.vLeftExpression);
-            }
+            rightExpression
+              ? replaceNode(node, node.vRightExpression)
+              : replaceNode(node, node.vLeftExpression);
             return null;
           } else {
             return false;
@@ -150,11 +148,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
 
         case '||': // true || x = true
           if (!notNullMember) {
-            if (rightExpression) {
-              replaceNode(node, node.vRightExpression);
-            } else {
-              replaceNode(node, node.vLeftExpression);
-            }
+            rightExpression
+              ? replaceNode(node, node.vRightExpression)
+              : replaceNode(node, node.vLeftExpression);
             return null;
           } else {
             return true;
