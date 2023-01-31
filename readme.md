@@ -21,10 +21,10 @@ docker-compose up
 ### Transpile
 
 ```bash
-docker-compose exec warp warp transpile example_contracts/ERC20.sol
+docker-compose exec warp warp transpile exampleContracts/ERC20.sol
 ```
 
-It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
+It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `exampleContracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
 
 ### Deploy to devnet
 
@@ -125,7 +125,7 @@ warp install --python <path/to/python3.9> --verbose
 4. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
-warp transpile example_contracts/ERC20.sol
+warp transpile exampleContracts/ERC20.sol
 ```
 
 <br>
@@ -169,7 +169,7 @@ yarn warplib
 5. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
-bin/warp transpile example_contracts/ERC20.sol
+bin/warp transpile exampleContracts/ERC20.sol
 ```
 
 ## Usage :computer:
@@ -291,7 +291,7 @@ docker build -t warp .
 Run the container with the same options and arguments as the Warp binary:
 
 ```bash
-docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
+docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile exampleContracts/ERC20.sol
 ```
 
 ## Contributing
@@ -317,7 +317,7 @@ yarn dev
 Developers could run warp instructions using docker. This is an example using `transpile` command:
 
 ```bash
-docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
+docker-compose exec warp npx ts-node src transpile exampleContracts/ERC20.sol
 ```
 
 ### Testing for contributors :stethoscope:

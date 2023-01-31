@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.0 <0.9.0;
 
-import "./user_defined.sol" as Library;
+import "./userDefined.sol" as Library;
 
 contract B{
     Library.BB  public a;
