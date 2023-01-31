@@ -56,6 +56,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     );
 
     const key = argTypes
+      // TODO: Wouldn't type.pp() work here?
       .map((type) => {
         if (type instanceof PointerType) return 'A';
         return `B${getIntOrFixedByteBitWidth(type)}`;

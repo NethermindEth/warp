@@ -3,9 +3,7 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
-  FixedBytesType,
   FunctionCall,
-  FunctionDefinition,
   generalizeType,
   Literal,
   LiteralKind,
@@ -17,12 +15,8 @@ import {
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
-import { createNumberLiteral, createStringTypeName } from '../../utils/nodeTemplates';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,
   getSize,
@@ -40,7 +34,7 @@ import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen
   start of the array
 */
 export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
-  stringGen(node: Literal): FunctionCall {
+  public stringGen(node: Literal): FunctionCall {
     // Encode the literal to the uint-8 byte representation
     assert(
       node.kind === LiteralKind.String ||
@@ -49,9 +43,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     );
 
     const size = node.hexValue.length / 2;
-    const baseType = new FixedBytesType(1);
+    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
-    const funcDef = this.stringGetOrCreateFuncDef(baseType, size);
+    const funcDef = this.getOrCreateFuncDef(type, size);
     return createCallToFunction(
       funcDef,
       mapRange(size, (n) =>
@@ -61,28 +55,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     );
   }
 
-  private stringGetOrCreateFuncDef(baseType: TypeNode, size: number) {
-    const key = `arrayLiteralString(${baseType.pp()},${size})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
-    }
-
-    const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
-    const funcInfo = this.getOrCreate(baseType, size, true);
-    const funcDef = createCairoGeneratedFunction(
-      funcInfo,
-      mapRange(size, (n) => [`e${n}`, cloneASTNode(baseTypeName, this.ast), DataLocation.Default]),
-      [['arr', createStringTypeName(false, this.ast), DataLocation.Memory]],
-      // ['range_check_ptr', 'warp_memory'],
-      this.ast,
-      this.sourceUnit,
-    );
-    this.generatedFunctionsDef.set(key, funcDef);
-    return funcDef;
-  }
-
-  tupleGen(node: TupleExpression): FunctionCall {
+  public tupleGen(node: TupleExpression): FunctionCall {
     const elements = node.vOriginalComponents.filter(notNull);
     assert(elements.length === node.vOriginalComponents.length);
 
@@ -102,24 +75,27 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         ? narrowBigIntSafe(wideSize, `${printNode(node)} too long to process`)
         : elements.length;
 
-    const funcDef = this.tupleGetOrCreateFuncDef(type, size);
+    const funcDef = this.getOrCreateFuncDef(elementT, size);
     return createCallToFunction(funcDef, elements, this.ast);
   }
 
-  private tupleGetOrCreateFuncDef(type: TypeNode, size: number) {
-    const key = `arrayLiteralTuple(${type.pp()},${size})`;
+  public getOrCreateFuncDef(type: ArrayType | StringType, size: number) {
+    const baseType = getElementType(type);
+
+    const key = baseType.pp() + size;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
     }
 
-    const funcInfo = this.getOrCreate(type, size, isDynamicArray(type));
+    const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
+    const funcInfo = this.getOrCreate(baseType, size, isDynamicArray(type));
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       mapRange(size, (n) => [
-        `e${n}`,
-        typeNameFromTypeNode(type, this.ast),
-        locationIfComplexType(type, DataLocation.Memory),
+        `arg_${n}`,
+        cloneASTNode(baseTypeName, this.ast),
+        locationIfComplexType(baseType, DataLocation.Memory),
       ]),
       [['arr', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       this.ast,
@@ -131,21 +107,13 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
   private getOrCreate(type: TypeNode, size: number, dynamic: boolean): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(type, this.ast);
-    const funcName = `WM${this.generatedFunctionsDef.size}_${dynamic ? 'd' : 's'}_arr`;
-
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('warplib.memory', 'wm_alloc'),
-      this.requireImport('warplib.memory', 'wm_write_256'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-    );
+    const funcName = `WM${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_arr`;
 
     const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
 
     // If it's dynamic we need to include the length at the start
     const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt){`,
@@ -166,8 +134,12 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         `    return (start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport('warplib.memory', 'wm_write_256'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      ],
     };
-    return funcInfo;
   }
 }
