@@ -3437,8 +3437,12 @@ export const expectations = flatten(
         ]),
         new Dir('largeSizeArray', [
           File.Simple('large_size_array', [
-            Expect.Simple('getLength', [], ['100000000', '0']),
-            Expect.Simple('setValue', ['10000000', '0', '456', '0'], ['456', '0']),
+            Expect.Simple('getLength', [], [...toCairoUint256(10000000000000000000)]),
+            Expect.Simple(
+              'setValue',
+              [...toCairoUint256(10000000), ...toCairoUint256(456)],
+              [...toCairoUint256(456)],
+            ),
           ]),
         ]),
         new Dir('libraries', [

@@ -24,7 +24,7 @@ import { AST } from '../ast/ast';
 import { printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { safeGetNodeType } from './nodeTypeProcessing';
-import { mangleStructName, narrowBigIntSafe } from './utils';
+import { mangleStructName, mapRange, narrowBigIntSafe } from './utils';
 
 export enum TypeConversionContext {
   MemoryAllocation,
@@ -267,11 +267,7 @@ export class CairoStaticArray extends CairoType {
     return this.type.width * this.size;
   }
   serialiseMembers(name: string): string[] {
-    const serializedMembers: string[] = [];
-    for (let index = 0; index < this.size; ++index) {
-      serializedMembers.push(...this.type.serialiseMembers(`${name}[${index}]`));
-    }
-    return serializedMembers;
+    return mapRange(this.size, (n) => this.type.serialiseMembers(`${name}[${n}]`)).flat();
   }
 }
 
