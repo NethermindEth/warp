@@ -1,6 +1,6 @@
 import { expectations as semantic } from './semantic';
 import { expectations as behaviour } from './behaviour';
-import { exceptions } from './semantic_exceptions';
+import { exceptions } from './semanticExceptions';
 import { AsyncTest, Expect, File } from './types';
 import { readFileSync } from 'fs-extra';
 
