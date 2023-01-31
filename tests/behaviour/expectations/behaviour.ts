@@ -1589,7 +1589,7 @@ export const expectations = flatten(
               ['getLengths', [], ['12', '0', '5', '0'], '0'],
             ]),
           ]),
-          File.Simple('dynamicArrays_2d', [
+          File.Simple('dynamicArrays2d', [
             new Expect('two dimensional dynamic arrays to storage', [
               ['setArr8', [], ['1', '1', '2', '0', '2', '3', '0', '0', '3'], '0'],
               ['arr8', ['0', '0', '0', '0'], ['1'], '0'],
@@ -1850,7 +1850,7 @@ export const expectations = flatten(
         new Dir('crossContractCalls', [
           File.Simple(
             'thisMethodsCall',
-            [Expect.Simple('executeAdd', ['2', '0', '35', '0'], ['637', '0'])],
+            [Expect.Simple('execute_add', ['2', '0', '35', '0'], ['637', '0'])],
             'A',
           ),
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
@@ -4068,7 +4068,7 @@ export const expectations = flatten(
             ),
           ]),
         ]),
-        new Dir('named_args', [
+        new Dir('namedArgs', [
           File.Simple('function', [
             Expect.Simple('f', [], []),
             Expect.Simple('k', [], ['365', '0']),
