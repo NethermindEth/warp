@@ -6,10 +6,8 @@ import {
   DataLocation,
   FunctionStateMutability,
   generalizeType,
-  FunctionDefinition,
   TypeNode,
 } from 'solc-typed-ast';
-import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { CairoFunctionDefinition, typeNameFromTypeNode } from '../../export';
 import {
   CairoFelt,
@@ -19,11 +17,7 @@ import {
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
@@ -44,7 +38,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
     if (resultCairoType instanceof MemoryLocation) {
       // The size parameter represents how much space to allocate
-      // for the contents of the newly accessed suboject
+      // for the contents of the newly accessed subobject
       args.push(
         createNumberLiteral(
           isDynamicArray(valueType)
@@ -102,9 +96,6 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     return funcDef;
   }
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
-    const funcsCalled: FunctionDefinition[] = [];
-
-    funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_read'));
     const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
@@ -117,7 +108,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
         `    return (${pack},);`,
         '}',
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [this.requireImport('starkware.cairo.common.dict', 'dict_read')],
     };
     return funcInfo;
   }
