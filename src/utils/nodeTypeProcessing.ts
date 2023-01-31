@@ -37,7 +37,7 @@ import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
 import { error } from './formatting';
 import { getContainingSourceUnit } from './utils';
-import { getNodeType, getNodeTypeInCtx } from './typeStrings/typeString_parser';
+import { getNodeType, getNodeTypeInCtx } from './typeStrings/typeStringParser';
 
 /*
 Normal function calls and struct constructors require different methods for

@@ -28,7 +28,7 @@ import {
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
-import tests from '../test_calldata';
+import tests from '../testCalldata';
 import { InvalidTestError } from '../errors';
 
 import whiteList from './semantic_whitelist';

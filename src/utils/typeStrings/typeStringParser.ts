@@ -38,8 +38,8 @@ import {
   pp,
   InferType,
 } from 'solc-typed-ast';
-import { InaccessibleDynamicType } from './ast/inaccessible_dynamic_type';
-import { ModuleType } from './ast/module_type';
+import { InaccessibleDynamicType } from './ast/inaccessibleDynamicType';
+import { ModuleType } from './ast/moduleType';
 
 function getFunctionAttributes(
   decorators: string[],

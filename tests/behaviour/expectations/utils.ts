@@ -1,7 +1,8 @@
 import { Dir, Value, File } from './types';
 
 const capacity = (bits: number) => 2n ** BigInt(bits);
-const max_uint = (bits: number) => capacity(bits) - 1n;
+// This was commented to avoid lint unused error. If it's not necessary feel free to remove the line.
+// const max_uint = (bits: number) => capacity(bits) - 1n;
 const max_int = (bits: number) => capacity(bits) / 2n - 1n;
 const min_int = (bits: number) => -(capacity(bits) / 2n);
 
