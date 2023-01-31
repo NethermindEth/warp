@@ -77,12 +77,12 @@ interface CairoFunctionStubOptions {
   acceptsUnpackedStructArray?: boolean;
 }
 
-export type ParameterInfo = ([string, TypeName] | [string, TypeName, DataLocation])[];
+export type ParameterInfo = [string, TypeName] | [string, TypeName, DataLocation];
 
 export function createCairoFunctionStub(
   name: string,
-  inputs: ParameterInfo,
-  returns: ParameterInfo,
+  inputs: ParameterInfo[],
+  returns: ParameterInfo[],
   implicits: Implicits[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
@@ -123,8 +123,8 @@ export function createCairoFunctionStub(
 
 export function createCairoGeneratedFunction(
   genFuncInfo: { name: string; code: string; functionsCalled: FunctionDefinition[] },
-  inputs: ParameterInfo,
-  returns: ParameterInfo,
+  inputs: ParameterInfo[],
+  returns: ParameterInfo[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
   options: CairoFunctionStubOptions = {
@@ -161,8 +161,8 @@ export function createImportFuncFuncDefinition(
   funcName: string,
   path: string,
   implicits: Set<Implicits>,
-  params: ParameterInfo,
-  retParams: ParameterInfo,
+  params: ParameterInfo[],
+  retParams: ParameterInfo[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
 ): CairoImportFunctionDefinition {
