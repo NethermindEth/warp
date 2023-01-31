@@ -31,9 +31,9 @@ import * as path from 'path';
 import tests from '../testCalldata';
 import { InvalidTestError } from '../errors';
 
-import whiteList from './semantic_whitelist';
+import whiteList from './semanticWhitelist';
 
-import whileListGenerated from './semantic_tests_generated';
+import whileListGenerated from './semanticTestsGenerated';
 
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFiles, compileSolFilesAndExtractContracts } from '../../../src/solCompile';
