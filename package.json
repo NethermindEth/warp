@@ -24,7 +24,7 @@
     "dev": "yarn tsc -w",
     "genparser": "yarn tspegjs -o src/utils/functionSignatureParser.ts_temp src/utils/functionSignatureParser.peg && echo \"import { toUintOrFelt } from '../utils/utils';\\n\" > src/utils/functionSignatureParser.ts && cat src/utils/functionSignatureParser.ts_temp >> src/utils/functionSignatureParser.ts && rm src/utils/functionSignatureParser.ts_temp ",
     "prepare": "husky install",
-    "lint": "eslint . --ignore-path .gitignore",
+    "lint": "eslint ./src/** --ignore-path .gitignore",
     "lint:tests": "eslint ./tests/** --ignore-path .gitignore --fix",
     "lint:fix": "npm run lint -- --fix",
     "formatlib": "find warplib/ -iname *.cairo -exec cairo-format -i {} +",
