@@ -110,7 +110,6 @@ async def declare():
 
 @app.route("/invoke", methods=["POST"])
 async def invoke():
-
     data = request.get_json()
     state = await starknet_wrapper.get_state()
 
