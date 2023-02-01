@@ -6,7 +6,6 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
-  FunctionDefinition,
   FunctionStateMutability,
   generalizeType,
   SourceUnit,
@@ -16,6 +15,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import {
   CairoDynArray,
@@ -36,16 +36,21 @@ import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/ut
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
+import { MemoryReadGen } from './memoryRead';
 
+const IMPLICITS =
+  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 export class MemoryToCallDataGen extends StringIndexedFuncGen {
-  constructor(
+  public constructor(
     private dynamicArrayStructGen: ExternalDynArrayStructConstructor,
+    private memoryReadGen: MemoryReadGen,
     ast: AST,
     sourceUnit: SourceUnit,
   ) {
     super(ast, sourceUnit);
   }
-  gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
+
+  public gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
     if (isDynamicArray(type)) {
@@ -55,11 +60,11 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, [node], this.ast);
   }
 
-  getOrCreateFuncDef(type: TypeNode) {
-    const key = `memoryToCalldata(${type.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+  public getOrCreateFuncDef(type: TypeNode) {
+    const key = type.pp();
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const funcInfo = this.getOrCreate(type);
@@ -71,6 +76,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       this.sourceUnit,
       { mutability: FunctionStateMutability.Pure },
     );
+
     this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
@@ -93,130 +99,79 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
   }
 
   private createStructCopyFunction(type: TypeNode): GeneratedFunctionInfo {
-    assert(type instanceof UserDefinedType);
+    assert(type instanceof UserDefinedType && type.definition instanceof StructDefinition);
     const structDef = type.definition;
-    assert(structDef instanceof StructDefinition);
 
     const funcName = `wm_to_calldata_struct_${structDef.name}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
-    // Set an empty entry so recursive function generation doesn't clash
+    const [code, funcCalls] = structDef.vMembers
+      .map((decl) => safeGetNodeType(decl, this.ast.inference))
+      .reduce(
+        ([code, funcCalls, offset], type, index) => {
+          const [copyCode, copyFuncCalls, newOffset] = this.generateElementCopyCode(
+            type,
+            offset,
+            index,
+          );
+          return [[...code, ...copyCode], [...funcCalls, ...copyFuncCalls], newOffset];
+        },
+        [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
+      );
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_read'));
-
-    let offset = 0;
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
+        `func ${funcName}${IMPLICITS}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
         `    alloc_locals;`,
-        ...structDef.vMembers.map((decl, index) => {
-          const memberType = safeGetNodeType(decl, this.ast.inference);
-          if (isReferenceType(memberType)) {
-            funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_id'));
-            const allocSize = isDynamicArray(memberType)
-              ? 2
-              : CairoType.fromSol(memberType, this.ast, TypeConversionContext.Ref).width;
-            const memberGetterInfo = this.getOrCreate(memberType);
-            funcsCalled.push(...memberGetterInfo.functionsCalled);
-            return [
-              `let (read_${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(
-                allocSize,
-              )});`,
-              `let (member${index}) = ${memberGetterInfo.name}(read_${index});`,
-            ].join('\n');
-          } else {
-            const memberCairoType = CairoType.fromSol(memberType, this.ast);
-            if (memberCairoType.width === 1) {
-              funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_felt'));
-              const code = `let (member${index}) = wm_read_felt(${add('mem_loc', offset++)});`;
-              return code;
-            } else if (memberCairoType.width === 2) {
-              funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_256'));
-              const code = `let (member${index}) = wm_read_256(${add('mem_loc', offset)});`;
-              offset += 2;
-              return code;
-            }
-          }
-        }),
+        ...code,
         `    return (${outputType.toString()}(${mapRange(
           structDef.vMembers.length,
           (n) => `member${n}`,
         )}),);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: funcCalls,
     };
-
-    return funcInfo;
   }
 
+  // TODO: With big static arrays, this functions gets huge. Can that be fixed?!
   private createStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     const funcName = `wm_to_calldata_static_array${this.generatedFunctionsDef.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
     assert(type.size !== undefined);
     const length = narrowBigIntSafe(type.size);
     const elementT = type.elementT;
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_read'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-    );
+    const memberFeltSize = CairoType.fromSol(type, this.ast).width;
+    const [copyCode, funcCalls] = mapRange(length, (n): [string[], CairoFunctionDefinition[]] => {
+      const [memberCopyCode, memberCalls] = this.generateElementCopyCode(
+        elementT,
+        n * memberFeltSize,
+        n,
+      );
+      return [memberCopyCode, memberCalls];
+    }).reduce(([copyCode, funcCalls], [memberCode, memberCalls]) => [
+      [...copyCode, ...memberCode],
+      [...funcCalls, ...memberCalls],
+    ]);
 
-    let offset = 0;
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
+        `func ${funcName}${IMPLICITS}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
         `    alloc_locals;`,
-        ...mapRange(length, (index) => {
-          if (isReferenceType(elementT)) {
-            funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_id'));
-            const memberGetterInfo = this.getOrCreate(elementT);
-            funcsCalled.push(...memberGetterInfo.functionsCalled);
-            const allocSize = isDynamicArray(elementT)
-              ? 2
-              : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
-            return [
-              `let (read${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(
-                allocSize,
-              )});`,
-              `let (member${index}) = ${memberGetterInfo.name}(read${index});`,
-            ].join('\n');
-          } else {
-            const memberCairoType = CairoType.fromSol(elementT, this.ast);
-            if (memberCairoType.width === 1) {
-              funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_felt'));
-              const code = `let (member${index}) = wm_read_felt(${add('mem_loc', offset++)});`;
-              return code;
-            } else if (memberCairoType.width === 2) {
-              funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_256'));
-              const code = `let (member${index}) = wm_read_256(${add('mem_loc', offset)});`;
-              offset += 2;
-              return code;
-            }
-          }
-        }),
+        ...copyCode,
         `    return ((${mapRange(length, (n) => `member${n}`)}),);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: funcCalls,
     };
-    return funcInfo;
   }
 
   private createDynamicArrayCopyFunction(type: TypeNode): GeneratedFunctionInfo {
     const funcName = `wm_to_calldata_dynamic_array${this.generatedFunctionsDef.size}`;
-
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(outputType instanceof CairoDynArray);
@@ -233,34 +188,31 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       );
     }
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-      this.requireImport('warplib.maths.utils', 'narrow_safe'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-      this.requireImport('warplib.memory', 'wm_read_256'),
-    );
-
     const dynArrayReaderInfo = this.createDynArrayReader(elementT);
-    funcsCalled.push(
-      createCairoGeneratedFunction(dynArrayReaderInfo, [], [], this.ast, this.sourceUnit),
-    );
+
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
+        ...dynArrayReaderInfo.code,
+        `func ${funcName}${IMPLICITS}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
         `    alloc_locals;`,
         `    let (len_256) = wm_read_256(mem_loc);`,
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
         `    let (len_felt) = narrow_safe(len_256);`,
         `    ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);`,
+        // What about this CallDataDynArrayStruct bussines
         `    return (${generateCallDataDynArrayStructName(
           elementT,
           this.ast,
         )}(len=len_felt, ptr=ptr),);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+        this.requireImport('warplib.maths.utils', 'narrow_safe'),
+        this.requireImport('warplib.memory', 'wm_read_256'),
+        ...dynArrayReaderInfo.functionsCalled,
+      ],
     };
     return funcInfo;
   }
@@ -268,48 +220,38 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
   private createDynArrayReader(elementT: TypeNode): GeneratedFunctionInfo {
     const funcName = `wm_to_calldata_dynamic_array_reader${this.generatedFunctionsDef.size}`;
 
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
     const cairoType = CairoType.fromSol(elementT, this.ast, TypeConversionContext.CallDataRef);
     const memWidth = CairoType.fromSol(elementT, this.ast).width;
     const ptrString = `${cairoType.toString()}`;
 
-    const funcsCalled: FunctionDefinition[] = [];
-
-    let code = [''];
+    const readFunc = this.memoryReadGen.getOrCreateFuncDef(elementT);
+    let code: string[];
+    let funcCalls: CairoFunctionDefinition[];
     if (isReferenceType(elementT)) {
       const allocSize = isDynamicArray(elementT)
         ? 2
         : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
-      const calledFuncInfo = this.getOrCreate(elementT);
-      funcsCalled.push(
-        ...calledFuncInfo.functionsCalled,
-        this.requireImport('warplib.memory', 'wm_read_id'),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      );
+
+      const auxFunc = this.getOrCreateFuncDef(elementT);
       code = [
-        `let (mem_read0) = wm_read_id(mem_loc, ${uint256(allocSize)});`,
-        `let (mem_read1) = ${calledFuncInfo.name}(mem_read0);`,
+        `let (mem_read0) = ${readFunc.name}(mem_loc, ${uint256(allocSize)});`,
+        `let (mem_read1) = ${auxFunc.name}(mem_read0);`,
         `assert ptr[0] = mem_read1;`,
       ];
-    } else if (cairoType.width === 1) {
-      funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_felt'));
-      code = ['let (mem_read0) = wm_read_felt(mem_loc);', 'assert ptr[0] = mem_read0;'];
-    } else if (cairoType.width === 2) {
-      funcsCalled.push(this.requireImport('warplib.memory', 'wm_read_256'));
-      code = ['let (mem_read0) = wm_read_256(mem_loc);', 'assert ptr[0] = mem_read0;'];
+      funcCalls = [
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        auxFunc,
+        readFunc,
+      ];
     } else {
-      throw new NotSupportedYetError(
-        `Element type ${cairoType.toString()} not supported yet in m->c`,
-      );
+      code = [`let (mem_read0) = ${readFunc.name}(mem_loc);`, 'assert ptr[0] = mem_read0;'];
+      funcCalls = [readFunc];
     }
 
-    funcsCalled.push(this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'));
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
+        `func ${funcName}${IMPLICITS}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
         `    alloc_locals;`,
         `    if (len == 0){`,
         `         return ();`,
@@ -319,9 +261,38 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `    return ();`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: funcCalls,
     };
+  }
 
-    return funcInfo;
+  private generateElementCopyCode(
+    type: TypeNode,
+    offset: number,
+    index: number,
+  ): [string[], CairoFunctionDefinition[], number] {
+    const readFunc = this.memoryReadGen.getOrCreateFuncDef(type);
+    if (isReferenceType(type)) {
+      const memberGetterFunc = this.getOrCreateFuncDef(type);
+      const allocSize = isDynamicArray(type)
+        ? 2
+        : CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
+      return [
+        [
+          `let (read_${index}) = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(
+            allocSize,
+          )})`,
+          `let (member${index})= ${memberGetterFunc.name}(read_${index})`,
+        ],
+        [this.requireImport('starkware.common.uint256', 'Uint256'), memberGetterFunc, readFunc],
+        offset + 1,
+      ];
+    }
+
+    const memberFeltSize = CairoType.fromSol(type, this.ast).width;
+    return [
+      [`let (member${index}) = ${readFunc.name}(${add('mem_loc', offset)})`],
+      [readFunc],
+      offset + memberFeltSize,
+    ];
   }
 }
