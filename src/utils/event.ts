@@ -1,9 +1,9 @@
 import createKeccakHash from 'keccak';
-import { MASK_250 } from '../cairoUtilFuncGen/event';
 import { EventFragment, Result, ParamType } from 'ethers/lib/utils';
 import { safeNext, SolValue } from '../transcode/utils';
 import { makeIterator } from '../transcode/encode';
 import { warpInterface } from '../transcode/interface';
+import { toUintOrFelt } from './export';
 
 export type EventItem = { data: string[]; keys: string[]; order?: number };
 
@@ -79,17 +79,30 @@ export function join248bitChunks(eventsLog: EventItem[]): EventItem[] {
 
 export type argType = string | argType[];
 
-// NOTE: argTypes must not contain `uint`, it should be `uint256` instead
-export function warpEventCanonicalSignaturehash(eventName: string, argTypes: argType[]): string {
+// NOTE: argTypes must not contain `uint` , it should be `uint256` instead
+export function warpEventCanonicalSignaturehash256(
+  eventName: string,
+  argTypes: argType[],
+): { low: string; high: string } {
   const getArgStringRepresentation = (arg: argType): string => {
     if (typeof arg === 'string') return arg;
     return `(${arg.map(getArgStringRepresentation).join(',')})`;
   };
 
   const funcSignature = `${eventName}(${argTypes.map(getArgStringRepresentation).join(',')})`;
-  const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
+  return warpEventSignatureHash256FromString(funcSignature);
+}
 
-  return `0x${BigInt(
-    `0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`,
-  ).toString(16)}`;
+// NOTE: argTypes must not contain `uint` , it should be `uint256` instead
+export function warpEventSignatureHash256FromString(functionSignature: string): {
+  low: string;
+  high: string;
+} {
+  const funcSignatureHash = createKeccakHash('keccak256').update(functionSignature).digest('hex');
+  const [low, high] = toUintOrFelt(BigInt(`0x${funcSignatureHash}`), 256);
+
+  return {
+    low: `0x${low.toString(16)}`,
+    high: `0x${high.toString(16)}`,
+  };
 }

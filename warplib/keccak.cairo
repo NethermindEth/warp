@@ -27,22 +27,6 @@ func warp_keccak{
     return (res,);
 }
 
-func warp_keccak_felt{
-    range_check_ptr, bitwise_ptr: BitwiseBuiltin*, warp_memory: DictAccess*, keccak_ptr: felt*
-}(loc: felt) -> (output: felt) {
-    alloc_locals;
-    let (input_len, input) = wm_to_felt_array(loc);
-    let (pow2_122: felt) = pow2(122);
-    let mask122: felt = pow2_122 - 1;
-    let (packed_bytes_len, packed_bytes) = pack_bytes_felt(BYTES_IN_FELT, 0, input_len, input);
-    let (res256: Uint256) = keccak_bigend{keccak_ptr=keccak_ptr}(packed_bytes, input_len);
-    let low: felt = res256.low;
-    let (high: felt) = bitwise_and(mask122, res256.high);
-    let res250: Uint256 = Uint256(low, high);
-    let (res: felt) = narrow_safe(res250);
-    return (res,);
-}
-
 func pack_bytes_felt{range_check_ptr}(
     packing_bytes: felt, big_endian: felt, input_len: felt, input: felt*
 ) -> (output_len: felt, output: felt*) {
