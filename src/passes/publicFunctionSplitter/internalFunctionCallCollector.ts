@@ -1,9 +1,7 @@
-import assert = require('assert');
 import {
   ContractDefinition,
   FunctionCall,
   FunctionDefinition,
-  FunctionType,
   MemberAccess,
   UserDefinedType,
 } from 'solc-typed-ast';
