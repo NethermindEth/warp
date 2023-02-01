@@ -58,6 +58,7 @@ export class AST {
   imports: Map<ASTNode, Map<string, Set<string>>> = new Map();
   public inference: InferType;
 
+  public mangleFunctionNames = false;
   readonly tempId = -1;
 
   constructor(
@@ -387,6 +388,10 @@ export class AST {
       }
     });
     return node.id;
+  }
+
+  setMangleFunctionNames(mangleFunctionNames: boolean): void {
+    this.mangleFunctionNames = mangleFunctionNames;
   }
 }
 

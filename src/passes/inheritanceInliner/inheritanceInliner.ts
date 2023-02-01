@@ -33,6 +33,8 @@ export class InheritanceInliner extends ASTMapper {
       // StorageAllocator takes care of variable initialization, which
       // are needed when solving constructors
       'Sa',
+      // Identifier mangler is required in order to support overloaded functions
+      'M',
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { OutputOptions, TranspilationOptions } from './cli';
+import { OutputOptions, WarpCompilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
 import { execSync } from 'child_process';
 import { AST } from './ast/ast';
@@ -60,7 +60,7 @@ export function replaceSuffix(filePath: string, suffix: string): string {
 export function outputResult(
   outputPath: string,
   code: string,
-  options: OutputOptions & TranspilationOptions,
+  options: OutputOptions & WarpCompilationOptions,
   ast: AST,
 ): void {
   if (options.outputDir !== undefined) {

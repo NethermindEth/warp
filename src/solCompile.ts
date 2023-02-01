@@ -7,7 +7,7 @@ import {
   extractSpecifiersFromSource,
   getCompilerVersionsBySpecifiers,
 } from 'solc-typed-ast';
-import { CompilationOptions } from './cli';
+import { SolidityCompilationOptions } from './cli';
 import { AST } from './ast/ast';
 import { SupportedSolcVersions, nethersolcPath, fullVersionFromMajor } from './nethersolc';
 import { TranspileFailedError } from './utils/errors';
@@ -18,7 +18,7 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(files: string[], options: CompilationOptions): SolcOutput {
+function compileSolFilesCommon(files: string[], options: SolidityCompilationOptions): SolcOutput {
   const sources = files.map((file) => {
     return getSolFileVersion(file);
   });
@@ -40,7 +40,7 @@ function compileSolFilesCommon(files: string[], options: CompilationOptions): So
   return solcOutput;
 }
 
-export function compileSolFiles(files: string[], options: CompilationOptions): AST {
+export function compileSolFiles(files: string[], options: SolidityCompilationOptions): AST {
   const solcOutput = compileSolFilesCommon(files, options);
   printErrors(solcOutput.result, options.warnings || false, solcOutput.compilerVersion);
   const reader = new ASTReader();
@@ -119,7 +119,7 @@ export type SolcOutput = {
 function cliCompile(
   input: SolcInput,
   solcVersion: string,
-  options?: CompilationOptions,
+  options?: SolidityCompilationOptions,
 ): SolcOutput {
   // Determine compiler version to use
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;

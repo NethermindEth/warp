@@ -143,7 +143,9 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    node.name = this.createNewFunctionName(node, ast);
+    if (ast.mangleFunctionNames) {
+      node.name = this.createNewFunctionName(node, ast);
+    }
   }
 
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {

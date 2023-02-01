@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { CompilationOptions, PrintOptions, TranspilationOptions } from './cli';
+import { SolidityCompilationOptions, PrintOptions, WarpCompilationOptions } from './cli';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -72,7 +72,8 @@ import { printCompileErrors, runSanityCheck } from './utils/utils';
 
 type CairoSource = [file: string, source: string];
 
-export function transpile(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
+export function transpile(ast: AST, options: WarpCompilationOptions & PrintOptions): CairoSource[] {
+  ast.setMangleFunctionNames(options.enableOverloading ?? false);
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
@@ -82,7 +83,8 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
   return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
-export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
+export function transform(ast: AST, options: WarpCompilationOptions & PrintOptions): CairoSource[] {
+  ast.setMangleFunctionNames(options.enableOverloading ?? false);
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
@@ -97,7 +99,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(
   ast: AST,
-  options: TranspilationOptions & PrintOptions & CompilationOptions,
+  options: WarpCompilationOptions & PrintOptions & SolidityCompilationOptions,
 ): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
@@ -183,7 +185,7 @@ function applyPasses(
     return newAst;
   }, ast);
 
-  const finalOpts: TranspilationOptions = {
+  const finalOpts: WarpCompilationOptions = {
     checkTrees: options.checkTrees,
     dev: true,
     order: options.order,
@@ -210,11 +212,11 @@ export function handleTranspilationError(e: unknown) {
 }
 
 // Transpilation printing
-function printPassName(name: string, options: TranspilationOptions) {
+function printPassName(name: string, options: WarpCompilationOptions) {
   if (options.printTrees) console.log(`---${name}---`);
 }
 
-function printAST(ast: AST, options: TranspilationOptions) {
+function printAST(ast: AST, options: WarpCompilationOptions) {
   if (options.printTrees) {
     ast.roots.map((root) => {
       console.log(DefaultASTPrinter.print(root));
@@ -223,7 +225,7 @@ function printAST(ast: AST, options: TranspilationOptions) {
   }
 }
 
-function checkAST(ast: AST, options: TranspilationOptions, mostRecentPassName: string) {
+function checkAST(ast: AST, options: WarpCompilationOptions, mostRecentPassName: string) {
   if (options.checkTrees || options.strict) {
     try {
       const success = runSanityCheck(ast, options, mostRecentPassName);

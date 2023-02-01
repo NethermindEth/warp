@@ -215,6 +215,8 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       this.addUnsupported(`Receive functions are not supported`, node);
     }
 
+    this.checkOverloadedFunctions(node, ast);
+
     //checks for the pattern if "this" keyword is used to call the external functions during the contract construction
     this.checkExternalFunctionCallWithThisOnConstruction(node);
 
@@ -284,7 +286,46 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
   }
 
-  // Checking that if the function definition is constructor then there is no usage of
+  private funcnameToContractSet: Map<string, Set<ContractDefinition | FunctionDefinition>> =
+    new Map();
+
+  // Checks whether a function is overloaded
+  // In the case of free functions we do a check which may be a false positive
+  private checkOverloadedFunctions(node: FunctionDefinition, ast: AST) {
+    // If we are mangling function names then we don't need to check for
+    // overloaded functions
+    if (ast.mangleFunctionNames) return;
+    // If this is undefined then the function is a free function.
+    const contractOrDef = node.getClosestParentByType(ContractDefinition) ?? node;
+
+    if (!this.funcnameToContractSet.has(node.name)) {
+      this.funcnameToContractSet.set(node.name, new Set([contractOrDef]));
+      return;
+    }
+    // We know it will be set by the above if statement
+    const contractSet = this.funcnameToContractSet.get(node.name) ?? new Set();
+    for (const contract of contractSet) {
+      if (contractOrDef instanceof FunctionDefinition || contract instanceof FunctionDefinition) {
+        this.addUnsupported(
+          `Function overloading is disabled by default. Potential free funciton overloading detected for ${node.name} \n Note this check is an overaproximation in the case of free functions. Please rename the functions or enable overloading via --enableOverloading`,
+          node,
+        );
+        return;
+      } else {
+        if (
+          contract.linearizedBaseContracts.includes(contractOrDef.id) ||
+          contractOrDef.linearizedBaseContracts.includes(contract.id)
+        ) {
+          this.addUnsupported(
+            `Function overloading is disabled by default. ${node.name} is overloaded with function in contract ${contract.name} and contract ${contractOrDef.name}`,
+            node,
+          );
+        }
+      }
+    }
+  }
+
+  // Checking whether the function definition is constructor then there is no usage of
   // the `this` keyword for calling any contract function
   private checkExternalFunctionCallWithThisOnConstruction(node: FunctionDefinition) {
     if (node.kind === FunctionKind.Constructor) {

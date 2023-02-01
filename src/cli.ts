@@ -23,13 +23,19 @@ import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from './utils/utils';
 
-export type CompilationOptions = {
+export type EnableOverloading = {
+  enableOverloading?: boolean;
+};
+
+// Options to be passed to solc
+export type SolidityCompilationOptions = {
   warnings?: boolean;
   includePaths?: string[];
   basePath?: string;
 };
 
-export type TranspilationOptions = {
+// Options to be considered during the compilation
+export type WarpCompilationOptions = {
   checkTrees?: boolean;
   dev: boolean;
   order?: string;
@@ -37,7 +43,7 @@ export type TranspilationOptions = {
   strict?: boolean;
   warnings?: boolean;
   until?: string;
-};
+} & EnableOverloading;
 
 export type PrintOptions = {
   highlight?: string[];
@@ -50,8 +56,8 @@ export type OutputOptions = {
   formatCairo: boolean;
 };
 
-type CliOptions = CompilationOptions &
-  TranspilationOptions &
+type CliOptions = SolidityCompilationOptions &
+  WarpCompilationOptions &
   PrintOptions &
   OutputOptions &
   IOptionalDebugInfo;
@@ -84,6 +90,10 @@ program
   .option('--no-warnings', 'Suppress warnings from the Solidity compiler')
   .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
   .option('--base-path <path>', 'Pass through to solc --base-path option')
+  .option(
+    '--enable-overloading',
+    'Enable function overloading by mangling all external function names with their selector',
+  )
   .action(runTranspile);
 
 export function runTranspile(files: string[], options: CliOptions) {
@@ -157,6 +167,10 @@ program
   .option('--no-warnings', 'Suppress printed warnings')
   .option('--include-paths <paths...>', 'Pass through to solc --include-path option')
   .option('--base-path <path>', 'Pass through to solc --base-path option')
+  .option(
+    '--enable-overloading',
+    'Enable function overloading by mangling all external function names with their selector',
+  )
   .action(runTransform);
 
 export function runTransform(file: string, options: CliOptions) {
@@ -203,6 +217,10 @@ program
   .command('analyse <file>')
   .description('Debug tool to analyse the AST')
   .option('--highlight <ids...>', 'Highlight selected ids in the AST')
+  .option(
+    '--enable-overloading',
+    'Enable function overloading by mangling all external function names with their selector',
+  )
   .action((file: string, options: PrintOptions) => analyseSol(file, options));
 
 export interface IOptionalNetwork {
@@ -239,13 +257,13 @@ program
     runStarknetCompile(file, options);
   });
 
-export interface SolcInterfaceGenOptions {
+export type SolcInterfaceGenOptions = {
   cairoPath: string;
   output?: string;
   solcVersion?: string;
   contractAddress?: string;
   classHash?: string;
-}
+} & EnableOverloading;
 
 program
   .command('gen_interface <file>')
@@ -263,6 +281,10 @@ program
   )
   .option('--class-hash <class-hash>', 'Class hash of the cairo contract')
   .option('--solc-version <version>', 'Solc version to use', '0.8.14')
+  .option(
+    '--enable-overloading',
+    'Enable function overloading by mangling all external function names with their selector',
+  )
   .action(generateSolInterface);
 
 interface IDeployProps_ {
