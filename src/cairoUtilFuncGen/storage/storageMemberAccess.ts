@@ -82,9 +82,9 @@ export class StorageMemberAccessGen extends StringIndexedFuncGen {
     );
 
     const offset = structCairoType.offsetOf(memberName);
-    const funcName = `WSM_${structName}_${memberName}`;
+    const funcName = `WS_${structName}_${memberName}`;
 
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: [
         `func ${funcName}(loc: felt) -> (memberLoc: felt){`,
@@ -93,6 +93,5 @@ export class StorageMemberAccessGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [],
     };
-    return funcInfo;
   }
 }

@@ -69,9 +69,6 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
   private getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(this.requireImport('starkware.cairo.common.dict', 'dict_write'));
-
     const cairoTypeString = cairoTypeToWrite.toString();
     const funcName = `WM_WRITE${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
@@ -84,7 +81,7 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
         '    return (value,);',
         '}',
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [this.requireImport('starkware.cairo.common.dict', 'dict_write')],
     };
     return funcInfo;
   }
