@@ -42,9 +42,3 @@ export class InternalFunctionCallCollector extends ASTMapper {
     this.commonVisit(node, ast);
   }
 }
-
-export function isInternalFuncCall(node: FunctionCall, ast: AST): boolean {
-  const type = safeGetNodeType(node.vExpression, ast.inference);
-  assert(type instanceof FunctionType);
-  return type.visibility === 'internal';
-}
