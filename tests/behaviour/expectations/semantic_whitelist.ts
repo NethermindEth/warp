@@ -431,12 +431,12 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/base_constructor_arguments.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/functions_called_by_constructor_through_dispatch.sol', // WILL NOT SUPPORT function objects
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol', // WILL NOT SUPPORT function objectss
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/no_callvalue_check.sol', // WILL NOT SUPPORT due to the use of `value` function option
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/evm_exceptions_in_constructor_call_fail.sol', // address.call
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_internal.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/bytes_in_constructors_packer.sol', // Bug here related to constructos and inheritance
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/arrays_in_constructors.sol', // Bug related to contract inheritance
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/bytes_in_constructors_packer.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/arrays_in_constructors.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/callvalue_check.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_argument.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/store_function_in_constructor_packed.sol', // WILL NOT SUPPORT function objects
