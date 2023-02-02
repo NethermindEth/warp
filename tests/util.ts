@@ -20,7 +20,7 @@ export async function sh(
       if (err) {
         reject(err);
       } else {
-        resolve({ stdout, stderr, exitCode: err.code });
+        resolve({ stdout, stderr, exitCode: err?.code || 0 });
       }
     });
   });
