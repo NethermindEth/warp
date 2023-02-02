@@ -1,12 +1,10 @@
 import assert from 'assert';
 import {
   ArrayType,
-  ASTNode,
   DataLocation,
   Expression,
   FixedBytesType,
   FunctionCall,
-  FunctionDefinition,
   generalizeType,
   IntType,
   PointerType,
@@ -14,22 +12,26 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition } from '../../export';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { isDynamicStorageArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
+import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { getBaseType } from '../memory/implicitConversion';
 import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
+import { NotSupportedYetError } from '../../utils/errors';
+import { printTypeNode } from '../../utils/astPrinter';
+
+const IMPLICITS =
+  '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
 
 export class ImplicitArrayConversion extends StringIndexedFuncGen {
-  private genNode: Expression = new Expression(0, '', '');
-  private genNodeInSourceUnit?: ASTNode;
-  constructor(
+  public constructor(
     private storageWriteGen: StorageWriteGen,
     private dynArrayGen: DynArrayGen,
     private dynArrayIndexAccessGen: DynArrayIndexAccessGen,
@@ -39,63 +41,21 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  genIfNecessary(
+  public genIfNecessary(
     targetExpression: Expression,
     sourceExpression: Expression,
   ): [Expression, boolean] {
     const targetType = generalizeType(safeGetNodeType(targetExpression, this.ast.inference))[0];
     const sourceType = generalizeType(safeGetNodeType(sourceExpression, this.ast.inference))[0];
 
-    if (this.checkDims(targetType, sourceType) || this.checkSizes(targetType, sourceType)) {
+    if (checkDims(targetType, sourceType) || checkSizes(targetType, sourceType)) {
       return [this.gen(targetExpression, sourceExpression), true];
     } else {
       return [sourceExpression, false];
     }
   }
 
-  checkSizes(targetType: TypeNode, sourceType: TypeNode): boolean {
-    const targetBaseType = getBaseType(targetType);
-    const sourceBaseType = getBaseType(sourceType);
-    if (targetBaseType instanceof IntType && sourceBaseType instanceof IntType) {
-      return (
-        (targetBaseType.nBits > sourceBaseType.nBits && sourceBaseType.signed) ||
-        (!targetBaseType.signed && targetBaseType.nBits === 256 && 256 > sourceBaseType.nBits)
-      );
-    }
-    if (targetBaseType instanceof FixedBytesType && sourceBaseType instanceof FixedBytesType) {
-      return targetBaseType.size > sourceBaseType.size;
-    }
-    return false;
-  }
-
-  checkDims(targetType: TypeNode, sourceType: TypeNode): boolean {
-    const targetArray = generalizeType(targetType)[0];
-    const sourceArray = generalizeType(sourceType)[0];
-
-    if (targetArray instanceof ArrayType && sourceArray instanceof ArrayType) {
-      const targetArrayElm = generalizeType(targetArray.elementT)[0];
-      const sourceArrayElm = generalizeType(sourceArray.elementT)[0];
-
-      if (targetArray.size !== undefined && sourceArray.size !== undefined) {
-        if (targetArray.size > sourceArray.size) {
-          return true;
-        } else if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
-          return this.checkDims(targetArrayElm, sourceArrayElm);
-        } else {
-          return false;
-        }
-      } else if (targetArray.size === undefined && sourceArray.size !== undefined) {
-        return true;
-      } else if (targetArray.size === undefined && sourceArray.size === undefined)
-        if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
-          return this.checkDims(targetArrayElm, sourceArrayElm);
-        }
-    }
-    return false;
-  }
-
-  gen(lhs: Expression, rhs: Expression): FunctionCall {
-    this.genNode = rhs;
+  public gen(lhs: Expression, rhs: Expression): FunctionCall {
     const lhsType = safeGetNodeType(lhs, this.ast.inference);
     const rhsType = safeGetNodeType(rhs, this.ast.inference);
     const funcDef = this.getOrCreateFuncDef(lhsType, rhsType);
@@ -107,11 +67,28 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     );
   }
 
-  getOrCreateFuncDef(targetType: TypeNode, sourceType: TypeNode) {
-    const key = `implicitArrayConversion(${targetType.pp()},${sourceType.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+  public getOrCreateFuncDef(targetType: TypeNode, sourceType: TypeNode) {
+    const sourceRepForKey = CairoType.fromSol(
+      generalizeType(sourceType)[0],
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    ).fullStringRepresentation;
+
+    // Even though the target is in Storage, a unique key is needed to set the function.
+    // Using Calldata here gives us the full representation instead of WarpId provided by Storage.
+    // This is only for KeyGen and no further processing.
+    const targetRepForKey = CairoType.fromSol(
+      generalizeType(targetType)[0],
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    ).fullStringRepresentation;
+
+    const targetBaseType = getBaseType(targetType).pp();
+    const sourceBaseType = getBaseType(sourceType).pp();
+    const key = `${targetRepForKey}_${targetBaseType} -> ${sourceRepForKey}_${sourceBaseType}`;
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const funcInfo = this.getOrCreate(targetType, sourceType);
@@ -130,416 +107,464 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   private getOrCreate(targetType: TypeNode, sourceType: TypeNode): GeneratedFunctionInfo {
-    const sourceRepForKey = CairoType.fromSol(
-      generalizeType(sourceType)[0],
-      this.ast,
-      TypeConversionContext.CallDataRef,
-    ).fullStringRepresentation;
-
-    // Even though the target is in Storage, a unique key is needed to set the function.
-    // Using Calldata here gives us the full representation instead of WarpId provided by Storage.
-    // This is only for KeyGen and no further processing.
-    const targetRepForKey = CairoType.fromSol(
-      generalizeType(targetType)[0],
-      this.ast,
-      TypeConversionContext.CallDataRef,
-    ).fullStringRepresentation;
-
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
-    let funcInfo: GeneratedFunctionInfo;
-    if (targetType.to.size === undefined && sourceType.to.size === undefined) {
-      funcInfo = this.DynamicToDynamicConversion(targetType, sourceType);
-    } else if (targetType.to.size === undefined && sourceType.to.size !== undefined) {
-      funcInfo = this.staticToDynamicConversion(targetType, sourceType);
-    } else {
-      funcInfo = this.staticToStaticConversion(targetType, sourceType);
-    }
-    return funcInfo;
+    const unexpectedTypeFunc = () => {
+      throw new NotSupportedYetError(
+        `Scaling ${printTypeNode(sourceType)} to ${printTypeNode(
+          targetType,
+        )} from memory to storage not implemented yet`,
+      );
+    };
+
+    return delegateBasedOnType<GeneratedFunctionInfo>(
+      targetType,
+      (targetType) => {
+        assert(targetType instanceof ArrayType && sourceType instanceof ArrayType);
+        return sourceType.size === undefined
+          ? this.dynamicToDynamicArrayConversion(targetType, sourceType)
+          : this.staticToDynamicArrayConversion(targetType, sourceType);
+      },
+      (targetType) => {
+        assert(sourceType instanceof ArrayType);
+        return this.staticToStaticArrayConversion(targetType, sourceType);
+      },
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+    );
   }
 
-  private staticToStaticConversion(
-    targetType: TypeNode,
-    sourceType: TypeNode,
+  private staticToStaticArrayConversion(
+    targetType: ArrayType,
+    sourceType: ArrayType,
   ): GeneratedFunctionInfo {
-    assert(targetType instanceof PointerType && sourceType instanceof PointerType);
-    assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
+    assert(targetType.size !== undefined && sourceType.size !== undefined);
+    assert(
+      targetType.size > sourceType.size,
+      'Cannot convert a bigger static array into a smaller one',
+    );
 
-    const targetElmType = targetType.to.elementT;
-    const sourceElmType = sourceType.to.elementT;
+    const [generateCopyCode, requiredFunctions] = this.createStaticToStaticCopyCode(
+      targetType,
+      sourceType,
+    );
 
-    const funcName = `CD_ST_TO_WS_ST${this.generatedFunctionsDef.size}`;
-    const funcsCalled: FunctionDefinition[] = [];
+    const sourceSize = narrowBigIntSafe(sourceType.size);
+    const targetElementTSize = CairoType.fromSol(
+      targetType.elementT,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    ).width;
+    const copyInstructions: string[] = mapRange(sourceSize, (index) =>
+      generateCopyCode(index, index * targetElementTSize),
+    );
 
-    const cairoSourceType = CairoType.fromSol(
+    const cairoSourceTypeName = CairoType.fromSol(
       sourceType,
       this.ast,
       TypeConversionContext.CallDataRef,
-    );
-
-    assert(sourceType.to.size !== undefined);
-    const sizeSource = narrowBigIntSafe(sourceType.to.size);
-
-    const copyInstructions = this.generateS2SCopyInstructions(
-      targetElmType,
-      sourceElmType,
-      sizeSource,
-      funcsCalled,
-    );
-
-    const implicit =
-      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
+    ).toString();
+    const funcName = `calldata_conversion_static_to_static${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceType.toString()}){`,
+      `func ${funcName}${IMPLICITS}(storage_loc: felt, arg: ${cairoSourceTypeName}`,
       `alloc_locals;`,
       ...copyInstructions,
       '    return ();',
       '}',
     ].join('\n');
-    this.addImports(targetElmType, sourceElmType);
-    const funcInfo: GeneratedFunctionInfo = {
+
+    return {
       name: funcName,
       code: code,
-      functionsCalled: funcsCalled,
+      functionsCalled: requiredFunctions,
     };
-    return funcInfo;
   }
 
-  private generateS2SCopyInstructions(
-    targetElmType: TypeNode,
-    sourceElmType: TypeNode,
-    length: number,
-    funcsCalled: FunctionDefinition[],
-  ): string[] {
-    const cairoTargetElementType = CairoType.fromSol(
-      targetElmType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
+  private staticToDynamicArrayConversion(
+    targetType: ArrayType,
+    sourceType: ArrayType,
+  ): GeneratedFunctionInfo {
+    assert(targetType.size === undefined && sourceType.size !== undefined);
+
+    const [generateCopyCode, requiredFunctions] = this.createStaticToDynamicCopyCode(
+      targetType,
+      sourceType,
     );
 
-    let offset = 0;
-    const instructions = mapRange(length, (index) => {
-      let code;
-      if (targetElmType instanceof IntType) {
-        assert(sourceElmType instanceof IntType);
-        if (targetElmType.nBits === sourceElmType.nBits) {
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(writeDef);
-          code = `     ${writeDef.name}(${add('storage_loc', offset)}, arg[${index}]);`;
-        } else if (targetElmType.signed) {
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          code = [
-            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
-            `${writeDef.name}(${add('storage_loc', offset)}, arg_${index});`,
-          ].join('\n');
-        } else {
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          code = [
-            `    let (arg_${index}) = felt_to_uint256(arg[${index}]);`,
-            `    ${writeDef.name}(${add('storage_loc', offset)}, arg_${index});`,
-          ].join('\n');
-        }
-      } else if (
-        targetElmType instanceof FixedBytesType &&
-        sourceElmType instanceof FixedBytesType
-      ) {
-        if (targetElmType.size > sourceElmType.size) {
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          code = [
-            `    let (arg_${index}) = warp_bytes_widen${
-              targetElmType.size === 32 ? '_256' : ''
-            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8});`,
-            `    ${writeDef.name}(${add('storage_loc', offset)}, arg_${index});`,
-          ].join('\n');
-        } else {
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          code = `     ${writeDef.name}(${add('storage_loc', offset)}, arg[${index}]);`;
-        }
-      } else {
-        if (isDynamicStorageArray(targetElmType)) {
-          code = [
-            `    let (ref_${index}) = readId(${add('storage_loc', offset)});`,
-            `    ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}]);`,
-          ].join('\n');
-        } else {
-          code = [
-            `    ${this.getOrCreate(targetElmType, sourceElmType)}(${add(
-              'storage_loc',
-              offset,
-            )}, arg[${index}]);`,
-          ].join('\n');
-        }
-      }
-      offset = offset + cairoTargetElementType.width;
-      return code;
-    });
-    return instructions;
-  }
+    const sourceSize = narrowBigIntSafe(sourceType.size);
+    const copyInstructions: string[] = mapRange(sourceSize, (index) => generateCopyCode(index));
 
-  private staticToDynamicConversion(
-    targetType: TypeNode,
-    sourceType: TypeNode,
-  ): GeneratedFunctionInfo {
-    assert(targetType instanceof PointerType && sourceType instanceof PointerType);
-    assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
+    let optionalCode = '';
+    let optionalImport: CairoFunctionDefinition[] = [];
+    if (isDynamicStorageArray(targetType)) {
+      // TODO: Check this, this makes no sense to me
+      const [_dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(targetType.elementT);
+      optionalImport = [dynArrayLength];
+      optionalCode = `${dynArrayLength.name}.write(ref, ${uint256(sourceSize)})`;
+    }
 
-    assert(targetType.to.size === undefined && sourceType.to.size !== undefined);
-
-    const targetElmType = targetType.to.elementT;
-    const sourceElmType = sourceType.to.elementT;
-
-    const funcName = `CD_ST_TO_WS_DY${this.generatedFunctionsDef.size}`;
-    const funcsCalled: FunctionDefinition[] = [];
-
-    const cairoSourceType = CairoType.fromSol(
+    const cairoSourceTypeName = CairoType.fromSol(
       sourceType,
       this.ast,
       TypeConversionContext.CallDataRef,
-    );
-
-    const cairoSourceTypeString = cairoSourceType.toString();
-
-    const sizeSource = narrowBigIntSafe(sourceType.to.size);
-
-    assert(sizeSource !== undefined);
-
-    const dynArrayDef = this.dynArrayGen.getOrCreateFuncDef(targetType.to.elementT);
-    funcsCalled.push(dynArrayDef);
-    const dynArrayLengthName = dynArrayDef.name + '_LENGTH';
-    const copyInstructions = this.generateS2DCopyInstructions(
-      targetElmType,
-      sourceElmType,
-      sizeSource,
-      funcsCalled,
-    );
-
-    const implicit =
-      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
+    ).toString();
+    const funcName = `calldata_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}){`,
-      `     alloc_locals;`,
-      isDynamicStorageArray(targetType)
-        ? `    ${dynArrayLengthName}.write(ref, ${uint256(sourceType.to.size)});`
-        : '',
+      `func ${funcName}${IMPLICITS}(storage_loc: felt, arg: ${cairoSourceTypeName}`,
+      `alloc_locals;`,
+      `    ${optionalCode}`,
       ...copyInstructions,
       '    return ();',
       '}',
     ].join('\n');
-    this.addImports(targetElmType, sourceElmType);
-    const funcInfo: GeneratedFunctionInfo = {
+    return {
       name: funcName,
       code: code,
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cario.common.uint256', 'Uint256'),
+        ...requiredFunctions,
+        ...optionalImport,
+      ],
     };
-    return funcInfo;
   }
 
-  private generateS2DCopyInstructions(
-    targetElmType: TypeNode,
-    sourceElmType: TypeNode,
-    length: number,
-    funcsCalled: FunctionDefinition[],
-  ): string[] {
-    const instructions = mapRange(length, (index) => {
-      if (targetElmType instanceof IntType) {
-        assert(sourceElmType instanceof IntType);
-        if (targetElmType.nBits === sourceElmType.nBits) {
-          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(arrayDef, writeDef);
-          return [
-            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${writeDef}(storage_loc${index}, arg[${index}]);`,
-          ].join('\n');
-        } else if (targetElmType.signed) {
-          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(arrayDef, writeDef);
-          return [
-            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
-            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
-          ].join('\n');
-        } else {
-          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(arrayDef, writeDef);
-          return [
-            `    let (arg_${index}) = felt_to_uint256(arg[${index}]);`,
-            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
-          ].join('\n');
-        }
-      } else if (
-        targetElmType instanceof FixedBytesType &&
-        sourceElmType instanceof FixedBytesType
-      ) {
-        if (targetElmType.size > sourceElmType.size) {
-          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(arrayDef, writeDef);
-          return [
-            `    let (arg_${index}) = warp_bytes_widen${
-              targetElmType.size === 32 ? '_256' : ''
-            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8});`,
-            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
-          ].join('\n');
-        } else {
-          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-          const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(arrayDef, writeDef);
-          return [
-            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${writeDef.name}(storage_loc${index}, arg[${index}]);`,
-          ].join('\n');
-        }
-      } else {
-        if (isDynamicStorageArray(targetElmType)) {
-          const dynArrayLengthName =
-            this.dynArrayGen.getOrCreateFuncDef(targetElmType).name + '_LENGTH';
-          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(arrayDef);
-          return [
-            `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `     let (ref_${index}) = readId(storage_loc${index});`,
-            `     ${dynArrayLengthName}.write(ref_${index}, ${uint256(length)});`,
-            `     ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}]);`,
-          ].join('\n');
-        } else {
-          const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-          funcsCalled.push(arrayDef);
-          return [
-            `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${this.getOrCreate(
-              targetElmType,
-              sourceElmType,
-            )}(storage_loc${index}, arg[${index}]);`,
-          ].join('\n');
-        }
-      }
-    });
-    return instructions;
-  }
-
-  private DynamicToDynamicConversion(
-    targetType: TypeNode,
-    sourceType: TypeNode,
+  private dynamicToDynamicArrayConversion(
+    targetType: ArrayType,
+    sourceType: ArrayType,
   ): GeneratedFunctionInfo {
-    assert(targetType instanceof PointerType && sourceType instanceof PointerType);
-    assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
+    assert(targetType.size === undefined && sourceType.size === undefined);
 
-    assert(targetType.to.size === undefined && sourceType.to.size === undefined);
-
-    const targetElmType = targetType.to.elementT;
-    const sourceElmType = sourceType.to.elementT;
-
-    const funcName = `CD_DY_TO_WS_DY${this.generatedFunctionsDef.size}`;
-    const funcsCalled: FunctionDefinition[] = [];
+    const [_dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(targetType.elementT);
+    const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(
+      targetType.elementT,
+      targetType,
+    );
 
     const cairoSourceType = CairoType.fromSol(
       sourceType,
       this.ast,
       TypeConversionContext.CallDataRef,
     );
-    assert(cairoSourceType instanceof CairoDynArray);
 
-    const dynArrayDef = this.dynArrayGen.getOrCreateFuncDef(targetType.to.elementT);
-    funcsCalled.push(dynArrayDef);
-    const dynArrayLengthName = dynArrayDef.name + '_LENGTH';
-    const implicit =
-      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
-    const loaderName = `DY_LOADER${this.generatedFunctionsDef.size}`;
-
-    const copyInstructions = this.generateDynCopyInstructions(
-      targetElmType,
-      sourceElmType,
-      funcsCalled,
+    const [copyInstructions, requiredFunctions] = this.createDyamicToDynamicCopyCode(
+      targetType,
+      sourceType,
     );
 
-    const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType);
-    funcsCalled.push(arrayDef);
+    assert(cairoSourceType instanceof CairoDynArray);
+    const funcName = `calldata_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
+    const recursiveFuncName = `${funcName}_helper`;
     const code = [
-      `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
+      `func ${recursiveFuncName}${IMPLICITS}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
       `    alloc_locals;`,
       `    if (len == 0){`,
       `      return ();`,
       `    }`,
       `    let (storage_loc) = ${arrayDef.name}(ref, Uint256(target_index, 0));`,
-      copyInstructions,
+      copyInstructions(),
 
-      `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
+      `    return ${recursiveFuncName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
       `}`,
       ``,
-      `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceType.toString()}){`,
+      `func ${funcName}${IMPLICITS}(ref: felt, source: ${cairoSourceType.toString()}){`,
       `     alloc_locals;`,
-      `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0));`,
-      `    ${loaderName}(ref, source.len, source.ptr, 0);`,
+      `    ${dynArrayLength.name}.write(ref, Uint256(source.len, 0));`,
+      `    ${recursiveFuncName}(ref, source.len, source.ptr, 0);`,
       '    return ();',
       '}',
     ].join('\n');
-    this.addImports(targetElmType, sourceElmType);
-    const funcInfo: GeneratedFunctionInfo = {
-      name: funcName,
-      code: code,
-      functionsCalled: [],
-    };
-    return funcInfo;
+
+    return { name: funcName, code: code, functionsCalled: [...requiredFunctions, dynArrayLength] };
   }
 
-  private generateDynCopyInstructions(
-    targetElmType: TypeNode,
-    sourceElmType: TypeNode,
-    funcsCalled: FunctionDefinition[],
-  ): string {
-    if (sourceElmType instanceof IntType && targetElmType instanceof IntType) {
-      const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-      funcsCalled.push(writeDef);
+  private createStaticToStaticCopyCode(
+    targetType: ArrayType,
+    sourceType: ArrayType,
+  ): [(index: number, offset: number) => string, CairoFunctionDefinition[]] {
+    const targetElementT = targetType.elementT;
+    const sourceElementT = sourceType.elementT;
+
+    if (targetElementT instanceof IntType) {
+      assert(sourceElementT instanceof IntType);
+      const writeToStorage = this.storageWriteGen.getOrCreateFuncDef(targetElementT);
+      if (targetElementT.nBits === sourceElementT.nBits) {
+        return [
+          (index, offset) =>
+            `${writeToStorage.name}(${add('storage_loc', offset)}, arg[${index}]);`,
+          [writeToStorage],
+        ];
+      }
+      if (targetElementT.signed) {
+        const convertionFunc = this.requireImport(
+          'warplib.math.int_conversions',
+          `warp_int${sourceElementT.nBits}_to_int${targetElementT.nBits}`,
+        );
+        return [
+          (index, offset) =>
+            [
+              `    let (arg_${index}) = ${convertionFunc.name}(arg[${index}]);`,
+              `    ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});`,
+            ].join('\n'),
+          [writeToStorage, convertionFunc],
+        ];
+      }
+      const toUintFunc = this.requireImport('warplib.math.utils', 'felt_to_uint256');
       return [
-        sourceElmType.signed
-          ? `    let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0]);`
-          : `    let (val) = felt_to_uint256(ptr[0]);`,
-        `    ${writeDef.name}(storage_loc, val);`,
-      ].join('\n');
-    } else if (targetElmType instanceof FixedBytesType && sourceElmType instanceof FixedBytesType) {
-      const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
-      funcsCalled.push(writeDef);
-      return [
-        targetElmType.size === 32
-          ? `    let (val) = warp_bytes_widen_256(ptr[0], ${
-              (targetElmType.size - sourceElmType.size) * 8
-            });`
-          : `    let (val) = warp_bytes_widen(ptr[0], ${
-              (targetElmType.size - sourceElmType.size) * 8
-            });`,
-        `    ${writeDef.name}(storage_loc, val);`,
-      ].join('\n');
-    } else {
-      return isDynamicStorageArray(targetElmType)
-        ? `    let (ref_name) = readId(storage_loc);
-          ${this.getOrCreate(targetElmType, sourceElmType)}(ref_name, ptr[0]);`
-        : `    ${this.getOrCreate(targetElmType, sourceElmType)}(storage_loc, ptr[0]);`;
+        (index, offset) =>
+          [
+            `    let (arg_${index}) = ${toUintFunc.name}(arg[${index}]);`,
+            `    ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});`,
+          ].join('\n'),
+        [writeToStorage, toUintFunc],
+      ];
     }
+
+    if (targetElementT instanceof FixedBytesType) {
+      assert(sourceElementT instanceof FixedBytesType);
+      const writeToStorage = this.storageWriteGen.getOrCreateFuncDef(targetElementT);
+      if (targetElementT.size > sourceElementT.size) {
+        const widenFunc = this.requireImport(
+          'warplib.math.bytes_conversions',
+          `warp_bytes_widen${targetElementT.size === 32 ? '_256' : ''}`,
+        );
+        return [
+          (index, offset) =>
+            [
+              `    let (arg_${index}) = ${widenFunc.name}(arg[${index}], ${
+                (targetElementT.size - sourceElementT.size) * 8
+              });`,
+              `    ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});`,
+            ].join('\n'),
+          [writeToStorage, widenFunc],
+        ];
+      }
+      return [
+        (index, offset) =>
+          `     ${writeToStorage.name}(${add('storage_loc', offset)}, arg[${index}]);`,
+        [writeToStorage],
+      ];
+    }
+
+    const auxFunc = this.getOrCreateFuncDef(targetElementT, sourceElementT);
+    return [
+      isDynamicStorageArray(targetElementT)
+        ? (index, offset) =>
+            [
+              `    let (ref_${index}) = readId(${add('storage_loc', offset)});`,
+              `    ${auxFunc.name}(ref_${index}, arg[${index}]);`,
+            ].join('\n')
+        : (index, offset) => `    ${auxFunc.name}(${add('storage_loc', offset)}, arg[${index}]);`,
+      [auxFunc],
+    ];
   }
 
-  addImports(targetElmType: TypeNode, sourceElmType: TypeNode): void {
+  private createStaticToDynamicCopyCode(
+    targetType: ArrayType,
+    sourceType: ArrayType,
+  ): [(index: number) => string, CairoFunctionDefinition[]] {
+    const targetElmType = targetType.elementT;
+    const sourceElmType = sourceType.elementT;
+
     if (targetElmType instanceof IntType) {
       assert(sourceElmType instanceof IntType);
-      if (targetElmType.nBits > sourceElmType.nBits && targetElmType.signed) {
-        this.requireImport(
-          'warplib.maths.int_conversions',
+      const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType, targetType);
+      const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
+      if (targetElmType.nBits === sourceElmType.nBits) {
+        return [
+          (index) =>
+            [
+              `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+              `    ${writeDef}(storage_loc${index}, arg[${index}]);`,
+            ].join('\n'),
+          [arrayDef, writeDef],
+        ];
+      }
+      if (targetElmType.signed) {
+        const conversionFunc = this.requireImport(
+          'warplib.math.int_conversions',
           `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
         );
-      } else {
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+        return [
+          (index) =>
+            [
+              `    let (arg_${index}) = ${conversionFunc}(arg[${index}]);`,
+              `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+              `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
+            ].join('\n'),
+          [arrayDef, writeDef, conversionFunc],
+        ];
       }
-    } else if (targetElmType instanceof FixedBytesType) {
-      this.requireImport(
-        'warplib.maths.bytes_conversions',
-        targetElmType.size === 32 ? 'warp_bytes_widen_256' : 'warp_bytes_widen',
-      );
+      const toUintFunc = this.requireImport('warplib.math.utils', 'felt_to_uint256');
+      return [
+        (index) =>
+          [
+            `    let (arg_${index}) = ${toUintFunc.name}(arg[${index}]);`,
+            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
+          ].join('\n'),
+        [arrayDef, writeDef, toUintFunc],
+      ];
     }
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+
+    if (targetElmType instanceof FixedBytesType) {
+      assert(sourceElmType instanceof FixedBytesType);
+      const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType, targetType);
+      const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
+
+      if (targetElmType.size > sourceElmType.size) {
+        const widenFunc = this.requireImport(
+          'warplib.math.bytes_conversions',
+          `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
+        );
+        const bits = (targetElmType.size - sourceElmType.size) * 8;
+        return [
+          (index) =>
+            [
+              `    let (arg_${index}) = ${widenFunc}(arg[${index}], ${bits});`,
+              `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+              `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
+            ].join('\n'),
+          [arrayDef, writeDef, widenFunc],
+        ];
+      }
+      return [
+        (index) =>
+          [
+            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `    ${writeDef.name}(storage_loc${index}, arg[${index}]);`,
+          ].join('\n'),
+        [arrayDef, writeDef],
+      ];
+    }
+
+    const sourceSize = sourceType.size;
+    assert(sourceSize !== undefined);
+
+    const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType, targetType);
+    const auxFunc = this.getOrCreateFuncDef(targetElmType, sourceElmType);
+    const [_dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(targetElmType);
+    if (isDynamicStorageArray(targetElmType)) {
+      return [
+        (index) =>
+          [
+            `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+            `     let (ref_${index}) = readId(storage_loc${index});`,
+            // TODO: Potential bug here: when array size is reduced, remaining elements must be
+            // deleted. Investigate
+            `     ${dynArrayLength.name}.write(ref_${index}, ${uint256(sourceSize)});`,
+            `     ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}]);`,
+          ].join('\n'),
+        [arrayDef, auxFunc, dynArrayLength],
+      ];
+    }
+    return [
+      (index) =>
+        [
+          `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
+          `    ${auxFunc.name}(storage_loc${index}, arg[${index}]);`,
+        ].join('\n'),
+      [arrayDef, auxFunc],
+    ];
   }
+
+  private createDyamicToDynamicCopyCode(
+    targetType: ArrayType,
+    sourceType: ArrayType,
+  ): [() => string, CairoFunctionDefinition[]] {
+    const targetElmType = targetType.elementT;
+    const sourceElmType = sourceType.elementT;
+
+    const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
+
+    if (targetElmType instanceof IntType) {
+      assert(sourceElmType instanceof IntType);
+      const convertionFunc = targetElmType.signed
+        ? this.requireImport(
+            'warplib.math.int_conversions',
+            `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
+          )
+        : this.requireImport('warplib.math.utils', 'felt_to_uint256');
+      return [
+        () =>
+          [
+            sourceElmType.signed
+              ? `    let (val) = ${convertionFunc.name}(ptr[0]);`
+              : `    let (val) = felt_to_uint256(ptr[0]);`,
+            `    ${writeDef.name}(storage_loc, val);`,
+          ].join('\n'),
+        [writeDef, convertionFunc],
+      ];
+    }
+
+    if (targetElmType instanceof FixedBytesType) {
+      assert(sourceElmType instanceof FixedBytesType);
+      const widenFunc = this.requireImport(
+        'warplib.math.bytes_conversions',
+        `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
+      );
+      const bits = (targetElmType.size - sourceElmType.size) * 8;
+      return [
+        () =>
+          [
+            `   let (val) = ${widenFunc.name}(ptr[0], ${bits});`,
+            `   ${writeDef.name}(storage_loc, val);`,
+          ].join('\n'),
+        [writeDef, widenFunc],
+      ];
+    }
+
+    const auxFunc = this.getOrCreateFuncDef(targetType, sourceType);
+    return [
+      isDynamicStorageArray(targetElmType)
+        ? () =>
+            [`let (ref_name) = readId(storage_loc)`, `${auxFunc.name}(ref_name, ptr[0]);`].join(
+              '\n',
+            )
+        : () => `${auxFunc.name}(storage_loc, ptr[0]);`,
+      [auxFunc],
+    ];
+  }
+}
+
+function checkSizes(targetType: TypeNode, sourceType: TypeNode): boolean {
+  const targetBaseType = getBaseType(targetType);
+  const sourceBaseType = getBaseType(sourceType);
+  if (targetBaseType instanceof IntType && sourceBaseType instanceof IntType) {
+    return (
+      (targetBaseType.nBits > sourceBaseType.nBits && sourceBaseType.signed) ||
+      (!targetBaseType.signed && targetBaseType.nBits === 256 && 256 > sourceBaseType.nBits)
+    );
+  }
+  if (targetBaseType instanceof FixedBytesType && sourceBaseType instanceof FixedBytesType) {
+    return targetBaseType.size > sourceBaseType.size;
+  }
+  return false;
+}
+
+function checkDims(targetType: TypeNode, sourceType: TypeNode): boolean {
+  const targetArray = generalizeType(targetType)[0];
+  const sourceArray = generalizeType(sourceType)[0];
+
+  if (targetArray instanceof ArrayType && sourceArray instanceof ArrayType) {
+    const targetArrayElm = generalizeType(targetArray.elementT)[0];
+    const sourceArrayElm = generalizeType(sourceArray.elementT)[0];
+
+    if (targetArray.size !== undefined && sourceArray.size !== undefined) {
+      if (targetArray.size > sourceArray.size) {
+        return true;
+      } else if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
+        return checkDims(targetArrayElm, sourceArrayElm);
+      } else {
+        return false;
+      }
+    } else if (targetArray.size === undefined && sourceArray.size !== undefined) {
+      return true;
+    } else if (targetArray.size === undefined && sourceArray.size === undefined)
+      if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
+        return checkDims(targetArrayElm, sourceArrayElm);
+      }
+  }
+  return false;
 }
