@@ -73,7 +73,6 @@ import { printCompileErrors, runSanityCheck } from './utils/utils';
 type CairoSource = [file: string, source: string];
 
 export function transpile(ast: AST, options: WarpCompilationOptions & PrintOptions): CairoSource[] {
-  ast.setMangleFunctionNames(options.enableOverloading ?? false);
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
@@ -84,7 +83,6 @@ export function transpile(ast: AST, options: WarpCompilationOptions & PrintOptio
 }
 
 export function transform(ast: AST, options: WarpCompilationOptions & PrintOptions): CairoSource[] {
-  ast.setMangleFunctionNames(options.enableOverloading ?? false);
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),

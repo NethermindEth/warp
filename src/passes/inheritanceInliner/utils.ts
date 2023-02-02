@@ -3,9 +3,11 @@ import {
   ASTNode,
   EmitStatement,
   EventDefinition,
+  ExternalReferenceType,
   FunctionDefinition,
   Identifier,
   IdentifierPath,
+  ImportDirective,
   InheritanceSpecifier,
   MemberAccess,
   ModifierDefinition,
@@ -125,6 +127,20 @@ export function fixSuperReference(
     if (n instanceof MemberAccess && isSuperAccess(n)) {
       const superFunc = findSuperReferenceNode(n.memberName, base, contract);
       n.referencedDeclaration = superFunc.id;
+    }
+  });
+}
+
+export function fixIdentifiers(node: ASTNode): void {
+  node.walk((n) => {
+    if (
+      n instanceof Identifier &&
+      n.vIdentifierType === ExternalReferenceType.UserDefined &&
+      (n.vReferencedDeclaration instanceof VariableDeclaration ||
+        (n.vReferencedDeclaration instanceof FunctionDefinition &&
+          !(n.parent instanceof ImportDirective)))
+    ) {
+      n.name = n.vReferencedDeclaration.name;
     }
   });
 }

@@ -103,7 +103,6 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     contracts: {},
     sources: {},
   });
-  ast.setMangleFunctionNames(options.enableOverloading ?? false);
 
   addPragmaDirective(options.solcVersion ?? defaultSolcVersion, sourceUint, ast);
 

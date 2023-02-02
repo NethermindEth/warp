@@ -216,8 +216,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       this.addUnsupported(`Receive functions are not supported`, node);
     }
 
-    this.checkOverloadedFunctions(node, ast);
-
     //checks for the pattern if "this" keyword is used to call the external functions during the contract construction
     this.checkExternalFunctionCallWithThisOnConstruction(node);
 
@@ -284,57 +282,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         return;
       }
       this.functionArgsCheck(type.elementT, ast, externallyVisible, dataLocation, node);
-    }
-  }
-
-  private funcnameToContractSet: Map<string, Set<FunctionDefinition>> = new Map();
-
-  // Checks whether a function is overloaded
-  // In the case of free functions we do a check which may be a false positive
-  private checkOverloadedFunctions(node: FunctionDefinition, ast: AST) {
-    // If we are mangling function names then we don't need to check for
-    // overloaded functions
-    if (ast.mangleFunctionNames) return;
-    // If this is undefined then the function is a free function.
-    const contractDef = node.getClosestParentByType(ContractDefinition);
-
-    if (!this.funcnameToContractSet.has(node.name)) {
-      this.funcnameToContractSet.set(node.name, new Set([node]));
-      return;
-    }
-    // We know it will be a populated Set by the above if statement
-    const definitionSet = this.funcnameToContractSet.get(node.name) ?? new Set();
-    for (const prevDefinition of definitionSet) {
-      const prevDefintionContractDef = prevDefinition.getClosestParentByType(ContractDefinition);
-      // If the signatures are the same then this is not an instnace of overloading
-      if (
-        ast.inference.signature(prevDefinition, ABIEncoderVersion.V2) ===
-        ast.inference.signature(node, ABIEncoderVersion.V2)
-      ) {
-        continue;
-      }
-      if (!contractDef || !prevDefintionContractDef) {
-        this.addUnsupported(
-          `Function overloading is disabled by default.\n\n\t${node.name} may be overloaded.\n\nNote this check is an overaproximation for free functions and may produce false positives.\nPlease rename the functions or enable overloading via --enableOverloading.\nWarning: --enableOverloading will change the abi`,
-          node,
-        );
-        return;
-      } else {
-        if (
-          contractDef.linearizedBaseContracts.includes(prevDefintionContractDef.id) ||
-          prevDefintionContractDef.linearizedBaseContracts.includes(contractDef.id)
-        ) {
-          const contractClashString =
-            contractDef.id === prevDefintionContractDef.id
-              ? `contract ${contractDef.name}`
-              : `contract ${contractDef.name} and contract ${prevDefintionContractDef.name}`;
-          this.addUnsupported(
-            `Function overloading is disabled by default.\n\n\t${node.name} is overloaded in ${contractClashString}\n\nPlease rename the functions or enable overloading via --enableOverloading.\nWarning: --enableOverloading will change the abi`,
-            node,
-          );
-        }
-      }
-      definitionSet.add(node);
     }
   }
 

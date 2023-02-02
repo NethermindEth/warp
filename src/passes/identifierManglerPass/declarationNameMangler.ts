@@ -1,4 +1,5 @@
 import {
+  ABIEncoderVersion,
   ASTNode,
   ContractDefinition,
   ForStatement,
@@ -86,7 +87,7 @@ export class DeclarationNameMangler extends ASTMapper {
 
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
-    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
+    this.mangleOverloadedFuntions(node.vFunctions, ast);
     node.vContracts.forEach((n) => this.mangleContractDefinition(n, ast));
     this.commonVisit(node, ast);
   }
@@ -108,11 +109,6 @@ export class DeclarationNameMangler extends ASTMapper {
       });
     }
     this.commonVisit(node, ast);
-  }
-
-  // This strategy should allow checked demangling post transpilation for a more readable result
-  createNewFunctionName(fd: FunctionDefinition, ast: AST): string {
-    return !isNameless(fd) ? `${fd.name}_${safeCanonicalHash(fd, ast)}` : fd.name;
   }
 
   createNewVariableName(existingName: string): string {
@@ -143,15 +139,24 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (ast.mangleFunctionNames) {
-      node.name = this.createNewFunctionName(node, ast);
-    }
+    node.name = createNewFunctionName(node, ast);
   }
 
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {
     checkSourceTerms(node.name, node);
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
-    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
+    this.mangleOverloadedFuntions(node.vFunctions, ast);
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
   }
+
+  private mangleOverloadedFuntions(nodes: readonly FunctionDefinition[], ast: AST): void {
+    const nodesToMangle = nodes.filter(
+      (n) => nodes.filter((n_) => n_.name === n.name && n_.id !== n.id).length > 0,
+    );
+    nodesToMangle.forEach((n) => this.mangleFunctionDefinition(n, ast));
+  }
+}
+// This strategy should allow checked demangling post transpilation for a more readable result
+export function createNewFunctionName(fd: FunctionDefinition, ast: AST): string {
+  return !isNameless(fd) ? `${fd.name}_${safeCanonicalHash(fd, ast)}` : fd.name;
 }

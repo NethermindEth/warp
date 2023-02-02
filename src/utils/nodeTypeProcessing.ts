@@ -318,20 +318,9 @@ export function safeGetNodeTypeInCtx(
 }
 
 export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
-  const hasMappingArg = f.vParameters.vParameters.some((p) =>
-    hasMapping(safeGetNodeType(p, ast.inference)),
-  );
-  if (hasMappingArg) {
-    const typeString = `${f.name}(${f.vParameters.vParameters.map((p) => p.typeString).join(',')})`;
-    const hash = createKeccakHash('keccak256')
-      .update(typeString)
-      .digest('hex')
-      .slice(2)
-      .slice(0, 4);
-    return hash;
-  } else {
-    return ast.inference.signatureHash(f, ABIEncoderVersion.V2);
-  }
+  const typeString = `${f.name}(${f.vParameters.vParameters.map((p) => p.typeString).join(',')})`;
+  const hash = createKeccakHash('keccak256').update(typeString).digest('hex').slice(2).slice(0, 4);
+  return hash;
 }
 
 /**

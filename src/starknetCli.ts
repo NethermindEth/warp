@@ -249,7 +249,6 @@ export async function runStarknetCallOrInvoke(
       options.function,
       options.use_cairo_abi,
       options.inputs,
-      options.enableOverloading,
     );
     inputs = inputs ? `--inputs ${inputs}` : inputs;
   } catch (e) {

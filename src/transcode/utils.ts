@@ -15,6 +15,7 @@ export type SolFuncType = {
   outputs: SolParamType[];
   stateMutability: 'payable' | 'pure' | 'view';
   type: 'function';
+  overloaded: boolean;
 };
 
 export type SolConstructorType = {
@@ -176,6 +177,7 @@ export async function selectSignature(
       outputs: [],
       stateMutability: constructorsAbi[0].stateMutability,
       name: 'constructor',
+      overloaded: false,
     };
   }
 
@@ -188,7 +190,11 @@ export async function selectSignature(
     throw new CLIError(`No function in abi with name ${funcName}`);
   }
 
-  if (matches.length === 1) return matches[0];
+  if (matches.length === 1)
+    return {
+      ...matches[0],
+      overloaded: false,
+    };
 
   const choice = await prompts({
     type: 'select',
@@ -197,7 +203,10 @@ export async function selectSignature(
     choices: matches.map((func) => ({ title: func.name, value: func })),
   });
 
-  return choice.func;
+  return {
+    ...choice.func,
+    overloaded: true,
+  };
 }
 
 export function decodedOutputsToString(outputs: Result): string {
