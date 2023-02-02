@@ -15,7 +15,6 @@ export function isValidSolFile(path: string, printError = true): boolean {
     if (printError) logError(`${path} is not a file`);
     return false;
   }
-
   if (!path.endsWith('.sol')) {
     if (printError) logError(`${path} is not a solidity source file`);
     return false;
@@ -89,9 +88,10 @@ export function outputResult(
     );
     fs.outputFileSync(fullCodeOutPath, code);
 
-    if (options.formatCairo /* || options.dev : Cairo-format is disabled, as it has a bug */) {
-      const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-      execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
-    }
+    // Cairo-format is disabled, as it has a bug
+    // if (options.formatCairo || options.dev) {
+    //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+    //   execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
+    // }
   }
 }
