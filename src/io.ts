@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
-import { execSync } from 'child_process';
 import { AST } from './ast/ast';
 
 export function isValidSolFile(path: string, printError = true): boolean {
