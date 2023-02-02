@@ -315,7 +315,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       }
       if (!contractDef || !prevDefintionContractDef) {
         this.addUnsupported(
-          `Function overloading is disabled by default.\n\n\t${node.name} may be overloaded.\n\nNote this check is an overaproximation for free functions and may produce false positives.\nPlease rename the functions or enable overloading via --enableOverloading.\nWarning: --enableOverloading will change the abi.`,
+          `Function overloading is disabled by default.\n\n\t${node.name} may be overloaded.\n\nNote this check is an overaproximation for free functions and may produce false positives.\nPlease rename the functions or enable overloading via --enableOverloading.\nWarning: --enableOverloading will change the abi`,
           node,
         );
         return;
@@ -329,7 +329,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
               ? `contract ${contractDef.name}`
               : `contract ${contractDef.name} and contract ${prevDefintionContractDef.name}`;
           this.addUnsupported(
-            `Function overloading is disabled by default.\n\n\t${node.name} is overloaded in ${contractClashString}`,
+            `Function overloading is disabled by default.\n\n\t${node.name} is overloaded in ${contractClashString}\n\nPlease rename the functions or enable overloading via --enableOverloading.\nWarning: --enableOverloading will change the abi`,
             node,
           );
         }
