@@ -548,20 +548,12 @@ export function getSourceFromLocations(
   return filteredLines.join('');
 }
 
-export function callClassHashScript(filePath: string): string {
+export function runStarkNetClassHash(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
-  const classHashScriptPath = path.resolve(
-    __dirname,
-    '..',
-    '..',
-    'starknet-scripts',
-    'compute_class_hash.py',
-  );
-  const classHash = execSync(`${warpVenvPrefix} python ${classHashScriptPath} ${filePath}`)
-    .toString()
-    .trim();
+
+  const classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
   if (classHash === undefined) {
-    throw new Error(`Cannot calculate class hash.`);
+    throw new Error(`starknet-class-hash failed`);
   }
   return classHash;
 }

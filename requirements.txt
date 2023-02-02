@@ -2,7 +2,6 @@ wheel
 flask[async]
 flask-cors >= 3.0.10
 # Required by the testnet
-cairo-lang==0.10.0
+cairo-lang==0.10.3
 # Requrired by the cli test
-# starknet-devnet==0.4.4
-# enable above after upgrade to 10.3 is done
+starknet-devnet==0.4.4

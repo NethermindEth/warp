@@ -11,7 +11,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
 env:
-  CAIRO_LANG_VERSION: 0.10.0
+  CAIRO_LANG_VERSION: 0.10.3
 
 jobs:
   semantic_test:
