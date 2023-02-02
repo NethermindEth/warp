@@ -11,6 +11,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CAIRO_LANG_VERSION: 0.10.3
