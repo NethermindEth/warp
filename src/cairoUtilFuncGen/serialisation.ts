@@ -2,7 +2,6 @@ import {
   CairoFelt,
   CairoStaticArray,
   CairoStruct,
-  CairoTuple,
   CairoType,
   WarpLocation,
 } from '../utils/cairoTypeSystem';
@@ -39,9 +38,6 @@ enum Read {
 function producePackExpression(type: CairoType): (string | Read)[] {
   if (type instanceof WarpLocation) return [Read.Id];
   if (type instanceof CairoFelt) return [Read.Felt];
-  if (type instanceof CairoTuple) {
-    return ['(', ...type.members.flatMap((member) => [...producePackExpression(member), ',']), ')'];
-  }
   if (type instanceof CairoStaticArray) {
     return [
       '(',

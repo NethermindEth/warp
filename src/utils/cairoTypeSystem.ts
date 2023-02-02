@@ -225,35 +225,12 @@ export class CairoDynArray extends CairoStruct {
   }
 }
 
-export class CairoTuple extends CairoType {
-  constructor(public members: CairoType[]) {
-    super();
-  }
-  get fullStringRepresentation(): string {
-    return `[Tuple]${this.members.map((type) => `(${type.fullStringRepresentation})`)}`;
-  }
-  toString(): string {
-    return `(${this.members.map((m) => m.toString()).join(', ')})`;
-  }
-  get typeName(): string {
-    return `${this.members.map((m) => m.typeName).join('x')}`;
-  }
-  get width(): number {
-    return this.members.reduce((acc, t) => acc + t.width, 0);
-  }
-  serialiseMembers(name: string): string[] {
-    return this.members.flatMap((memberType, index) =>
-      memberType.serialiseMembers(`${name}[${index}]`),
-    );
-  }
-}
-
 export class CairoStaticArray extends CairoType {
   constructor(public type: CairoType, public size: number) {
     super();
   }
   get fullStringRepresentation(): string {
-    return `[Tuple]${`(${this.type.fullStringRepresentation})`.repeat(this.size)}`;
+    return `[StaticArray][${this.size}][${this.type.fullStringRepresentation}]`;
   }
   toString(): string {
     return (
