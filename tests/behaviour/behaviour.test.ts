@@ -17,7 +17,8 @@ import { expectations } from './expectations';
 import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
-import { decodeEventLog, EventItem } from '../../src/utils/event';
+import { EventItem, decodeWarpEvent } from '../../src/utils/event';
+import { EventFragment, JsonFragment } from '@ethersproject/abi';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -242,12 +243,8 @@ async function behaviourTest(
           `${name} - Return data should match expectation`,
         ).to.deep.equal(replaced_expectedResult);
         if (events !== undefined) {
-          events.forEach((e) => {
-            e.data = e.data.map((n) => `0x${BigInt(n).toString(16)}`);
-            e.keys = e.keys.map((n) => `0x${BigInt(n).toString(16)}`);
-          });
           expect(
-            decodeEventLog(response.events as EventItem[]),
+            response.events as EventItem[],
             `${name} - Events should match events expectation`,
           ).to.deep.equal(events);
         }

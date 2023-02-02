@@ -1,46 +1,50 @@
 import createKeccakHash from 'keccak';
-import { EventFragment, Result, ParamType } from 'ethers/lib/utils';
-import { safeNext, SolValue } from '../transcode/utils';
-import { makeIterator } from '../transcode/encode';
-import { warpInterface } from '../transcode/interface';
+import { EventFragment, Result } from 'ethers/lib/utils';
+import { WarpInterface } from '../transcode/interface';
 import { toUintOrFelt } from './export';
 
 export type EventItem = { data: string[]; keys: string[]; order?: number };
 
 export function decodeWarpEvent(fragment: EventFragment | string, warpEvent: EventItem): Result {
-  // reverse 248 bit packing - concat string
-  const data = warpEvent.data.join('');
-  const result = warpInterface.decodeEventLog(fragment, data, warpEvent.keys);
+  warpEvent = join248bitChunks(warpEvent); // reverse 248 bit packing
 
+  // Remove leading 0x from each element and join them
+  const data = `0x${warpEvent.data.map((x) => x.slice(2)).join('')}`;
+
+  const result = new WarpInterface(fragment).decodeEventLog(fragment, data, warpEvent.keys);
   return result;
 }
 
 export function encodeWarpEvent(fragment: EventFragment, values: argType[], order = 0): EventItem {
-  const { data, topics }: { data: string; topics: string[] } = warpInterface.encodeEventLog(
+  const { data, topics }: { data: string; topics: string[] } = new WarpInterface(
     fragment,
-    values,
-  );
+  ).encodeEventLog(fragment, values);
 
-  return { order, keys: topics, data: data.split('') };
+  console.log('data', data);
+
+  const topicFlatHex = '0x' + topics.map((x) => x.slice(2).padStart(64, '0')).join('');
+  const topicItems248: string[] = splitInto248BitChunks(topicFlatHex.slice(2));
+  const dataItems248: string[] = splitInto248BitChunks(data.slice(2));
+
+  console.log(dataItems248);
+
+  return { order, keys: topicItems248, data: dataItems248 };
 }
 
 export function splitInto248BitChunks(data: string): string[] {
+  if (data.startsWith('0x')) data = data.slice(2);
+  if (data === '') return [];
   const paddedData = data.padEnd(data.length + (62 - (data.length % 62)), '0');
 
   const result = [];
   // get number from every 62 hex digits chunk
   for (let i = 0; i < paddedData.length; i += 62) {
-    result.push(`${paddedData.slice(i, i + 62)}`);
+    result.push(BigInt(`0x${paddedData.slice(i, i + 62)}`).toString());
   }
-
-  if (paddedData.length !== data.length && BigInt(result.slice(-1)[0]) === 0n) {
-    result.pop();
-  }
-
   return result;
 }
 
-export function join248bitChunks(eventsLog: EventItem[]): EventItem[] {
+export function join248bitChunks(eventLog: EventItem): EventItem {
   // numbers to hex in 248 bits
   const numberToHex248 = (num: number | bigint | string): string => {
     return `${BigInt(num).toString(16).padStart(62, '0')}`;
@@ -67,14 +71,15 @@ export function join248bitChunks(eventsLog: EventItem[]): EventItem[] {
     return result;
   };
 
-  const events: EventItem[] = eventsLog.map((event) => {
-    return {
-      order: event.order,
-      keys: decode248BitEncoding(event.keys).map((num) => `0x${num.toString(16)}`),
-      data: decode248BitEncoding(event.data).map((num) => `0x${num.toString(16)}`),
-    };
-  });
-  return events;
+  return {
+    order: eventLog.order,
+    keys: decode248BitEncoding(eventLog.keys).map(
+      (num) => `0x${num.toString(16).padStart(64, '0')}`,
+    ),
+    data: decode248BitEncoding(eventLog.data).map(
+      (num) => `0x${num.toString(16).padStart(64, '0')}`,
+    ),
+  };
 }
 
 export type argType = string | argType[];

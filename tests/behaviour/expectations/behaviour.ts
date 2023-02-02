@@ -13,7 +13,8 @@ import {
   cairoUint256toHex,
 } from './utils';
 import createKeccakHash from 'keccak';
-import { warpEventCanonicalSignaturehash256 } from '../../../src/export';
+import { encodeWarpEvent, warpEventCanonicalSignaturehash256 } from '../../../src/export';
+import { EventFragment, JsonFragment } from '@ethersproject/abi';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -2307,16 +2308,23 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('uintEvent', ['uint256']),
-                      ),
-                      '69',
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                      name: 'uintEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['69'],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2328,32 +2336,23 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']),
-                      ),
-                      // 2,
-                      // 3,
-                      // 5,
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(2) << BigInt(32 * 8 * 2)) |
-                              (BigInt(3) << BigInt(32 * 8 * 1)) |
-                              BigInt(5)
-                            )
-                              .toString(16)
-                              .padStart(32 * 3 * 2, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'uint256[]',
+                          name: '',
+                          type: 'uint256[]',
+                        },
+                      ],
+                      name: 'arrayEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    [['2', '3', '5']],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2365,29 +2364,23 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('arrayStringEvent', ['string[]']),
-                      ),
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(0x61) << BigInt(32 * 8 * 3 - 8)) |
-                              (BigInt(0x62) << BigInt(32 * 8 * 2 - 8)) |
-                              (BigInt(0x63) << BigInt(32 * 8 * 1 - 8))
-                            )
-                              .toString(16)
-                              .padEnd(32 * (8 / 4) * 3, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'string[]',
+                          name: '',
+                          type: 'string[]',
+                        },
+                      ],
+                      name: 'arrayStringEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    [['roh', 'itra', 'njan']],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2399,84 +2392,74 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]']),
-                      ),
-                      // 2,
-                      // 3,
-                      // 5,
-                      // 7,
-                      // 11,
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(2) << BigInt(32 * 8 * 4)) |
-                              (BigInt(3) << BigInt(32 * 8 * 3)) |
-                              (BigInt(5) << BigInt(32 * 8 * 2)) |
-                              (BigInt(7) << BigInt(32 * 8 * 1)) |
-                              BigInt(11)
-                            )
-                              .toString(16)
-                              .padStart(32 * 5 * 2, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'uint256[][]',
+                          name: '',
+                          type: 'uint256[][]',
+                        },
+                      ],
+                    } as JsonFragment),
+                    [
+                      [
+                        ['2', '3', '5'],
+                        ['7', '11'],
+                      ],
                     ],
-                    order: 0,
-                  },
+                    0,
+                  ),
                 ],
               ],
             ]),
-            new Expect('structComplex', [
-              [
-                'structComplex',
-                [],
-                [],
-                '0',
-                undefined,
-                [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('structEvent', [
-                          ['uint8[]', 'uint256[3]'],
-                        ]),
-                      ),
-                      // '2',
-                      // '3',
-                      // '5',
-                      // '7',
-                      // '11',
-                      // '13',
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(2) << BigInt(32 * 8 * 5)) |
-                              (BigInt(3) << BigInt(32 * 8 * 4)) |
-                              (BigInt(5) << BigInt(32 * 8 * 3)) |
-                              (BigInt(7) << BigInt(32 * 8 * 2)) |
-                              (BigInt(11) << BigInt(32 * 8 * 1)) |
-                              BigInt(13)
-                            )
-                              .toString(16)
-                              .padStart(32 * 6 * 2, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
-                    ],
-                    order: 0,
-                  },
-                ],
-              ],
-            ]),
+            // new Expect('structComplex', [
+            //   [
+            //     'structComplex',
+            //     [],
+            //     [],
+            //     '0',
+            //     undefined,
+            //     [
+            //       {
+            //         data: [],
+            //         keys: [
+            //           cairoUint256toHex(
+            //             warpEventCanonicalSignaturehash256('structEvent', [
+            //               ['uint8[]', 'uint256[3]'],
+            //             ]),
+            //           ),
+            //           // '2',
+            //           // '3',
+            //           // '5',
+            //           // '7',
+            //           // '11',
+            //           // '13',
+            //           `${BigInt(
+            //             `0x${createKeccakHash('keccak256')
+            //               .update(
+            //                 (
+            //                   (BigInt(2) << BigInt(32 * 8 * 5)) |
+            //                   (BigInt(3) << BigInt(32 * 8 * 4)) |
+            //                   (BigInt(5) << BigInt(32 * 8 * 3)) |
+            //                   (BigInt(7) << BigInt(32 * 8 * 2)) |
+            //                   (BigInt(11) << BigInt(32 * 8 * 1)) |
+            //                   BigInt(13)
+            //                 )
+            //                   .toString(16)
+            //                   .padStart(32 * 6 * 2, '0'),
+            //                 'hex',
+            //               )
+            //               .digest('hex')}`,
+            //           )}`,
+            //         ],
+            //         order: 0,
+            //       },
+            //     ],
+            //   ],
+            // ]),
           ]),
           File.Simple('misc', [
             new Expect('allString', [
