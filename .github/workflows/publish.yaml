@@ -17,7 +17,6 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: yarn install --frozen-lockfile
-      - run: FILTER=anonymous_parameters/func_override yarn test:behaviour
-      # - run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_KEY }}
+      - run: npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_KEY }}
