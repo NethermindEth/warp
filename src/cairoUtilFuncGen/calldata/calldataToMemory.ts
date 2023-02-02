@@ -3,7 +3,6 @@ import {
   DataLocation,
   ArrayType,
   Expression,
-  ASTNode,
   generalizeType,
   FunctionStateMutability,
   TypeNode,
@@ -11,7 +10,6 @@ import {
   StructDefinition,
   BytesType,
   StringType,
-  FunctionDefinition,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
@@ -27,16 +25,20 @@ import {
   isReferenceType,
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
+import { CairoFunctionDefinition } from '../../export';
+
+const IMPLICITS =
+  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
-  gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
+  public gen(node: Expression): FunctionCall {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
     const funcDef = this.getOrCreateFuncDef(type);
     return createCallToFunction(funcDef, [node], this.ast);
   }
 
-  private getOrCreateFuncDef(type: TypeNode) {
-    const key = `calldataToMemory(${type.pp()})`;
+  public getOrCreateFuncDef(type: TypeNode) {
+    const key = type.pp();
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
@@ -67,24 +69,17 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       type,
       (type) => this.createDynamicArrayCopyFunction(funcName, type),
       (type) => this.createStaticArrayCopyFunction(funcName, type),
-      (type) => this.createStructCopyFunction(funcName, type),
+      (type, def) => this.createStructCopyFunction(funcName, type, def),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
     return funcInfo;
   }
 
-  createDynamicArrayCopyFunction(
+  private createDynamicArrayCopyFunction(
     funcName: string,
     type: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-    );
     const elementT = getElementType(type);
     const size = getSize(type);
 
@@ -94,28 +89,30 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     const memoryElementWidth = CairoType.fromSol(elementT, this.ast).width;
 
     let copyCode: string;
-
+    let auxFunc: CairoFunctionDefinition;
     if (isReferenceType(elementT)) {
-      const recursiveFuncInfo = this.getOrCreate(elementT);
-      funcsCalled.push(...recursiveFuncInfo.functionsCalled);
+      const recursiveFunc = this.getOrCreateFuncDef(elementT);
       copyCode = [
         `let cdElem = calldata[0];`,
-        `let (mElem) = ${recursiveFuncInfo.name}(cdElem);`,
+        `let (mElem) = ${recursiveFunc.name}(cdElem);`,
         `dict_write{dict_ptr=warp_memory}(mem_start, mElem);`,
       ].join('\n');
+      auxFunc = recursiveFunc;
     } else if (memoryElementWidth === 2) {
       copyCode = [
         `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low);`,
         `dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high);`,
       ].join('\n');
+      auxFunc = this.requireImport('starkware.cairo.common.dict', 'dict_write');
     } else {
       copyCode = `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0]);`;
+      auxFunc = this.requireImport('starkware.cairo.common.dict', 'dict_write');
     }
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
+        `func ${funcName}_elem${IMPLICITS}(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
         `    alloc_locals;`,
         `    if (length == 0){`,
         `        return ();`,
@@ -123,7 +120,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         copyCode,
         `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1);`,
         `}`,
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `func ${funcName}${IMPLICITS}(calldata : ${callDataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (len256) = felt_to_uint256(calldata.len);`,
         `    let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)});`,
@@ -131,36 +128,36 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        auxFunc,
+      ],
     };
   }
-  createStaticArrayCopyFunction(funcName: string, type: ArrayType): GeneratedFunctionInfo {
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('warplib.memory', 'wm_alloc'),
-    );
 
+  private createStaticArrayCopyFunction(funcName: string, type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined);
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
     const memoryElementWidth = CairoType.fromSol(type.elementT, this.ast).width;
     const memoryOffsetMultiplier = memoryElementWidth === 1 ? '' : `* ${memoryElementWidth}`;
 
-    let copyCode: (index: number) => string;
-
     const loc = (index: number) =>
       index === 0 ? `mem_start` : `mem_start  + ${index}${memoryOffsetMultiplier}`;
+
+    let copyCode: (index: number) => string;
+    let funcCalls: CairoFunctionDefinition[] = [];
     if (isReferenceType(type.elementT)) {
-      const recursiveFuncInfo = this.getOrCreate(type.elementT);
-      funcsCalled.push(...recursiveFuncInfo.functionsCalled);
+      const recursiveFunc = this.getOrCreateFuncDef(type.elementT);
       copyCode = (index) =>
         [
           `let cdElem = calldata[${index}];`,
-          `let (mElem) = ${recursiveFuncInfo.name}(cdElem);`,
+          `let (mElem) = ${recursiveFunc.name}(cdElem);`,
           `dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem);`,
         ].join('\n');
+      funcCalls = [recursiveFunc];
     } else if (memoryElementWidth === 2) {
       copyCode = (index) =>
         [
@@ -174,72 +171,82 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `func ${funcName}${IMPLICITS}(calldata : ${callDataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)),
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        ...funcCalls,
+      ],
     };
   }
-  createStructCopyFunction(funcName: string, type: UserDefinedType): GeneratedFunctionInfo {
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('warplib.memory', 'wm_alloc'),
-    );
-    const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
+
+  private createStructCopyFunction(
+    funcName: string,
+    type: UserDefinedType,
+    structDef: StructDefinition,
+  ): GeneratedFunctionInfo {
+    const calldataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
-    const structDef = type.definition;
-    assert(structDef instanceof StructDefinition);
+    const [copyCode, funcCalls] = structDef.vMembers.reduce(
+      ([copyCode, funcCalls, offset], decl) => {
+        const type = safeGetNodeType(decl, this.ast.inference);
+
+        if (isReferenceType(type)) {
+          const recursiveFunc = this.getOrCreateFuncDef(type);
+          const code = [
+            `let (member_${decl.name}) = ${recursiveFunc.name}(calldata.${decl.name});`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}, memeber${
+              decl.name
+            });`,
+          ].join('\n');
+          return [[...copyCode, code], [...funcCalls, recursiveFunc], offset + 1];
+        }
+
+        // TODO: Specify size context?
+        const memberWidth = CairoType.fromSol(type, this.ast).width;
+        const code =
+          memberWidth === 1
+            ? [
+                `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset)}, calldata.${
+                  decl.name
+                }.low);`,
+                `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset + 1)}, calldata.${
+                  decl.name
+                }.high);`,
+              ].join('\n')
+            : `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset)}, calldata.${
+                decl.name
+              });`;
+        return [[...copyCode, code], funcCalls, offset + memberWidth];
+      },
+      [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
+    );
 
     let memOffset = 0;
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `func ${funcName}${IMPLICITS}(calldata : ${calldataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
-        ...structDef.vMembers.map((decl): string => {
-          const memberType = safeGetNodeType(decl, this.ast.inference);
-          if (isReferenceType(memberType)) {
-            const recursiveFuncInfo = this.getOrCreate(memberType);
-            funcsCalled.push(...recursiveFuncInfo.functionsCalled);
-            const code = [
-              `let (m${memOffset}) = ${recursiveFuncInfo.name}(calldata.${decl.name});`,
-              `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}, m${memOffset});`,
-            ].join('\n');
-            memOffset++;
-            return code;
-          } else {
-            const memberWidth = CairoType.fromSol(memberType, this.ast).width;
-            if (memberWidth === 2) {
-              return [
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset++)}, calldata.${
-                  decl.name
-                }.low);`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset++)}, calldata.${
-                  decl.name
-                }.high);`,
-              ].join('\n');
-            } else {
-              return `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset++)}, calldata.${
-                decl.name
-              });`;
-            }
-          }
-        }),
+        ...copyCode,
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('warplib.memory', 'wm_alloc'),
+        ...funcCalls,
+      ],
     };
   }
 }
-
-const implicits =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
