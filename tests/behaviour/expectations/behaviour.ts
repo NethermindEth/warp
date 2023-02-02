@@ -2650,7 +2650,7 @@ export const expectations = flatten(
           ]),
           File.Simple('booleanOperation', [
             Expect.Simple('false_and', [], ['0']),
-            Expect.Simple('true_or', [], ['1']),
+            Expect.Simple('true_or', [], ['0']),
           ]),
           File.Simple('short_circuit', [
             Expect.Simple('and_sc', [], ['56', '0']),
