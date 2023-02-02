@@ -4,11 +4,11 @@ pragma solidity ^0.8.10;
 
 contract WARP {
   function false_and() pure public returns (bool) {
-    return callNull();  // null at compile time
+    return callNull() && true;  // null
   }
 
   function true_or() pure public returns (bool) {
-    return callNull();  // null at compile time
+    return callNull() || false;  // null
   }
 
   function callNull() pure public returns (bool) {
