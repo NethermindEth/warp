@@ -24,7 +24,7 @@ import { AST } from '../ast/ast';
 import { printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { safeGetNodeType } from './nodeTypeProcessing';
-import { mangleStructName, narrowBigIntSafe } from './utils';
+import { mangleStructName, mapRange, narrowBigIntSafe } from './utils';
 
 export enum TypeConversionContext {
   MemoryAllocation,
@@ -71,7 +71,7 @@ export abstract class CairoType {
           tp.size,
           `Arrays of very large size (${tp.size.toString()}) are not supported`,
         );
-        return new CairoTuple(Array(narrowedLength).fill(elementType));
+        return new CairoStaticArray(elementType, narrowedLength);
       }
     } else if (tp instanceof BoolType) {
       return new CairoFelt();
@@ -225,26 +225,26 @@ export class CairoDynArray extends CairoStruct {
   }
 }
 
-export class CairoTuple extends CairoType {
-  constructor(public members: CairoType[]) {
+export class CairoStaticArray extends CairoType {
+  constructor(public type: CairoType, public size: number) {
     super();
   }
   get fullStringRepresentation(): string {
-    return `[Tuple]${this.members.map((type) => `(${type.fullStringRepresentation})`)}`;
+    return `[StaticArray][${this.size}][${this.type.fullStringRepresentation}]`;
   }
   toString(): string {
-    return `(${this.members.map((m) => m.toString()).join(', ')})`;
+    return (
+      `(${this.type.toString()}` + `${`, ` + this.type.toString()}`.repeat(this.size - 1) + `)`
+    );
   }
   get typeName(): string {
-    return `${this.members.map((m) => m.typeName).join('x')}`;
+    return `${this.type.typeName}` + `${`x` + this.type.typeName}`.repeat(this.size - 1);
   }
   get width(): number {
-    return this.members.reduce((acc, t) => acc + t.width, 0);
+    return this.type.width * this.size;
   }
   serialiseMembers(name: string): string[] {
-    return this.members.flatMap((memberType, index) =>
-      memberType.serialiseMembers(`${name}[${index}]`),
-    );
+    return mapRange(this.size, (n) => this.type.serialiseMembers(`${name}[${n}]`)).flat();
   }
 }
 
