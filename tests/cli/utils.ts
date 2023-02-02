@@ -6,6 +6,7 @@ export const GATEWAY_URL = 'http://127.0.0.1:5050';
 export const NETWORK = 'alpha-goerli';
 export const STARKNET_ACCOUNT_DIR = path.resolve(__dirname, '.');
 export const WARP_BIN = path.resolve(__dirname, '..', '..', 'bin', 'warp');
+export const NETWORK_OPTIONS = `--network ${NETWORK} --feeder_gateway_url ${GATEWAY_URL} --gateway_url ${GATEWAY_URL}`;
 
 export const TIME_LIMIT = 10 * 60 * 1000;
 export const TX_FEE_ETH_REGEX = /max_fee: (.*) ETH/g;

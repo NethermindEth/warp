@@ -12,13 +12,15 @@ interface AsyncTestCluster {
   dependencies: Map<string, string[]>;
 }
 
-export async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
+export async function sh(
+  cmd: string,
+): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   return new Promise(function (resolve, reject) {
     exec(cmd, (err, stdout, stderr) => {
       if (err) {
         reject(err);
       } else {
-        resolve({ stdout, stderr });
+        resolve({ stdout, stderr, exitCode: err.code });
       }
     });
   });

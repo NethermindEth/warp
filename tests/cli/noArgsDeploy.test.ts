@@ -4,19 +4,19 @@ import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import { sh } from '../util';
 import {
+  extractFromStdout,
+  mintEthToAccount,
   CONTRACT_ADDRESS_REGEX,
   CONTRACT_CLASS_REGEX,
-  extractFromStdout,
-  GATEWAY_URL,
   NETWORK,
+  NETWORK_OPTIONS,
+  STARKNET_ACCOUNT_DIR,
   TIME_LIMIT,
   TX_FEE_ETH_REGEX,
   TX_FEE_WEI_REGEX,
   TX_HASH_REGEX,
   WALLET,
   WARP_BIN,
-  STARKNET_ACCOUNT_DIR,
-  mintEthToAccount,
 } from './utils';
 
 const contractCairoFile = path.resolve(
@@ -33,6 +33,8 @@ const contractCairoFile = path.resolve(
 let contractClassHash: string;
 let contractAddress: string;
 
+const ACCOUNT0 = `--account_dir ${STARKNET_ACCOUNT_DIR} --account account_0`;
+
 describe('Manage starknet account', function () {
   this.timeout(TIME_LIMIT);
 
@@ -41,11 +43,11 @@ describe('Manage starknet account', function () {
       fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
     }
 
-    const { stdout, stderr } = await sh(
-      `${WARP_BIN} new_account --wallet ${WALLET} --network ${NETWORK} --feeder_gateway_url ${GATEWAY_URL} --account_dir ${STARKNET_ACCOUNT_DIR} --account account_0`,
+    const { stdout, exitCode } = await sh(
+      `${WARP_BIN} new_account ${NETWORK_OPTIONS} --wallet ${WALLET} ${ACCOUNT0}`,
     );
 
-    expect(stderr).to.be.empty;
+    expect(exitCode).to.eq(0);
     expect(stdout).to.not.be.empty;
 
     const starknet_open_zeppelin_accounts = JSON.parse(
@@ -79,11 +81,11 @@ describe('Manage starknet account', function () {
   });
 
   it('should deploy the starknet account', async () => {
-    const { stdout, stderr } = await sh(
-      `${WARP_BIN} deploy_account --wallet ${WALLET} --feeder_gateway_url ${GATEWAY_URL} --gateway_url ${GATEWAY_URL} --network ${NETWORK} --account_dir ${STARKNET_ACCOUNT_DIR} --account account_0`,
+    let { stdout, exitCode } = await sh(
+      `${WARP_BIN} deploy_account --wallet ${WALLET} ${NETWORK_OPTIONS} ${ACCOUNT0}`,
     );
 
-    expect(stderr).to.be.empty;
+    expect(exitCode).to.eq(0);
     expect(stdout).to.not.be.empty;
 
     const txFeeEth = extractFromStdout(stdout, TX_FEE_ETH_REGEX);
@@ -96,11 +98,9 @@ describe('Manage starknet account', function () {
     expect(contract_address).to.not.be.undefined;
     expect(txHash).to.not.be.undefined;
 
-    const res = await sh(
-      `${WARP_BIN} status ${txHash} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL}`,
-    );
+    const res = await sh(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
 
-    expect(res.stderr).to.be.empty;
+    expect(res.exitCode).to.eq(0);
     expect(res.stdout).to.not.be.empty;
 
     const response = JSON.parse(res.stdout);
@@ -112,15 +112,15 @@ describe('Transpile & compile constract', function () {
   this.timeout(TIME_LIMIT);
 
   it('should transpile the NoConstructor contract', async () => {
-    const { stdout, stderr } = await sh(
+    const { stdout, exitCode } = await sh(
       `${WARP_BIN} transpile --dev ${path.resolve(__dirname, 'noArgsConstructor.sol')}`,
     );
-    expect(stderr).to.be.empty;
+    expect(exitCode).to.eq(0);
     expect(stdout).to.be.empty;
 
     const res = await sh(`${WARP_BIN} compile ${contractCairoFile}`);
 
-    expect(res.stderr).to.be.empty;
+    expect(res.exitCode).to.eq(0);
     expect(res.stdout).to.not.be.empty;
   });
 });
@@ -131,11 +131,11 @@ describe('Declare the NoConstructor contract', function () {
   let txHash: string;
 
   it('should declare the ERC20 contract', async () => {
-    const { stdout, stderr } = await sh(
-      `${WARP_BIN} declare ${contractCairoFile} --wallet ${WALLET} --feeder_gateway_url ${GATEWAY_URL} --gateway_url ${GATEWAY_URL} --network ${NETWORK} --account_dir ${STARKNET_ACCOUNT_DIR} --account account_0`,
+    const { stdout, exitCode } = await sh(
+      `${WARP_BIN} declare ${contractCairoFile} --wallet ${WALLET} ${NETWORK_OPTIONS} ${ACCOUNT0}`,
     );
 
-    expect(stderr).to.be.empty;
+    expect(exitCode).to.eq(0);
 
     const txFeeEth = extractFromStdout(stdout, TX_FEE_ETH_REGEX);
     const txFeeWei = extractFromStdout(stdout, TX_FEE_WEI_REGEX);
@@ -151,11 +151,9 @@ describe('Declare the NoConstructor contract', function () {
   });
 
   this.afterAll('Declare transaction status', async () => {
-    const res = await sh(
-      `${WARP_BIN} status ${txHash} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL}`,
-    );
+    const res = await sh(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
 
-    expect(res.stderr).to.be.empty;
+    expect(res.exitCode).to.eq(0);
     expect(res.stdout).to.not.be.empty;
 
     const { tx_status } = JSON.parse(res.stdout);
@@ -169,11 +167,11 @@ describe('Deploy the NoConstructor contract', function () {
   let txHash: string;
 
   it('should deploy the ERC20 contract', async () => {
-    const { stdout, stderr } = await sh(
-      `${WARP_BIN} deploy ${contractCairoFile} --wallet ${WALLET} --feeder_gateway_url ${GATEWAY_URL} --gateway_url ${GATEWAY_URL} --network ${NETWORK} --account_dir ${STARKNET_ACCOUNT_DIR} --account account_0`,
+    const { stdout, exitCode } = await sh(
+      `${WARP_BIN} deploy ${contractCairoFile} --wallet ${WALLET} ${NETWORK_OPTIONS} ${ACCOUNT0}`,
     );
 
-    expect(stderr).to.be.empty;
+    expect(exitCode).to.eq(0);
 
     const txFeeEth = extractFromStdout(stdout, TX_FEE_ETH_REGEX);
     const txFeeWei = extractFromStdout(stdout, TX_FEE_WEI_REGEX);
@@ -188,11 +186,9 @@ describe('Deploy the NoConstructor contract', function () {
   });
 
   this.afterAll('Deploy transaction status', async () => {
-    const res = await sh(
-      `${WARP_BIN} status ${txHash} --network ${NETWORK} --gateway_url ${GATEWAY_URL} --feeder_gateway_url ${GATEWAY_URL}`,
-    );
+    const res = await sh(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
 
-    expect(res.stderr).to.be.empty;
+    expect(res.exitCode).to.eq(0);
     expect(res.stdout).to.not.be.empty;
 
     const response = JSON.parse(res.stdout);
