@@ -178,38 +178,40 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
 }
 
-export function runStarknetDeployAccount(options: IDeployAccountProps) {
-  if (options.wallet === undefined) {
-    logError(
-      `Error: AssertionError: --wallet must be specified with the "deploy_account" subcommand.`,
-    );
-    return;
-  }
-  if (options.network === undefined) {
-    logError(
-      `Error: Exception: network must be specified with the "deploy_account" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
-    );
-    return;
-  }
+export function runStarknetCommand(commandName: string) {
+  return (options: IDeployAccountProps) => {
+    if (options.wallet === undefined) {
+      logError(
+        `Error: AssertionError: --wallet must be specified with the "${commandName}" subcommand.`,
+      );
+      return;
+    }
+    if (options.network === undefined) {
+      logError(
+        `Error: Exception: network must be specified with the "${commandName}" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
+      );
+      return;
+    }
 
-  const account = options.account ? `--account ${options.account}` : '';
+    const account = options.account ? `--account ${options.account}` : '';
 
-  try {
-    execSync(
-      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${
-        options.network
-      } ${account} ${options.gateway_url ? `--gateway_url ${options.gateway_url}` : ''} ${
-        options.feeder_gateway_url ? `--feeder_gateway_url ${options.feeder_gateway_url}` : ''
-      } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
-        options.max_fee ? `--max_fee ${options.max_fee}` : ''
-      }`,
-      {
-        stdio: 'inherit',
-      },
-    );
-  } catch {
-    logError('starknet deploy failed');
-  }
+    try {
+      execSync(
+        `${warpVenvPrefix} starknet ${commandName} --wallet ${options.wallet} --network ${
+          options.network
+        } ${account} ${options.gateway_url ? `--gateway_url ${options.gateway_url}` : ''} ${
+          options.feeder_gateway_url ? `--feeder_gateway_url ${options.feeder_gateway_url}` : ''
+        } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
+          options.max_fee ? `--max_fee ${options.max_fee}` : ''
+        }`,
+        {
+          stdio: 'inherit',
+        },
+      );
+    } catch {
+      logError('starknet declare account failed');
+    }
+  };
 }
 
 export async function runStarknetCallOrInvoke(
