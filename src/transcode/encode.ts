@@ -16,6 +16,7 @@ export async function encodeInputs(
   func: string,
   useCairoABI: boolean,
   rawInputs?: string[],
+  enableOverloading?: boolean,
 ): Promise<[string, string]> {
   if (useCairoABI) {
     const inputs = rawInputs ? `${rawInputs.join(' ').split(',').join(' ')}` : '';
@@ -28,7 +29,7 @@ export async function encodeInputs(
   let funcName = func;
 
   // If function type is not constructor then append the EVM function selector to the function name
-  if (funcSignature.type === 'function') {
+  if (funcSignature.type === 'function' && enableOverloading) {
     const selector = new Web3().utils
       .keccak256(
         `${funcSignature['name']}(${funcSignature['inputs'].map((i) => i['type']).join(',')})`,

@@ -386,6 +386,7 @@ export type ICallOrInvokeProps = ICallOrInvokeProps_ &
   IOptionalWallet &
   IOptionalAccount &
   IGatewayProps &
+  EnableOverloading &
   IOptionalFee;
 
 program
@@ -421,6 +422,10 @@ program
     process.env.STARKNET_WALLET,
   )
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
+  .option(
+    '--enable-overloading',
+    'Enable function overloading by mangling all external function names with their selector',
+  )
   .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, false, options);
   });
@@ -458,6 +463,10 @@ program
     process.env.STARKNET_WALLET,
   )
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
+  .option(
+    '--enable-overloading',
+    'Enable function overloading by mangling all external function names with their selector',
+  )
   .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
