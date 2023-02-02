@@ -145,7 +145,7 @@ export class NewToDeploy extends ASTMapper {
     ast: AST,
   ): FunctionCall {
     const deployStub = createCairoFunctionStub(
-      'deploy',
+      'warp_import_deploy',
       [
         ['class_hash', createAddressTypeName(false, ast)],
         ['contract_address_salt', createBytesNTypeName(31, ast)],
@@ -158,7 +158,7 @@ export class NewToDeploy extends ASTMapper {
       node,
       { acceptsUnpackedStructArray: true },
     );
-    ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
+    ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy as warp_import_deploy');
 
     const encodedArguments = ast
       .getUtilFuncGen(node)
