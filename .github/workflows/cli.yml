@@ -6,10 +6,9 @@ on:
       - main
       - develop
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 env:
   CAIRO_LANG_VERSION: 0.10.3
@@ -18,6 +17,7 @@ jobs:
   CLI_test:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "${{ github.workflow }}-${{ github.ref }}"
       - uses: actions/checkout@v2
 
       - name: Use Node.js
