@@ -10,10 +10,10 @@ import {
   generalizeType,
   BytesType,
   StringType,
+  TypeNode,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import {
-  createCairoFunctionStub,
   createCairoGeneratedFunction,
   createCallToFunction,
 } from '../../../utils/functionGeneration';
@@ -64,13 +64,15 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(type: ArrayType | BytesType | StringType) {
-    const key = `externalDynArrayStructConstructor(${type.pp()})`;
+    const elemType = getElementType(type);
+
+    const key = elemType.pp();
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
     }
 
-    const funcInfo = this.getOrCreate(type);
+    const funcInfo = this.getOrCreate(elemType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
@@ -87,8 +89,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(type: ArrayType | BytesType | StringType): GeneratedFunctionInfo {
-    const elemType = getElementType(type);
+  private getOrCreate(elemType: TypeNode): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(
       elemType,
       this.ast,
