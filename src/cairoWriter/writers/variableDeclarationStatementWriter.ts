@@ -14,6 +14,7 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes'
 import { TranspileFailedError } from '../../utils/errors';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternalCall } from '../../utils/utils';
+import { writeWithDocumentation } from '../../utils/writer';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
 
@@ -76,23 +77,26 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       // This local statement is needed since Cairo is not supporting member access of structs with let.
       // The type hint also needs to be placed there since Cairo's default type hint is a felt.
       return [
-        [
+        writeWithDocumentation(
           documentation,
           `local ${declarations.join(', ')} : ${
             node.vInitialValue.vReferencedDeclaration.name
           } = ${writer.write(node.vInitialValue)};`,
-        ].join('\n'),
+        ),
       ];
     } else if (declarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [
-        [
+        writeWithDocumentation(
           documentation,
           `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)};`,
-        ].join('\n'),
+        ),
       ];
     }
     return [
-      [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)};`].join('\n'),
+      writeWithDocumentation(
+        documentation,
+        `let ${declarations[0]} = ${writer.write(node.vInitialValue)};`,
+      ),
     ];
   }
 }
