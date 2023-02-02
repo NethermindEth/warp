@@ -7,7 +7,6 @@ import {
   Expression,
   FixedBytesType,
   FunctionCall,
-  FunctionDefinition,
   generalizeType,
   IntType,
   PointerType,
