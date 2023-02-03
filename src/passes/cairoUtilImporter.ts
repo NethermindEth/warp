@@ -2,6 +2,7 @@ import { ElementaryTypeName, IntType, Literal } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
+import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 
@@ -11,6 +12,10 @@ import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
   the warplib maths functions as they are added to the code, but for determining if
   Uint256 needs to be imported, it's easier to do it here
 */
+
+// TODO: This pass should be addressed!!!
+// Functions should be imported accordingly when they are needed
+// Structs are harder, perhaps not prunning those!!!
 export class CairoUtilImporter extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
@@ -20,28 +25,44 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+      createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+      createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
     }
   }
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
+    // This shouldn't be necesary...
     if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
-      ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_new');
-      ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_finalize');
-      ast.registerImport(node, 'starkware.cairo.common.dict', 'dict_write');
+      createImportFuncDefinition(
+        'starkware.cairo.common.default_dict',
+        'default_dict_new',
+        node,
+        ast,
+      );
+      createImportFuncDefinition(
+        'starkware.cairo.common.default_dict',
+        'default_dict_finalize',
+        node,
+        ast,
+      );
+      createImportFuncDefinition('starkware.cairo.common.dict', 'dict_write', node, ast);
     }
 
     if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
-      ast.registerImport(node, 'starkware.cairo.common.cairo_keccak.keccak', 'finalize_keccak');
+      createImportFuncDefinition(
+        'starkware.cairo.common.cairo_keccak.keccak',
+        'finalize_keccak',
+        node,
+        ast,
+      );
       // Required to create a keccak_ptr
-      ast.registerImport(node, 'starkware.cairo.common.alloc', 'alloc');
+      createImportFuncDefinition('starkware.cairo.common.alloc', 'alloc', node, ast);
     }
 
     this.commonVisit(node, ast);
