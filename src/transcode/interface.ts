@@ -1,5 +1,4 @@
 import { EventFragment, Interface, Result } from 'ethers/lib/utils';
-import { EventItem } from '../export';
 
 export class WarpInterface {
   ethersInterface: Interface;
