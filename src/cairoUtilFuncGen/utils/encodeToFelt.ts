@@ -48,7 +48,7 @@ const IMPLICITS = '';
  * This class generate `encode` cairo util functions with the objective of making
  * a list of values into a single list where all items are felts. For example:
  * Value list: [a : felt, b : Uint256, c : (felt, felt, felt), d_len : felt, d : felt*]
- * Result: [a, b.low, b.high, c[0], c[1], c[2], d_len, d[0], ..., d[n]]
+ * Result: [a, b.low, b.high, c[0], c[1], c[2], d_len, d[0], ..., d[d_len - 1]]
  *
  * It generates a different function depending on the amount of expressions
  * and their types. It also generate different auxiliar functions depending
