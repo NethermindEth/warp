@@ -29,6 +29,7 @@ import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternalCall } from '../utils/utils';
 import { CairoFunctionDefinition, CairoImportFunctionDefinition } from './cairoNodes';
+import { ParameterInfo } from '../export';
 
 /*
  A centralised store of information required for transpilation, a reference
@@ -274,13 +275,14 @@ export class AST {
     return child.id;
   }
 
-  registerImport(node: ASTNode, location: string, name: string): CairoImportFunctionDefinition {
-    const sourceUnit = node.getClosestParentByType(SourceUnit);
-    assert(
-      sourceUnit !== undefined,
-      `Trying to register import ${location}.${name} outside of source unit`,
-    );
-    return createImportFuncDefinition(location, name, sourceUnit, this);
+  registerImport(
+    node: ASTNode,
+    location: string,
+    name: string,
+    inputs: ParameterInfo[],
+    outputs: ParameterInfo[],
+  ): CairoImportFunctionDefinition {
+    return createImportFuncDefinition(location, name, node, this, inputs, outputs);
   }
 
   removeStatement(statement: Statement): void {

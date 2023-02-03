@@ -1,4 +1,4 @@
-import { SourceUnit } from 'solc-typed-ast';
+import { ASTNode, SourceUnit } from 'solc-typed-ast';
 import { CairoImportFunctionDefinition } from '../ast/cairoNodes';
 import { AST } from '../ast/ast';
 import assert from 'assert';
@@ -10,6 +10,7 @@ import {
   createImportStructFuncDefinition,
   ParameterInfo,
 } from './functionGeneration';
+import { getContainingSourceUnit } from './utils';
 
 // Paths
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
@@ -29,13 +30,16 @@ const WARPLIB_KECCAK = 'warplib.keccak';
 export function createImportFuncDefinition(
   path: string,
   name: string,
-  node: SourceUnit,
+  nodeInSourceUnit: ASTNode,
   ast: AST,
-  inputs?: ParameterInfo,
-  outputs?: ParameterInfo,
+  inputs?: ParameterInfo[],
+  outputs?: ParameterInfo[],
 ) {
-  const existingImport = findExistingImport(name, node);
-  if (existingImport !== undefined) {
+  const sourceUnit = getContainingSourceUnit(nodeInSourceUnit);
+
+  const existingImport = findExistingImport(name, sourceUnit);
+  // The last two checks are some kind of patch
+  if (existingImport !== undefined && inputs === undefined && outputs === undefined) {
     return existingImport;
   }
 
@@ -47,9 +51,9 @@ export function createImportFuncDefinition(
       inputs ?? [],
       outputs ?? [],
       ast,
-      node,
+      sourceUnit,
     );
-  const createStructImport = () => createImportStructFuncDefinition(name, path, ast, node);
+  const createStructImport = () => createImportStructFuncDefinition(name, path, ast, sourceUnit);
 
   const warplibFunc = warplibImportInfo.get(path)?.get(name);
   if (warplibFunc !== undefined) {
@@ -132,5 +136,9 @@ function findExistingImport(name: string, node: SourceUnit) {
   );
   assert(found.length < 2, `More than 1 import functions where found with name: ${name}.`);
 
-  return found.length === 1 ? (found[0] as CairoImportFunctionDefinition) : undefined;
+  if (found[0] !== undefined) {
+    assert(found[0] instanceof CairoImportFunctionDefinition);
+    return found[0];
+  }
+  return undefined;
 }

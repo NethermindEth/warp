@@ -15,7 +15,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, CairoImportFunctionDefinition } from '../ast/cairoNodes';
-import { createCairoGeneratedFunction } from '../utils/functionGeneration';
+import { createCairoGeneratedFunction, ParameterInfo } from '../utils/functionGeneration';
 import { TranspileFailedError } from '../utils/errors';
 import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
@@ -48,8 +48,13 @@ export abstract class CairoUtilFuncGenBase {
     this.sourceUnit = sourceUnit;
   }
 
-  protected requireImport(location: string, name: string): CairoImportFunctionDefinition {
-    return createImportFuncDefinition(location, name, this.sourceUnit, this.ast);
+  protected requireImport(
+    location: string,
+    name: string,
+    inputs?: ParameterInfo[],
+    outputs?: ParameterInfo[],
+  ): CairoImportFunctionDefinition {
+    return createImportFuncDefinition(location, name, this.sourceUnit, this.ast, inputs, outputs);
   }
 
   // TODO: Erase this
