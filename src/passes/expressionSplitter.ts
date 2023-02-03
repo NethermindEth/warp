@@ -12,6 +12,11 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
+  TypeName,
+  IndexAccess,
+  ArrayTypeName,
+  MemberAccess,
+  Mapping,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -104,6 +109,28 @@ export class ExpressionSplitter extends ASTMapper {
     const initialValue = node.vRightHandSide;
     const location =
       generalizeType(safeGetNodeType(initialValue, ast.inference))[1] ?? DataLocation.Default;
+    let typeName: TypeName;
+    if (node.vLeftHandSide instanceof Identifier || node.vLeftHandSide instanceof MemberAccess) {
+      const sourceDecl = node.vLeftHandSide.vReferencedDeclaration;
+      assert(sourceDecl instanceof VariableDeclaration && sourceDecl.vType !== undefined);
+      typeName = cloneASTNode(sourceDecl.vType, ast);
+    } else {
+      assert(node.vLeftHandSide instanceof IndexAccess);
+      const identifier = getRootIdentifier(node.vLeftHandSide);
+      assert(
+        identifier instanceof Identifier &&
+          identifier.vReferencedDeclaration instanceof VariableDeclaration,
+      );
+      let originalTypeName;
+      const vType = identifier.vReferencedDeclaration.vType;
+      if (vType instanceof ArrayTypeName) {
+        originalTypeName = vType.vBaseType;
+      } else {
+        assert(vType instanceof Mapping);
+        originalTypeName = vType.vValueType;
+      }
+      typeName = cloneASTNode(originalTypeName, ast);
+    }
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
       '', // src
@@ -116,6 +143,8 @@ export class ExpressionSplitter extends ASTMapper {
       StateVariableVisibility.Internal,
       Mutability.Constant,
       node.vLeftHandSide.typeString,
+      undefined,
+      typeName,
     );
 
     const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
@@ -142,6 +171,16 @@ export class ExpressionSplitter extends ASTMapper {
     ast.insertStatementBefore(node, updateVal);
     ast.replaceNode(node, createIdentifier(tempVar, ast));
   }
+}
+
+function getRootIdentifier(node: Identifier | IndexAccess): Identifier | IndexAccess {
+  if (node instanceof IndexAccess) {
+    assert(
+      node.vBaseExpression instanceof Identifier || node.vBaseExpression instanceof IndexAccess,
+    );
+    return getRootIdentifier(node.vBaseExpression);
+  }
+  return node;
 }
 
 function identifierReferenceStateVar(id: Identifier) {

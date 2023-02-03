@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
-import { execSync } from 'child_process';
 import { AST } from './ast/ast';
 
 export function isValidSolFile(path: string, printError = true): boolean {
@@ -15,7 +14,6 @@ export function isValidSolFile(path: string, printError = true): boolean {
     if (printError) logError(`${path} is not a file`);
     return false;
   }
-
   if (!path.endsWith('.sol')) {
     if (printError) logError(`${path} is not a solidity source file`);
     return false;
@@ -64,11 +62,7 @@ export function outputResult(
   options: OutputOptions & TranspilationOptions,
   ast: AST,
 ): void {
-  if (options.outputDir === undefined) {
-    if (options.result) {
-      console.log(`//--- ${outputPath} ---\n${code}\n//---`);
-    }
-  } else {
+  if (options.outputDir !== undefined) {
     if (fs.existsSync(options.outputDir)) {
       const targetInformation = fs.lstatSync(options.outputDir);
       if (!targetInformation.isDirectory()) {
@@ -89,9 +83,10 @@ export function outputResult(
     );
     fs.outputFileSync(fullCodeOutPath, code);
 
-    if (options.formatCairo || options.dev) {
-      const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-      execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
-    }
+    // Cairo-format is disabled, as it has a bug
+    // if (options.formatCairo || options.dev) {
+    //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+    //   execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
+    // }
   }
 }

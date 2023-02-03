@@ -1,6 +1,4 @@
 import assert from 'assert';
-import * as path from 'path';
-import { execSync } from 'child_process';
 import * as fs from 'fs';
 import {
   BinaryOperation,
@@ -17,6 +15,7 @@ import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from '../utils/astPrinter';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import path from 'path';
 
 export type WarplibFunctionInfo = {
   fileName: string;
@@ -57,7 +56,8 @@ export function msbAndNext(width: number): string {
   return `0x${(pow2(width) + pow2(width - 1)).toString(16)}`;
 }
 
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+// This is used along with the commented out code in generateFile to enable cairo-formatting
+// const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
 export function generateFile(warpFunc: WarplibFunctionInfo): void {
   const pathToFile = path.join('.', 'warplib', 'maths', `${warpFunc.fileName}.cairo`);
@@ -66,7 +66,8 @@ export function generateFile(warpFunc: WarplibFunctionInfo): void {
     pathToFile,
     `//AUTO-GENERATED\n${warpFunc.imports.join('\n')}\n\n${warpFunc.functions.join('\n')}\n`,
   );
-  execSync(`${warpVenvPrefix} cairo-format -i ${pathToFile}`);
+  // Disable cairo-formatting for now, as it has a bug that breaks the generated code
+  // execSync(`${warpVenvPrefix} cairo-format -i ./warplib/maths/${name}.cairo`);
 }
 
 export function IntxIntFunction(

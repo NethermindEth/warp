@@ -12,3 +12,5 @@ export * from './starknetCli';
 export * from './testing';
 export * from './transpiler';
 export * from './utils/export';
+export * from './transcode/encode';
+export * from './transcode/decode';

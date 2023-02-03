@@ -1,6 +1,6 @@
 {
   "name": "@nethermindeth/warp",
-  "version": "2.4.4",
+  "version": "2.4.6",
   "description": "Solidity to Cairo Transpiler",
   "main": "build/export.js",
   "author": "Nethermind",
@@ -28,7 +28,7 @@
     "lint:tests": "eslint ./tests/** --ignore-path .gitignore --fix",
     "lint:fix": "npm run lint -- --fix",
     "formatlib": "find warplib/ -iname *.cairo -exec cairo-format -i {} +",
-    "test": "tests/behaviour/setup.sh && npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit --exclude tests/cli/cli.test.ts",
+    "test": "tests/behaviour/setup.sh && npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit --exclude tests/cli/**/*.ts",
     "test:cli": "npx mocha tests/cli/**/*.test.ts --extension ts --require ts-node/register --exit",
     "test:forwarder": "npx mocha tests/interface_call_forwarder/interface_forwarder.test.ts --extension ts --require ts-node/register --exit",
     "test:lib": "npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",

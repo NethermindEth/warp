@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { compileCairo } from '../starknetCli';
 import { CLIError } from './errors';
-import { callClassHashScript } from './utils';
+import { runStarkNetClassHash } from './utils';
 
 export const HASH_SIZE = 8;
 export const HASH_OPTION = 'sha256';
@@ -103,7 +103,7 @@ function computeClassHash(contractPath: string, debugInfo: boolean): string {
     throw new CLIError(`Compilation of cairo file ${contractPath} failed`);
   } else {
     assert(resultPath !== undefined && success);
-    const classHash = callClassHashScript(resultPath);
+    const classHash = runStarkNetClassHash(resultPath);
     return classHash;
   }
 }

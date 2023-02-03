@@ -17,28 +17,19 @@ import {
   TypeConversionContext,
   typeNameFromTypeNode,
   createCairoGeneratedFunction,
+  warpEventSignatureHash256FromString,
   EMIT_PREFIX,
 } from '../export';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
-import createKeccakHash from 'keccak';
 import { AbiEncode } from './abi/abiEncode';
 import { IndexEncode } from './abi/indexEncode';
 
-export const MASK_250 = BigInt('0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
 
 const IMPLICITS =
   '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*, keccak_ptr: felt*}';
-
-function signatureHash(funcSignature: string): string {
-  const funcSignatureHash = createKeccakHash('keccak256').update(funcSignature).digest('hex');
-
-  return `0x${(
-    BigInt(`0x${createKeccakHash('keccak256').update(funcSignatureHash).digest('hex')}`) & MASK_250
-  ).toString(16)}`;
-}
 
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
@@ -130,7 +121,9 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
-    const topic: string = signatureHash(this.ast.inference.signature(node, ABIEncoderVersion.V2));
+    const topic: { low: string; high: string } = warpEventSignatureHash256FromString(
+      this.ast.inference.signature(node, ABIEncoderVersion.V2),
+    );
 
     const suffix = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
     const code = [
@@ -170,7 +163,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
   private generateAnonymizeCode(
     isAnonymous: boolean,
-    topic: string,
+    topic: { low: string; high: string },
     eventSig: string,
     funcsCalled: FunctionDefinition[],
   ): string {
@@ -183,7 +176,7 @@ export class EventFunction extends StringIndexedFuncGen {
       return [`// Event is anonymous, topic won't be added to keys`].join('\n');
     }
     return [
-      `    let (topic256: Uint256) = felt_to_uint256(${topic});// keccak of event signature: ${eventSig}`,
+      `    let topic256: Uint256 = Uint256(${topic.low}, ${topic.high});// keccak of event signature: ${eventSig}`,
       `    let (keys_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(keys_len, keys, 0, topic256);`,
     ].join('\n');
   }
@@ -217,9 +210,8 @@ export class EventFunction extends StringIndexedFuncGen {
     );
 
     return [
-      `   let (mem_encode: felt) = ${abiFunc.name}(${argName});`,
-      `   let (keccak_hash: felt) = warp_keccak_felt(mem_encode);`,
-      `   let (keccak_hash256: Uint256) = felt_to_uint256(keccak_hash);`,
+      `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
+      `   let (keccak_hash256: Uint256) = warp_keccak(mem_encode);`,
       `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
     ].join('\n');
   }
