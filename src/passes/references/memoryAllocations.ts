@@ -16,7 +16,7 @@ import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
@@ -78,18 +78,16 @@ export class MemoryAllocations extends ReferenceSubPass {
       }`,
     );
 
-    // TODO: Headache related with imports
-    // const stub = createCairoFunctionStub(
-    //   'wm_new',
-    //   [
-    //     ['len', createUint256TypeName(ast)],
-    //     ['elemWidth', createUint256TypeName(ast)],
-    //   ],
-    //   [['loc', node.vExpression.vTypeName, DataLocation.Memory]],
-    //   ['range_check_ptr', 'warp_memory'],
-    //   ast,
-    //   node,
-    // );
+    const funcImport = ast.registerImport(
+      node,
+      'warplib.memory',
+      'wm_new',
+      [
+        ['len', createUint256TypeName(ast)],
+        ['elemWidth', createUint256TypeName(ast)],
+      ],
+      [['loc', node.vExpression.vTypeName, DataLocation.Memory]],
+    );
 
     const arrayType = generalizeType(safeGetNodeType(node, ast.inference))[0];
     assert(
@@ -103,8 +101,6 @@ export class MemoryAllocations extends ReferenceSubPass {
       ast,
       TypeConversionContext.Ref,
     );
-
-    const funcImport = ast.registerImport(node, 'warplib.memory', 'wm_new');
 
     const call = createCallToFunction(
       funcImport,

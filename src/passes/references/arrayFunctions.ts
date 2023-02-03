@@ -5,14 +5,12 @@ import {
   ExternalReferenceType,
   FixedBytesType,
   FunctionCall,
-  FunctionStateMutability,
   generalizeType,
   MemberAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { FunctionStubKind } from '../../ast/cairoNodes';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import {
   getSize,
   isDynamicArray,
@@ -105,22 +103,15 @@ export class ArrayFunctions extends ReferenceSubPass {
         const parent = node.parent;
         const type = generalizeType(safeGetNodeType(node, ast.inference))[0];
 
-        const funcStub = createCairoFunctionStub(
+        const importedFunc = ast.registerImport(
+          node,
+          'warplib.maths.utils',
           'felt_to_uint256',
           [['cd_dstruct_array_len', typeNameFromTypeNode(type, ast)]],
           [['len256', typeNameFromTypeNode(type, ast)]],
-          ['range_check_ptr'],
-          ast,
-          node,
-          {
-            mutability: FunctionStateMutability.Pure,
-            stubKind: FunctionStubKind.FunctionDefStub,
-          },
         );
 
-        const funcCall = createCallToFunction(funcStub, [node], ast);
-
-        ast.registerImport(funcCall, 'warplib.maths.utils', 'felt_to_uint256');
+        const funcCall = createCallToFunction(importedFunc, [node], ast);
 
         this.replace(
           node,
@@ -148,7 +139,7 @@ export class ArrayFunctions extends ReferenceSubPass {
       } else {
         const replacement =
           baseType.location === DataLocation.Storage
-            ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
+            ? ast.getUtilFuncGen(node).storage.dynArray.genLength(node, baseType.to)
             : ast.getUtilFuncGen(node).memory.dynArrayLength.gen(node, ast);
         // The length function returns the actual length rather than a storage pointer to it,
         // so the new actual location is Default

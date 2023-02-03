@@ -324,7 +324,9 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
       ? cloneASTNode(arrayTypeName.vBaseType, ast)
       : createUint8TypeName(ast);
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    indexAccess,
+    'warplib.memory',
     'wm_index_dyn',
     [
       ['arrayLoc', arrayTypeName, DataLocation.Memory],
@@ -332,9 +334,6 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
       ['width', createUint256TypeName(ast)],
     ],
     [['loc', returnTypeName, DataLocation.Memory]],
-    ['range_check_ptr', 'warp_memory'],
-    ast,
-    indexAccess,
   );
 
   assert(indexAccess.vIndexExpression);
@@ -350,7 +349,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
   ).width;
 
   const call = createCallToFunction(
-    stub,
+    importedFunc,
     [
       indexAccess.vBaseExpression,
       indexAccess.vIndexExpression,
@@ -358,8 +357,6 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
     ],
     ast,
   );
-
-  ast.registerImport(call, 'warplib.memory', 'wm_index_dyn');
 
   return call;
 }
