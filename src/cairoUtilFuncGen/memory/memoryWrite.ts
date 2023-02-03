@@ -1,12 +1,4 @@
-import {
-  Expression,
-  FunctionCall,
-  TypeNode,
-  ASTNode,
-  DataLocation,
-  PointerType,
-  FunctionDefinition,
-} from 'solc-typed-ast';
+import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
 import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
@@ -19,7 +11,7 @@ import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
   This involves serialising the data into a series of felts and writing each one into the DictAccess
 */
 export class MemoryWriteGen extends StringIndexedFuncGen {
-  gen(memoryRef: Expression, writeValue: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
+  gen(memoryRef: Expression, writeValue: Expression): FunctionCall {
     const typeToWrite = safeGetNodeType(memoryRef, this.ast.inference);
     const funcDef = this.getOrCreateFuncDef(typeToWrite);
     return createCallToFunction(funcDef, [memoryRef, writeValue], this.ast);

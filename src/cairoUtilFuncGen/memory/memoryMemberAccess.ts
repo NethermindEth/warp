@@ -12,7 +12,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
+import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 /*

@@ -2,7 +2,6 @@ import assert from 'assert';
 import { BinaryOperation, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode } from '../../../utils/astPrinter';
-import { Implicits } from '../../../utils/implicits';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import {
   forAllWidths,

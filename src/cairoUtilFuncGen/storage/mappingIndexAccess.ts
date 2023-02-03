@@ -179,7 +179,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     const arrayName = dynArray.name;
     const lenName = dynArrayLen.name;
 
-    let funcName = `ws_string_hash${this.stringHashFunctions.size}`;
+    const funcName = `ws_string_hash${this.stringHashFunctions.size}`;
     const helperFuncName = `ws_to_felt_array${this.stringHashFunctions.size}`;
 
     return {

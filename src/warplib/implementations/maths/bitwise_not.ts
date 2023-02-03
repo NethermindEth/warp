@@ -1,6 +1,5 @@
 import { UnaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { forAllWidths, IntFunction, mask, WarplibFunctionInfo } from '../../utils';
 
 export function bitwise_not(): WarplibFunctionInfo {

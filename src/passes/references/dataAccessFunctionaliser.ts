@@ -27,7 +27,7 @@ import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { AST } from '../../ast/ast';
 import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import {
   createNumberLiteral,
   createUint256TypeName,
@@ -92,7 +92,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       } else if (actualLoc === DataLocation.Memory) {
         switch (expectedLoc) {
           case DataLocation.Default: {
-            copyFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast));
+            copyFunc = utilFuncGen.memory.read.gen(node);
             break;
           }
           case DataLocation.Storage: {

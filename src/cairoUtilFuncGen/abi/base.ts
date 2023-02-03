@@ -5,7 +5,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
 import { CairoFunctionDefinition } from '../../ast/cairoNodes';
@@ -18,7 +17,7 @@ import { GeneratedFunctionInfo, StringIndexedFuncGenWithAuxiliar } from '../base
 export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
   protected functionName = 'not_implemented';
 
-  public gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
+  public gen(expressions: Expression[]): FunctionCall {
     const exprTypes = expressions.map(
       (expr) => generalizeType(safeGetNodeType(expr, this.ast.inference))[0],
     );

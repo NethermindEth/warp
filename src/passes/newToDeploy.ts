@@ -17,11 +17,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { UserDefinedTypeName } from 'solc-typed-ast';
 import assert from 'assert';
-import {
-  createCairoFunctionStub,
-  createCallToFunction,
-  createElementaryConversionCall,
-} from '../utils/functionGeneration';
+import { createCallToFunction, createElementaryConversionCall } from '../utils/functionGeneration';
 import {
   createAddressTypeName,
   createBoolLiteral,

@@ -210,7 +210,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     varDeclarations: TypeNode[],
     tempVarName: string,
   ): [string[], string[], CairoFunctionDefinition[]] {
-    const [members, copyInstructions, funcsCalled, _offset] = varDeclarations.reduce(
+    const [members, copyInstructions, funcsCalled] = varDeclarations.reduce(
       ([members, copyInstructions, funcsCalled, offset], varType, index) => {
         const varCairoTypeWidth = CairoType.fromSol(
           varType,

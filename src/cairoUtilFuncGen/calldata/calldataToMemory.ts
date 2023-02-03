@@ -203,9 +203,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
           const recursiveFunc = this.getOrCreateFuncDef(type);
           const code = [
             `let (member_${decl.name}) = ${recursiveFunc.name}(calldata.${decl.name});`,
-            `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}, memeber${
-              decl.name
-            });`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset)}, memeber${decl.name});`,
           ].join('\n');
           return [[...copyCode, code], [...funcCalls, recursiveFunc], offset + 1];
         }
@@ -230,7 +228,6 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
     );
 
-    let memOffset = 0;
     return {
       name: funcName,
       code: [

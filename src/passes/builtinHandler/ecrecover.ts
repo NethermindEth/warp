@@ -1,7 +1,7 @@
 import { ExternalReferenceType, FunctionCall } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createUintNTypeName } from '../../utils/nodeTemplates';
 
 export class Ecrecover extends ASTMapper {

@@ -1,6 +1,5 @@
 import { UnaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { bound, forAllWidths, IntFunction, mask, WarplibFunctionInfo } from '../../utils';
 
 // This satisfies the solidity convention of -type(intX).min = type(intX).min

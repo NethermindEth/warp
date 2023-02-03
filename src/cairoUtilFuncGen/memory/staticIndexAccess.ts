@@ -1,8 +1,8 @@
 import assert = require('assert');
-import { ArrayType, ASTNode, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-ast';
+import { ArrayType, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';

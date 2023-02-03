@@ -8,7 +8,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { CairoContract } from '../../ast/cairoNodes';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import {
