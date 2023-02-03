@@ -11,17 +11,16 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
-import {
-  createCairoFunctionStub,
-  createCairoGeneratedFunction,
-  createCallToFunction,
-} from '../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 
+// TODO: Does this enum input check overrides the input check from the general method?!
+// It surely looks like it
 export class EnumInputCheck extends StringIndexedFuncGen {
-  gen(
+  // TODO: When is nodeInSourceUnit different thant the current sourceUnit??
+  public gen(
     node: Expression,
     nodeInput: Expression,
     enumDef: EnumDefinition,
@@ -35,8 +34,8 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, [nodeInput], this.ast);
   }
 
-  getOrCreateFuncDef(inputType: TypeNode, nodeType: TypeNode, enumDef: EnumDefinition) {
-    const key = `enumInputCheck(${inputType.pp()},${nodeType.pp()},${enumDef.name})`;
+  public getOrCreateFuncDef(inputType: TypeNode, nodeType: TypeNode, enumDef: EnumDefinition) {
+    const key = inputType.pp() + nodeType.pp() + enumDef.name;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
@@ -60,7 +59,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
   private getOrCreate(type: TypeNode, enumDef: EnumDefinition) {
     assert(type instanceof IntType);
     const input256Bits = type.nBits === 256;
-    const funcName = `enum_bound_check${this.generatedFunctionsDef.size}`;
+    const funcName = `enum_bound_check_${enumDef.name}`;
     const funcsCalled: FunctionDefinition[] = [];
     if (input256Bits) {
       funcsCalled.push(
