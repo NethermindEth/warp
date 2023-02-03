@@ -1,6 +1,5 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { forAllWidths, Comparison, WarplibFunctionInfo } from '../../utils';
 
@@ -37,9 +36,5 @@ export function ge_signed(): WarplibFunctionInfo {
 }
 
 export function functionaliseGe(node: BinaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean, signed: boolean): Implicits[] => {
-    if (wide || !signed) return ['range_check_ptr'];
-    else return ['range_check_ptr', 'bitwise_ptr'];
-  };
-  Comparison(node, 'ge', 'signedOrWide', true, implicitsFn, ast);
+  Comparison(node, 'ge', 'signedOrWide', true, ast);
 }

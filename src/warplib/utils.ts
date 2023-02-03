@@ -15,8 +15,6 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from '../utils/astPrinter';
-import { createCairoFunctionStub } from '../utils/functionGeneration';
-import { Implicits } from '../utils/implicits';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
@@ -77,7 +75,6 @@ export function IntxIntFunction(
   appendWidth: 'always' | 'only256' | 'signedOrWide',
   separateSigned: boolean,
   unsafe: boolean,
-  implicits: (width: number, signed: boolean) => Implicits[],
   ast: AST,
 ) {
   const lhsType = typeNameFromTypeNode(safeGetNodeType(node.vLeftExpression, ast.inference), ast);
@@ -107,17 +104,17 @@ export function IntxIntFunction(
     unsafe ? '_unsafe' : '',
   ].join('');
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    node,
+    importName,
     fullName,
     [
       ['lhs', lhsType],
       ['rhs', rhsType],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    implicits(width, signed),
-    ast,
-    node,
   );
+
   const call = new FunctionCall(
     ast.reserveId(),
     node.src,
@@ -128,13 +125,12 @@ export function IntxIntFunction(
       '',
       `function (${node.typeString}, ${node.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, importName, fullName);
 }
 
 export function Comparison(
@@ -142,7 +138,6 @@ export function Comparison(
   name: string,
   appendWidth: 'only256' | 'signedOrWide',
   separateSigned: boolean,
-  implicits: (wide: boolean, signed: boolean) => Implicits[],
   ast: AST,
 ): void {
   const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
@@ -162,16 +157,15 @@ export function Comparison(
 
   const importName = `warplib.maths.${name}${signed && separateSigned ? '_signed' : ''}`;
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    node,
+    importName,
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],
       ['rhs', typeNameFromTypeNode(rhsType, ast)],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    implicits(wide, signed),
-    ast,
-    node,
   );
 
   const call = new FunctionCall(
@@ -184,13 +178,12 @@ export function Comparison(
       '',
       `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, importName, fullName);
 }
 
 export function IntFunction(
@@ -198,7 +191,6 @@ export function IntFunction(
   argument: Expression,
   name: string,
   fileName: string,
-  implicits: (wide: boolean) => Implicits[],
   ast: AST,
 ): void {
   const opType = safeGetNodeType(argument, ast.inference);
@@ -209,13 +201,13 @@ export function IntFunction(
   );
   const width = getIntOrFixedByteBitWidth(retType);
   const fullName = `warp_${name}${width}`;
-  const stub = createCairoFunctionStub(
+
+  const importedFunc = ast.registerImport(
+    node,
+    `warplib.maths.${fileName}`,
     fullName,
     [['op', typeNameFromTypeNode(opType, ast)]],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    implicits(width === 256),
-    ast,
-    node,
   );
 
   const call = new FunctionCall(
@@ -228,13 +220,12 @@ export function IntFunction(
       '',
       `function (${argument.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [argument],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, `warplib.maths.${fileName}`, fullName);
 }
 
 export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST): void {
@@ -256,16 +247,13 @@ export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST)
   );
 
   const fullName = `warp_${name}`;
-  const stub = createCairoFunctionStub(
-    fullName,
-    [
-      ['lhs', typeNameFromTypeNode(lhsType, ast)],
-      ['rhs', typeNameFromTypeNode(rhsType, ast)],
-    ],
-    [['res', typeNameFromTypeNode(retType, ast)]],
-    [],
-    ast,
+
+  const importedFunc = ast.registerImport(
     node,
+    `warplib.maths.${name}`,
+    fullName,
+    [['lhs', typeNameFromTypeNode(lhsType, ast)]],
+    [['rhs', typeNameFromTypeNode(rhsType, ast)]],
   );
 
   const call = new FunctionCall(
@@ -278,13 +266,12 @@ export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST)
       '',
       `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, `warplib.maths.${name}`, fullName);
 }
 
 export function getIntOrFixedByteBitWidth(type: TypeNode): number {

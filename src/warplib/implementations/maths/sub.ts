@@ -164,27 +164,14 @@ export function sub_signed_unsafe(): WarplibFunctionInfo {
 //func warp_sub256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):
 
 export function functionaliseSub(node: BinaryOperation, unsafe: boolean, ast: AST): void {
-  const implicitsFn = (width: number, signed: boolean): Implicits[] => {
-    if (signed) {
-      if (width === 256) return ['range_check_ptr', 'bitwise_ptr'];
-      else return ['bitwise_ptr'];
-    } else {
-      if (unsafe) {
-        return ['bitwise_ptr'];
-      } else {
-        if (width === 256) return ['range_check_ptr', 'bitwise_ptr'];
-        else return ['range_check_ptr'];
-      }
-    }
-  };
   const typeNode = safeGetNodeType(node, ast.inference);
   assert(
     typeNode instanceof IntType,
     `Expected IntType for subtraction, got ${printTypeNode(typeNode)}`,
   );
   if (unsafe) {
-    IntxIntFunction(node, 'sub', 'always', true, unsafe, implicitsFn, ast);
+    IntxIntFunction(node, 'sub', 'always', true, unsafe, ast);
   } else {
-    IntxIntFunction(node, 'sub', 'signedOrWide', true, unsafe, implicitsFn, ast);
+    IntxIntFunction(node, 'sub', 'signedOrWide', true, unsafe, ast);
   }
 }

@@ -32,9 +32,5 @@ export function bitwise_not(): WarplibFunctionInfo {
 }
 
 export function functionaliseBitwiseNot(node: UnaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean): Implicits[] => {
-    if (wide) return ['range_check_ptr'];
-    else return ['bitwise_ptr'];
-  };
-  IntFunction(node, node.vSubExpression, 'bitwise_not', 'bitwise_not', implicitsFn, ast);
+  IntFunction(node, node.vSubExpression, 'bitwise_not', 'bitwise_not', ast);
 }

@@ -9,7 +9,6 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
-import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../../utils/utils';
 import { forAllWidths, getIntOrFixedByteBitWidth, WarplibFunctionInfo } from '../../utils';
@@ -91,16 +90,15 @@ export function functionaliseShl(node: BinaryOperation, ast: AST): void {
 
   const importName = 'warplib.maths.shl';
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    node,
+    importName,
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],
       ['rhs', typeNameFromTypeNode(rhsType, ast)],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    lhsWidth === 256 ? ['range_check_ptr'] : ['range_check_ptr', 'bitwise_ptr'],
-    ast,
-    node,
   );
   const call = new FunctionCall(
     ast.reserveId(),
@@ -112,11 +110,10 @@ export function functionaliseShl(node: BinaryOperation, ast: AST): void {
       '',
       `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, importName, fullName);
 }

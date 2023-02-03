@@ -40,10 +40,5 @@ export function lt_signed(): WarplibFunctionInfo {
 }
 
 export function functionaliseLt(node: BinaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean, signed: boolean): Implicits[] => {
-    if (!wide && signed) return ['range_check_ptr', 'bitwise_ptr'];
-    else return ['range_check_ptr'];
-  };
-
-  Comparison(node, 'lt', 'signedOrWide', true, implicitsFn, ast);
+  Comparison(node, 'lt', 'signedOrWide', true, ast);
 }

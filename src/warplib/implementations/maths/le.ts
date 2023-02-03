@@ -58,10 +58,5 @@ export function le_signed(): WarplibFunctionInfo {
 }
 
 export function functionaliseLe(node: BinaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean, signed: boolean): Implicits[] => {
-    if (!wide && signed) return ['range_check_ptr', 'bitwise_ptr'];
-    else return ['range_check_ptr'];
-  };
-
-  Comparison(node, 'le', 'signedOrWide', true, implicitsFn, ast);
+  Comparison(node, 'le', 'signedOrWide', true, ast);
 }

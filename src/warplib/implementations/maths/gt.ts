@@ -37,9 +37,5 @@ export function gt_signed(): WarplibFunctionInfo {
 }
 
 export function functionaliseGt(node: BinaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean, signed: boolean): Implicits[] => {
-    if (wide || !signed) return ['range_check_ptr'];
-    else return ['range_check_ptr', 'bitwise_ptr'];
-  };
-  Comparison(node, 'gt', 'signedOrWide', true, implicitsFn, ast);
+  Comparison(node, 'gt', 'signedOrWide', true, ast);
 }

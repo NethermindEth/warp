@@ -35,9 +35,5 @@ export function negate(): WarplibFunctionInfo {
 }
 
 export function functionaliseNegate(node: UnaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean): Implicits[] => {
-    if (wide) return ['range_check_ptr'];
-    else return ['bitwise_ptr'];
-  };
-  IntFunction(node, node.vSubExpression, 'negate', 'negate', implicitsFn, ast);
+  IntFunction(node, node.vSubExpression, 'negate', 'negate', ast);
 }

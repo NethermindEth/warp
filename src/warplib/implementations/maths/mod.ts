@@ -52,9 +52,5 @@ export function mod_signed(): WarplibFunctionInfo {
 }
 
 export function functionaliseMod(node: BinaryOperation, ast: AST): void {
-  const implicits = (width: number, signed: boolean): Implicits[] => {
-    if (width !== 256 && signed) return ['range_check_ptr', 'bitwise_ptr'];
-    return ['range_check_ptr'];
-  };
-  IntxIntFunction(node, 'mod', 'signedOrWide', true, false, implicits, ast);
+  IntxIntFunction(node, 'mod', 'signedOrWide', true, false, ast);
 }

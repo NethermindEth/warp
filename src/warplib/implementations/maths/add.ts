@@ -146,10 +146,5 @@ export function add_signed_unsafe(): WarplibFunctionInfo {
 }
 
 export function functionaliseAdd(node: BinaryOperation, unsafe: boolean, ast: AST): void {
-  const implicitsFn = (width: number, signed: boolean): Implicits[] => {
-    if (!unsafe && signed && width === 256) return ['range_check_ptr', 'bitwise_ptr'];
-    else if ((!unsafe && !signed) || width === 256) return ['range_check_ptr'];
-    else return ['bitwise_ptr'];
-  };
-  IntxIntFunction(node, 'add', 'always', true, unsafe, implicitsFn, ast);
+  IntxIntFunction(node, 'add', 'always', true, unsafe, ast);
 }

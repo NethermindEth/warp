@@ -1,6 +1,5 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { forAllWidths, IntxIntFunction, mask, WarplibFunctionInfo } from '../../utils';
 
@@ -122,11 +121,5 @@ export function div_signed_unsafe(): WarplibFunctionInfo {
 }
 
 export function functionaliseDiv(node: BinaryOperation, unsafe: boolean, ast: AST): void {
-  const implicitsFn = (width: number, signed: boolean): Implicits[] => {
-    if (signed || (unsafe && width >= 128 && width < 256))
-      return ['range_check_ptr', 'bitwise_ptr'];
-    else if (unsafe && width < 128) return ['bitwise_ptr'];
-    else return ['range_check_ptr'];
-  };
-  IntxIntFunction(node, 'div', 'signedOrWide', true, unsafe, implicitsFn, ast);
+  IntxIntFunction(node, 'div', 'signedOrWide', true, unsafe, ast);
 }
