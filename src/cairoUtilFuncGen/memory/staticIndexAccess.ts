@@ -15,24 +15,30 @@ import { CairoUtilFuncGenBase } from '../base';
   as parameters to avoid bloating the code with separate functions for each case
 */
 export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
-  getGeneratedCode(): string {
-    return '';
-  }
-
-  gen(indexAccess: IndexAccess, arrayType: ArrayType, nodeInSourceUnit?: ASTNode): FunctionCall {
+  gen(indexAccess: IndexAccess, arrayType: ArrayType): FunctionCall {
     assert(
       arrayType.size !== undefined,
       `Attempted to use static indexing for dynamic index ${printNode(indexAccess)}`,
     );
-    const funcDef = this.requireImport('warplib.memory', 'wm_index_static');
-    const width = CairoType.fromSol(arrayType.elementT, this.ast).width;
-
     assert(
       indexAccess.vIndexExpression,
       `Found index access without index expression at ${printNode(indexAccess)}`,
     );
+
+    const importFunc = this.requireImport(
+      'warplib.memory',
+      'wm_index_static',
+      [
+        ['arr', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Memory],
+        ['index', createUint256TypeName(this.ast)],
+        ['width', createUint256TypeName(this.ast)],
+        ['length', createUint256TypeName(this.ast)],
+      ],
+      [['child', typeNameFromTypeNode(arrayType.elementT, this.ast), DataLocation.Memory]],
+    );
+    const width = CairoType.fromSol(arrayType.elementT, this.ast).width;
     return createCallToFunction(
-      funcDef,
+      importFunc,
       [
         indexAccess.vBaseExpression,
         indexAccess.vIndexExpression,
