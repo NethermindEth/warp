@@ -451,7 +451,7 @@ export class IndexEncode extends AbiBase {
         [...instructions, currentInstruction],
         [...functionsCalled, ...currentFuncs],
       ],
-      [new Array<String>(), new Array<CairoFunctionDefinition>()],
+      [new Array<string>(), new Array<CairoFunctionDefinition>()],
     );
 
     const name = `${this.functionName}_inline_struct_spl_${def.name}`;

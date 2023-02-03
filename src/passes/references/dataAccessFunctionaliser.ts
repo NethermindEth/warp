@@ -67,7 +67,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       return this.commonVisit(node, ast);
     }
 
-    const nodeType = safeGetNodeType(node, ast.inference);
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
 

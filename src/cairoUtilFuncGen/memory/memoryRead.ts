@@ -1,7 +1,6 @@
 import {
   Expression,
   TypeName,
-  ASTNode,
   FunctionCall,
   DataLocation,
   FunctionStateMutability,
