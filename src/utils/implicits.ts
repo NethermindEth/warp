@@ -35,16 +35,17 @@ export const implicitTypes: { [key in Implicits]: string } = {
   dict_ptr: 'DictAccess*',
 };
 
+// TODO: look at this again by the end
 export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Implicits) {
   switch (implicit) {
     case 'bitwise_ptr':
-      ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
+      ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin', [], []);
       break;
     case 'pedersen_ptr':
-      ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'HashBuiltin');
+      ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'HashBuiltin', [], []);
       break;
     case 'warp_memory':
-      ast.registerImport(node, 'starkware.cairo.common.dict_access', 'DictAccess');
+      ast.registerImport(node, 'starkware.cairo.common.dict_access', 'DictAccess', [], []);
       break;
   }
 }
