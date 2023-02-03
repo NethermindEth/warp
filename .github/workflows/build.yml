@@ -6,8 +6,6 @@ on:
       - main
       - develop
   pull_request:
-    types:
-      - reopened
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
