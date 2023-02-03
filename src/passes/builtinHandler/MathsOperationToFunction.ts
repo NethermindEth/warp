@@ -8,7 +8,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { functionaliseAdd } from '../../warplib/implementations/maths/add';
 import { functionaliseAnd } from '../../warplib/implementations/maths/and_';
@@ -105,20 +105,18 @@ export class MathsOperationToFunction extends ASTMapper {
     ) {
       if (['mulmod', 'addmod'].includes(node.vExpression.name)) {
         const name = `warp_${node.vExpression.name}`;
-        const cairoStub = createCairoFunctionStub(
+        const importedFunc = ast.registerImport(
+          node,
+          `warplib.maths.${node.vExpression.name}`,
           name,
           [
             ['x', createUint256TypeName(ast)],
             ['y', createUint256TypeName(ast)],
           ],
           [['res', createUint256TypeName(ast)]],
-          [],
-          ast,
-          node,
         );
-        const replacement = createCallToFunction(cairoStub, node.vArguments, ast);
+        const replacement = createCallToFunction(importedFunc, node.vArguments, ast);
         ast.replaceNode(node, replacement);
-        ast.registerImport(replacement, `warplib.maths.${node.vExpression.name}`, name);
       }
     }
   }

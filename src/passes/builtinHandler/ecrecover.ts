@@ -15,7 +15,9 @@ export class Ecrecover extends ASTMapper {
       return this.commonVisit(node, ast);
     }
 
-    const ecrecoverEth = createCairoFunctionStub(
+    const ecrecoverEth = ast.registerImport(
+      node,
+      'warplib.ecrecover',
       'ecrecover_eth',
       [
         ['msg_hash', createUintNTypeName(256, ast)],
@@ -24,13 +26,7 @@ export class Ecrecover extends ASTMapper {
         ['s', createUintNTypeName(256, ast)],
       ],
       [['eth_address', createUintNTypeName(160, ast)]],
-      ['range_check_ptr', 'bitwise_ptr', 'keccak_ptr'],
-      ast,
-      node,
     );
-
-    ast.registerImport(node, 'warplib.ecrecover', 'ecrecover_eth');
-
     ast.replaceNode(node, createCallToFunction(ecrecoverEth, node.vArguments, ast));
   }
 }
