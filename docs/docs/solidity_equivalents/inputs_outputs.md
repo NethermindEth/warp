@@ -1,0 +1,180 @@
+---
+title: Transcoding Inputs for Starknet Contracts
+---
+
+StarkNet contracts, also known as zk-STARK contracts, are a type of smart contract that utilizes zero-knowledge proof technology to provide privacy and security to its users and these contracts are written in [cairo](https://www.cairo-lang.org/docs/) language. Unlike traditional smart contracts written in Solidity, the inputs to a StarkNet contract are structurally different, making it necessary to understand how to interact with them effectively.
+
+[Warp](https://github.com/NethermindEth/warp) is a transpiler tool developed by NethermindEth, which is capable of converting Solidity smart contracts into StarkNet contracts. However, the input parameters `(calldata)` for the Solidity smart contracts may differ slightly from those required for StarkNet contracts written in Cairo. This is due to the differences in the programming languages used and the specific requirements of the respective platforms
+
+The following is a guide on the structural differences between inputs i.e calldata in a StarkNet contract (Warped Version) compared to a Solidity smart contract:
+
+#### For Example
+
+Consider a solidity contract (`contract.sol`):
+
+```solidity
+contract A {
+    function increment(uint x) public pure returns (uint) {
+        return x + 1;
+    }
+}
+```
+
+The transpiled `i.e Warped` version of the above contract (call it `contract.cairo`) would be as follows:
+
+```js
+%lang starknet
+
+from starkware.cairo.common.uint256 import Uint256
+...
+@view
+func increment_7cf5dab0{syscall_ptr: felt*, range_check_ptr: felt}(__warp_0_x: Uint256) -> (
+    __warp_1: Uint256
+) {
+    alloc_locals;
+
+    warp_external_input_check_int256(__warp_0_x);
+
+    let (__warp_se_0) = warp_add256(__warp_0_x, Uint256(low=1, high=0));
+
+    return (__warp_se_0,);
+}
+...
+```
+
+The function `increment_7cf5dab0` in the cairo contract corresponds to `increment` function in solidity contract.
+
+When interacting with a Solidity contract, you would typically pass an integer value, such as "45", as a single parameter "x" to the function "increment". However, when working with the equivalent function "increment_7cf5dab0" in a Cairo-based StarkNet contract, you would need to pass two values "45, 0" to accurately represent the same integer value. This is because the "Uint256" data type in StarkNet contracts is implemented as a pair of [_`felts`_](https://www.cairo-lang.org/docs/hello_cairo/intro.html#the-primitive-type-field-element-felt), which are a type of primitive field element in Cairo. This difference in representation highlights the distinct differences between the two platforms and the impact it has on the way input parameters are passed to functions.
+
+**Note** : Warp supports both Solidity and Cairo contract input formats through its CLI. The default is Solidity format, but Cairo format can be used by passing the "--use_cairo_abi" flag
+
+```sh
+# for solidity type input
+warp invoke  --function increment --inputs 45 --address `contract_address`
+
+# for cairo type input
+warp invoke  --function increment_7cf5dab0 --inputs 45 0 --address `contract_address` --use_cairo_abi
+```
+
+**Note**: Warp internally calls [encodeInputs](https://github.com/NethermindEth/warp/blob/48498267abede1e92501f2965729db8e9ba53674/src/transcode/encode.ts#L14) and [decodeOutputs](https://github.com/NethermindEth/warp/blob/48498267abede1e92501f2965729db8e9ba53674/src/transcode/decode.ts#L13) to make solidity inputs compatible for Warped contracts and decode it back to solidity type output from cairo type outputs respectively.
+
+## Comparision of inputs
+
+This section provides a detailed comparison of input data types used in smart contracts, including examples to demonstrate the differences.
+
+The goal is to give a comprehensive understanding of the variations in input parameters required for contract functions
+
+It shows how solidity types in solidity contracts transforms to a cairo type in StarkNet contracts after **warping**.
+
+### Value types
+
+The following types are also called value types because variables of these types will always be passed by value, i.e. they are always copied when they are used as function arguments or in assignments.
+
+#### Booleans
+
+`bool`: The possible values are constants `true` and `false`, these are represenrted in a single `felt` in cairo.
+0 for `false` and 1 for `true`.
+
+#### Integers
+
+Signed and unsigned integers of various sizes (from 8 bits to 256 bits). All integers are represented in a single `felt` with an expection for 256 width integers. 256 bits integers are represented in a pair of `felt`s . Negative Integers are represented as 2-compliment of negative of the number.
+
+For e.g. `-1(int256)` is represnted as `Uint256(0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff)` in cairo. It should be passed as `0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff`.
+
+#### Addresses/Contract Types/Address Literals
+
+Addresses are represented in a single `felt`.
+
+#### Fixed-size byte arrays
+
+The value types bytes1, bytes2, bytes3, …, bytes32 hold a sequence of bytes from one to up to 32. Variables with width upto 248 bits are represented in a single `felt`. `bytes32` is represented in a pair of `felt`s (Uint256).
+
+#### Enums
+
+enums variables are converted into a single felt in accord with the position of enum deifnition.
+
+#### User Defined Value Types
+
+A user defined value type allows creating a zero cost abstraction over an elementary value type.
+
+Representation is same as the elementary value type over at which it has been asbtracted.
+
+### Reference types
+
+#### String/String Literals
+
+`string`s are represented as a `felt` array with the leading element representing the number of elements in the array, typically represented as `(arr_len: felt, arr:felt*)` in the cairo lang.
+
+For e.g `'warp'` is represented as `4 119 97 114 112`.
+
+#### bytes
+
+Same as `string`, use byte values in-place instead of acii values of characters.
+
+#### Arrays
+
+Arrays can have a compile-time fixed size, or they can have a dynamic size.
+
+- Fixed sized arrays are represented as tuple of base types with length equals length of the array.
+
+  for e.g.
+
+  `uint[3][2]` is represented as `(Uint256, Uint256, Uint256), (Uint256, Uint256, Uint256))`.
+  So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you've to provide `12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
+
+- Dynamic sized arrays are repsented as `(arr_len: felt, arr: (base type in cairo)*)`, the first value represents number of elements in the array.
+
+  for e.g.
+
+  `uint[3][]` is represented as `arr_len : felt, arr : (Uint256, Uint256, Uint256)*`.
+  So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you've to provide `2, 12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
+
+#### Structs
+
+Solidity provides a way to define new types in the form of structs.
+
+Structs are represented as `structs` in cairo after warping but with members are of corresponding cairo type.
+
+e.g
+
+```solidity
+struct S {
+    uint x;
+    uint y;
+}
+```
+
+corresponds to
+
+```js
+struct S_699172d7{
+    x : Uint256,
+    y : Uint256,
+}
+```
+
+**Note** `S_699172d7` is the struct signature of the `S` type in sol.
+
+So, If you want to pass an input of type `S` with values `S(23, 45)`, then you have to provide `23 0 45 0` in the inputs to interact with the warped contracts.
+
+### Table for reference
+
+The table provides an extensive list of Solidity data types with corresponding example inputs for use with Cairo contracts (Warped contracts), which are the output of transpiling Solidity contracts. The table demonstrates the type of inputs transformation required for each Solidity type to interact effectively with the Cairo contracts(Warped contracts).
+
+| Solidity Type                  |                       Cairo Type                       |                    Example solc input args |                                                             Example cairo input args |
+| :----------------------------- | :----------------------------------------------------: | -----------------------------------------: | -----------------------------------------------------------------------------------: |
+| bool                           |                          felt                          |                                       true |                                                                                    1 |
+| intX `(X ∈ [8, 16,..., 248])`  |                          felt                          |                                         45 |                                                                                   45 |
+| int/int256                     | Uint256(felt : `low 128 bits`, felt : `high 128 bits`) |                                         45 |                                                                                45, 0 |
+| uintX `(X ∈ [8, 16,..., 248])` |                          felt                          |                                         45 |                                                                                   45 |
+| uint/uint256                   | Uint256(felt : `low 128 bits`, felt : `high 128 bits`) |                                         45 |                                                                                45, 0 |
+| address (160 bits)             |                    felt (251 bits)                     | 0x0000000000000000000000000000000000000001 |                                           0x0000000000000000000000000000000000000001 |
+| contract                       |            felt(`251 bit contract address`)            | 0x0000000000000000000000000000000000000001 |                                           0x0000000000000000000000000000000000000001 |
+| bytesX `(X ∈ [1, 2,..., 31])`  |                          felt                          |                          0x3232 (`bytes2`) |                                                                        0x3232 (felt) |
+| bytes32                        | Uint256(felt : `low 128 bits`, felt : `high 128 bits`) |                                         45 |                                                                                45, 0 |
+| Integer Literals               |                          felt                          |                                         -1 | 0x7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff (two's complement) |
+| Rational Literals              |                          N/A                           |                                        N/A |                                                                                  N/A |
+| string/bytes                   |              arr_len : felt, arr: felt\*               |                                      "abc" |                                                               3 (length), 97, 98, 99 |
+| Dynamic Arrays (`address[]`)   |      arr_len: felt, arr : (base Type)_ `(felt_)`       |                            [0x0, 0x1, 0x2] |                                                                              3 0 1 2 |
+| Fixed Arrays (`uint[3]`)       |  tuples of base Type (`(Uint256, Uint256, Uint256)`)   |                                  [1, 2, 3] |                                                                          1 0 2 0 3 0 |
+| Structs (`S{int x, uint y}`)   |        cairo struct (`S{Uint256 x, Uint256 y}`)        |                                  S(23, 45) |                                                                            23 0 45 0 |
