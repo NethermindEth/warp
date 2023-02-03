@@ -20,13 +20,9 @@ export function encodeWarpEvent(fragment: EventFragment, values: argType[], orde
     fragment,
   ).encodeEventLog(fragment, values);
 
-  console.log('data', data);
-
   const topicFlatHex = '0x' + topics.map((x) => x.slice(2).padStart(64, '0')).join('');
   const topicItems248: string[] = splitInto248BitChunks(topicFlatHex.slice(2));
   const dataItems248: string[] = splitInto248BitChunks(data.slice(2));
-
-  console.log(dataItems248);
 
   return { order, keys: topicItems248, data: dataItems248 };
 }

@@ -2,11 +2,11 @@ contract WARP{
 
     event allStringEvent(string, string);
     event allStringMiscEvent(string indexed, string);
-    event allUintMiscEvent(uint , uint indexed);
+    event allUintMiscEvent(uint , string, uint indexed);
     event allIndexedEvent(uint indexed, uint indexed);
     event allUintMiscEventAnonymous(uint, uint indexed) anonymous;
 
-    function allString(string memory a, string memory b) public {
+    function allString(string calldata a, string calldata b) public {
         emit allStringEvent(a, b);
     }
 
@@ -15,7 +15,7 @@ contract WARP{
     }
 
     function allUint(uint a, uint b) public {
-        emit allUintMiscEvent(a, b);
+        emit allUintMiscEvent(a,"tihor", b);
     }
 
     function allIndexed(uint a, uint b) public {
@@ -23,9 +23,9 @@ contract WARP{
     }
 
     function allEventsAtOnce() public {
-        emit allStringEvent("a", "b");
-        emit allStringMiscEvent("a", "b");
-        emit allUintMiscEvent(1, 2);
+        emit allStringEvent("a", "abcdefghijklmnopqrstuvwxyz");
+        emit allStringMiscEvent("warp", "isnotgonnamakeit");
+        emit allUintMiscEvent(1,"najnar", 2);
         emit allIndexedEvent(1, 2);
         emit allUintMiscEventAnonymous(1, 2);
     }
