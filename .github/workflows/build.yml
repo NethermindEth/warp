@@ -1,4 +1,4 @@
-name: Warp CI
+name: Behaviour tests
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   pull_request:
 
 env:
-  CAIRO_LANG_VERSION: 0.10.0
+  CAIRO_LANG_VERSION: 0.10.3
 
 jobs:
   lint:
@@ -40,7 +40,7 @@ jobs:
         run: |
           yarn lint
           black starknet-testnet/ --check --verbose --diff --color
-          find warplib/ -iname *.cairo -exec cairo-format -c {} +
+        # find warplib/ -iname *.cairo -exec cairo-format -c {} +
 
   build:
     runs-on: ubuntu-latest

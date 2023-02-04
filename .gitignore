@@ -204,3 +204,6 @@ warplib/maths/int_conversions.cairo
 warplib/maths/external_input_check_ints.cairo
 # external_input_check_address.cairo - handwritten
 # external_input_check_bool.cairo - handwritten
+
+tests/cli/starknet_open_zeppelin_accounts.json
+tests/cli/starknet_open_zeppelin_accounts.json.backup
