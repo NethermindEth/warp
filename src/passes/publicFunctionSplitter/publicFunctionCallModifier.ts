@@ -4,10 +4,10 @@ import {
   FunctionDefinition,
   Identifier,
   MemberAccess,
+  isFunctionCallExternal,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { isInternalFuncCall } from './internalFunctionCallCollector';
 
 export class PublicFunctionCallModifier extends ASTMapper {
   constructor(public internalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>) {
@@ -31,7 +31,7 @@ export class PublicFunctionCallModifier extends ASTMapper {
       // The function call will need to be modified irrespective of whether it is internal or external.
       if (replacementFunction !== undefined) {
         // If it is an external call the function gets re-pointed to the new external call.
-        if (!isInternalFuncCall(node, ast)) {
+        if (isFunctionCallExternal(node)) {
           node.vExpression.referencedDeclaration = replacementFunction.id;
           // If it is an internal call then the functionCall.vExpressions name needs to be changed to
           // match it's modified function definition's name
