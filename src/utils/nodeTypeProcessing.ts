@@ -58,9 +58,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
 
     case FunctionCallKind.StructConstructorCall: {
       assert(
-        functionType instanceof TypeNameType &&
-          functionType.type instanceof PointerType &&
-          functionType.type.to instanceof UserDefinedType,
+        functionType instanceof TypeNameType && functionType.type instanceof UserDefinedType,
         error(
           `TypeNode for ${printNode(
             functionCall.vExpression,
@@ -70,7 +68,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
           )}`,
         ),
       );
-      const structDef = functionType.type.to.definition;
+      const structDef = functionType.type.definition;
       assert(structDef instanceof StructDefinition);
       return structDef.vMembers.map(ast.inference.variableDeclarationToTypeNode, ast.inference);
     }
@@ -295,17 +293,17 @@ export function safeGetNodeType(
   inference: InferType,
 ): TypeNode {
   getContainingSourceUnit(node);
-  // if (node instanceof Literal) {
-  //   return getNodeType(node, inference);
-  // }
-  // if (node instanceof VariableDeclaration) {
-  //   return inference.variableDeclarationToTypeNode(node);
-  // }
-  // if (node instanceof TypeName) {
-  //   return inference.typeNameToTypeNode(node)
-  // }
-  // return inference.typeOf(node);
-  return getNodeType(node, inference);
+  if (node instanceof Literal) {
+    return getNodeType(node, inference);
+  }
+  if (node instanceof VariableDeclaration) {
+    return inference.variableDeclarationToTypeNode(node);
+  }
+  if (node instanceof TypeName) {
+    return inference.typeNameToTypeNode(node);
+  }
+  return inference.typeOf(node);
+  // return getNodeType(node, inference);
 }
 
 export function safeGetNodeTypeInCtx(
