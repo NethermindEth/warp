@@ -79,7 +79,7 @@ The following types are also called value types because variables of these types
 
 Signed and unsigned integers of various sizes (from 8 bits to 256 bits). All integers are represented in a single `felt` with an expection for 256 width integers. 256 bits integers are represented in a pair of `felt`s . Negative Integers are represented as 2-complement of negative of the number.
 
-*Example*: `-1(int256)` is represnted as `Uint256(0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff)` in cairo. It should be passed as `0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff`.
+**Example**: `-1(int256)` is represnted as `Uint256(0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff)` in cairo. It should be passed as `0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff`.
 
 #### Addresses/Contract Types/Address Literals
 
@@ -105,7 +105,7 @@ Representation is the same as the elementary value type over at which it has bee
 
 Strings are represented as a `felt` array with the leading element representing the number of elements in the array, typically represented as `(arr_len: felt, arr:felt*)` in the cairo lang.
 
-*Example*: `'warp'` is represented as `4 119 97 114 112`.
+**Example**: `'warp'` is represented as `4 119 97 114 112`.
 
 #### bytes
 
@@ -117,14 +117,14 @@ Arrays can have a compile-time fixed size, or they can have a dynamic size.
 
 - Fixed sized arrays are represented as tuple of base types with length equals length of the array.
 
-  *Example*:
+  **Example**:
 
   `uint[3][2]` is represented as `(Uint256, Uint256, Uint256), (Uint256, Uint256, Uint256))`.
   So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you've to provide `12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
 
 - Dynamic sized arrays are repsented as `(arr_len: felt, arr: (base type in cairo)*)`, the first value represents number of elements in the array.
 
- *Example*:
+ **Example**:
 
   `uint[3][]` is represented as `arr_len : felt, arr : (Uint256, Uint256, Uint256)*`.
   So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you've to provide `2, 12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
@@ -135,7 +135,7 @@ Solidity provides a way to define new types in the form of structs.
 
 Structs are represented as `structs` in cairo after warping but with members are of corresponding cairo type.
 
-*Example*:
+**Example**:
 
 ```solidity
 struct S {
