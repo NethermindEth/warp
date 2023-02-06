@@ -240,9 +240,9 @@ export function generateExpressionTypeString(type: TypeNode): string {
   if (type instanceof PointerType) {
     if (type.to instanceof MappingType) return generateExpressionTypeString(type.to);
     else
-      return `${generateExpressionTypeString(type.to)} ${type.location}${
-        type.kind !== undefined ? ' ' + type.kind : ''
-      }`;
+      return `${generateExpressionTypeString(type.to)} 
+      ${type.location === DataLocation.Default ? '' : type.location}
+      ${type.kind !== undefined ? ' ' + type.kind : ''}`;
   } else if (type instanceof FunctionType) {
     const mapper = (node: TypeNode) => generateExpressionTypeString(node);
 
