@@ -162,10 +162,7 @@ export function createIdentifier(
   dataLocation?: DataLocation,
   lookupNode?: ASTNode,
 ): Identifier {
-  const type = specializeType(
-    safeGetNodeTypeInCtx(variable, ast.inference, lookupNode ?? variable),
-    dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
-  );
+  const type = safeGetNodeTypeInCtx(variable, ast.inference, lookupNode ?? variable);
   const node = new Identifier(
     ast.reserveId(),
     '',
