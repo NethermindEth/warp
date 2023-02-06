@@ -171,8 +171,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
   }
 
   private createDynamicArrayCopyFunction(type: TypeNode): GeneratedFunctionInfo {
-    const funcName = `wm_to_calldata_dynamic_array${this.generatedFunctionsDef.size}`;
-
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(outputType instanceof CairoDynArray);
 
@@ -190,10 +188,11 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     const dynArrayReaderInfo = this.createDynArrayReader(elementT);
 
+    const funcName = `wm_to_calldata_dynamic_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        ...dynArrayReaderInfo.code,
+        dynArrayReaderInfo.code,
         `func ${funcName}${IMPLICITS}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
         `    alloc_locals;`,
         `    let (len_256) = wm_read_256(mem_loc);`,

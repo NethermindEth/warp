@@ -32,14 +32,14 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
   );
 
   const name = funcSignature.groups.name;
-  try {
-    console.log('parsing implicits of', name);
-    const implicits = parseImplicits(funcSignature.groups.implicits);
+  //try {
+  // console.log('parsing implicits of', name);
+  const implicits = parseImplicits(funcSignature.groups.implicits);
 
-    return { name, implicits };
-  } catch (err) {
-    throw new Error(`Error in implicits for:\n${rawFunction}`);
-  }
+  return { name, implicits };
+  //} catch (err) {
+  throw new Error(`Error in implicits for:\n${rawFunction}`);
+  //}
 }
 
 /**
@@ -47,7 +47,6 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
  *  @returns a list of each Implicit after checking it's valid
  */
 export function parseImplicits(rawImplicits: string): Implicits[] {
-  console.log('rawImplicits: ', rawImplicits);
   const matchedImplicits =
     rawImplicits.match(/[{](?<implicits>[a-zA-Z0-9:,_* ]*)[}]/) ??
     rawImplicits.match(/(?<implicits>[a-zA-Z0-9:,_* ]*)/);

@@ -19,6 +19,7 @@ const STARKWARE_CAIRO_COMMON_DEFAULT_DICT = 'starkware.cairo.common.default_dict
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
+const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
 const WARPLIB_MATHS_EXTERNAL_INPUT_CHECKS_INTS = 'warplib.maths.external_input_check_ints';
 const WARPLIB_MATHS_INT_CONVERSIONS = 'warplib.maths.int_conversions';
@@ -37,9 +38,12 @@ export function createImportFuncDefinition(
 ) {
   const sourceUnit = getContainingSourceUnit(nodeInSourceUnit);
 
+  const noInfoInputs = inputs === undefined || inputs.length === 0;
+  const noInfoOutputs = outputs === undefined || outputs.length === 0;
+
   const existingImport = findExistingImport(name, sourceUnit);
   // The last two checks are some kind of patch
-  if (existingImport !== undefined && inputs === undefined && outputs === undefined) {
+  if (existingImport !== undefined && noInfoInputs && noInfoOutputs) {
     return existingImport;
   }
 
@@ -81,6 +85,8 @@ export function createImportFuncDefinition(
       return createFuncImport('range_check_ptr');
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_sub':
       return createFuncImport('range_check_ptr');
+    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_caller_address':
+      return createFuncImport('syscall_ptr');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'byte_array_to_felt_value':
       return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'byte_array_to_uint256_value':
@@ -123,17 +129,23 @@ export function createImportFuncDefinition(
       return createFuncImport('warp_memory');
     case WARPLIB_MEMORY + 'wm_read_felt':
       return createFuncImport('warp_memory');
+    case WARPLIB_MEMORY + 'wm_write_256':
+      return createFuncImport('warp_memory');
+    case WARPLIB_MEMORY + 'wm_write_felt':
+      return createFuncImport('warp_memory');
     case WARPLIB_KECCAK + 'warp_keccak':
       return createFuncImport('range_check_ptr', 'bitwise_ptr', 'warp_memory', 'keccak_ptr');
     default:
+      assert(false, `Import ${name} from ${path} is not defined.`);
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
 }
 
 function findExistingImport(name: string, node: SourceUnit) {
-  const found = node.getChildrenBySelector(
+  const found = node.vFunctions.filter(
     (n) => n instanceof CairoImportFunctionDefinition && n.name === name,
   );
+
   assert(found.length < 2, `More than 1 import functions where found with name: ${name}.`);
 
   if (found[0] !== undefined) {

@@ -67,15 +67,13 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         type instanceof StringType,
     );
 
-    const elementT = getElementType(type);
-
     const wideSize = getSize(type);
     const size =
       wideSize !== undefined
         ? narrowBigIntSafe(wideSize, `${printNode(node)} too long to process`)
         : elements.length;
 
-    const funcDef = this.getOrCreateFuncDef(elementT, size);
+    const funcDef = this.getOrCreateFuncDef(type, size);
     return createCallToFunction(funcDef, elements, this.ast);
   }
 
@@ -107,7 +105,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
   private getOrCreate(type: TypeNode, size: number, dynamic: boolean): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(type, this.ast);
-    const funcName = `WM${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_arr`;
+    const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
 
     const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
 

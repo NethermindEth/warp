@@ -64,11 +64,11 @@ export const warplibFunctions: WarplibFunctionInfo[] = [
   int_conversions(),
   // ---external_input_checks---
   external_input_check_ints(),
+  // external_inputt_check_address - handwritten
 ];
 
 export const warplibImportInfo = warplibFunctions.reduce(
   (warplibMap, warplibFunc) => {
-    console.log(warplibFunc.fileName);
     warplibFunc.functions
       .flatMap((rawFunc) => parseMultipleRawCairoFunctions(rawFunc))
       .filter((funcInfo) => funcInfo.name.startsWith('warp_'))
@@ -163,6 +163,10 @@ export const warplibImportInfo = warplibFunctions.reduce(
         ['warp_bitwise_or', ['bitwise_ptr']],
         ['warp_bitwise_or256', ['range_check_ptr', 'bitwise_ptr']],
       ]),
+    ],
+    [
+      `${LIBPATH}.external_input_check_address`,
+      new Map([['warp_external_input_check_address', ['bitwise_ptr']]]),
     ],
   ]),
 );

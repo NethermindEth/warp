@@ -11,17 +11,18 @@ import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
   This involves serialising the data into a series of felts and writing each one into the DictAccess
 */
 export class MemoryWriteGen extends StringIndexedFuncGen {
-  gen(memoryRef: Expression, writeValue: Expression): FunctionCall {
+  public gen(memoryRef: Expression, writeValue: Expression): FunctionCall {
     const typeToWrite = safeGetNodeType(memoryRef, this.ast.inference);
     const funcDef = this.getOrCreateFuncDef(typeToWrite);
     return createCallToFunction(funcDef, [memoryRef, writeValue], this.ast);
   }
 
-  getOrCreateFuncDef(typeToWrite: TypeNode) {
-    const key = `dynArrayPop(${typeToWrite.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+  public getOrCreateFuncDef(typeToWrite: TypeNode) {
+    // TODO: Check if this is key is ok
+    const key = typeToWrite.pp();
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);

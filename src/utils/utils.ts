@@ -554,6 +554,10 @@ export function getContainingFunction(node: ASTNode): FunctionDefinition {
 }
 
 export function getContainingSourceUnit(node: ASTNode): SourceUnit {
+  if (node instanceof SourceUnit) {
+    return node;
+  }
+
   const root = node.getClosestParentByType(SourceUnit);
   assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
   return root;
