@@ -37,12 +37,6 @@ jobs:
       - name: Build warplib
         run: yarn warplib
 
-      - name: Setup gcc-14 Environment
-        run: |
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          sudo apt install -y gcc-14 gcc-14-multilib g++-14 g++-14-multilib
-          gcc-14 --version
-
       - name: CLI test on starknet devnet
         run: |
           starknet-devnet --lite-mode --seed 0 & yarn test:cli
