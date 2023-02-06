@@ -19,7 +19,7 @@ const STARKWARE_CAIRO_COMMON_DEFAULT_DICT = 'starkware.cairo.common.default_dict
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
-const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.cairo.common.uint256';
+const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
 const WARPLIB_MATHS_EXTERNAL_INPUT_CHECKS_INTS = 'warplib.maths.external_input_check_ints';
 const WARPLIB_MATHS_INT_CONVERSIONS = 'warplib.maths.int_conversions';
@@ -38,13 +38,29 @@ export function createImportFuncDefinition(
 ) {
   const sourceUnit = getContainingSourceUnit(nodeInSourceUnit);
 
-  const noInfoInputs = inputs === undefined || inputs.length === 0;
-  const noInfoOutputs = outputs === undefined || outputs.length === 0;
+  const hasInputs = inputs !== undefined && inputs.length > 0;
+  const hasOutputs = outputs !== undefined && outputs.length > 0;
 
   const existingImport = findExistingImport(name, sourceUnit);
-  // The last two checks are some kind of patch
-  if (existingImport !== undefined && noInfoInputs && noInfoOutputs) {
-    return existingImport;
+  // PATCH PATCH PATCH
+  if (existingImport !== undefined) {
+    if (
+      existingImport.vParameters.vParameters.length > 0 ||
+      existingImport.vReturnParameters.vParameters.length > 0
+    )
+      return existingImport;
+    if (!hasInputs || !hasOutputs) return existingImport;
+
+    sourceUnit.removeChild(existingImport);
+    return createImportFuncFuncDefinition(
+      name,
+      path,
+      existingImport.implicits,
+      inputs,
+      outputs,
+      ast,
+      sourceUnit,
+    );
   }
 
   const createFuncImport = (...implicits: Implicits[]) =>
