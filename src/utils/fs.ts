@@ -6,6 +6,6 @@ export function outputFileSync(file: string, data: string) {
   if (fs.existsSync(dir)) {
     return fs.writeFileSync(file, data);
   }
-  fs.mkdirSync(dir);
+  fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, data);
 }
