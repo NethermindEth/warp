@@ -44,7 +44,7 @@ func increment_7cf5dab0{syscall_ptr: felt*, range_check_ptr: felt}(__warp_0_x: U
 
 The function `increment_7cf5dab0` in the cairo contract corresponds to `increment` function in solidity contract.
 
-When interacting with a Solidity contract, you would typically pass an integer value, such as "45", as a single parameter "x" to the function "increment". However, when working with the equivalent function "increment\*7cf5dab0" in a Cairo-based StarkNet contract, you would need to pass two values "45, 0" to accurately represent the same integer value. This is because the "Uint256" data type in StarkNet contracts is implemented as a pair of [`felt`](https://www.cairo-lang.org/docs/hello_cairo/intro.html#the-primitive-type-field-element-felt)s, which are a type of primitive field element in Cairo. This difference in representation highlights the distinct differences between the two platforms and the impact it has on the way input parameters are passed to functions.
+When interacting with a Solidity contract, you would typically pass an integer value, such as "45", as a single parameter "x" to the function "increment". However, when working with the equivalent function "increment_7cf5dab0" in a Cairo-based StarkNet contract, you would need to pass two values "45, 0" to accurately represent the same integer value. This is because the "Uint256" data type in StarkNet contracts is implemented as a pair of [`felt`](https://www.cairo-lang.org/docs/hello_cairo/intro.html#the-primitive-type-field-element-felt)s, which are a type of primitive field element in Cairo. This difference in representation highlights the distinct differences between the two platforms and the impact it has on the way input parameters are passed to functions.
 
 **Note** : Warp supports both Solidity and Cairo contract input formats through its CLI. The default is Solidity format, but Cairo format can be used by passing the "--use_cairo_abi" flag
 
@@ -77,7 +77,7 @@ The following types are also called value types because variables of these types
 
 #### Integers
 
-Signed and unsigned integers of various sizes (from 8 bits to 256 bits). All integers are represented in a single `felt` with an expection for 256 width integers. 256 bits integers are represented in a pair of `felt`s . Negative Integers are represented as 2-compliment of negative of the number.
+Signed and unsigned integers of various sizes (from 8 bits to 256 bits). All integers are represented in a single `felt` with an expection for 256 width integers. 256 bits integers are represented in a pair of `felt`s . Negative Integers are represented as 2-complement of negative of the number.
 
 For e.g. `-1(int256)` is represnted as `Uint256(0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff)` in cairo. It should be passed as `0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff`.
 
@@ -91,19 +91,19 @@ The value types bytes1, bytes2, bytes3, …, bytes32 hold a sequence of bytes fr
 
 #### Enums
 
-enums variables are converted into a single felt in accord with the position of enum deifnition.
+Enum variables are converted into a single felt in accord with the position of enum deifnition.
 
 #### User Defined Value Types
 
 A user defined value type allows creating a zero cost abstraction over an elementary value type.
 
-Representation is same as the elementary value type over at which it has been asbtracted.
+Representation is the same as the elementary value type over at which it has been abstracted.
 
 ### Reference types
 
 #### String/String Literals
 
-`string`s are represented as a `felt` array with the leading element representing the number of elements in the array, typically represented as `(arr_len: felt, arr:felt*)` in the cairo lang.
+Strings are represented as a `felt` array with the leading element representing the number of elements in the array, typically represented as `(arr_len: felt, arr:felt*)` in the cairo lang.
 
 For e.g `'warp'` is represented as `4 119 97 114 112`.
 
