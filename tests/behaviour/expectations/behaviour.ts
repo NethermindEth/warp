@@ -10,10 +10,8 @@ import {
   toCairoInt8,
   MIN_INT8,
   MAX_INT8,
-  cairoUint256toHex,
 } from './utils';
-import createKeccakHash from 'keccak';
-import { encodeWarpEvent, warpEventCanonicalSignaturehash256 } from '../../../src/export';
+import { encodeWarpEvent } from '../../../src/export';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
 
 export const expectations = flatten(
@@ -2655,7 +2653,7 @@ export const expectations = flatten(
                       name: 'allStringMiscEvent',
                       type: 'event',
                     } as JsonFragment),
-                    ['warp', 'isnotgonnamakeit'],
+                    ['warp', 'isgonnamakeit'],
                     1,
                   ),
                   encodeWarpEvent(

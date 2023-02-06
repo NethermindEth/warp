@@ -24,7 +24,7 @@ contract WARP{
 
     function allEventsAtOnce() public {
         emit allStringEvent("a", "abcdefghijklmnopqrstuvwxyz");
-        emit allStringMiscEvent("warp", "isnotgonnamakeit");
+        emit allStringMiscEvent("warp", "isgonnamakeit");
         emit allUintMiscEvent(1,"najnar", 2);
         emit allIndexedEvent(1, 2);
         emit allUintMiscEventAnonymous(1, 2);
