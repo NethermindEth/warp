@@ -213,6 +213,8 @@ function literalToFixedBytes(arg: Expression, typeTo: FixedBytesType): Expressio
     }
   }
 
+  arg.value = BigInt('0x' + arg.hexValue).toString();
   arg.typeString = typeTo.pp();
+  if (arg.kind === LiteralKind.String) arg.kind = LiteralKind.HexString;
   return arg;
 }
