@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { replaceSuffix, isValidSolFile, outputResult } from './io';
+import { isValidSolFile, outputResult } from './io';
 import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
