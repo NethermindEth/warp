@@ -176,7 +176,7 @@ export function runTransform(file: string, options: CliOptions) {
     const mFile = path.relative(process.cwd(), file);
     const ast = compileSolFiles([mFile], options);
     transform(ast, options).map(([name, solidity]) => {
-      outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
+      outputResult(name, solidity, options, ast, true);
     });
   } catch (e) {
     handleTranspilationError(e);

@@ -61,6 +61,7 @@ export function outputResult(
   code: string,
   options: OutputOptions & TranspilationOptions,
   ast: AST,
+  _transform = false,
 ): void {
   if (options.outputDir !== undefined) {
     if (fs.existsSync(options.outputDir)) {
@@ -81,12 +82,17 @@ export function outputResult(
       abiOutPath,
       JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
     );
-    fs.outputFileSync(fullCodeOutPath, code);
+    fs.outputFileSync(
+      _transform ? replaceSuffix(fullCodeOutPath, '_warp.cairo') : fullCodeOutPath,
+      code,
+    );
 
     // Cairo-format is disabled, as it has a bug
     // if (options.formatCairo || options.dev) {
     //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
     //   execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
     // }
+  } else {
+    console.log(`//--- ${outputPath} ---\n${code}\n//---`);
   }
 }
