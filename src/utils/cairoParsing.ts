@@ -13,7 +13,7 @@ export type RawCairoFunctionInfo = {
  *  @returns A list of each function information
  */
 export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFunctionInfo[] {
-  const functions = rawFunctions.matchAll(/func \w+\s*[{].*?[}]\s*[(].*?[)]\s*[{].*?[}]/gis);
+  const functions = rawFunctions.matchAll(/func (\w+)\s*[{]?.*?[}]?\s*[(].*?[)]/gis);
 
   return [...functions].map((func) => getRawCairoFunctionInfo(func[0]));
 }
@@ -25,7 +25,10 @@ export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFu
  */
 export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionInfo {
   // Todo: Update match so implicit can be empty and there is a version of them without keys
-  const funcSignature = rawFunction.match(/func (?<name>.+)\{(?<implicits>.+)\}/);
+  const funcSignature =
+    rawFunction.match(/func (?<name>\w+)\s*[{](?<implicits>.+)[}]/is) ??
+    rawFunction.match(/func (?<name>\w+)\s*/);
+
   assert(
     funcSignature !== null && funcSignature.groups !== undefined,
     `Invalid parsing of raw string function:\n${rawFunction}`,
@@ -34,7 +37,10 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
   const name = funcSignature.groups.name;
   //try {
   // console.log('parsing implicits of', name);
-  const implicits = parseImplicits(funcSignature.groups.implicits);
+  const implicits =
+    funcSignature.groups.implicits !== undefined
+      ? parseImplicits(funcSignature.groups.implicits)
+      : [];
 
   return { name, implicits };
   //} catch (err) {
@@ -48,8 +54,8 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
  */
 export function parseImplicits(rawImplicits: string): Implicits[] {
   const matchedImplicits =
-    rawImplicits.match(/[{](?<implicits>[a-zA-Z0-9:,_* ]*)[}]/) ??
-    rawImplicits.match(/(?<implicits>[a-zA-Z0-9:,_* ]*)/);
+    rawImplicits.match(/[{](?<implicits>[a-zA-Z0-9:,_*\n ]*)[}]/) ??
+    rawImplicits.match(/(?<implicits>[a-zA-Z0-9:,_*\n ]*)/);
 
   assert(
     matchedImplicits !== null && matchedImplicits.groups !== undefined,

@@ -115,6 +115,13 @@ export const warplibImportInfo = warplibFunctions.reduce(
       ]),
     ],
     [
+      `${LIBPATH}.neq`,
+      new Map([
+        ['warp_neq', ['range_check_ptr']],
+        ['warp_neq256', ['range_check_ptr']],
+      ]),
+    ],
+    [
       `${LIBPATH}.ge`,
       new Map([
         ['warp_ge', ['range_check_ptr']],

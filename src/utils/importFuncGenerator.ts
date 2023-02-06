@@ -3,7 +3,7 @@ import { CairoImportFunctionDefinition } from '../ast/cairoNodes';
 import { AST } from '../ast/ast';
 import assert from 'assert';
 import { TranspileFailedError } from '../utils/errors';
-import { warplibImportInfo } from '../warplib/getWarplibImports';
+import { warplibImportInfo } from '../warplib/gatherWarplibImports';
 import { Implicits } from './implicits';
 import {
   createImportFuncFuncDefinition,
