@@ -21,8 +21,8 @@ export function encodeWarpEvent(fragment: EventFragment, values: argType[], orde
   ).encodeEventLog(fragment, values);
 
   const topicFlatHex = '0x' + topics.map((x) => x.slice(2).padStart(64, '0')).join('');
-  const topicItems248: string[] = splitInto248BitChunks(topicFlatHex.slice(2));
-  const dataItems248: string[] = splitInto248BitChunks(data.slice(2));
+  const topicItems248: string[] = splitInto248BitChunks(topicFlatHex);
+  const dataItems248: string[] = splitInto248BitChunks(data);
 
   return { order, keys: topicItems248, data: dataItems248 };
 }
