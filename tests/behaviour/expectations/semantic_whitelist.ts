@@ -1349,7 +1349,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion.sol', // moved to behaviour tests for reliable passing of out of bounds data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/abicodec.sol', // WILL NOT SUPPORT member of adresses are not supported
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/calldata.sol', // WILL NOT SUPPORT address members
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/erc20.sol', parameters
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/erc20.sol', // msg.sender as 0 in behaviour tests
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/multisource.sol', // WILL NOT SUPPORT module
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/multisource_module.sol', // WILL NOT SUPPORT module
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/ownable.sol', // WILL NOT SUPPORT user defined errors
@@ -1411,7 +1411,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/tuples.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/typed_multi_variable_declaration.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/negative_stack_height.sol', // starknet-compile takes too long to transpile the output, testnet dies
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/erc20.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/erc20.sol', // msg.sender as 0 in behaviour tests
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/skip_dynamic_types_for_static_arrays_with_dynamic_elements.sol', // nested dynarrays
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/store_bytes.sol', // msg.data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/value_complex.sol', // address.balance
