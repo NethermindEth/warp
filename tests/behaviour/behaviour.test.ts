@@ -17,8 +17,7 @@ import { expectations } from './expectations';
 import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
-import { EventItem, decodeWarpEvent } from '../../src/utils/event';
-import { EventFragment, JsonFragment } from '@ethersproject/abi';
+import { EventItem } from '../../src/utils/event';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;

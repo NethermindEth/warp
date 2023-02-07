@@ -1,5 +1,6 @@
 import { Dir, Expect, File } from './types';
 import {
+  encodeWarpEvent,
   getByte32Array,
   flatten,
   getByteXArray,
@@ -11,7 +12,6 @@ import {
   MIN_INT8,
   MAX_INT8,
 } from './utils';
-import { encodeWarpEvent } from '../../../src/export';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
 
 export const expectations = flatten(

@@ -1,21 +1,27 @@
 import { EventFragment, Interface, Result } from 'ethers/lib/utils';
+import { argType, EventItem, join248bitChunks, splitInto248BitChunks } from '../utils/event';
 
-export class WarpInterface {
-  ethersInterface: Interface;
-  decodeEventLog(eventFragment: EventFragment | string, data: string, topics: string[]): Result {
-    return this.ethersInterface.decodeEventLog(eventFragment, data, topics);
+export class WarpInterface extends Interface {
+  decodeWarpEvent(fragment: EventFragment | string, warpEvent: EventItem): Result {
+    warpEvent = join248bitChunks(warpEvent); // reverse 248 bit packing
+
+    // Remove leading 0x from each element and join them
+    const data = `0x${warpEvent.data.map((x) => x.slice(2)).join('')}`;
+
+    const result = super.decodeEventLog(fragment, data, warpEvent.keys);
+    return result;
   }
-  encodeEventLog(
-    eventFragment: EventFragment | string,
-    values: any[],
-  ): { data: string; topics: Array<string> } {
-    return this.ethersInterface.encodeEventLog(eventFragment, values);
-  }
-  constructor(events: EventFragment | string) {
-    if (events instanceof EventFragment) {
-      this.ethersInterface = new Interface([events]);
-      return;
-    }
-    this.ethersInterface = new Interface(events);
+
+  encodeWarpEvent(fragment: EventFragment, values: argType[], order = 0): EventItem {
+    const { data, topics }: { data: string; topics: string[] } = super.encodeEventLog(
+      fragment,
+      values,
+    );
+
+    const topicFlatHex = '0x' + topics.map((x) => x.slice(2).padStart(64, '0')).join('');
+    const topicItems248: string[] = splitInto248BitChunks(topicFlatHex);
+    const dataItems248: string[] = splitInto248BitChunks(data);
+
+    return { order, keys: topicItems248, data: dataItems248 };
   }
 }
