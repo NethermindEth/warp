@@ -40,6 +40,7 @@ import {
   SourceLocation,
   SourceUnit,
   StateVariableVisibility,
+  StringLiteralType,
   StringType,
   StructDefinition,
   TimeUnit,
@@ -253,7 +254,7 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
       node.definition.id,
       new IdentifierPath(ast.reserveId(), '', node.definition.name, node.definition.id),
     );
-  } else if (node instanceof StringType) {
+  } else if (node instanceof StringType || node instanceof StringLiteralType) {
     return new ElementaryTypeName(ast.reserveId(), '', 'string', 'string', 'nonpayable');
   }
 

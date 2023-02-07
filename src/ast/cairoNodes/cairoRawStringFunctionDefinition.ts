@@ -37,6 +37,8 @@ export class CairoRawStringFunctionDefinition extends CairoFunctionDefinition {
       [], // Modifier Invocation
       functionSutbKind === FunctionStubKind.FunctionDefStub
         ? new Set(getRawCairoFunctionInfo(rawStringDefinition).implicits)
+        : functionSutbKind === FunctionStubKind.StorageDefStub
+        ? new Set(['pedersen_ptr'])
         : new Set(),
       functionSutbKind,
       false, // Accepts raw dynamic array

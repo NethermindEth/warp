@@ -279,8 +279,8 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         [
           `let (read_${index}) = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(
             allocSize,
-          )})`,
-          `let (member${index})= ${memberGetterFunc.name}(read_${index})`,
+          )});`,
+          `let (member${index})= ${memberGetterFunc.name}(read_${index});`,
         ],
         [this.requireImport('starkware.common.uint256', 'Uint256'), memberGetterFunc, readFunc],
         offset + 1,
@@ -289,7 +289,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     const memberFeltSize = CairoType.fromSol(type, this.ast).width;
     return [
-      [`let (member${index}) = ${readFunc.name}(${add('mem_loc', offset)})`],
+      [`let (member${index}) = ${readFunc.name}(${add('mem_loc', offset)});`],
       [readFunc],
       offset + memberFeltSize,
     ];

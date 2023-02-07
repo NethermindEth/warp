@@ -271,7 +271,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
 
     const deleteFunc = this.storageDeleteGen.getOrCreateFuncDef(type);
     const auxDeleteFuncName = deleteFunc.name + '_elem';
-    const deleteRemainingCode = `${auxDeleteFuncName}(loc, mem_length, length)`;
+    const deleteRemainingCode = `${auxDeleteFuncName}(loc, mem_length, length);`;
 
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
@@ -315,6 +315,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport('warplib.maths.utils', 'narrow_safe'),
         this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
         this.requireImport('warplib.memory', 'wm_dyn_array_length'),
         ...funcCalls,
         deleteFunc,

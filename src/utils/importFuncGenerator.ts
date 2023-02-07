@@ -20,13 +20,6 @@ const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
-const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
-const WARPLIB_MATHS_EXTERNAL_INPUT_CHECKS_INTS = 'warplib.maths.external_input_check_ints';
-const WARPLIB_MATHS_INT_CONVERSIONS = 'warplib.maths.int_conversions';
-const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
-const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
-const WARPLIB_MEMORY = 'warplib.memory';
-const WARPLIB_KECCAK = 'warplib.keccak';
 
 export function createImportFuncDefinition(
   path: string,
@@ -91,6 +84,8 @@ export function createImportFuncDefinition(
       return createFuncImport();
     case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_finalize':
       return createFuncImport('range_check_ptr');
+    case STARKWARE_CAIRO_COMMON_DICT + 'dict_read':
+      return createFuncImport('dict_ptr');
     case STARKWARE_CAIRO_COMMON_DICT + 'dict_write':
       return createFuncImport('dict_ptr');
     case STARKWARE_CAIRO_COMMON_DICT_ACCESS + 'DictAccess':
@@ -99,58 +94,16 @@ export function createImportFuncDefinition(
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_add':
       return createFuncImport('range_check_ptr');
+    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_eq':
+      return createFuncImport('range_check_ptr');
+    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_lt':
+      return createFuncImport('range_check_ptr');
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_sub':
       return createFuncImport('range_check_ptr');
     case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_caller_address':
       return createFuncImport('syscall_ptr');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'byte_array_to_felt_value':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'byte_array_to_uint256_value':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'bytes_to_felt_dynamic_array':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'bytes_to_felt_dynamic_array_spl':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'bytes_to_felt_dynamic_array_spl_without_padding':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'fixed_bytes256_to_felt_dynamic_array':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'fixed_bytes256_to_felt_dynamic_array_spl':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'fixed_bytes_to_felt_dynamic_array':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'felt_array_to_warp_memory_array':
-      return createFuncImport('range_check_ptr', 'warp_memory');
-    case WARPLIB_DYNAMIC_ARRAYS_UTIL + 'memory_dyn_array_copy':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr', 'warp_memory');
-    case WARPLIB_MATHS_BYTES_ACCESS + 'byte256_at_index':
-      return createFuncImport('bitwise_ptr', 'range_check_ptr');
-    case WARPLIB_MATHS_EXTERNAL_INPUT_CHECKS_INTS + 'warp_external_input_check':
-      return createFuncImport('range_check_ptr');
-    case WARPLIB_MATHS_INT_CONVERSIONS + 'warp_uint256':
-      return createFuncImport('range_check_ptr');
-    case WARPLIB_MATHS_UTILS + 'felt_to_uint256':
-      return createFuncImport('range_check_ptr');
-    case WARPLIB_MATHS_UTILS + 'narrow_safe':
-      return createFuncImport('range_check_ptr');
-    case WARPLIB_MEMORY + 'wm_alloc':
-      return createFuncImport('range_check_ptr', 'warp_memory');
-    case WARPLIB_MEMORY + 'wm_dyn_array_length':
-      return createFuncImport('warp_memory');
-    case WARPLIB_MEMORY + 'wm_index_dyn':
-      return createFuncImport('range_check_ptr', 'warp_memory');
-    case WARPLIB_MEMORY + 'wm_new':
-      return createFuncImport('range_check_ptr', 'warp_memory');
-    case WARPLIB_MEMORY + 'wm_read_256':
-      return createFuncImport('warp_memory');
-    case WARPLIB_MEMORY + 'wm_read_felt':
-      return createFuncImport('warp_memory');
-    case WARPLIB_MEMORY + 'wm_write_256':
-      return createFuncImport('warp_memory');
-    case WARPLIB_MEMORY + 'wm_write_felt':
-      return createFuncImport('warp_memory');
-    case WARPLIB_KECCAK + 'warp_keccak':
-      return createFuncImport('range_check_ptr', 'bitwise_ptr', 'warp_memory', 'keccak_ptr');
+    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'deploy':
+      return createFuncImport('syscall_ptr');
     default:
       assert(false, `Import ${name} from ${path} is not defined.`);
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);

@@ -12,6 +12,9 @@ import {
   CairoFunctionDefinition,
   createCairoGeneratedFunction,
   createCallToFunction,
+  createUint256TypeName,
+  createUintNTypeName,
+  FunctionStubKind,
 } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -37,12 +40,32 @@ export class DynArrayGen extends StringIndexedFuncGen {
       return [existing, exsitingLength];
     }
 
-    const dynArrayInfo = this.getOrCreate(cairoType);
-    const [dynArray, dynArrayLength] = dynArrayInfo.map((funcInfo) =>
-      createCairoGeneratedFunction(funcInfo, [], [], this.ast, this.sourceUnit, {
-        // Can this option be deleted??
+    const [arrayInfo, lengthInfo] = this.getOrCreate(cairoType);
+
+    const dynArray = createCairoGeneratedFunction(
+      arrayInfo,
+      [
+        ['name', createUintNTypeName(248, this.ast)],
+        ['index', createUint256TypeName(this.ast)],
+      ],
+      [['res_loc', createUintNTypeName(248, this.ast)]],
+      this.ast,
+      this.sourceUnit,
+      {
         mutability: FunctionStateMutability.View,
-      }),
+        stubKind: FunctionStubKind.StorageDefStub,
+      },
+    );
+    const dynArrayLength = createCairoGeneratedFunction(
+      lengthInfo,
+      [['name', createUintNTypeName(248, this.ast)]],
+      [['length', createUint256TypeName(this.ast)]],
+      this.ast,
+      this.sourceUnit,
+      {
+        mutability: FunctionStateMutability.View,
+        stubKind: FunctionStubKind.StorageDefStub,
+      },
     );
 
     this.generatedFunctionsDef.set(key, dynArray);
@@ -56,7 +79,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
       name: mappingName,
       code: [
         `@storage_var`,
-        `func ${mappingName}(name: felt, index: Uint256) -> (resLoc : felt){`,
+        `func ${mappingName}(name: felt, index: Uint256) -> (res_loc : felt){`,
         `}`,
       ].join('\n'),
       functionsCalled: [],
@@ -66,7 +89,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
       name: `${mappingName}_LENGTH`,
       code: [
         `@storage_var`,
-        `func ${mappingName}_LENGTH(name: felt) -> (index: Uint256){`,
+        `func ${mappingName}_LENGTH(name: felt) -> (length: Uint256){`,
         `}`,
       ].join('\n'),
       functionsCalled: [],

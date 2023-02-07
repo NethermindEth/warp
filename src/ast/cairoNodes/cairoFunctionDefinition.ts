@@ -24,6 +24,7 @@ import { Implicits } from '../../utils/implicits';
 export enum FunctionStubKind {
   None,
   FunctionDefStub,
+  StorageDefStub,
   StructDefStub,
 }
 

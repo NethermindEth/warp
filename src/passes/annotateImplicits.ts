@@ -139,8 +139,8 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
   }
 }
 
-// TODO: There is code repetition here, but left to avoid conflicts with Carmen's PR
-// Should be erased before merging!
+// TODO: There is code repetition here with utils/cairoParsing.ts
+// Should be updated before merging
 function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicits>) {
   const cairoCode = getDocString(node.documentation);
   assert(cairoCode !== undefined);
