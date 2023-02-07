@@ -94,7 +94,6 @@ export function cairoUint256toHex(val: { low: string; high: string }): string {
 }
 
 export function encodeString(value: string): string[] {
-  const valueEncoded: number[] = Buffer.from(value).toJSON().data;
-  const byteString: string[] = valueEncoded.map((val) => val.toString());
-  return [byteString.length.toString()].concat(byteString);
+  const valueEncoded: Buffer = Buffer.from(value);
+  return [valueEncoded.length, ...valueEncoded].map((val) => val.toString());
 }
