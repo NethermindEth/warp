@@ -510,13 +510,13 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_lots_of_data.sol', // msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_signature_in_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_mixed.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit_from_other_contract.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit_from_other_contract.sol', // msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_string.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_topics.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision2.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_topics.sol', // msg.value
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision2.sol', // msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_constructor.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit.sol', // msg.value
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision.sol', // msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_function.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_function2.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event.sol', // WILL NOT SUPPORT yul
