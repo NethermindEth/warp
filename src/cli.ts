@@ -248,7 +248,7 @@ export interface SolcInterfaceGenOptions {
 }
 
 program
-  .command('gen_interface <file>')
+  .command('gen-interface <file>')
   .description(
     'Use native Cairo contracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
   )

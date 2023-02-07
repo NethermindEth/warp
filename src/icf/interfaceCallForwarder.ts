@@ -52,7 +52,7 @@ import {
   tupleParser,
   typeToStructMapping,
 } from './utils';
-import { callClassHashScript, safeCanonicalHash } from '../export';
+import { runStarkNetClassHash, safeCanonicalHash } from '../export';
 
 const defaultSolcVersion = '0.8.14';
 
@@ -130,12 +130,12 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
 
   fs.writeFileSync(cairoContractPath, cairoContract);
 
-  const compileForwarder = compileCairo(cairoContractPath, path.resolve(__dirname, '..'), {
+  const compileForwarder = compileCairo(cairoContractPath, path.resolve(__dirname, '../../'), {
     debugInfo: false,
   });
 
   contract.documentation = `WARP-GENERATED\nclass_hash: ${
-    compileForwarder.resultPath ? callClassHashScript(compileForwarder.resultPath) : '0x0'
+    compileForwarder.resultPath ? runStarkNetClassHash(compileForwarder.resultPath) : '0x0'
   }`;
 
   if (compileForwarder.success) {

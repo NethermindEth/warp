@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers';
-import { isBytes, ParamType, FunctionFragment } from 'ethers/lib/utils';
+import { isBytes, ParamType } from 'ethers/lib/utils';
 import { isBigNumberish } from '@ethersproject/bignumber/lib/bignumber';
 import {
   isPrimitiveParam,
@@ -8,7 +8,6 @@ import {
   safeNext,
   parseSolAbi,
   selectSignature,
-  solAbiFuncArgType,
 } from './utils';
 import Web3 from 'web3';
 
@@ -19,24 +18,28 @@ export async function encodeInputs(
   rawInputs?: string[],
 ): Promise<[string, string]> {
   if (useCairoABI) {
-    const inputs = rawInputs ? `--inputs ${rawInputs.join(' ').split(',').join(' ')}` : '';
+    const inputs = rawInputs ? `${rawInputs.join(' ').split(',').join(' ')}` : '';
     return [func, inputs];
   }
 
   const solABI = parseSolAbi(filePath);
   const funcSignature = await selectSignature(solABI, func);
-  const selector = new Web3().utils
-    .keccak256(
-      `${funcSignature['name']}(${funcSignature['inputs']
-        .map((i: solAbiFuncArgType) => i['type'])
-        .join(',')})`,
-    )
-    .substring(2, 10);
 
-  const funcName = `${func}_${selector}`;
-  const inputNodes: ParamType[] = FunctionFragment.fromObject(funcSignature).inputs;
+  let funcName = func;
+
+  // If function type is not constructor then append the EVM function selector to the function name
+  if (funcSignature.type === 'function') {
+    const selector = new Web3().utils
+      .keccak256(
+        `${funcSignature['name']}(${funcSignature['inputs'].map((i) => i['type']).join(',')})`,
+      )
+      .substring(2, 10);
+    funcName = `${func}_${selector}`;
+  }
+
+  const inputNodes: ParamType[] = funcSignature.inputs.map(ParamType.fromObject);
   const encodedInputs = encode(inputNodes, rawInputs ?? []);
-  const inputs = rawInputs ? `--inputs ${encodedInputs.join(' ')}` : '';
+  const inputs = rawInputs ? `${encodedInputs.join(' ')}` : '';
 
   return [funcName, inputs];
 }

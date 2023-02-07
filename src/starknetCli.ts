@@ -12,7 +12,7 @@ import {
   StarkNetNewAccountOptions,
 } from './cli';
 import { CLIError, logError } from './utils/errors';
-import { callClassHashScript } from './utils/utils';
+import { runStarkNetClassHash } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
@@ -136,6 +136,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
         options.inputs,
       )
     )[1];
+    inputs = inputs ? `--inputs ${inputs}` : inputs;
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -148,7 +149,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     let classHash;
     if (!options.no_wallet) {
       assert(compileResult.resultPath !== undefined, 'resultPath should not be undefined');
-      classHash = callClassHashScript(compileResult.resultPath);
+      classHash = runStarkNetClassHash(compileResult.resultPath);
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
@@ -249,6 +250,7 @@ export async function runStarknetCallOrInvoke(
       options.use_cairo_abi,
       options.inputs,
     );
+    inputs = inputs ? `--inputs ${inputs}` : inputs;
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);

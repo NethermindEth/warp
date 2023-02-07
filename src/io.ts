@@ -1,9 +1,9 @@
 import * as path from 'path';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
-import { execSync } from 'child_process';
 import { AST } from './ast/ast';
+import { outputFileSync } from './utils/fs';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
@@ -15,7 +15,6 @@ export function isValidSolFile(path: string, printError = true): boolean {
     if (printError) logError(`${path} is not a file`);
     return false;
   }
-
   if (!path.endsWith('.sol')) {
     if (printError) logError(`${path} is not a solidity source file`);
     return false;
@@ -79,15 +78,16 @@ export function outputResult(
     const contractName = path.basename(outputPath).slice(0, -'.cairo'.length);
     const solFilePath = path.dirname(outputPath);
 
-    fs.outputFileSync(
+    outputFileSync(
       abiOutPath,
       JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
     );
-    fs.outputFileSync(fullCodeOutPath, code);
+    outputFileSync(fullCodeOutPath, code);
 
-    if (options.formatCairo || options.dev) {
-      const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-      execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
-    }
+    // Cairo-format is disabled, as it has a bug
+    // if (options.formatCairo || options.dev) {
+    //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+    //   execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
+    // }
   }
 }
