@@ -3,7 +3,6 @@ import {
   Expression,
   Literal,
   LiteralKind,
-  replaceNode,
   TupleExpression,
   UnaryOperation,
 } from 'solc-typed-ast';
@@ -38,10 +37,11 @@ export class LiteralExpressionEvaluator extends ASTMapper {
     // It is sometimes possible to avoid any calculation and take the value from the type
     // This is not always possible because boolean literals do not contain their value in the type,
     // and because very large int and rational literals omit some digits
-    const result = createLiteralFromType(node.typeString) || evaluateLiteralExpression(node);
+    const result = createLiteralFromType(node.typeString) || evaluateLiteralExpression(node, ast);
 
     if (result === null) {
-      this.commonVisit(node, ast);
+      // No need to revisit node since it was already evaluated recursively
+      return;
     } else if (typeof result === 'boolean') {
       ast.replaceNode(node, createBoolLiteral(result, ast));
     } else {
@@ -67,22 +67,22 @@ export class LiteralExpressionEvaluator extends ASTMapper {
   }
 }
 
-function evaluateLiteralExpression(node: Expression): RationalLiteral | boolean | null {
+function evaluateLiteralExpression(node: Expression, ast: AST): RationalLiteral | boolean | null {
   if (node instanceof Literal) {
-    return evaluateLiteral(node);
+    return evaluateLiteral(node, ast);
   } else if (node instanceof UnaryOperation) {
-    return evaluateUnaryLiteral(node);
+    return evaluateUnaryLiteral(node, ast);
   } else if (node instanceof BinaryOperation) {
-    return evaluateBinaryLiteral(node);
+    return evaluateBinaryLiteral(node, ast);
   } else if (node instanceof TupleExpression) {
-    return evaluateTupleLiteral(node);
+    return evaluateTupleLiteral(node, ast);
   } else {
     // Not a literal expression
     return null;
   }
 }
 
-function evaluateLiteral(node: Literal): RationalLiteral | boolean | null {
+function evaluateLiteral(node: Literal, _ast: AST): RationalLiteral | boolean | null {
   // Other passes can produce numeric literals from statements that the solidity compiler does not treat as constant
   // These should not be evaluated with compile time arbitrary precision arithmetic
   // A pass could potentially evaluate them at compile time,
@@ -97,8 +97,8 @@ function evaluateLiteral(node: Literal): RationalLiteral | boolean | null {
   }
 }
 
-function evaluateUnaryLiteral(node: UnaryOperation): RationalLiteral | boolean | null {
-  const op = evaluateLiteralExpression(node.vSubExpression);
+function evaluateUnaryLiteral(node: UnaryOperation, ast: AST): RationalLiteral | boolean | null {
+  const op = evaluateLiteralExpression(node.vSubExpression, ast);
   if (op === null) return null;
 
   switch (node.operator) {
@@ -120,16 +120,16 @@ function evaluateUnaryLiteral(node: UnaryOperation): RationalLiteral | boolean |
   }
 }
 
-function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean | null {
+function evaluateBinaryLiteral(node: BinaryOperation, ast: AST): RationalLiteral | boolean | null {
   const [left, right] = [
-    evaluateLiteralExpression(node.vLeftExpression),
-    evaluateLiteralExpression(node.vRightExpression),
+    evaluateLiteralExpression(node.vLeftExpression, ast),
+    evaluateLiteralExpression(node.vRightExpression, ast),
   ];
   if (left === null || right === null) {
     // In some cases a binary expression could be calculated at
     // compile time, even when only one argument is a literal.
 
-    const rightExpression = left === null;
+    const nullRightExpression = right === null;
 
     const notNullMember = left ?? right;
     if (notNullMember === null) {
@@ -138,9 +138,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
       switch (node.operator) {
         case '&&': // false && x = false
           if (notNullMember) {
-            rightExpression
-              ? replaceNode(node, node.vRightExpression)
-              : replaceNode(node, node.vLeftExpression);
+            nullRightExpression
+              ? ast.replaceNode(node, node.vRightExpression)
+              : ast.replaceNode(node, node.vLeftExpression);
             return null;
           } else {
             return false;
@@ -148,9 +148,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
 
         case '||': // true || x = true
           if (!notNullMember) {
-            rightExpression
-              ? replaceNode(node, node.vRightExpression)
-              : replaceNode(node, node.vLeftExpression);
+            nullRightExpression
+              ? ast.replaceNode(node, node.vRightExpression)
+              : ast.replaceNode(node, node.vLeftExpression);
             return null;
           } else {
             return true;
@@ -259,9 +259,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
   }
 }
 
-function evaluateTupleLiteral(node: TupleExpression): RationalLiteral | boolean | null {
+function evaluateTupleLiteral(node: TupleExpression, ast: AST): RationalLiteral | boolean | null {
   return node.vOriginalComponents.length === 1 && node.vOriginalComponents[0] !== null
-    ? evaluateLiteralExpression(node.vOriginalComponents[0])
+    ? evaluateLiteralExpression(node.vOriginalComponents[0], ast)
     : null;
 }
 
