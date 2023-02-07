@@ -4,8 +4,10 @@ import {
   ExpressionStatement,
   ExternalReferenceType,
   FunctionCall,
+  Identifier,
   Literal,
   Return,
+  RevertStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoAssert } from '../../ast/cairoNodes';
@@ -17,6 +19,27 @@ export class Require extends ASTMapper {
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
+  visitRevertStatement(node: RevertStatement, ast: AST): void {
+    const errorName = node.errorCall.vFunctionName;
+    // TODO: create variable declaration for expression which are not identifiers
+    const revertArgs = node.errorCall.vArguments
+      .filter((arg): arg is Identifier => arg instanceof Identifier)
+      .map((arg) => `{${arg.name}}`);
+
+    const cairoAssert = new ExpressionStatement(
+      ast.reserveId(),
+      '',
+      new CairoAssert(
+        ast.reserveId(),
+        '',
+        createBoolLiteral(false, ast),
+        `${errorName}:${revertArgs.join(' ')}`,
+      ),
+    );
+
+    ast.replaceNode(node, cairoAssert);
   }
 
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {

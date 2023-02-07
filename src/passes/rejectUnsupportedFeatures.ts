@@ -70,27 +70,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     return ast;
   }
 
-  // Function to add passes that should have been run before this pass
-  addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
-    passKeys.forEach((key) => this.addPassPrerequisite(key));
-  }
-
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     if (node.vIndexExpression === undefined) {
       if (!(safeGetNodeType(node, ast.inference) instanceof TypeNameType)) {
-        this.addUnsupported(`Undefined index access not supported`, node);
+        this.addUnsupported(
+          `Dynamic index access not supported. Please convert to a static access.`,
+          node,
+        );
       }
     }
     this.visitExpression(node, ast);
-  }
-
-  visitRevertStatement(node: RevertStatement, _ast: AST): void {
-    this.addUnsupported('Reverts with custom errors are not supported', node);
-  }
-
-  visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
-    this.addUnsupported('User defined Errors are not supported', node);
   }
 
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
@@ -127,7 +116,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitIdentifier(node: Identifier, _ast: AST): void {
     if (node.name === 'msg' && node.vIdentifierType === ExternalReferenceType.Builtin) {
       if (!(node.parent instanceof MemberAccess && node.parent.memberName === 'sender')) {
-        this.addUnsupported(`msg object not supported outside of 'msg.sender'`, node);
+        this.addUnsupported(`msg property access not supported apart from 'msg.sender'`, node);
       }
     } else if (node.name === 'block' && node.vIdentifierType === ExternalReferenceType.Builtin) {
       if (
