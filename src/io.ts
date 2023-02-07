@@ -1,8 +1,9 @@
 import * as path from 'path';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
 import { AST } from './ast/ast';
+import { outputFileSync } from './utils/fs';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
@@ -78,15 +79,14 @@ export function outputResult(
     const contractName = path.basename(outputPath).slice(0, -'.cairo'.length);
     const solFilePath = path.dirname(outputPath);
 
-    fs.outputFileSync(
+    outputFileSync(
       abiOutPath,
       JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
     );
-    fs.outputFileSync(
+    outputFileSync(
       _transform ? replaceSuffix(fullCodeOutPath, '_warp.cairo') : fullCodeOutPath,
       code,
     );
-
     // Cairo-format is disabled, as it has a bug
     // if (options.formatCairo || options.dev) {
     //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;

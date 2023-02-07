@@ -2,7 +2,7 @@ import { expectations as semantic } from './semantic';
 import { expectations as behaviour } from './behaviour';
 import { exceptions } from './semantic_exceptions';
 import { AsyncTest, Expect, File } from './types';
-import { readFileSync } from 'fs-extra';
+import { readFileSync } from 'fs';
 
 function getSyncTestFromPath(path: string): File {
   const text = readFileSync(path + '.sol', 'utf-8');
