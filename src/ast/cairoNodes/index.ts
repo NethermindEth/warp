@@ -1,4 +1,4 @@
 export * from './cairoAssert';
 export * from './cairoContract';
 export * from './cairoFunctionDefinition';
-export * from './cairoTemVarStatement';
+export * from './cairoTempVarStatement';
