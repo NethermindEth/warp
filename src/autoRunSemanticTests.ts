@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 import assert from 'assert';
-import { existsSync, readFileSync, writeFileSync } from 'fs-extra';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 if (!existsSync('./tests/behaviour/solidity')) {
   execSync('bash ./tests/behaviour/setup.sh');
