@@ -1,10 +1,7 @@
-import assert = require('assert');
 import {
   ContractDefinition,
   FunctionCall,
-  FunctionCallKind,
   FunctionDefinition,
-  FunctionType,
   MemberAccess,
   UserDefinedType,
 } from 'solc-typed-ast';
@@ -27,11 +24,7 @@ export class InternalFunctionCallCollector extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     const funcDef = node.vReferencedDeclaration;
-    if (
-      funcDef instanceof FunctionDefinition &&
-      node.kind === FunctionCallKind.FunctionCall &&
-      isInternalFuncCall(node, ast)
-    ) {
+    if (funcDef instanceof FunctionDefinition) {
       if (node.vExpression instanceof MemberAccess) {
         const typeNode = safeGetNodeType(node.vExpression.vExpression, ast.inference);
         if (
@@ -46,10 +39,4 @@ export class InternalFunctionCallCollector extends ASTMapper {
     }
     this.commonVisit(node, ast);
   }
-}
-
-export function isInternalFuncCall(node: FunctionCall, ast: AST): boolean {
-  const type = safeGetNodeType(node.vExpression, ast.inference);
-  assert(type instanceof FunctionType);
-  return type.visibility === 'internal';
 }
