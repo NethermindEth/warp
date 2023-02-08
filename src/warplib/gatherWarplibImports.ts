@@ -5,7 +5,6 @@ import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 
 export const warplibImportInfo = readAllCairoScripts('warplib', 'warplib').reduce(
   (warplibMap, [pathToFile, importPath]) => {
-    console.log('parsing', pathToFile, importPath);
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
     let fileMap: Map<string, Implicits[]>;
@@ -29,7 +28,6 @@ function readAllCairoScripts(dirPath: string, importPath: string): [string, stri
   return fs.readdirSync(dirPath).reduce((filesInfo, file) => {
     const fullPathName = path.join(dirPath, file);
 
-    console.log('Analyzing', fullPathName, fs.statSync(fullPathName).isDirectory());
     if (fs.statSync(fullPathName).isDirectory()) {
       const newFilesInfo = readAllCairoScripts(fullPathName, `${importPath}.${file}`);
       return [...filesInfo, ...newFilesInfo];

@@ -149,6 +149,8 @@ export function createCairoGeneratedFunction(
     options.stubKind ?? FunctionStubKind.FunctionDefStub,
     genFuncInfo.code,
     genFuncInfo.functionsCalled,
+    options.acceptsRawDArray,
+    options.acceptsUnpackedStructArray,
   );
 
   ast.setContextRecursive(funcDef);
@@ -165,6 +167,10 @@ export function createImportFuncFuncDefinition(
   retParams: ParameterInfo[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
+  options: CairoFunctionStubOptions = {
+    acceptsRawDArray: false,
+    acceptsUnpackedStructArray: false,
+  },
 ): CairoImportFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
 
@@ -180,7 +186,9 @@ export function createImportFuncFuncDefinition(
     implicits,
     createParameterList(createParameters(params, id, ast), ast),
     createParameterList(createParameters(retParams, id, ast), ast),
-    false,
+    FunctionStubKind.FunctionDefStub,
+    options.acceptsRawDArray,
+    options.acceptsUnpackedStructArray,
   );
   ast.setContextRecursive(funcDef);
   sourceUnit.insertAtBeginning(funcDef);
@@ -210,7 +218,7 @@ export function createImportStructFuncDefinition(
     implicits,
     params,
     retParams,
-    true,
+    FunctionStubKind.StructDefStub,
   );
   ast.setContextRecursive(funcDef);
   sourceUnit.insertAtBeginning(funcDef);
