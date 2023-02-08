@@ -431,12 +431,12 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/base_constructor_arguments.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/functions_called_by_constructor_through_dispatch.sol', // WILL NOT SUPPORT function objects
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol', // WILL NOT SUPPORT function objectss
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/no_callvalue_check.sol', // WILL NOT SUPPORT due to the use of `value` function option
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/evm_exceptions_in_constructor_call_fail.sol', // address.call
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_internal.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/bytes_in_constructors_packer.sol', // Bug here related to constructos and inheritance
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/arrays_in_constructors.sol', // Bug related to contract inheritance
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/bytes_in_constructors_packer.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/arrays_in_constructors.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/callvalue_check.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_argument.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/store_function_in_constructor_packed.sol', // WILL NOT SUPPORT function objects
@@ -508,15 +508,15 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/events_with_same_name_inherited_emit.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_really_lots_of_data.sol', //msg.data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_lots_of_data.sol', // msg.value
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_signature_in_library.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_mixed.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit_from_other_contract.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_string.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_topics.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision2.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_constructor.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit.sol', // WILL NOT SUPPORT indexed
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision.sol', // WILL NOT SUPPORT indexed
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_signature_in_library.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_mixed.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit_from_other_contract.sol', //WILL NOT SUPPORT msg.value
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_string.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_topics.sol', //WILL NOT SUPPORT msg.value
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision2.sol', //WILL NOT SUPPORT msg.value
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_constructor.sol', //Bug related to indexed parameters
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit.sol', //WILL NOT SUPPORT msg.value
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision.sol', //WILL NOT SUPPORT msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_function.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_function2.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event.sol', // WILL NOT SUPPORT yul
@@ -1349,7 +1349,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion.sol', // moved to behaviour tests for reliable passing of out of bounds data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/abicodec.sol', // WILL NOT SUPPORT member of adresses are not supported
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/calldata.sol', // WILL NOT SUPPORT address members
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/erc20.sol', // WILL NOT SUPPORT indexed parameters
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/erc20.sol', // fails at deployment
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/multisource.sol', // WILL NOT SUPPORT module
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/multisource_module.sol', // WILL NOT SUPPORT module
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/ownable.sol', // WILL NOT SUPPORT user defined errors
@@ -1411,7 +1411,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/tuples.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/typed_multi_variable_declaration.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/negative_stack_height.sol', // starknet-compile takes too long to transpile the output, testnet dies
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/erc20.sol', // WILL NOT SUPPORT indexed
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/erc20.sol', // fails at deployment
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/skip_dynamic_types_for_static_arrays_with_dynamic_elements.sol', // nested dynarrays
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/store_bytes.sol', // msg.data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/value_complex.sol', // address.balance
