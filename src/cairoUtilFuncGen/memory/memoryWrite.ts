@@ -1,7 +1,11 @@
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
 import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createCairoGeneratedFunction,
+  createCallToFunction,
+  ParameterInfo,
+} from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -18,40 +22,43 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(typeToWrite: TypeNode) {
-    // TODO: Check if this is key is ok
     const key = typeToWrite.pp();
     const existing = this.generatedFunctionsDef.get(key);
     if (existing !== undefined) {
       return existing;
     }
 
+    const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
+    const inputs: ParameterInfo[] = [
+      ['loc', argTypeName, DataLocation.Memory],
+      [
+        'value',
+        cloneASTNode(argTypeName, this.ast),
+        typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
+      ],
+    ];
+    const outputs: ParameterInfo[] = [
+      [
+        'res',
+        cloneASTNode(argTypeName, this.ast),
+        typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
+      ],
+    ];
+
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
     if (cairoTypeToWrite instanceof CairoFelt) {
-      return this.requireImport('warplib.memory', 'wm_write_felt');
+      return this.requireImport('warplib.memory', 'wm_write_felt', inputs, outputs);
     } else if (
       cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation
     ) {
-      return this.requireImport('warplib.memory', 'wm_write_256');
+      return this.requireImport('warplib.memory', 'wm_write_256', inputs, outputs);
     }
+
     const funcInfo = this.getOrCreate(typeToWrite);
-    const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
-      [
-        ['loc', argTypeName, DataLocation.Memory],
-        [
-          'value',
-          cloneASTNode(argTypeName, this.ast),
-          typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
-        ],
-      ],
-      [
-        [
-          'res',
-          cloneASTNode(argTypeName, this.ast),
-          typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
-        ],
-      ],
+      inputs,
+      outputs,
       this.ast,
       this.sourceUnit,
     );

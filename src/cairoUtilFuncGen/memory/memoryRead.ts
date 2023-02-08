@@ -61,39 +61,39 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
     const typeToReadName = typeNameFromTypeNode(typeToRead, this.ast);
     const resultCairoType = CairoType.fromSol(typeToRead, this.ast);
+
+    const inputs: [string, TypeName, DataLocation][] =
+      resultCairoType instanceof MemoryLocation
+        ? [
+            ['loc', cloneASTNode(typeToReadName, this.ast), DataLocation.Memory],
+            ['size', createNumberTypeName(256, false, this.ast), DataLocation.Default],
+          ]
+        : [['loc', cloneASTNode(typeToReadName, this.ast), DataLocation.Memory]];
+    const outputs: [string, TypeName, DataLocation][] = [
+      [
+        'val',
+        cloneASTNode(typeToReadName, this.ast),
+        locationIfComplexType(typeToRead, DataLocation.Memory),
+      ],
+    ];
+
     let funcDef: CairoFunctionDefinition;
     if (resultCairoType instanceof MemoryLocation) {
-      funcDef = this.requireImport('warplib.memory', 'wm_read_id');
+      funcDef = this.requireImport('warplib.memory', 'wm_read_id', inputs, outputs);
     } else if (resultCairoType instanceof CairoFelt) {
-      funcDef = this.requireImport('warplib.memory', 'wm_read_felt');
+      funcDef = this.requireImport('warplib.memory', 'wm_read_felt', inputs, outputs);
     } else if (resultCairoType.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
-      funcDef = this.requireImport('warplib.memory', 'wm_read_256');
+      funcDef = this.requireImport('warplib.memory', 'wm_read_256', inputs, outputs);
     } else {
-      const params: [string, TypeName, DataLocation][] = [
-        ['loc', cloneASTNode(typeToReadName, this.ast), DataLocation.Memory],
-      ];
-      if (resultCairoType instanceof MemoryLocation) {
-        params.push(['size', createNumberTypeName(256, false, this.ast), DataLocation.Default]);
-      }
       const funcInfo = this.getOrCreate(resultCairoType);
-      funcDef = createCairoGeneratedFunction(
-        funcInfo,
-        params,
-        [
-          [
-            'val',
-            cloneASTNode(typeToReadName, this.ast),
-            locationIfComplexType(typeToRead, DataLocation.Memory),
-          ],
-        ],
-        this.ast,
-        this.sourceUnit,
-        { mutability: FunctionStateMutability.View },
-      );
+      funcDef = createCairoGeneratedFunction(funcInfo, inputs, outputs, this.ast, this.sourceUnit, {
+        mutability: FunctionStateMutability.View,
+      });
     }
     this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
+
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
