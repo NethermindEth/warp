@@ -11,6 +11,8 @@ import {
   toCairoInt8,
   MIN_INT8,
   MAX_INT8,
+  cairoUint256toHex,
+  encodeString,
 } from './utils';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
 
@@ -655,7 +657,7 @@ export const expectations = flatten(
             Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
           ]),
           File.Simple('conditionals', [
-            Expect.Simple('returnStr', ['1'], ['4', '87', '65', '82', '80']),
+            Expect.Simple('returnStr', ['1'], [...encodeString('WARP')]),
             Expect.Simple('updateVar', ['1'], ['20', '0', '46', '0']),
             Expect.Simple('updateVar', ['0'], ['15', '0', '50', '0']),
           ]),
@@ -2463,7 +2465,7 @@ export const expectations = flatten(
             new Expect('allString', [
               [
                 'allString',
-                ['2', '65', '66', '2', '66', '67'],
+                [...encodeString('AB'), ...encodeString('BC')],
                 [],
                 '0',
                 undefined,
@@ -2497,7 +2499,7 @@ export const expectations = flatten(
             new Expect('allStringMisc', [
               [
                 'allStringMisc',
-                ['2', '65', '66', '2', '66', '67'],
+                [...encodeString('AB'), ...encodeString('BC')],
                 [],
                 '0',
                 undefined,
@@ -4597,20 +4599,20 @@ export const expectations = flatten(
         new Dir('stringLiteral', [
           File.Simple('stringLiteralMemory', [
             Expect.Simple('plainLiteral', [], []),
-            Expect.Simple('returnLiteral', [], ['4', '87', '65', '82', '80']),
-            Expect.Simple('varDecl', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('returnLiteral', [], [...encodeString('WARP')]),
+            Expect.Simple('varDecl', [], [...encodeString('WARP')]),
             Expect.Simple(
               'literalAssignmentToMemoryFromParams',
-              ['2', '86', '65'],
-              ['4', '87', '65', '82', '80'],
+              [...encodeString('VA')],
+              [...encodeString('WARP')],
             ),
-            Expect.Simple('tupleRet', [], ['2', '87', '65', '2', '82', '80']),
-            Expect.Simple('funcCallWithArg', [], ['4', '87', '65', '82', '80']),
-            Expect.Simple('nestedFuncCallWithArg', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('tupleRet', [], [...encodeString('WA'), ...encodeString('RP')]),
+            Expect.Simple('funcCallWithArg', [], [...encodeString('WARP')]),
+            Expect.Simple('nestedFuncCallWithArg', [], [...encodeString('WARP')]),
           ]),
           File.Simple('stringLiteralStorage', [
-            Expect.Simple('literalAssignment', [], ['4', '87', '65', '82', '80']),
-            Expect.Simple('memoryToStorageAssignment', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('literalAssignment', [], [...encodeString('WARP')]),
+            Expect.Simple('memoryToStorageAssignment', [], [...encodeString('WARP')]),
           ]),
         ]),
         new Dir('this_keyword', [
@@ -4643,7 +4645,7 @@ export const expectations = flatten(
             Expect.Simple('dMax', [], ['3']),
           ]),
           File.Simple('informationContract', [
-            Expect.Simple('getName', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('getName', [], [...encodeString('WARP')]),
             Expect.Simple('getId', [], ['3619205059']),
           ]),
         ]),
@@ -4758,31 +4760,10 @@ export const expectations = flatten(
       new File(
         'ERC20',
         'ERC20',
+        [...encodeString('NETHERCOIN'), ...encodeString('NETH')],
         [
-          '10',
-          '78',
-          '69',
-          '84',
-          '72',
-          '69',
-          '82',
-          '67',
-          '79',
-          '73',
-          '78',
-          '4',
-          '78',
-          '69',
-          '84',
-          '72',
-        ],
-        [
-          Expect.Simple(
-            'name',
-            [],
-            ['10', '78', '69', '84', '72', '69', '82', '67', '79', '73', '78'],
-          ),
-          Expect.Simple('symbol', [], ['4', '78', '69', '84', '72']),
+          Expect.Simple('name', [], [...encodeString('NETHERCOIN')]),
+          Expect.Simple('symbol', [], [...encodeString('NETH')]),
           Expect.Simple('decimals', [], ['18']),
           Expect.Simple('totalSupply', [], ['0', '0']),
           Expect.Simple('balanceOf', ['1234'], ['0', '0']),
