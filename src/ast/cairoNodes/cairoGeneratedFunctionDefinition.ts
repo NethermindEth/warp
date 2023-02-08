@@ -26,6 +26,8 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
     functionStubKind: FunctionStubKind,
     rawStringDefinition: string,
     functionsCalled: FunctionDefinition[],
+    acceptsRawDArray = false,
+    acceptsUnpackedStructArray = false,
   ) {
     super(
       id,
@@ -39,6 +41,8 @@ export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefi
       returnParameters,
       functionStubKind,
       rawStringDefinition,
+      acceptsRawDArray,
+      acceptsUnpackedStructArray,
     );
     this.functionsCalled = removeRepeatedFunction(functionsCalled);
   }

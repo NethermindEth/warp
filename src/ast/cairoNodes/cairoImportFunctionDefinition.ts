@@ -18,7 +18,9 @@ export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
     implicits: Set<Implicits>,
     parameters: ParameterList,
     returnParameters: ParameterList,
-    isStruct: boolean,
+    stubKind: FunctionStubKind,
+    acceptsRawDArray = false,
+    acceptsUnpackedStructArray = false,
   ) {
     super(
       id,
@@ -34,9 +36,9 @@ export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
       returnParameters,
       [],
       implicits,
-      isStruct ? FunctionStubKind.StructDefStub : FunctionStubKind.FunctionDefStub,
-      false,
-      false,
+      stubKind,
+      acceptsRawDArray,
+      acceptsUnpackedStructArray,
     );
     this.path = path;
   }

@@ -281,8 +281,9 @@ export class AST {
     name: string,
     inputs: ParameterInfo[],
     outputs: ParameterInfo[],
+    options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean },
   ): CairoImportFunctionDefinition {
-    return createImportFuncDefinition(location, name, node, this, inputs, outputs);
+    return createImportFuncDefinition(location, name, node, this, inputs, outputs, options);
   }
 
   removeStatement(statement: Statement): void {

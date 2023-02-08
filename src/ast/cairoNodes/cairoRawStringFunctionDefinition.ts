@@ -21,6 +21,8 @@ export class CairoRawStringFunctionDefinition extends CairoFunctionDefinition {
     returnParameters: ParameterList,
     functionSutbKind: FunctionStubKind,
     rawStringDefinition: string,
+    acceptsRawDArray = false,
+    acceptsUnpackedStructArray = false,
   ) {
     super(
       id,
@@ -41,8 +43,8 @@ export class CairoRawStringFunctionDefinition extends CairoFunctionDefinition {
         ? new Set(['pedersen_ptr'])
         : new Set(),
       functionSutbKind,
-      false, // Accepts raw dynamic array
-      false, // Acceps structured dynamic array
+      acceptsRawDArray,
+      acceptsUnpackedStructArray,
     );
     this.rawStringDefinition = rawStringDefinition;
   }
