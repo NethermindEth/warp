@@ -7,17 +7,14 @@ import {
   PointerType,
   TypeNode,
 } from 'solc-typed-ast';
-import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { CairoUtilFuncGenBase, GeneratedFunctionInfo } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
-export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
-  private generatedFunctionInfo: CairoFunctionDefinition | undefined = undefined;
-
+export class StorageStaticArrayIndexAccessGen extends StringIndexedFuncGen {
   public gen(node: IndexAccess): FunctionCall {
     assert(node.vIndexExpression !== undefined);
 
@@ -47,8 +44,10 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
   }
 
   public getOrCreateFuncDef(arrayType: TypeNode, valueType: TypeNode) {
-    if (this.generatedFunctionInfo !== undefined) {
-      return this.generatedFunctionInfo;
+    const key = arrayType.pp() + valueType.pp();
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const funcInfo = this.getOrCreate();
@@ -60,12 +59,12 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
         ['size', createUint256TypeName(this.ast)],
         ['limit', createUint256TypeName(this.ast)],
       ],
-      [['resLoc', typeNameFromTypeNode(valueType, this.ast), DataLocation.Storage]],
+      [['res_loc', typeNameFromTypeNode(valueType, this.ast), DataLocation.Storage]],
       this.ast,
       this.sourceUnit,
     );
 
-    this.generatedFunctionInfo = funcDef;
+    this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
 

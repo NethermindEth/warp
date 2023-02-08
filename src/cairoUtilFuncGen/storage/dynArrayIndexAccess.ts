@@ -55,7 +55,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
         ['offset', createUint256TypeName(this.ast)],
       ],
-      [['resLoc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
+      [['res_loc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
       this.ast,
       this.sourceUnit,
     );

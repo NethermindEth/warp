@@ -10,14 +10,14 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoFunctionDefinition } from '../../export';
+import { CairoFunctionDefinition, FunctionStubKind } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import {
   createCairoGeneratedFunction,
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { createUint8TypeName } from '../../utils/nodeTemplates';
+import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
 import { isReferenceType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase, GeneratedFunctionInfo, locationIfComplexType } from '../base';
@@ -51,20 +51,14 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
 
   public getOrCreateIndexAccessFunction(baseType: TypeNode, nodeType: TypeNode) {
     assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
-    const indexCairoType = CairoType.fromSol(baseType.to.keyType, this.ast);
-    const valueCairoType = CairoType.fromSol(
-      nodeType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
 
-    const key = indexCairoType.fullStringRepresentation + valueCairoType.fullStringRepresentation;
+    const key = baseType.to.keyType.pp() + nodeType.pp();
     const existing = this.indexAccesFunctions.get(key);
     if (existing !== undefined) {
       return existing;
     }
 
-    const funcInfo = this.generateIndexAccess(indexCairoType, valueCairoType);
+    const funcInfo = this.generateIndexAccess(baseType.to.keyType, nodeType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
@@ -89,24 +83,49 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     return funcDef;
   }
 
-  private generateIndexAccess(indexType: CairoType, valueType: CairoType): GeneratedFunctionInfo {
-    const identifier = this.indexAccesFunctions.size;
-    const funcName = `WS${identifier}_INDEX_${indexType.typeName}_to_${valueType.typeName}`;
-    const mappingName = `WARP_MAPPING${identifier}`;
-    const indexTypeString = indexType.toString();
+  private generateIndexAccess(indexType: TypeNode, valueType: TypeNode): GeneratedFunctionInfo {
+    const indexCairoType = CairoType.fromSol(indexType, this.ast);
+    const valueCairoType = CairoType.fromSol(
+      valueType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
 
-    return {
-      name: funcName,
+    const identifier = this.indexAccesFunctions.size;
+    const funcName = `WS${identifier}_INDEX_${indexCairoType.typeName}_to_${valueCairoType.typeName}`;
+    const mappingName = `WARP_MAPPING${identifier}`;
+    const indexTypeString = indexCairoType.toString();
+
+    const mappingFuncInfo: GeneratedFunctionInfo = {
+      name: mappingName,
       code: [
         `@storage_var`,
         `func ${mappingName}(name: felt, index: ${indexTypeString}) -> (resLoc : felt){`,
         `}`,
+      ].join('\n'),
+      functionsCalled: [],
+    };
+    const mappingFunc = createCairoGeneratedFunction(
+      mappingFuncInfo,
+      [
+        ['name', createUintNTypeName(248, this.ast)],
+        ['index', typeNameFromTypeNode(indexType, this.ast)],
+      ],
+      [],
+      this.ast,
+      this.sourceUnit,
+      { stubKind: FunctionStubKind.StorageDefStub },
+    );
+
+    return {
+      name: funcName,
+      code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(name: felt, index: ${indexTypeString}) -> (res: felt){`,
         `    alloc_locals;`,
         `    let (existing) = ${mappingName}.read(name, index);`,
         `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(used + ${valueType.width});`,
+        `        WARP_USED_STORAGE.write(used + ${valueCairoType.width});`,
         `        ${mappingName}.write(name, index, used);`,
         `        return (used,);`,
         `    }else{`,
@@ -114,7 +133,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
         `    }`,
         `}`,
       ].join('\n'),
-      functionsCalled: [],
+      functionsCalled: [mappingFunc],
     };
   }
 

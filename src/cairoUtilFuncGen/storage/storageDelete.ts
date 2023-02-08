@@ -251,7 +251,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   private deleteNothing(funcName: string): GeneratedFunctionInfo {
     return {
       name: funcName,
-      code: [`func ${funcName}{}(loc: felt){`, `    return ();`, `}`].join('\n'),
+      code: [`func ${funcName}${IMPLICITS}(loc: felt){`, `    return ();`, `}`].join('\n'),
       functionsCalled: [],
     };
   }
