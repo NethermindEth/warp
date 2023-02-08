@@ -58,7 +58,6 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const funcName = `cd_to_memory${this.generatedFunctionsDef.size}`;
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from calldata to memory not implemented yet`,
@@ -67,9 +66,9 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
 
     const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.createDynamicArrayCopyFunction(funcName, type),
-      (type) => this.createStaticArrayCopyFunction(funcName, type),
-      (type, def) => this.createStructCopyFunction(funcName, type, def),
+      (type) => this.createDynamicArrayCopyFunction(type),
+      (type) => this.createStaticArrayCopyFunction(type),
+      (type, def) => this.createStructCopyFunction(type, def),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
@@ -77,7 +76,6 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
 
   private createDynamicArrayCopyFunction(
-    funcName: string,
     type: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
     const elementT = getElementType(type);
@@ -109,6 +107,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       auxFunc = this.requireImport('starkware.cairo.common.dict', 'dict_write');
     }
 
+    const funcName = `cd_to_memory_dynamic_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
@@ -137,7 +136,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     };
   }
 
-  private createStaticArrayCopyFunction(funcName: string, type: ArrayType): GeneratedFunctionInfo {
+  private createStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined);
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
@@ -168,6 +167,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       copyCode = (index) => `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}]);`;
     }
 
+    const funcName = `cd_to_memory_static_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
@@ -188,7 +188,6 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
 
   private createStructCopyFunction(
-    funcName: string,
     type: UserDefinedType,
     structDef: StructDefinition,
   ): GeneratedFunctionInfo {
@@ -228,6 +227,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
     );
 
+    const funcName = `cd_to_memory_struct_${structDef.name}`;
     return {
       name: funcName,
       code: [
