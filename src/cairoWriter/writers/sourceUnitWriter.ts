@@ -1,6 +1,6 @@
 import assert from 'assert';
-import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
-import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
+import { ASTWriter, ContractKind, FunctionDefinition, SourceUnit, SrcDesc } from 'solc-typed-ast';
+import { CairoImportFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { getStructsAndRemappings } from '../../freeStructWritter';
 import { removeExcessNewlines } from '../../utils/formatting';
@@ -45,12 +45,37 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
     const [importFunctions, generatedFunctions, functions] = node.vFunctions.reduce(
       ([importFunctions, generatedFunctions, functions], funcDef) =>
         funcDef instanceof CairoImportFunctionDefinition
-          ? [[writer.write(funcDef), ...importFunctions], generatedFunctions, functions]
+          ? [[funcDef, ...importFunctions], generatedFunctions, functions]
           : funcDef instanceof CairoGeneratedFunctionDefinition
-          ? [importFunctions, [writer.write(funcDef), ...generatedFunctions], functions]
-          : [importFunctions, generatedFunctions, [writer.write(funcDef), ...functions]],
-      [new Array<string>(), new Array<string>(), new Array<string>()],
+          ? [importFunctions, [funcDef, ...generatedFunctions], functions]
+          : [importFunctions, generatedFunctions, [funcDef, ...functions]],
+      [
+        new Array<CairoImportFunctionDefinition>(),
+        new Array<CairoGeneratedFunctionDefinition>(),
+        new Array<FunctionDefinition>(),
+      ],
     );
+
+    const writtenImportFuncs = importFunctions
+      .sort((funcA, funcB) =>
+        `${funcA.path}.${funcA.name}`.localeCompare(`${funcB.path}.${funcB.name}`),
+      )
+      .map((importFunc) => writer.write(importFunc))
+      .reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`);
+
+    const writtenGeneratedFuncs = generatedFunctions
+      .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
+      .sort((funcA, funcB) =>
+        funcA.functionStubKind === funcB.functionStubKind
+          ? 0
+          : funcA.functionStubKind === FunctionStubKind.StorageDefStub
+          ? -1
+          : 1,
+      )
+      .filter((func, index, genFuncs) => func.name !== genFuncs[index - 1]?.name)
+      .map((func) => writer.write(func));
+
+    const writtenFuncs = functions.map((func) => writer.write(func));
 
     const contracts = node.vContracts.map((v) => writer.write(v));
 
@@ -58,11 +83,11 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
       removeExcessNewlines(
         [
           '%lang starknet',
-          ...importFunctions,
+          writtenImportFuncs,
           ...constants,
           ...structs,
-          ...generatedFunctions,
-          ...functions,
+          ...writtenGeneratedFuncs,
+          ...writtenFuncs,
           ...contracts,
         ].join('\n\n\n'),
         3,

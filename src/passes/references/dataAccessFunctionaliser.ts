@@ -20,6 +20,7 @@ import {
   FixedBytesType,
   BytesType,
   StringType,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { TranspileFailedError, WillNotSupportError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -71,11 +72,21 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     const parent = node.parent;
 
     // Finally if a copy from actual to expected location is required, insert this last
-    let copyFunc: Expression | null = null;
+    let copyFunc: FunctionCall | null = null;
     if (actualLoc !== expectedLoc) {
       if (actualLoc === DataLocation.Storage) {
         switch (expectedLoc) {
           case DataLocation.Default: {
+            console.log(
+              `From data access functionalizer (${
+                node.getClosestParentByType(FunctionDefinition)?.name
+              })`,
+            );
+            console.log(
+              `expression: ${printNode(node)}; type: ${printTypeNode(
+                safeGetNodeType(node, ast.inference),
+              )}`,
+            );
             copyFunc = utilFuncGen.storage.read.gen(node);
             break;
           }
@@ -227,6 +238,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       // Memory struct constructor calls should have been replaced by memoryAllocations
       return this.commonVisit(node, ast);
     } else {
+      console.log('Visiting', node.vFunctionName, node.vMemberName);
       return this.visitExpression(node, ast);
     }
   }
@@ -242,7 +254,9 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       assert(
         (type instanceof UserDefinedType && type.definition instanceof ContractDefinition) ||
           type instanceof FixedBytesType,
-        `Unexpected unhandled non-pointer non-contract member access. Found at ${printNode(node)}`,
+        `Unexpected unhandled non-pointer non-contract member access. Found at ${printNode(
+          node,
+        )}: '${node.memberName}' with type ${printTypeNode(type)}`,
       );
       return this.visitExpression(node, ast);
     }
