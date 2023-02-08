@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { replaceSuffix, isValidSolFile, outputResult } from './io';
+import { isValidSolFile, outputResult, replaceSuffix } from './io';
 import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
@@ -22,6 +22,7 @@ import { runTests } from './testing';
 import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from './utils/utils';
+import { parse } from 'path';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -109,9 +110,9 @@ export function runTranspile(files: string[], options: CliOptions) {
 
   try {
     transpile(ast, options)
-      .map(([name, cairo]) => {
-        outputResult(name, cairo, options, ast);
-        return name;
+      .map(([fname, cairo]) => {
+        outputResult(parse(fname).name, fname, cairo, options, ast);
+        return fname;
       })
       .map((file) =>
         postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
@@ -175,8 +176,8 @@ export function runTransform(file: string, options: CliOptions) {
   try {
     const mFile = path.relative(process.cwd(), file);
     const ast = compileSolFiles([mFile], options);
-    transform(ast, options).map(([name, solidity]) => {
-      outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
+    transform(ast, options).map(([fname, solidity]) => {
+      outputResult(parse(fname).name, replaceSuffix(fname, '_warp.cairo'), solidity, options, ast);
     });
   } catch (e) {
     handleTranspilationError(e);
