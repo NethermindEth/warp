@@ -4,6 +4,8 @@ import {
   DataLocation,
   FunctionStateMutability,
   TypeNode,
+  TypeName,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -15,26 +17,28 @@ import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
   // TODO: was typename safe to remove?
-  public gen(storageLocation: Expression): FunctionCall {
+  public gen(storageLocation: Expression, typeName?: TypeName): FunctionCall {
     const valueType = safeGetNodeType(storageLocation, this.ast.inference);
 
-    const funcDef = this.getOrCreateFuncDef(valueType);
+    const funcDef = this.getOrCreateFuncDef(valueType, typeName);
+
     return createCallToFunction(funcDef, [storageLocation], this.ast);
   }
 
-  public getOrCreateFuncDef(valueType: TypeNode) {
+  public getOrCreateFuncDef(valueType: TypeNode, typeName?: TypeName) {
+    typeName = typeName ?? typeNameFromTypeNode(valueType, this.ast);
     const resultCairoType = CairoType.fromSol(
       valueType,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-    const key = `storageRead(${valueType.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+
+    const key = resultCairoType.fullStringRepresentation + typeName.typeString;
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
-    const typeName = typeNameFromTypeNode(valueType, this.ast);
     const funcInfo = this.getOrCreate(resultCairoType);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,

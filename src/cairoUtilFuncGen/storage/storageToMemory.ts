@@ -4,6 +4,7 @@ import {
   BytesType,
   DataLocation,
   Expression,
+  FunctionCall,
   FunctionDefinition,
   FunctionStateMutability,
   generalizeType,
@@ -14,6 +15,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
@@ -32,17 +34,18 @@ import { DynArrayGen } from './dynArray';
 */
 
 export class StorageToMemoryGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+  public constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
-  gen(node: Expression): Expression {
+
+  public gen(node: Expression): FunctionCall {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
     const funcDef = this.getOrCreateFuncDef(type);
     return createCallToFunction(funcDef, [node], this.ast);
   }
 
-  getOrCreateFuncDef(type: TypeNode) {
+  public getOrCreateFuncDef(type: TypeNode): CairoFunctionDefinition {
     const key = `storageToMemory(${type.pp()})`;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
