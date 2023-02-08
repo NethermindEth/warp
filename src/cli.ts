@@ -536,5 +536,16 @@ program
   .action(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pjson = require('../package.json');
+
+    const cairoInstallScript = fs
+      .readFileSync(path.join(__dirname, '..', 'warp_venv.sh'))
+      .toString();
+
+    const starknetVersion: string = (cairoInstallScript.match(/cairo-lang==(.*)/) || [])[1];
+
     console.log(blue(`Warp Version `) + green(pjson.version));
+
+    if (starknetVersion !== undefined) {
+      console.log(blue(`Starknet Version `) + green(starknetVersion));
+    }
   });
