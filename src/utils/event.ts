@@ -16,7 +16,7 @@ export function splitInto248BitChunks(data: string): string[] {
   return result;
 }
 
-export function join248bitChunks(eventLog: EventItem): EventItem {
+export function join248bitChunks(data: string[]): string[] {
   // numbers to hex in 248 bits
   const numberToHex248 = (num: number | bigint | string): string => {
     return `${BigInt(num).toString(16).padStart(62, '0')}`;
@@ -43,15 +43,7 @@ export function join248bitChunks(eventLog: EventItem): EventItem {
     return result;
   };
 
-  return {
-    order: eventLog.order,
-    keys: decode248BitEncoding(eventLog.keys).map(
-      (num) => `0x${num.toString(16).padStart(64, '0')}`,
-    ),
-    data: decode248BitEncoding(eventLog.data).map(
-      (num) => `0x${num.toString(16).padStart(64, '0')}`,
-    ),
-  };
+  return decode248BitEncoding(data).map((num) => `0x${num.toString(16).padStart(64, '0')}`);
 }
 
 export type argType = string | argType[];

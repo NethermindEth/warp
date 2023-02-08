@@ -3,13 +3,14 @@ import { argType, EventItem, join248bitChunks, splitInto248BitChunks } from '../
 
 export class WarpInterface extends Interface {
   decodeWarpEvent(fragment: EventFragment | string, warpEvent: EventItem): Result {
-    warpEvent = join248bitChunks(warpEvent); // reverse 248 bit packing
+    // reverse 248 bit packing
+    const data = join248bitChunks(warpEvent.data);
+    const keys = join248bitChunks(warpEvent.keys);
 
     // Remove leading 0x from each element and join them
-    const data = `0x${warpEvent.data.map((x) => x.slice(2)).join('')}`;
+    const chunkedData = `0x${data.map((x) => x.slice(2)).join('')}`;
 
-    const result = super.decodeEventLog(fragment, data, warpEvent.keys);
-    return result;
+    return super.decodeEventLog(fragment, chunkedData, keys);
   }
 
   encodeWarpEvent(fragment: EventFragment, values: argType[], order = 0): EventItem {
