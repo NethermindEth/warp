@@ -138,7 +138,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ([inputCheckCode, funcCalls], decl) => {
         const memberType = safeGetNodeType(decl, this.ast.inference);
         if (checkableType(memberType)) {
-          const memberCheckFunc = this.getOrCreateFuncDef(type, false);
+          const memberCheckFunc = this.getOrCreateFuncDef(memberType, false);
           return [
             [...inputCheckCode, `${memberCheckFunc.name}(arg.${decl.name});`],
             [...funcCalls, memberCheckFunc],
@@ -191,7 +191,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcInfo;
   }
 
-  // TODO: When does it takes uint?
+  // TODO: When does takesUint == true?
   private createEnumInputCheck(type: UserDefinedType, takesUint = false): GeneratedFunctionInfo {
     const enumDef = type.definition;
     assert(enumDef instanceof EnumDefinition);
