@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { isValidSolFile, outputResult } from './io';
+import { isValidSolFile, outputResult, replaceSuffix } from './io';
 import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
@@ -176,7 +176,7 @@ export function runTransform(file: string, options: CliOptions) {
     const mFile = path.relative(process.cwd(), file);
     const ast = compileSolFiles([mFile], options);
     transform(ast, options).map(([name, solidity]) => {
-      outputResult(name, solidity, options, ast, true);
+      outputResult(replaceSuffix(name, '_warp.cairo'), solidity, options, ast);
     });
   } catch (e) {
     handleTranspilationError(e);
