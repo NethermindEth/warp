@@ -140,22 +140,6 @@ export class NewToDeploy extends ASTMapper {
     salt: Expression,
     ast: AST,
   ): FunctionCall {
-    // Nedd ot mark arrays are unpacked, possible fix??
-    //const deployStub = createCairoFunctionStub(
-    //  'deploy',
-    //  [
-    //    ['class_hash', createAddressTypeName(false, ast)],
-    //    ['contract_address_salt', createBytesNTypeName(31, ast)],
-    //    ['constructor_calldata', createBytesTypeName(ast), DataLocation.CallData],
-    //    ['deploy_from_zero', createBoolTypeName(ast)],
-    //  ],
-    //  [['contract_address', cloneASTNode(typeName, ast)]],
-    //  ['syscall_ptr'],
-    //  ast,
-    //  node,
-    //  { acceptsUnpackedStructArray: true },
-    //);
-
     const deployFunc = ast.registerImport(
       node,
       'starkware.starknet.common.syscalls',
@@ -167,6 +151,7 @@ export class NewToDeploy extends ASTMapper {
         ['deploy_from_zero', createBoolTypeName(ast)],
       ],
       [['contract_address', cloneASTNode(typeName, ast)]],
+      { acceptsUnpackedStructArray: true },
     );
 
     const encodedArguments = ast

@@ -60,7 +60,10 @@ export class ArrayFunctions extends ReferenceSubPass {
         replacement = utilGen.storage.dynArrayPush.withoutArg.gen(node);
         this.replace(node, replacement, node.parent, DataLocation.Storage, expectedLoc, ast);
         if (isDynamicArray(type)) {
-          const readReplacement = utilGen.storage.read.gen(replacement);
+          const readReplacement = utilGen.storage.read.gen(
+            replacement,
+            typeNameFromTypeNode(type, ast),
+          );
           this.replace(
             replacement,
             readReplacement,

@@ -3,11 +3,13 @@ import {
   ArrayType,
   DataLocation,
   FunctionCall,
+  generalizeType,
   MemberAccess,
   SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -22,8 +24,13 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
 
   gen(push: FunctionCall): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
-    const arrayType = safeGetNodeType(push.vExpression.vExpression, this.ast.inference);
-    assert(arrayType instanceof ArrayType, 'Pushing without args to a non array');
+    const arrayType = generalizeType(
+      safeGetNodeType(push.vExpression.vExpression, this.ast.inference),
+    )[0];
+    assert(
+      arrayType instanceof ArrayType,
+      `Pushing without args to a non array: ${printTypeNode(arrayType)}`,
+    );
     const funcDef = this.getOrCreateFuncDef(arrayType);
 
     return createCallToFunction(funcDef, [push.vExpression.vExpression], this.ast);
