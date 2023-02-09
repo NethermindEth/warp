@@ -20,6 +20,7 @@ const STARKWARE_CAIRO_COMMON_DEFAULT_DICT = 'starkware.cairo.common.default_dict
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
 const STARKWARE_CAIRO_COMMON_MATH = 'starkware.cairo.common.math';
+const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
 
@@ -99,6 +100,8 @@ export function createImportFuncDefinition(
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_MATH + 'split_felt':
       return createFuncImport('range_check_ptr');
+    case STARKWARE_CAIRO_COMMON_MATH_CMP + 'is_le_felt':
+      return createFuncImport('range_check_ptr');
     case STARKWARE_CAIRO_COMMON_UINT256 + 'Uint256':
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_add':
@@ -114,6 +117,8 @@ export function createImportFuncDefinition(
     case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_sub':
       return createFuncImport('range_check_ptr');
     case STARKWARE_STARKNET_COMMON_SYSCALLS + 'deploy':
+      return createFuncImport('syscall_ptr');
+    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'emit_event':
       return createFuncImport('syscall_ptr');
     case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_caller_address':
       return createFuncImport('syscall_ptr');
