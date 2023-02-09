@@ -15,6 +15,7 @@ import {
   createUint256TypeName,
   createUintNTypeName,
   FunctionStubKind,
+  getElementType,
 } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -24,7 +25,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
     node: MemberAccess,
     arrayType: ArrayType | BytesType | StringType,
   ): FunctionCall {
-    const [_dynArray, dynArrayLength] = this.getOrCreateFuncDef(arrayType);
+    const [_dynArray, dynArrayLength] = this.getOrCreateFuncDef(getElementType(arrayType));
     return createCallToFunction(dynArrayLength, [node.vExpression], this.ast);
   }
 
