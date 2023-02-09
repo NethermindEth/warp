@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ArrayType,
-  ASTNode,
   BytesType,
   DataLocation,
   Expression,
