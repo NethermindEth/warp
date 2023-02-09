@@ -50,9 +50,8 @@ export class AbiEncodePacked extends AbiBase {
           `param${index}`,
         );
         encodings.push(paramEncoding);
-        functionsCalled.concat(paramFuncCalls);
 
-        return [params, encodings, functionsCalled];
+        return [params, encodings, functionsCalled.concat(paramFuncCalls)];
       },
       [
         new Array<{ name: string; type: string }>(),

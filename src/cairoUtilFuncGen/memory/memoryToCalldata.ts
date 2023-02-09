@@ -50,12 +50,9 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  public gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
+  public gen(node: Expression): FunctionCall {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
-    if (isDynamicArray(type)) {
-      this.dynamicArrayStructGen.gen(node, nodeInSourceUnit);
-    }
     const funcDef = this.getOrCreateFuncDef(type);
     return createCallToFunction(funcDef, [node], this.ast);
   }
@@ -68,6 +65,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     }
 
     const funcInfo = this.getOrCreate(type);
+
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
@@ -210,6 +208,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.alloc', 'alloc'),
         this.requireImport('warplib.maths.utils', 'narrow_safe'),
         this.requireImport('warplib.memory', 'wm_read_256'),
+        this.dynamicArrayStructGen.getOrCreateFuncDef(type),
         ...dynArrayReaderInfo.functionsCalled,
       ],
     };
