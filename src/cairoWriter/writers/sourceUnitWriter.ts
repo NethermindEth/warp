@@ -72,13 +72,14 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
 
     const writtenGeneratedFuncs = generatedFunctions
       .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
-      .sort((funcA, funcB) =>
-        funcA.functionStubKind === funcB.functionStubKind
-          ? 0
-          : funcA.functionStubKind === FunctionStubKind.StorageDefStub
-          ? -1
-          : 1,
-      )
+      .sort((funcA, funcB) => {
+        const stubA = funcA.functionStubKind;
+        const stubB = funcB.functionStubKind;
+        if (stubA === stubB) return 0;
+        if (stubA === FunctionStubKind.StructDefStub) return -1;
+        if (stubA === FunctionStubKind.StorageDefStub) return -1;
+        return 1;
+      })
       .filter((func, index, genFuncs) => func.name !== genFuncs[index - 1]?.name)
       .map((func) => writer.write(func));
 

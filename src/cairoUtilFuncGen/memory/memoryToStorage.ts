@@ -318,6 +318,8 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
         this.requireImport('warplib.memory', 'wm_dyn_array_length'),
         ...funcCalls,
+        dynArray,
+        dynArrayLength,
         deleteFunc,
       ],
     };
