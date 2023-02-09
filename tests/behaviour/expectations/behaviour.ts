@@ -11,7 +11,6 @@ import {
   toCairoInt8,
   MIN_INT8,
   MAX_INT8,
-  cairoUint256toHex,
   encodeString,
 } from './utils';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
