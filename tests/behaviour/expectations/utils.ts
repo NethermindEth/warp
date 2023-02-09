@@ -92,3 +92,8 @@ export const toCairoInt8 = (val: number | bigint) => BigInt.asUintN(8, BigInt(va
 export function cairoUint256toHex(val: { low: string; high: string }): string {
   return `0x${(BigInt(val.low) + (BigInt(val.high) << 128n)).toString(16)}`;
 }
+
+export function encodeString(value: string): string[] {
+  const valueEncoded: Buffer = Buffer.from(value);
+  return [valueEncoded.length, ...valueEncoded].map((val) => val.toString());
+}
