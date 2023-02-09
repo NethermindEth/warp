@@ -1,5 +1,6 @@
 import { Dir, Expect, File } from './types';
 import {
+  encodeWarpEvent,
   getByte32Array,
   flatten,
   getByteXArray,
@@ -11,9 +12,9 @@ import {
   MIN_INT8,
   MAX_INT8,
   cairoUint256toHex,
+  encodeString,
 } from './utils';
-import createKeccakHash from 'keccak';
-import { warpEventCanonicalSignaturehash256 } from '../../../src/export';
+import { EventFragment, JsonFragment } from '@ethersproject/abi';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -656,7 +657,7 @@ export const expectations = flatten(
             Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
           ]),
           File.Simple('conditionals', [
-            Expect.Simple('returnStr', ['1'], ['4', '87', '65', '82', '80']),
+            Expect.Simple('returnStr', ['1'], [...encodeString('WARP')]),
             Expect.Simple('updateVar', ['1'], ['20', '0', '46', '0']),
             Expect.Simple('updateVar', ['0'], ['15', '0', '50', '0']),
           ]),
@@ -2223,15 +2224,20 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: ['69'],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('uintEvent', ['uint256']),
-                      ),
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      name: 'uintEvent',
+                      type: 'event',
+                      inputs: [
+                        {
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                    }),
+                    ['69'],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2243,15 +2249,20 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: ['32', '3', '2', '3', '5'],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']),
-                      ),
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      name: 'arrayEvent',
+                      type: 'event',
+                      inputs: [
+                        {
+                          name: '',
+                          type: 'uint256[]',
+                        },
+                      ],
+                    } as JsonFragment),
+                    [['2', '3', '5']],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2263,37 +2274,25 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: ['32', '2', '64', '192', '3', '2', '3', '5', '2', '7', '11'],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]']),
-                      ),
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      name: 'nestedArrayEvent',
+                      type: 'event',
+                      inputs: [
+                        {
+                          name: '',
+                          type: 'uint256[][]',
+                        },
+                      ],
+                    } as JsonFragment),
+                    [
+                      [
+                        ['2', '3', '5'],
+                        ['7', '11'],
+                      ],
                     ],
-                    order: 0,
-                  },
-                ],
-              ],
-            ]),
-            new Expect('structComplex', [
-              [
-                'structComplex',
-                [],
-                [],
-                '0',
-                undefined,
-                [
-                  {
-                    data: ['32', '128', '7', '11', '13', '3', '2', '3', '5'],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('structEvent', [
-                          ['uint8[]', 'uint256[3]'],
-                        ]),
-                      ),
-                    ],
-                    order: 0,
-                  },
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2307,16 +2306,23 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('uintEvent', ['uint256']),
-                      ),
-                      '69',
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                      name: 'uintEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['69'],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2328,32 +2334,23 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('arrayEvent', ['uint256[]']),
-                      ),
-                      // 2,
-                      // 3,
-                      // 5,
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(2) << BigInt(32 * 8 * 2)) |
-                              (BigInt(3) << BigInt(32 * 8 * 1)) |
-                              BigInt(5)
-                            )
-                              .toString(16)
-                              .padStart(32 * 3 * 2, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'uint256[]',
+                          name: '',
+                          type: 'uint256[]',
+                        },
+                      ],
+                      name: 'arrayEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    [['2', '3', '5']],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2365,29 +2362,23 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('arrayStringEvent', ['string[]']),
-                      ),
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(0x61) << BigInt(32 * 8 * 3 - 8)) |
-                              (BigInt(0x62) << BigInt(32 * 8 * 2 - 8)) |
-                              (BigInt(0x63) << BigInt(32 * 8 * 1 - 8))
-                            )
-                              .toString(16)
-                              .padEnd(32 * (8 / 4) * 3, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'string[]',
+                          name: '',
+                          type: 'string[]',
+                        },
+                      ],
+                      name: 'arrayStringEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    [['roh', 'itra', 'njan']],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2399,36 +2390,28 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('nestedArrayEvent', ['uint256[][]']),
-                      ),
-                      // 2,
-                      // 3,
-                      // 5,
-                      // 7,
-                      // 11,
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(2) << BigInt(32 * 8 * 4)) |
-                              (BigInt(3) << BigInt(32 * 8 * 3)) |
-                              (BigInt(5) << BigInt(32 * 8 * 2)) |
-                              (BigInt(7) << BigInt(32 * 8 * 1)) |
-                              BigInt(11)
-                            )
-                              .toString(16)
-                              .padStart(32 * 5 * 2, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'uint256[][]',
+                          name: '',
+                          type: 'uint256[][]',
+                        },
+                      ],
+                      name: 'nestedArrayEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    [
+                      [
+                        ['2', '3', '5'],
+                        ['7', '11'],
+                      ],
                     ],
-                    order: 0,
-                  },
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2440,40 +2423,40 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('structEvent', [
-                          ['uint8[]', 'uint256[3]'],
-                        ]),
-                      ),
-                      // '2',
-                      // '3',
-                      // '5',
-                      // '7',
-                      // '11',
-                      // '13',
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(
-                            (
-                              (BigInt(2) << BigInt(32 * 8 * 5)) |
-                              (BigInt(3) << BigInt(32 * 8 * 4)) |
-                              (BigInt(5) << BigInt(32 * 8 * 3)) |
-                              (BigInt(7) << BigInt(32 * 8 * 2)) |
-                              (BigInt(11) << BigInt(32 * 8 * 1)) |
-                              BigInt(13)
-                            )
-                              .toString(16)
-                              .padStart(32 * 6 * 2, '0'),
-                            'hex',
-                          )
-                          .digest('hex')}`,
-                      )}`,
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          components: [
+                            {
+                              internalType: 'uint8[]',
+                              name: 'm1',
+                              type: 'uint8[]',
+                            },
+                            {
+                              internalType: 'uint256[3]',
+                              name: 'm2',
+                              type: 'uint256[3]',
+                            },
+                          ],
+                          indexed: false,
+                          internalType: 'struct WARP.C',
+                          name: '',
+                          type: 'tuple',
+                        },
+                      ],
+                      name: 'structEvent',
+                      type: 'event',
+                    }),
+                    [
+                      [
+                        ['2', '3', '5'],
+                        ['7', '11', '13'],
+                      ],
                     ],
-                    order: 0,
-                  },
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2482,63 +2465,72 @@ export const expectations = flatten(
             new Expect('allString', [
               [
                 'allString',
-                ['2', '65', '66', '2', '66', '67'],
+                [...encodeString('AB'), ...encodeString('BC')],
                 [],
                 '0',
                 undefined,
                 [
-                  {
-                    data: [
-                      '32',
-                      '2',
-                      `${(BigInt(0x41) << BigInt(248)) | (BigInt(0x42) << BigInt(240))}`,
-                      '32',
-                      '2',
-                      `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
-                    ],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string']),
-                      ),
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                      ],
+                      name: 'allStringEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['AB', 'BC'],
+                    0,
+                  ),
                 ],
               ],
             ]),
             new Expect('allStringMisc', [
               [
                 'allStringMisc',
-                ['2', '65', '66', '2', '66', '67'],
+                [...encodeString('AB'), ...encodeString('BC')],
                 [],
                 '0',
                 undefined,
                 [
-                  {
-                    data: [
-                      '32',
-                      '2',
-                      `${(BigInt(0x42) << BigInt(248)) | (BigInt(0x43) << BigInt(240))}`,
-                    ],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allStringMiscEvent', [
-                          'string',
-                          'string',
-                        ]),
-                      ),
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(((BigInt(0x41) << BigInt(8)) | BigInt(0x42)).toString(16), 'hex')
-                          .digest('hex')}`,
-                      )}`,
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: true,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                      ],
+                      name: 'allStringMiscEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['AB', 'BC'],
+                    0,
+                  ),
                 ],
               ],
             ]),
-            new Expect('allUint', [
+            new Expect('allUintMiscEvent', [
               [
                 'allUint',
                 ['1', '0', '2', '0'],
@@ -2546,19 +2538,35 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: ['1'],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allUintMiscEvent', [
-                          'uint256',
-                          'uint256',
-                        ]),
-                      ),
-                      '2',
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                      name: 'allUintMiscEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['1', 'tihor', '2'],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2570,20 +2578,29 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allIndexedEvent', [
-                          'uint256',
-                          'uint256',
-                        ]),
-                      ),
-                      '1',
-                      '2',
-                    ],
-                    order: 0,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                      name: 'allIndexedEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['1', '2'],
+                    0,
+                  ),
                 ],
               ],
             ]),
@@ -2595,71 +2612,127 @@ export const expectations = flatten(
                 '0',
                 undefined,
                 [
-                  {
-                    data: [
-                      '32',
-                      '1',
-                      `${BigInt(0x61) << BigInt(248)}`,
-                      '32',
-                      '1',
-                      `${BigInt(0x62) << BigInt(248)}`,
-                    ],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allStringEvent', ['string', 'string']),
-                      ),
-                    ],
-                    order: 0,
-                  },
-                  {
-                    data: ['32', '1', `${BigInt(0x62) << BigInt(248)}`],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allStringMiscEvent', [
-                          'string',
-                          'string',
-                        ]),
-                      ),
-                      `${BigInt(
-                        `0x${createKeccakHash('keccak256')
-                          .update(BigInt(0x61).toString(16), 'hex')
-                          .digest('hex')}`,
-                      )}`,
-                    ],
-                    order: 1,
-                  },
-                  {
-                    data: ['1'],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allUintMiscEvent', [
-                          'uint256',
-                          'uint256',
-                        ]),
-                      ),
-                      '2',
-                    ],
-                    order: 2,
-                  },
-                  {
-                    data: [],
-                    keys: [
-                      cairoUint256toHex(
-                        warpEventCanonicalSignaturehash256('allIndexedEvent', [
-                          'uint256',
-                          'uint256',
-                        ]),
-                      ),
-                      '1',
-                      '2',
-                    ],
-                    order: 3,
-                  },
-                  {
-                    data: ['1'],
-                    keys: ['2'],
-                    order: 4,
-                  },
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                      ],
+                      name: 'allStringEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['a', 'abcdefghijklmnopqrstuvwxyz'],
+                    0,
+                  ),
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: true,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                      ],
+                      name: 'allStringMiscEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['warp', 'isgonnamakeit'],
+                    1,
+                  ),
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                        {
+                          indexed: false,
+                          internalType: 'string',
+                          name: '',
+                          type: 'string',
+                        },
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                      name: 'allUintMiscEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['1', 'najnar', '2'],
+                    2,
+                  ),
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: false,
+                      inputs: [
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                      name: 'allIndexedEvent',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['1', '2'],
+                    3,
+                  ),
+                  encodeWarpEvent(
+                    EventFragment.fromObject({
+                      anonymous: true,
+                      inputs: [
+                        {
+                          indexed: false,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                        {
+                          indexed: true,
+                          internalType: 'uint256',
+                          name: '',
+                          type: 'uint256',
+                        },
+                      ],
+                      name: 'allUintMiscEventAnonymous',
+                      type: 'event',
+                    } as JsonFragment),
+                    ['1', '2'],
+                    4,
+                  ),
                 ],
               ],
             ]),
@@ -4526,20 +4599,20 @@ export const expectations = flatten(
         new Dir('stringLiteral', [
           File.Simple('stringLiteralMemory', [
             Expect.Simple('plainLiteral', [], []),
-            Expect.Simple('returnLiteral', [], ['4', '87', '65', '82', '80']),
-            Expect.Simple('varDecl', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('returnLiteral', [], [...encodeString('WARP')]),
+            Expect.Simple('varDecl', [], [...encodeString('WARP')]),
             Expect.Simple(
               'literalAssignmentToMemoryFromParams',
-              ['2', '86', '65'],
-              ['4', '87', '65', '82', '80'],
+              [...encodeString('VA')],
+              [...encodeString('WARP')],
             ),
-            Expect.Simple('tupleRet', [], ['2', '87', '65', '2', '82', '80']),
-            Expect.Simple('funcCallWithArg', [], ['4', '87', '65', '82', '80']),
-            Expect.Simple('nestedFuncCallWithArg', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('tupleRet', [], [...encodeString('WA'), ...encodeString('RP')]),
+            Expect.Simple('funcCallWithArg', [], [...encodeString('WARP')]),
+            Expect.Simple('nestedFuncCallWithArg', [], [...encodeString('WARP')]),
           ]),
           File.Simple('stringLiteralStorage', [
-            Expect.Simple('literalAssignment', [], ['4', '87', '65', '82', '80']),
-            Expect.Simple('memoryToStorageAssignment', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('literalAssignment', [], [...encodeString('WARP')]),
+            Expect.Simple('memoryToStorageAssignment', [], [...encodeString('WARP')]),
           ]),
         ]),
         new Dir('this_keyword', [
@@ -4572,7 +4645,7 @@ export const expectations = flatten(
             Expect.Simple('dMax', [], ['3']),
           ]),
           File.Simple('informationContract', [
-            Expect.Simple('getName', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('getName', [], [...encodeString('WARP')]),
             Expect.Simple('getId', [], ['3619205059']),
           ]),
         ]),
@@ -4687,31 +4760,10 @@ export const expectations = flatten(
       new File(
         'ERC20',
         'ERC20',
+        [...encodeString('NETHERCOIN'), ...encodeString('NETH')],
         [
-          '10',
-          '78',
-          '69',
-          '84',
-          '72',
-          '69',
-          '82',
-          '67',
-          '79',
-          '73',
-          '78',
-          '4',
-          '78',
-          '69',
-          '84',
-          '72',
-        ],
-        [
-          Expect.Simple(
-            'name',
-            [],
-            ['10', '78', '69', '84', '72', '69', '82', '67', '79', '73', '78'],
-          ),
-          Expect.Simple('symbol', [], ['4', '78', '69', '84', '72']),
+          Expect.Simple('name', [], [...encodeString('NETHERCOIN')]),
+          Expect.Simple('symbol', [], [...encodeString('NETH')]),
           Expect.Simple('decimals', [], ['18']),
           Expect.Simple('totalSupply', [], ['0', '0']),
           Expect.Simple('balanceOf', ['1234'], ['0', '0']),

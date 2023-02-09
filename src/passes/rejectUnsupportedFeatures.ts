@@ -7,6 +7,7 @@ import {
   ContractKind,
   DataLocation,
   ErrorDefinition,
+  EventDefinition,
   ExpressionStatement,
   ExternalReferenceType,
   FunctionCall,
@@ -15,9 +16,12 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionType,
+  generalizeType,
   Identifier,
   IndexAccess,
+  isReferenceType,
   Literal,
+  MappingType,
   MemberAccess,
   PointerType,
   RevertStatement,
@@ -33,7 +37,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { getErrorMessage, WillNotSupportError } from '../utils/errors';
-import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType, isValueType } from '../utils/nodeTypeProcessing';
 import { isExternalCall, isExternallyVisible } from '../utils/utils';
 
 const PATH_REGEX = /^[\w-@/\\]*$/;
@@ -91,6 +95,33 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     this.addUnsupported('User defined Errors are not supported', node);
+  }
+
+  visitEventDefinition(node: EventDefinition, ast: AST): void {
+    node.vParameters.vParameters
+      .filter((param) => param.indexed)
+      .forEach((param) => {
+        const paramType = generalizeType(safeGetNodeType(param, ast.inference))[0];
+        if (isValueType(paramType)) {
+          this.commonVisit(node, ast);
+          return;
+        }
+        if (
+          paramType instanceof ArrayType ||
+          paramType instanceof MappingType ||
+          (paramType instanceof PointerType && isReferenceType(paramType.to))
+        )
+          this.addUnsupported(
+            `Indexed parameters of type: ${paramType.constructor.name} are not supported`,
+            node,
+          );
+
+        if (
+          paramType instanceof UserDefinedType &&
+          paramType.definition instanceof StructDefinition
+        )
+          this.addUnsupported(`Indexed parameters of type: Structs are not supported`, node);
+      });
   }
 
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {

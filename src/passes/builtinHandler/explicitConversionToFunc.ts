@@ -204,7 +204,7 @@ function literalToFixedBytes(arg: Expression, typeTo: FixedBytesType): Expressio
       arg.hexValue = `${arg.hexValue}${'0'.repeat(typeTo.size * 2 - arg.hexValue.length)}`;
     }
   }
-
   arg.typeString = typeTo.pp();
+  if (arg.kind === LiteralKind.String) arg.kind = LiteralKind.HexString;
   return arg;
 }

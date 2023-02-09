@@ -46,6 +46,7 @@ import assert from 'assert';
 import { AST } from '../../../src/ast/ast';
 import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
 import { safeGetNodeType } from '../../../src/utils/nodeTypeProcessing';
+import { encodeString } from './utils';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -283,11 +284,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, inference: InferType)
     if (typeof value !== 'string') {
       throw new Error(`Can't encode ${value} as stringType`);
     }
-    const valueEncoded: number[] = Buffer.from(value).toJSON().data;
-
-    const byteString: string[] = [];
-    valueEncoded.forEach((val) => byteString.push(val.toString()));
-    return [byteString.length.toString()].concat(byteString);
+    return encodeString(value);
   } else if (tp instanceof AddressType) {
     return encodeAsUintOrFelt(tp, value, 160);
   } else if (tp instanceof BuiltinType) {

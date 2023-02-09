@@ -14,3 +14,4 @@ export * from './transpiler';
 export * from './utils/export';
 export * from './transcode/encode';
 export * from './transcode/decode';
+export * from './transcode/interface';

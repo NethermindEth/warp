@@ -79,9 +79,9 @@ export class EventFunction extends StringIndexedFuncGen {
 
   private getOrCreate(node: EventDefinition) {
     // Add the canonicalSignatureHash so that generated function names don't collide when overloaded
-    const [params, keysInsertions, dataInsertions, requiredFuncs] =
+    const [params, keysInsertions, dataParams, dataParamTypes, requiredFuncs] =
       node.vParameters.vParameters.reduce(
-        ([params, keysInsertions, dataInsertions, requiredFuncs], param, index) => {
+        ([params, keysInsertions, dataParams, dataParamTypes, requiredFuncs], param, index) => {
           const paramType = generalizeType(safeGetNodeType(param, this.ast.inference))[0];
           const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
 
@@ -92,45 +92,43 @@ export class EventFunction extends StringIndexedFuncGen {
             if (isValueType(paramType)) {
               // If the parameter is a value type, we can just add it to the keys array
               // as it is, as we do regular abi encoding
-              const [code, calledFuncs] = this.generateSimpleEncodingCode(
-                paramType,
-                'keys',
+              const [code, calledFuncs] = this.generateSimpleEncodingCode([paramType], 'keys', [
                 `param${index}`,
-              );
+              ]);
               keysInsertions.push(code);
               requiredFuncs.push(...calledFuncs);
             } else {
               // If the parameter is a reference type, we hash the with special encoding
               // function: more at:
               //   https://docs.soliditylang.org/en/v0.8.14/abi-spec.html#encoding-of-indexed-event-parameters
-              const [code, calledFuncs] = this.generateComplexEncodingCode(
-                paramType,
-                'keys',
+              const [code, calledFuncs] = this.generateComplexEncodingCode([paramType], 'keys', [
                 `param${index}`,
-              );
+              ]);
               keysInsertions.push(code);
               requiredFuncs.push(...calledFuncs);
             }
           } else {
             // A non-indexed parameter should go to the data array
-            const [code, calledFuncs] = this.generateSimpleEncodingCode(
-              paramType,
-              'data',
-              `param${index}`,
-            );
-            dataInsertions.push(code);
-            requiredFuncs.push(...calledFuncs);
+            dataParams.push(`param${index}`);
+            dataParamTypes.push(paramType);
           }
 
-          return [params, keysInsertions, dataInsertions, requiredFuncs];
+          return [params, keysInsertions, dataParams, dataParamTypes, requiredFuncs];
         },
         [
           new Array<{ name: string; type: string }>(),
           new Array<string>(),
           new Array<string>(),
+          new Array<TypeNode>(),
           new Array<CairoFunctionDefinition>(),
         ],
       );
+
+    const [dataInsertions, dataInsertionsCalls] = this.generateSimpleEncodingCode(
+      dataParamTypes,
+      'data',
+      dataParams,
+    );
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
@@ -158,7 +156,7 @@ export class EventFunction extends StringIndexedFuncGen {
       `   // data arrays`,
       `   let data_len: felt = 0;`,
       `   let (data: felt*) = alloc();`,
-      ...dataInsertions,
+      dataInsertions,
       `   // data: pack 31 bytes felts into a single 248 bits felt`,
       `   let (data_len: felt, data: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, ${BIG_ENDIAN}, data_len, data);`,
       `   emit_event(keys_len, keys, data_len, data);`,
@@ -175,6 +173,7 @@ export class EventFunction extends StringIndexedFuncGen {
         this.requireImport('warplib.keccak', 'pack_bytes_felt'),
         this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin'),
         ...requiredFuncs,
+        ...dataInsertionsCalls,
         ...anonymousCalls,
       ],
     };
@@ -206,15 +205,18 @@ export class EventFunction extends StringIndexedFuncGen {
   }
 
   private generateSimpleEncodingCode(
-    type: TypeNode,
+    types: TypeNode[],
     arrayName: string,
-    argName: string,
+    argNames: string[],
   ): [string, CairoFunctionDefinition[]] {
-    const abiFunc = this.abiEncode.getOrCreateFuncDef([type]);
+    const abiFunc = this.abiEncode.getOrCreateFuncDef(types);
+
+    this.requireImport('warplib.memory', 'wm_to_felt_array');
+    this.requireImport('warplib.keccak', 'felt_array_concat');
 
     return [
       [
-        `   let (mem_encode: felt) = ${abiFunc.name}(${argName});`,
+        `   let (mem_encode: felt) = ${abiFunc.name}(${argNames.join(',')});`,
         `   let (encode_bytes_len: felt, encode_bytes: felt*) = wm_to_felt_array(mem_encode);`,
         `   let (${arrayName}_len: felt) = felt_array_concat(encode_bytes_len, 0, encode_bytes, ${arrayName}_len, ${arrayName});`,
       ].join('\n'),
@@ -227,22 +229,22 @@ export class EventFunction extends StringIndexedFuncGen {
   }
 
   private generateComplexEncodingCode(
-    type: TypeNode,
+    types: TypeNode[],
     arrayName: string,
-    argName: string,
+    argNames: string[],
   ): [string, CairoFunctionDefinition[]] {
-    const abiFunc = this.indexEncode.getOrCreateFuncDef([type]);
+    const abiFunc = this.indexEncode.getOrCreateFuncDef(types);
 
     return [
       [
-        `   let (mem_encode: felt) = ${abiFunc.name}(${argName});`,
+        `   let (mem_encode: felt) = ${abiFunc.name}(${argNames.join(',')});`,
         `   let (keccak_hash256: Uint256) = warp_keccak(mem_encode);`,
         `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
       ].join('\n'),
       [
         this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
         this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
-        this.requireImport('warplib.keccak', 'warp_keccak_felt'),
+        this.requireImport('warplib.keccak', 'warp_keccak'),
         this.requireImport(
           'warplib.dynamic_arrays_util',
           'fixed_bytes256_to_felt_dynamic_array_spl',

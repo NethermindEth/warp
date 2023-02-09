@@ -11,7 +11,7 @@ import {
 } from './utils/errors';
 import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
-import { outputFileSync } from 'fs-extra';
+import { outputFileSync } from './utils/fs';
 import { error } from './utils/formatting';
 
 const WARP_TEST = 'warp_test';

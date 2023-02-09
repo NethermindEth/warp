@@ -1,48 +1,49 @@
 import createKeccakHash from 'keccak';
 import { toUintOrFelt } from './export';
 
-export type EventItem = { data: string[]; keys: string[]; order: number };
+export type EventItem = { data: string[]; keys: string[]; order?: number };
 
-export function decodeEventLog(eventsLog: EventItem[]): EventItem[] {
-  // flat number to hex string with rjust 62
-  const flatNumberToHexString = (num: number | bigint | string): string => {
+export function splitInto248BitChunks(data: string): string[] {
+  if (data.startsWith('0x')) data = data.slice(2);
+  if (data === '') return [];
+  const paddedData = data.padEnd(data.length + (62 - (data.length % 62)), '0');
+
+  const result = [];
+  // get number from every 62 hex digits chunk
+  for (let i = 0; i < paddedData.length; i += 62) {
+    result.push(BigInt(`0x${paddedData.slice(i, i + 62)}`).toString());
+  }
+  return result;
+}
+
+export function join248bitChunks(data: string[]): string[] {
+  // numbers to hex in 248 bits
+  const numberToHex248 = (num: number | bigint | string): string => {
     return `${BigInt(num).toString(16).padStart(62, '0')}`;
   };
 
   // decode number from raw hex input string
-  const byte32numbers = (hexArray: string[]): bigint[] => {
-    const raw_hex_input = hexArray.reduce((pv, cv) => {
-      return `${pv}${flatNumberToHexString(cv)}`;
-    }, '');
+  const decode248BitEncoding = (hexArray: string[]): bigint[] => {
+    const rawHex = hexArray.map(numberToHex248).join('');
 
     // pad '0' to the end of the string to make it a multiple of 64
-    const padded_hex_input = raw_hex_input.padEnd(
-      raw_hex_input.length + (64 - (raw_hex_input.length % 64)),
-      '0',
-    );
+    const paddedHexVals = rawHex.padEnd(rawHex.length + (64 - (rawHex.length % 64)), '0');
 
     // get number from every 64 hex digits chunk
-    const numbers: bigint[] = [];
-    for (let i = 0; i < padded_hex_input.length; i += 64) {
-      numbers.push(BigInt(`0x${padded_hex_input.slice(i, i + 64)}`));
+    const result: bigint[] = [];
+    for (let i = 0; i < paddedHexVals.length; i += 64) {
+      result.push(BigInt(`0x${paddedHexVals.slice(i, i + 64)}`));
     }
 
     //remove trailing zero
-    if (padded_hex_input.length !== raw_hex_input.length && numbers[numbers.length - 1] === 0n) {
-      numbers.pop();
+    if (paddedHexVals.length !== rawHex.length && result[result.length - 1] === 0n) {
+      result.pop();
     }
 
-    return numbers;
+    return result;
   };
 
-  const events: EventItem[] = eventsLog.map((event) => {
-    return {
-      order: event.order,
-      keys: byte32numbers(event.keys).map((num) => `0x${num.toString(16)}`),
-      data: byte32numbers(event.data).map((num) => `0x${num.toString(16)}`),
-    };
-  });
-  return events;
+  return decode248BitEncoding(data).map((num) => `0x${num.toString(16).padStart(64, '0')}`);
 }
 
 export type argType = string | argType[];

@@ -1,4 +1,6 @@
 import { Dir, Value, File } from './types';
+import { EventItem, argType, WarpInterface } from '../../../src/export';
+import { EventFragment } from 'ethers/lib/utils';
 
 const capacity = (bits: number) => 2n ** BigInt(bits);
 const max_uint = (bits: number) => capacity(bits) - 1n;
@@ -91,4 +93,13 @@ export const toCairoInt8 = (val: number | bigint) => BigInt.asUintN(8, BigInt(va
 
 export function cairoUint256toHex(val: { low: string; high: string }): string {
   return `0x${(BigInt(val.low) + (BigInt(val.high) << 128n)).toString(16)}`;
+}
+
+export function encodeWarpEvent(fragment: EventFragment, values: argType[], order = 0): EventItem {
+  return new WarpInterface([fragment]).encodeWarpEvent(fragment, values, order);
+}
+
+export function encodeString(value: string): string[] {
+  const valueEncoded: Buffer = Buffer.from(value);
+  return [valueEncoded.length, ...valueEncoded].map((val) => val.toString());
 }

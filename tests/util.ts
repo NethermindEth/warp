@@ -36,7 +36,7 @@ export function gen_interface(
   cairoContractAddress?: string,
 ): Promise<{ stdout: string; stderr: string }> {
   return sh(
-    `${warpBin} gen_interface ${cairoContractPath} --contract-address ${cairoContractAddress}`,
+    `${warpBin} gen-interface ${cairoContractPath} --contract-address ${cairoContractAddress}`,
   );
 }
 
