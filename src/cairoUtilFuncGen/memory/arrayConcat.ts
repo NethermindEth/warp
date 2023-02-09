@@ -4,8 +4,9 @@ import {
   DataLocation,
   FixedBytesType,
   FunctionCall,
+  generalizeType,
   IntType,
-  PointerType,
+  isReferenceType,
   StringType,
   TypeName,
   TypeNode,
@@ -28,7 +29,7 @@ import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 export class MemoryArrayConcat extends StringIndexedFuncGen {
   public gen(concat: FunctionCall) {
     const argTypes = concat.vArguments.map((expr) => {
-      const exprType = safeGetNodeType(expr, this.ast.inference);
+      const exprType = generalizeType(safeGetNodeType(expr, this.ast.inference))[0];
       return exprType;
       // TODO: Only string and bytes (with fixed bytes) are concatenable, why there are extra types here!!!
       // if (
@@ -46,19 +47,21 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(argTypes: TypeNode[]) {
-    const areStringArgs = argTypes.every((type) => type instanceof StringType);
-    const areBytesArgs = argTypes.every(
-      (type) => type instanceof BytesType || type instanceof FixedBytesType,
+    // TODO: Check for hex"" and unicode"" which are treated as bytes instead of strings?!
+    const validArgs = argTypes.every(
+      (type) => type instanceof BytesType || type instanceof FixedBytesType || StringType,
     );
     assert(
-      areStringArgs || areBytesArgs,
-      'Concat arguments must be all of string type, or all of bytes (or fixed bytes) type.',
+      validArgs,
+      `Concat arguments must be all of string, bytes or fixed bytes type. Instead of: ${argTypes.map(
+        (t) => printTypeNode(t),
+      )}`,
     );
 
     const key = argTypes
       // TODO: Wouldn't type.pp() work here?
       .map((type) => {
-        if (type instanceof PointerType) return 'A';
+        if (isReferenceType(type)) return 'A';
         return `B${getIntOrFixedByteBitWidth(type)}`;
       })
       .join('');
@@ -73,7 +76,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       DataLocation.Memory,
     ]);
 
-    const outputTypeName: TypeName = areStringArgs
+    const outputTypeName: TypeName = argTypes.some((t) => t instanceof StringType)
       ? createStringTypeName(this.ast)
       : createBytesTypeName(this.ast);
     const output: ParameterInfo = ['res_loc', outputTypeName, DataLocation.Memory];
@@ -183,7 +186,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   }
 
   private getSize(type: TypeNode, index: number): [string, CairoImportFunctionDefinition[]] {
-    if (type instanceof PointerType) {
+    if (type instanceof StringType || type instanceof BytesType) {
       return [
         [
           `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
@@ -213,7 +216,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     type: TypeNode,
     index: number,
   ): [string, CairoImportFunctionDefinition] {
-    if (type instanceof PointerType) {
+    if (type instanceof StringType || type instanceof BytesType) {
       return [
         `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0);`,
         this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt'),
