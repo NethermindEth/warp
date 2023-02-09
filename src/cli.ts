@@ -535,5 +535,13 @@ program
   .action(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pjson = require('../package.json');
+    const pythonRequirements = fs
+      .readFileSync(path.join(__dirname, '../requirements.txt'))
+      .toString();
+    const starknetVersion: string = (pythonRequirements.match(/cairo-lang==(.*)/) ?? [
+      '',
+      "Couln't find cairo-lang in requirements.txt",
+    ])[1];
     console.log(blue(`Warp Version `) + green(pjson.version));
+    console.log(blue(`StarkNet Version `) + green(starknetVersion));
   });
