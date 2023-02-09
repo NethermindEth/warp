@@ -514,7 +514,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_string.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_topics.sol', //WILL NOT SUPPORT msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision2.sol', //WILL NOT SUPPORT msg.value
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_constructor.sol', //Bug related to indexed parameters
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_constructor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit.sol', //WILL NOT SUPPORT msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision.sol', //WILL NOT SUPPORT msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_function.sol', // WILL NOT SUPPORT function objects
