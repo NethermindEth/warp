@@ -10,6 +10,7 @@ import {
 } from 'solc-typed-ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
+import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -69,7 +70,7 @@ export class MemoryMemberAccessGen extends StringIndexedFuncGen {
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [['loc', solTypeName, DataLocation.Memory]],
-      [['memberLoc', outTypeName, DataLocation.Memory]],
+      [['member_loc', cloneASTNode(outTypeName, this.ast), DataLocation.Memory]],
       this.ast,
       this.sourceUnit,
     );

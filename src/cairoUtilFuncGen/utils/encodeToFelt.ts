@@ -82,17 +82,16 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
     return createCallToFunction(funcDef, expressions, this.ast);
   }
 
-  private getOrCreateFuncDef(expectedTypes: TypeNode[]) {
-    const expectedTypesName = expectedTypes.map((value) => `${value.pp()}`).flat();
-    const key = `encodeToFelt(${expectedTypesName})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+  private getOrCreateFuncDef(typesToEncode: TypeNode[]) {
+    const key = typesToEncode.map((t) => t.pp()).join(',');
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
-    const funcInfo = this.getOrCreate(expectedTypes);
+    const funcInfo = this.getOrCreate(typesToEncode);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
-      expectedTypes.map((exprT, index) => {
+      typesToEncode.map((exprT, index) => {
         const input: [string, TypeName] = [`arg${index}`, typeNameFromTypeNode(exprT, this.ast)];
         return isValueType(exprT) ? input : [...input, DataLocation.CallData];
       }),
@@ -175,7 +174,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
     const cairoParams = parameters.join(',');
     const funcName = `encode_as_felt${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (calldata_array : ${resultStruct}){`,
+      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (calldata_array : ${resultStruct.name}){`,
       `   alloc_locals;`,
       `   let total_size : felt = 0;`,
       `   let (decode_array : felt*) = alloc();`,
