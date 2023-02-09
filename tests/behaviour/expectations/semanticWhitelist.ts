@@ -508,10 +508,10 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/events_with_same_name_inherited_emit.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_really_lots_of_data.sol', //msg.data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_lots_of_data.sol', // msg.value
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_signature_in_library.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_signature_in_library.sol', // indexed array not yet supported
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_mixed.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_emit_from_other_contract.sol', //WILL NOT SUPPORT msg.value
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_string.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_indexed_string.sol', // indexed array not yet supported
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_topics.sol', //WILL NOT SUPPORT msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_anonymous_with_signature_collision2.sol', //WILL NOT SUPPORT msg.value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/events/event_constructor.sol',

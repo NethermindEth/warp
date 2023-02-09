@@ -76,38 +76,47 @@ export class EventFunction extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    const [params, keysInsertions, dataInsertions] = node.vParameters.vParameters.reduce(
-      ([params, keysInsertions, dataInsertions], param, index) => {
-        const paramType = generalizeType(safeGetNodeType(param, this.ast.inference))[0];
-        const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
+    const [params, keysInsertions, dataParams, dataParamTypes] =
+      node.vParameters.vParameters.reduce(
+        ([params, keysInsertions, dataParams, dataParamTypes], param, index) => {
+          const paramType = generalizeType(safeGetNodeType(param, this.ast.inference))[0];
+          const cairoType = CairoType.fromSol(paramType, this.ast, TypeConversionContext.Ref);
 
-        params.push({ name: `param${index}`, type: cairoType.toString() });
+          params.push({ name: `param${index}`, type: cairoType.toString() });
 
-        if (param.indexed) {
-          // An indexed parameter should go to the keys array
-          if (isValueType(paramType)) {
-            // If the parameter is a value type, we can just add it to the keys array
-            // as it is, as we do regular abi encoding
-            keysInsertions.push(
-              this.generateSimpleEncodingCode(paramType, 'keys', `param${index}`),
-            );
+          if (param.indexed) {
+            // An indexed parameter should go to the keys array
+            if (isValueType(paramType)) {
+              // If the parameter is a value type, we can just add it to the keys array
+              // as it is, as we do regular abi encoding
+              keysInsertions.push(
+                this.generateSimpleEncodingCode([paramType], 'keys', [`param${index}`]),
+              );
+            } else {
+              // If the parameter is a reference type, we hash the with special encoding
+              // function: more at:
+              //   https://docs.soliditylang.org/en/v0.8.14/abi-spec.html#encoding-of-indexed-event-parameters
+              keysInsertions.push(
+                this.generateComplexEncodingCode([paramType], 'keys', [`param${index}`]),
+              );
+            }
           } else {
-            // If the parameter is a reference type, we hash the with special encoding
-            // function: more at:
-            //   https://docs.soliditylang.org/en/v0.8.14/abi-spec.html#encoding-of-indexed-event-parameters
-            keysInsertions.push(
-              this.generateComplexEncodingCode(paramType, 'keys', `param${index}`),
-            );
+            // A non-indexed parameter should go to the data array
+            dataParams.push(`param${index}`);
+            dataParamTypes.push(paramType);
           }
-        } else {
-          // A non-indexed parameter should go to the data array
-          dataInsertions.push(this.generateSimpleEncodingCode(paramType, 'data', `param${index}`));
-        }
 
-        return [params, keysInsertions, dataInsertions];
-      },
-      [new Array<{ name: string; type: string }>(), new Array<string>(), new Array<string>()],
-    );
+          return [params, keysInsertions, dataParams, dataParamTypes];
+        },
+        [
+          new Array<{ name: string; type: string }>(),
+          new Array<string>(),
+          new Array<string>(),
+          new Array<TypeNode>(),
+        ],
+      );
+
+    const dataInsertions = this.generateSimpleEncodingCode(dataParamTypes, 'data', dataParams);
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
 
@@ -133,7 +142,7 @@ export class EventFunction extends StringIndexedFuncGen {
       `   // data arrays`,
       `   let data_len: felt = 0;`,
       `   let (data: felt*) = alloc();`,
-      ...dataInsertions,
+      dataInsertions,
       `   // data: pack 31 bytes felts into a single 248 bits felt`,
       `   let (data_len: felt, data: felt*) = pack_bytes_felt(${BYTES_IN_FELT_PACKING}, ${BIG_ENDIAN}, data_len, data);`,
       `   emit_event(keys_len, keys, data_len, data);`,
@@ -167,21 +176,29 @@ export class EventFunction extends StringIndexedFuncGen {
     ].join('\n');
   }
 
-  private generateSimpleEncodingCode(type: TypeNode, arrayName: string, argName: string): string {
-    const abiFunc = this.abiEncode.getOrCreate([type]);
+  private generateSimpleEncodingCode(
+    types: TypeNode[],
+    arrayName: string,
+    argNames: string[],
+  ): string {
+    const abiFunc = this.abiEncode.getOrCreate(types);
 
     this.requireImport('warplib.memory', 'wm_to_felt_array');
     this.requireImport('warplib.keccak', 'felt_array_concat');
 
     return [
-      `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
+      `   let (mem_encode: felt) = ${abiFunc}(${argNames.join(',')});`,
       `   let (encode_bytes_len: felt, encode_bytes: felt*) = wm_to_felt_array(mem_encode);`,
       `   let (${arrayName}_len: felt) = felt_array_concat(encode_bytes_len, 0, encode_bytes, ${arrayName}_len, ${arrayName});`,
     ].join('\n');
   }
 
-  private generateComplexEncodingCode(type: TypeNode, arrayName: string, argName: string): string {
-    const abiFunc = this.indexEncode.getOrCreate([type]);
+  private generateComplexEncodingCode(
+    types: TypeNode[],
+    arrayName: string,
+    argNames: string[],
+  ): string {
+    const abiFunc = this.indexEncode.getOrCreate(types);
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
@@ -189,7 +206,7 @@ export class EventFunction extends StringIndexedFuncGen {
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
 
     return [
-      `   let (mem_encode: felt) = ${abiFunc}(${argName});`,
+      `   let (mem_encode: felt) = ${abiFunc}(${argNames.join(',')});`,
       `   let (keccak_hash256: Uint256) = warp_keccak(mem_encode);`,
       `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
     ].join('\n');

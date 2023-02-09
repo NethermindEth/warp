@@ -248,6 +248,7 @@ Please see the list below:
 | :-------------------------------------------------: | :---------------: |
 |            fallback functions with args             | :hammer_and_pick: |
 |                   delegate calls                    | :hammer_and_pick: |
+|               indexed arrays in event               | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |              nested tuple expressions               |    :question:     |
 |                      gasleft()                      |    :question:     |
@@ -268,7 +269,6 @@ Please see the list below:
 |            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
 |                       receive                       |    :question:     |
-|   Inline Yul Assembly - arithmetic (add, sub ...)   | :hammer_and_pick: |
 |  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
 |                 user defined errors                 |    :question:     |
 |   function call options e.g x.f{gas: 10000}(arg1)   |    :question:     |
