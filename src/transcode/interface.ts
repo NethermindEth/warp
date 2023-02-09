@@ -19,8 +19,8 @@ export class WarpInterface extends Interface {
       values,
     );
 
-    const topicFlatHex = '0x' + topics.map((x) => x.slice(2).padStart(64, '0')).join('');
-    const topicItems248: string[] = splitInto248BitChunks(topicFlatHex);
+    const topicFlatHex = topics.map((x) => x.slice(2).padStart(64, '0')).join('');
+    const topicItems248: string[] = splitInto248BitChunks(`0x${topicFlatHex}`);
     const dataItems248: string[] = splitInto248BitChunks(data);
 
     return { order, keys: topicItems248, data: dataItems248 };

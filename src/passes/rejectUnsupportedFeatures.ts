@@ -98,8 +98,9 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitEventDefinition(node: EventDefinition, ast: AST): void {
-    node.vParameters.vParameters.forEach((param) => {
-      if (param.indexed) {
+    node.vParameters.vParameters
+      .filter((param) => param.indexed)
+      .forEach((param) => {
         const paramType = generalizeType(safeGetNodeType(param, ast.inference))[0];
         if (isValueType(paramType)) {
           this.commonVisit(node, ast);
@@ -120,8 +121,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
           paramType.definition instanceof StructDefinition
         )
           this.addUnsupported(`Indexed parameters of type: Structs are not supported`, node);
-      }
-    });
+      });
   }
 
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
