@@ -58,9 +58,8 @@ export class AbiEncode extends AbiBase {
         );
 
         encodings.push(paramEncoding);
-        functionsCalled.concat(paramFunctionsCalled);
 
-        return [params, encodings, functionsCalled];
+        return [params, encodings, functionsCalled.concat(paramFunctionsCalled)];
       },
       [
         new Array<{ name: string; type: string }>(),
@@ -190,10 +189,12 @@ export class AbiEncode extends AbiBase {
     // Is value type
     const size = getPackedByteSize(type, this.ast.inference);
     const instructions: string[] = [];
+
+    const funcsCalled: CairoFunctionDefinition[] = [func];
     // packed size of addresses is 32 bytes, but they are treated as felts,
     // so they should be converted to Uint256 accordingly
     if (size < 32 || isAddressType(type)) {
-      this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
+      funcsCalled.push(this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'));
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;
     }
@@ -207,7 +208,7 @@ export class AbiEncode extends AbiBase {
       instructions.push(`let ${newOffsetVar} = bytes_offset;`);
     }
 
-    return [instructions.join('\n'), []];
+    return [instructions.join('\n'), funcsCalled];
   }
 
   private createDynamicArrayHeadEncoding(type: ArrayType): CairoFunctionDefinition {

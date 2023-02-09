@@ -199,7 +199,13 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: code,
-      functionsCalled: [...importedFuncs, sturctDynArray, dynArray, storageReadFunc],
+      functionsCalled: [
+        ...importedFuncs,
+        sturctDynArray,
+        dynArray,
+        dynArrayLength,
+        storageReadFunc,
+      ],
     };
     return funcInfo;
   }
