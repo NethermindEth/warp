@@ -129,19 +129,19 @@ export class AbiEncodePacked extends AbiBase {
       ];
     }
 
-    const funcName = this.getOrCreateEncoding(type);
+    const func = this.getOrCreateEncoding(type);
 
     if (isDynamicArray(type)) {
       return [
         [
           `let (length256) = wm_dyn_array_length(${varToEncode});`,
           `let (length) = narrow_safe(length256);`,
-          `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
+          `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
         ].join('\n'),
         [
           this.requireImport('warplib.memory', 'wm_dyn_array_length'),
           this.requireImport('warplib.maths.utils', 'narrow_safe'),
-          funcName,
+          func,
         ],
       ];
     }
@@ -149,8 +149,8 @@ export class AbiEncodePacked extends AbiBase {
     // Type is a static array
     if (type instanceof ArrayType) {
       return [
-        `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, ${type.size}, ${varToEncode});`,
-        [funcName],
+        `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, ${type.size}, ${varToEncode});`,
+        [func],
       ];
     }
 
@@ -161,10 +161,10 @@ export class AbiEncodePacked extends AbiBase {
 
     return [
       [
-        `${funcName}(${args.join(',')});`,
+        `${func.name}(${args.join(',')});`,
         `let ${newIndexVar} = bytes_index +  ${packedByteSize};`,
       ].join('\n'),
-      [funcName],
+      [func],
     ];
   }
 
