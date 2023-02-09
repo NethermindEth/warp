@@ -7,6 +7,7 @@ import {
   generalizeType,
   Literal,
   LiteralKind,
+  StringLiteralType,
   StringType,
   TupleExpression,
   TupleType,
@@ -87,7 +88,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     }
 
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
-    const funcInfo = this.getOrCreate(baseType, size, isDynamicArray(type));
+    const funcInfo = this.getOrCreate(
+      baseType,
+      size,
+      isDynamicArray(type) || type instanceof StringLiteralType,
+    );
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       mapRange(size, (n) => [
