@@ -55,7 +55,6 @@ export function compileCairo(
         .join(' ')}`,
       { stdio: 'inherit' },
     );
-    console.log(`Done!`);
     return { success: true, resultPath, abiPath, solAbiPath, classHash: undefined };
   } catch (e) {
     if (e instanceof Error) {
