@@ -26,6 +26,8 @@ import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
+const IMPLICITS =
+  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 /*
   Generates functions to copy data from WARP_STORAGE to warp_memory
   Specifically this has to deal with structs, static arrays, and dynamic arrays
@@ -89,31 +91,37 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
     const funcName = `ws_to_memory_struct_${def.name}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      this.requireImport('warplib.memory', 'wm_alloc'),
+    const [copyInstructions, copyCalls] = generateCopyInstructions(type, this.ast).reduce(
+      ([copyInstructions, copyCalls], { storageOffset, copyType }, index) => {
+        const [copyCode, calls] = this.getIterCopyCode(copyType, index, storageOffset);
+        return [
+          [
+            ...copyInstructions,
+            copyCode,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index});`,
+          ],
+          [...copyCalls, ...calls],
+        ];
+      },
+      [new Array<string>(), new Array<CairoFunctionDefinition>()],
     );
 
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc: felt){`,
+        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
-        ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => [
-            this.getIterCopyCode(copyType, index, storageOffset),
-            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index});`,
-          ],
-        ),
+        ...copyInstructions,
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        this.requireImport('warplib.memory', 'wm_alloc'),
+        ...copyCalls,
+      ],
     };
     return funcInfo;
   }
@@ -129,28 +137,37 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
     const funcName = `ws_to_memory_static_array${this.generatedFunctionsDef.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+
+    const [copyInstructions, copyCalls] = generateCopyInstructions(type, this.ast).reduce(
+      ([copyInstructions, copyCalls], { storageOffset, copyType }, index) => {
+        const [copyCode, calls] = this.getIterCopyCode(copyType, index, storageOffset);
+        return [
+          [
+            ...copyInstructions,
+            copyCode,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index});`,
+          ],
+          [...copyCalls, ...calls],
+        ];
+      },
+      [new Array<string>(), new Array<CairoFunctionDefinition>()],
+    );
 
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let length = ${uint256(memoryType.width)};`,
         `    let (mem_start) = wm_alloc(length);`,
-        ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => [
-            this.getIterCopyCode(copyType, index, storageOffset),
-            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index});`,
-          ],
-        ),
+        ...copyInstructions,
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
       functionsCalled: [
         this.requireImport('starkware.cairo.common.dict', 'dict_write'),
         this.requireImport('warplib.memory', 'wm_alloc'),
+        ...copyCalls,
       ],
     };
 
@@ -230,8 +247,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
     const elemMappingName = dynArray.name;
     const lengthMappingName = dynArrayLength.name;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // This is the code to copy a single element
     // Complex types require calls to another function generated here
@@ -247,7 +262,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
+        `func ${funcName}_elem${IMPLICITS}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
@@ -259,7 +274,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return ${funcName}_elem(storage_name, mem_start, index);`,
         `}`,
 
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let (length: Uint256) = ${lengthMappingName}.read(loc);`,
         `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)});`,
@@ -286,18 +301,21 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     copyType: TypeNode | undefined,
     index: number,
     storageOffset: number,
-  ): string {
+  ): [string, CairoFunctionDefinition[]] {
     if (copyType === undefined) {
-      return `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)});`;
+      return [`let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)});`, []];
     }
 
-    const funcName = this.getOrCreate(copyType).name;
-    return isDynamicArray(copyType)
-      ? [
-          `let (dyn_loc) = WARP_STORAGE.read(${add('loc', storageOffset)});`,
-          `let (copy${index}) = ${funcName}(dyn_loc);`,
-        ].join('\n')
-      : `let (copy${index}) = ${funcName}(${add('loc', storageOffset)});`;
+    const func = this.getOrCreateFuncDef(copyType);
+    return [
+      isDynamicArray(copyType)
+        ? [
+            `let (dyn_loc) = WARP_STORAGE.read(${add('loc', storageOffset)});`,
+            `let (copy${index}) = ${func.name}(dyn_loc);`,
+          ].join('\n')
+        : `let (copy${index}) = ${func.name}(${add('loc', storageOffset)});`,
+      [func],
+    ];
   }
 
   // Copy code generation for recursive copy instructions (large static arrays and dynamic arrays)
