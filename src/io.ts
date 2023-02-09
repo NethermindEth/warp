@@ -58,6 +58,7 @@ export function replaceSuffix(filePath: string, suffix: string): string {
 }
 
 export function outputResult(
+  contractName: string,
   outputPath: string,
   code: string,
   options: OutputOptions & TranspilationOptions,
@@ -75,7 +76,6 @@ export function outputResult(
     const fullCodeOutPath = path.join(options.outputDir, outputPath);
     const abiOutPath = fullCodeOutPath.slice(0, -'.cairo'.length).concat('_sol_abi.json');
 
-    const contractName = path.basename(outputPath).slice(0, -'.cairo'.length);
     const solFilePath = path.dirname(outputPath);
 
     outputFileSync(
@@ -83,11 +83,12 @@ export function outputResult(
       JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
     );
     outputFileSync(fullCodeOutPath, code);
-
     // Cairo-format is disabled, as it has a bug
     // if (options.formatCairo || options.dev) {
     //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
     //   execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
     // }
+  } else {
+    console.log(`//--- ${outputPath} ---\n${code}\n//---`);
   }
 }

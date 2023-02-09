@@ -61,7 +61,7 @@ whitelistData.split('\n').forEach((line) => {
 
     if (testPathLets.length > 1) {
       testsSupportStatus.set(
-        testPathLets[0].replace("'", '').replace(',', '').trim(), // remove possible trailing punctation marks
+        testPathLets[0].replace("'", '').replace(',', '').trim(), // remove possible trailing punctuation marks
         testPathLets.slice(1).join('//').trim(), // comment part of the test
       );
     } else {
@@ -71,7 +71,7 @@ whitelistData.split('\n').forEach((line) => {
 });
 
 if (process.argv.includes('--compare')) {
-  // Comparisions of tests between white_list and current version
+  // Comparisons of tests between white_list and current version
 
   const testFiles = execSync(
     // Get all solidity files under tests/behaviour/solidity/test/libsolidity/semanticTests (recursively)
