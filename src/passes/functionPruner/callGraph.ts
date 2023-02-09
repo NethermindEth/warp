@@ -31,9 +31,12 @@ export class CallGraphBuilder extends ASTMapper {
     this.currentFunction = undefined;
   }
 
-  visitCairoGeneratedFunctionDefinition(node: CairoGeneratedFunctionDefinition, _ast: AST): void {
+  visitCairoGeneratedFunctionDefinition(node: CairoGeneratedFunctionDefinition, ast: AST): void {
+    this.currentFunction = node;
     this.functionId.set(node.id, node);
     this.callGraph.set(node.id, new Set(node.functionsCalled.map((funcDef) => funcDef.id)));
+    node.functionsCalled.forEach((funcDef) => this.commonVisit(funcDef, ast));
+    this.currentFunction = undefined;
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST) {

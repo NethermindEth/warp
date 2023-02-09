@@ -121,10 +121,10 @@ export abstract class ASTVisitor<T> {
     else if (node instanceof Literal) res = this.visitLiteral(node, ast);
     else if (node instanceof TupleExpression) res = this.visitTupleExpression(node, ast);
     else if (node instanceof UnaryOperation) res = this.visitUnaryOperation(node, ast);
-    else if (node instanceof CairoFunctionDefinition)
-      res = this.visitCairoFunctionDefinition(node, ast);
     else if (node instanceof CairoGeneratedFunctionDefinition)
       res = this.visitCairoGeneratedFunctionDefinition(node, ast);
+    else if (node instanceof CairoFunctionDefinition)
+      res = this.visitCairoFunctionDefinition(node, ast);
     else if (node instanceof CairoTempVarStatement) res = this.visitCairoTempVar(node, ast);
     else if (node instanceof FunctionDefinition) res = this.visitFunctionDefinition(node, ast);
     else if (node instanceof IdentifierPath) res = this.visitIdentifierPath(node, ast);
@@ -173,7 +173,7 @@ export abstract class ASTVisitor<T> {
     return this.visitFunctionDefinition(node, ast);
   }
   visitCairoGeneratedFunctionDefinition(node: CairoGeneratedFunctionDefinition, ast: AST): T {
-    return this.visitFunctionDefinition(node, ast);
+    return this.visitCairoFunctionDefinition(node, ast);
   }
   visitCairoTempVar(node: CairoTempVarStatement, ast: AST): T {
     return this.commonVisit(node, ast);

@@ -207,10 +207,9 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
           return [[...copyCode, code], [...funcCalls, recursiveFunc], offset + 1];
         }
 
-        // TODO: Specify size context?
         const memberWidth = CairoType.fromSol(type, this.ast).width;
         const code =
-          memberWidth === 1
+          memberWidth === 2
             ? [
                 `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset)}, calldata.${
                   decl.name
