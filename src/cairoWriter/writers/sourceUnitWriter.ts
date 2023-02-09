@@ -60,6 +60,10 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
       .sort((funcA, funcB) =>
         `${funcA.path}.${funcA.name}`.localeCompare(`${funcB.path}.${funcB.name}`),
       )
+      .filter(
+        (func, index, importFuncs) =>
+          func.name !== importFuncs[index - 1]?.name || func.path !== importFuncs[index - 1]?.path,
+      )
       .map((importFunc) => writer.write(importFunc))
       .reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`);
 

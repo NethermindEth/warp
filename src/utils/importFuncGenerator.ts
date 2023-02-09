@@ -15,6 +15,7 @@ import { getContainingSourceUnit } from './utils';
 // Paths
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
 const STARKWARE_CAIRO_COMMON_BUILTINS = 'starkware.cairo.common.cairo_builtins';
+const STARKWARE_CAIRO_COMMON_CAIRO_KECCAK = 'starkware.cairo.common.cairo_keccak.keccak';
 const STARKWARE_CAIRO_COMMON_DEFAULT_DICT = 'starkware.cairo.common.default_dict';
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
@@ -39,14 +40,14 @@ export function createImportFuncDefinition(
   const existingImport = findExistingImport(name, sourceUnit);
   // PATCH PATCH PATCH
   if (existingImport !== undefined) {
-    if (
-      existingImport.vParameters.vParameters.length > 0 ||
-      existingImport.vReturnParameters.vParameters.length > 0
-    )
-      return existingImport;
+    //if (
+    //  existingImport.vParameters.vParameters.length > 0 ||
+    //  existingImport.vReturnParameters.vParameters.length > 0
+    //)
+    //  return existingImport;
     if (!hasInputs || !hasOutputs) return existingImport;
 
-    sourceUnit.removeChild(existingImport);
+    // sourceUnit.removeChild(existingImport);
     return createImportFuncFuncDefinition(
       name,
       path,
@@ -68,6 +69,7 @@ export function createImportFuncDefinition(
       outputs ?? [],
       ast,
       sourceUnit,
+      options,
     );
   const createStructImport = () => createImportStructFuncDefinition(name, path, ast, sourceUnit);
 
@@ -83,6 +85,8 @@ export function createImportFuncDefinition(
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_BUILTINS + 'HashBuiltin':
       return createStructImport();
+    case STARKWARE_CAIRO_COMMON_CAIRO_KECCAK + 'finalize_keccak':
+      return createFuncImport('range_check_ptr', 'bitwise_ptr');
     case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_new':
       return createFuncImport();
     case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_finalize':
@@ -126,7 +130,7 @@ function findExistingImport(name: string, node: SourceUnit) {
     (n) => n instanceof CairoImportFunctionDefinition && n.name === name,
   );
 
-  assert(found.length < 2, `More than 1 import functions where found with name: ${name}.`);
+  // assert(found.length < 2, `More than 1 import functions where found with name: ${name}.`);
 
   if (found[0] !== undefined) {
     assert(found[0] instanceof CairoImportFunctionDefinition);
