@@ -38,7 +38,6 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
-import { getNodeType } from '../../utils/typeStrings/typeString_parser';
 import { getContainingFunction, isExternallyVisible } from '../../utils/utils';
 
 /*
