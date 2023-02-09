@@ -5,7 +5,6 @@ import {
   FunctionStateMutability,
   TypeNode,
   TypeName,
-  FunctionDefinition,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -16,7 +15,7 @@ import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen
 import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
-  // TODO: was typename safe to remove?
+  // TODO: is typename safe to remove?
   public gen(storageLocation: Expression, typeName?: TypeName): FunctionCall {
     const valueType = safeGetNodeType(storageLocation, this.ast.inference);
 
