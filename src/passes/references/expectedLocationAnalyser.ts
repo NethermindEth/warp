@@ -19,6 +19,7 @@ import {
   PointerType,
   Return,
   TupleExpression,
+  TypeNameType,
   UnaryOperation,
   UserDefinedType,
   VariableDeclarationStatement,
@@ -37,6 +38,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
+import { getNodeType } from '../../utils/typeStrings/typeString_parser';
 import { getContainingFunction, isExternallyVisible } from '../../utils/utils';
 
 /*
@@ -178,6 +180,8 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   }
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
+    const nodeType = safeGetNodeType(node, ast.inference);
+    if (nodeType instanceof TypeNameType) return this.commonVisit(node, ast);
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);

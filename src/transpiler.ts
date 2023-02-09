@@ -101,7 +101,6 @@ function applyPasses(
 ): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
-    ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
     ['Iat', InlineAssemblyTransformer],
     ['Wa', WarnSupportedFeatures],
@@ -146,6 +145,7 @@ function applyPasses(
     ['Abc', ArgBoundChecker],
     ['Ec', EnumConverter],
     ['B', BuiltinHandler],
+    ['Tnr', TypeNameRemover],
     ['Bc', BytesConverter],
     ['Us', UnreachableStatementPruner],
     ['Fp', FunctionPruner],

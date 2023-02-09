@@ -17,7 +17,14 @@ import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 export class TypeNameRemover extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // Builtin Handler needs to be run first because some builtin
+      // functions like abi.decode uses TypeNames as arguments, otherwise,
+      // they will be removed before use
+      // Eg:
+      //     abi.decode(data, (uint[7][]));
+      'B',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
