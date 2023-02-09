@@ -551,7 +551,15 @@ export function getSourceFromLocations(
 export function runStarkNetClassHash(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-  const classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
+  let classHash: string;
+  try {
+    classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
+  } catch (error) {
+    throw new TranspileFailedError(
+      `starknet-class-hash command do not work as expected.\n Please make sure you are using the required version of starknet by executing 'pip install -r requirements.txt'`,
+    );
+  }
+
   if (classHash === undefined) {
     throw new Error(`starknet-class-hash failed`);
   }
