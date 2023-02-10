@@ -12,6 +12,7 @@ import {
   Mutability,
   PointerType,
   StateVariableVisibility,
+  TypeNameType,
   TypeNode,
   VariableDeclaration,
   VariableDeclarationStatement,
@@ -58,6 +59,8 @@ export class StaticArrayIndexer extends ASTMapper {
   }
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
+    if (safeGetNodeType(node, ast.inference) instanceof TypeNameType)
+      return this.commonVisit(node, ast);
     this.staticIndexToMemory(node, ast);
   }
 
