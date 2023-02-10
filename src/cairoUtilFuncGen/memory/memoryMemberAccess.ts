@@ -50,7 +50,7 @@ export class MemoryMemberAccessGen extends StringIndexedFuncGen {
     const structCairoType = CairoType.fromSol(
       solType,
       this.ast,
-      TypeConversionContext.StorageAllocation,
+      TypeConversionContext.MemoryAllocation,
     );
 
     const key = structCairoType.fullStringRepresentation + memberName;

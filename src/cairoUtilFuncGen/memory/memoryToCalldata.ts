@@ -141,7 +141,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const length = narrowBigIntSafe(type.size);
     const elementT = type.elementT;
 
-    const memberFeltSize = CairoType.fromSol(type, this.ast).width;
+    const memberFeltSize = CairoType.fromSol(elementT, this.ast).width;
     const [copyCode, funcCalls] = mapRange(length, (n): [string[], CairoFunctionDefinition[]] => {
       const [memberCopyCode, memberCalls] = this.generateElementCopyCode(
         elementT,
