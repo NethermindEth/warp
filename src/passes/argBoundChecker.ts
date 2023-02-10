@@ -7,6 +7,7 @@ import {
   FunctionCallKind,
   EnumDefinition,
   IntType,
+  generalizeType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../ast/mapper';
 import { isExternallyVisible } from '../utils/utils';
@@ -30,7 +31,7 @@ export class ArgBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((decl) => {
-        const type = safeGetNodeType(decl, ast.inference);
+        const type = generalizeType(safeGetNodeType(decl, ast.inference))[0];
         if (checkableType(type)) {
           const functionCall = ast
             .getUtilFuncGen(node)
