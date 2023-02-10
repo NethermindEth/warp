@@ -52,13 +52,25 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
   public getOrCreateIndexAccessFunction(baseType: TypeNode, nodeType: TypeNode) {
     assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
 
-    const key = baseType.to.keyType.pp() + nodeType.pp();
+    const baseKey = CairoType.fromSol(
+      baseType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    ).fullStringRepresentation;
+    const nodeKey = CairoType.fromSol(
+      nodeType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    ).fullStringRepresentation;
+    const key = baseKey + '-' + nodeKey;
     const existing = this.indexAccesFunctions.get(key);
     if (existing !== undefined) {
+      console.log(`**** Exists: ${key}`, existing.name);
       return existing;
     }
 
     const funcInfo = this.generateIndexAccess(baseType.to.keyType, nodeType);
+    console.log(`**** creating: ${key}`, funcInfo.name);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [

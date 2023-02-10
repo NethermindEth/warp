@@ -363,9 +363,9 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               [
                 `let (${elemLoc}_prt_${n}) = dict_read{dict_ptr=warp_memory}(${add(
                   'mem_loc',
-                  index + n,
+                  offset + n,
                 )});`,
-                `WARP_STORAGE.write(${add('loc', offset)}, ${elemLoc}_prt_${n});`,
+                `WARP_STORAGE.write(${add('loc', offset + n)}, ${elemLoc}_prt_${n});`,
               ].join('\n'),
             ),
           ],
