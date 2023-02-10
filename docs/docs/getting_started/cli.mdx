@@ -38,7 +38,7 @@ transpile `[options]` `<file...>`:
     -o, --output-dir <path>     Output directory for transpiled Cairo files. (default: "warp_output")
     -d, --debug-info            Include debug information in the compiled bytecode produced by --compile-cairo (default: false)
     --print-trees               Debug: Print all the intermediate ASTs
-    --no-stubs                  Debug: Hide the stubs in the intermedidate ASTs when using --print-trees
+    --no-stubs                  Debug: Hide the stubs in the intermediate ASTs when using --print-trees
     --no-strict                 Debug: Allow silent failure of AST consistency checks
     --until <pass>              Stops transpilation after the specified pass
     --no-warnings               Suppress warnings from the Solidity compiler
@@ -53,7 +53,7 @@ transform `[options]` `<file...>`:
     --order <passOrder>         Use a custom set of transpilation passes
     -o, --output-dir <path>     Output directory for transformed Solidity files
     --print-trees               Debug: Print all the intermediate ASTs
-    --no-stubs                  Debug: Hide the stubs in the intermedidate ASTs when using --print-trees
+    --no-stubs                  Debug: Hide the stubs in the intermediate ASTs when using --print-trees
     --no-strict                 Debug: Allow silent failure of AST consistency checks
     --until <pass>              Stop processing at specified pass
     --no-warnings               Suppress printed warnings
@@ -90,7 +90,7 @@ declare `[options]` `<cairo_contract>`:
 deploy `[options]` `<file...>`:
 
     -d, --debug_info                           Compile include debug information (default: false)
-    --inputs <inputs...>                       Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists
+    --inputs <inputs...>                       Arguments to be passed to constructor of the program as a comma separated list of strings, ints and lists
     --use_cairo_abi                            Use the cairo abi instead of solidity for the inputs (default: false)
     --network <network>                        StarkNet network URL
     --gateway_url <gateway_url>                StarkNet gateway URL
