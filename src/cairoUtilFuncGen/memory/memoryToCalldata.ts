@@ -107,7 +107,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
         `    alloc_locals;`,
         ...structDef.vMembers.map((decl, index) => {
-          const memberType = safeGetNodeType(decl, this.ast.inference);
+          const memberType = generalizeType(safeGetNodeType(decl, this.ast.inference))[0];
           if (isReferenceType(memberType)) {
             this.requireImport('warplib.memory', 'wm_read_id');
             const allocSize = isDynamicArray(memberType)

@@ -416,7 +416,7 @@ export function getByteSize(type: TypeNode, inference: InferType): number | bigi
       'Struct byte size calculation requires compiler version',
     );
     return type.definition.vMembers
-      .map((varDecl) => safeGetNodeType(varDecl, inference))
+      .map((varDecl) => generalizeType(safeGetNodeType(varDecl, inference))[0])
       .reduce(sumMemberSize, 0n);
   }
 
