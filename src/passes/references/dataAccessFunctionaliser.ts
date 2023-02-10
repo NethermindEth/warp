@@ -20,7 +20,6 @@ import {
   FixedBytesType,
   BytesType,
   StringType,
-  TypeNameType,
 } from 'solc-typed-ast';
 import { TranspileFailedError, WillNotSupportError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -266,8 +265,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
-    const nodeType = safeGetNodeType(node, ast.inference);
-    if (nodeType instanceof TypeNameType) return this.commonVisit(node, ast);
     assert(node.vIndexExpression !== undefined);
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
