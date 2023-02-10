@@ -28,6 +28,7 @@ import { createBlock } from '../utils/nodeTemplates';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternalCall, mergeImports } from '../utils/utils';
 import { CairoFunctionDefinition } from './cairoNodes';
+import { WarpInferType } from './warpInferType';
 
 /*
  A centralised store of information required for transpilation, a reference
@@ -56,7 +57,7 @@ export class AST {
   context: ASTContext;
   // node requiring cairo import -> file to import from -> symbols to import
   imports: Map<ASTNode, Map<string, Set<string>>> = new Map();
-  public inference: InferType;
+  public inference: WarpInferType;
 
   readonly tempId = -1;
 
@@ -74,7 +75,7 @@ export class AST {
       'All contexts should be the same, otherwise they are from seperate solc-typed-ast compiles and they will have no relationship to each other.',
     );
     this.context = roots[0].requiredContext;
-    this.inference = new InferType(compilerVersion);
+    this.inference = new WarpInferType(compilerVersion);
     assert(
       this.context.locate(this.tempId) === undefined,
       `Attempted to create an AST with a context that already has ${this.tempId} registered`,
