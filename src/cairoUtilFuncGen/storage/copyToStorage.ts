@@ -13,7 +13,6 @@ import {
   StringType,
   StructDefinition,
   TypeNode,
-  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoFunctionDefinition } from '../../export';
@@ -32,6 +31,9 @@ import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
+
+const IMPLICITS =
+  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, bitwise_ptr : BitwiseBuiltin*}';
 
 /*
   Generates functions to copy data from WARP_STORAGE to WARP_STORAGE
@@ -58,10 +60,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(toType: TypeNode, fromType: TypeNode) {
-    const key = `copyToStorage(${toType.pp()}->${fromType.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+    const key = `${fromType.pp()}->${toType.pp()}`;
+    const exisiting = this.generatedFunctionsDef.get(key);
+    if (exisiting !== undefined) {
+      return exisiting;
     }
     const funcInfo = this.getOrCreate(toType, fromType);
     const funcDef = createCairoGeneratedFunction(
@@ -80,8 +82,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(toType: TypeNode, fromType: TypeNode): GeneratedFunctionInfo {
-    const funcName = `ws_copy${this.generatedFunctionsDef.size}`;
-
     const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       toType,
       (toType) => {
@@ -91,40 +91,37 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
             fromType instanceof StringType,
         );
         if (getSize(fromType) === undefined) {
-          return this.createDynamicArrayCopyFunction(funcName, toType, fromType);
+          return this.createDynamicArrayCopyFunction(toType, fromType);
         } else {
           assert(fromType instanceof ArrayType);
-          return this.createStaticToDynamicArrayCopyFunction(funcName, toType, fromType);
+          return this.createStaticToDynamicArrayCopyFunction(toType, fromType);
         }
       },
       (toType) => {
         assert(fromType instanceof ArrayType);
-        return this.createStaticArrayCopyFunction(funcName, toType, fromType);
+        return this.createStaticArrayCopyFunction(toType, fromType);
       },
-      (toType) => this.createStructCopyFunction(funcName, toType),
+      (_toType, def) => this.createStructCopyFunction(def),
       () => {
         throw new TranspileFailedError('Attempted to create mapping clone function');
       },
       (toType) => {
         if (toType instanceof IntType) {
           assert(fromType instanceof IntType);
-          return this.createIntegerCopyFunction(funcName, toType, fromType);
+          return this.createIntegerCopyFunction(toType, fromType);
         } else if (toType instanceof FixedBytesType) {
           assert(fromType instanceof FixedBytesType);
-          return this.createFixedBytesCopyFunction(funcName, toType, fromType);
+          return this.createFixedBytesCopyFunction(toType, fromType);
         } else {
-          return this.createValueTypeCopyFunction(funcName, toType);
+          return this.createValueTypeCopyFunction(toType);
         }
       },
     );
     return funcInfo;
   }
 
-  private createStructCopyFunction(funcName: string, type: UserDefinedType): GeneratedFunctionInfo {
-    const def = type.definition;
-    assert(def instanceof StructDefinition);
+  private createStructCopyFunction(def: StructDefinition): GeneratedFunctionInfo {
     const members = def.vMembers.map((decl) => safeGetNodeType(decl, this.ast.inference));
-
     const [copyCode, funcsCalled] = members.reduce(
       ([copyCode, funcsCalled, offset], memberType) => {
         const width = CairoType.fromSol(
@@ -152,10 +149,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
     );
 
+    const funcName = `WS_COPY_STRUCT_${def.name}`;
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `func ${funcName}${IMPLICITS}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
         `    alloc_locals;`,
         ...copyCode,
         `    return (to_loc,);`,
@@ -166,7 +164,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   }
 
   private createStaticArrayCopyFunction(
-    funcName: string,
     toType: ArrayType,
     fromType: ArrayType,
   ): GeneratedFunctionInfo {
@@ -200,6 +197,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const fromSize = narrowBigIntSafe(fromType.size);
     const toSize = narrowBigIntSafe(toType.size);
 
+    const funcName = `WS_COPY_STATIC_${this.generatedFunctionsDef.size}`;
+
     let optionalCalls: CairoFunctionDefinition[];
     let stopRecursion: string[];
     if (fromSize === toSize) {
@@ -223,12 +222,12 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> (){`,
+        `func ${funcName}_elem${IMPLICITS}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> (){`,
         ...stopRecursion,
         `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,
         `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1);`,
         `}`,
-        `func ${funcName}${implicits}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt){`,
+        `func ${funcName}${IMPLICITS}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt){`,
         `    ${funcName}_elem(to_elem_loc, from_elem_loc, 0);`,
         `    return (to_elem_loc,);`,
         `}`,
@@ -238,7 +237,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   }
 
   private createDynamicArrayCopyFunction(
-    funcName: string,
     toType: ArrayType | BytesType | StringType,
     fromType: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
@@ -277,13 +275,14 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       elementCopyFunc.name,
     );
 
-    const deleteCode = this.storageDeleteGen.getOrCreateFuncDef(toType);
-    const deleteRemainingCode = `${deleteCode.name}(to_loc, from_length, to_length)`;
+    const deleteFunc = this.storageDeleteGen.getOrCreateFuncDef(toType);
+    const deleteRemainingCode = `${deleteFunc.name}_elem(to_loc, from_length, to_length)`;
 
+    const funcName = `WS_COPY_DYNAMIC_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
+        `func ${funcName}_elem${IMPLICITS}(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
@@ -302,7 +301,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ${funcName}_elem(to_loc, from_loc, index);`,
         `    }`,
         `}`,
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `func ${funcName}${IMPLICITS}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
         `    alloc_locals;`,
         `    let (from_length) = ${fromLengthMappingName}.read(from_loc);`,
         `    let (to_length) = ${toLengthMappingName}.read(to_loc);`,
@@ -326,13 +325,12 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         fromLengthMapping,
         toElementMapping,
         toLengthMapping,
-        deleteCode,
+        deleteFunc,
       ],
     };
   }
 
   private createStaticToDynamicArrayCopyFunction(
-    funcName: string,
     toType: ArrayType | BytesType | StringType,
     fromType: ArrayType,
   ): GeneratedFunctionInfo {
@@ -364,12 +362,13 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     );
 
     const deleteFunc = this.storageDeleteGen.getOrCreateFuncDef(toType);
-    const deleteRemainingCode = `${deleteFunc.name}(to_loc, from_length, to_length)`;
+    const deleteRemainingCode = `${deleteFunc.name}_elem(to_loc, from_length, to_length)`;
 
+    const funcName = `WS_COPY_STATIC_TO_DYNAMIC_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
+        `func ${funcName}_elem${IMPLICITS}(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == index.low){`,
         `        if (length.high == index.high){`,
@@ -390,7 +389,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
         `    }`,
         `}`,
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `func ${funcName}${IMPLICITS}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
         `    alloc_locals;`,
         `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};`,
         `    let (to_length) = ${toLengthMappingName}.read(to_loc);`,
@@ -417,11 +416,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     };
   }
 
-  private createIntegerCopyFunction(
-    funcName: string,
-    toType: IntType,
-    fromType: IntType,
-  ): GeneratedFunctionInfo {
+  private createIntegerCopyFunction(toType: IntType, fromType: IntType): GeneratedFunctionInfo {
     assert(
       fromType.nBits <= toType.nBits,
       `Attempted to scale integer ${fromType.nBits} to ${toType.nBits}`,
@@ -455,10 +450,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
           ].join('\n')
         : 'WARP_STORAGE.write(to_loc, to_elem);';
 
+    const funcName = `WS_COPY_INTEGER_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `func ${funcName}${IMPLICITS}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
         `   alloc_locals;`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
@@ -479,7 +475,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   }
 
   private createFixedBytesCopyFunction(
-    funcName: string,
     toType: FixedBytesType,
     fromType: FixedBytesType,
   ): GeneratedFunctionInfo {
@@ -510,10 +505,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
           ].join('\n')
         : 'WARP_STORAGE.write(to_loc, to_elem);';
 
+    const funcName = `WS_COPY_FIXED_BYTES_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `func ${funcName}${IMPLICITS}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
         `   alloc_locals;`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
@@ -528,13 +524,14 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     };
   }
 
-  private createValueTypeCopyFunction(funcName: string, type: TypeNode): GeneratedFunctionInfo {
+  private createValueTypeCopyFunction(type: TypeNode): GeneratedFunctionInfo {
     const width = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation).width;
 
+    const funcName = `WS_COPY_VALUE_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `func ${funcName}${IMPLICITS}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
         `    alloc_locals;`,
         ...mapRange(width, copyAtOffset),
         `    return (to_loc,);`,
@@ -544,9 +541,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     };
   }
 }
-
-const implicits =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, bitwise_ptr : BitwiseBuiltin*}';
 
 function copyAtOffset(n: number): string {
   return [
