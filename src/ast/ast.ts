@@ -8,7 +8,6 @@ import {
   FunctionCall,
   generalizeType,
   Identifier,
-  InferType,
   Mutability,
   SourceUnit,
   Statement,
