@@ -28,7 +28,7 @@ import {
 import { AST } from '../ast/ast';
 import { CairoTempVarStatement } from '../ast/cairoNodes';
 import { generateExpressionTypeString, generateLiteralTypeString } from './getTypeString';
-import { safeGetNodeTypeInCtx, specializeType } from './nodeTypeProcessing';
+import { safeGetNodeTypeInCtx } from './nodeTypeProcessing';
 import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
 
