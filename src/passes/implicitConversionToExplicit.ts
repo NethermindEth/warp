@@ -247,7 +247,12 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     this.commonVisit(node, ast);
 
-    if (node.vIndexExpression === undefined) return;
+    if (
+      safeGetNodeType(node, ast.inference) instanceof TypeNameType ||
+      node.vIndexExpression === undefined
+    ) {
+      return;
+    }
 
     const [baseType, location] = generalizeType(
       safeGetNodeType(node.vBaseExpression, ast.inference),
