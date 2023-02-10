@@ -100,6 +100,8 @@ export function createImportFuncDefinition(
       return createStructImport();
     case STARKWARE_CAIRO_COMMON_MATH + 'split_felt':
       return createFuncImport('range_check_ptr');
+    case STARKWARE_CAIRO_COMMON_MATH_CMP + 'is_le':
+      return createFuncImport('range_check_ptr');
     case STARKWARE_CAIRO_COMMON_MATH_CMP + 'is_le_felt':
       return createFuncImport('range_check_ptr');
     case STARKWARE_CAIRO_COMMON_UINT256 + 'Uint256':
