@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ContractDefinition, FunctionDefinition } from 'solc-typed-ast';
+import { ContractDefinition, FunctionDefinition, SourceUnit } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
@@ -13,7 +13,16 @@ export class FunctionRemover extends ASTMapper {
     this.functionGraph = graph;
   }
 
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    this.removeUnreachableFunctions(node, ast);
+    this.commonVisit(node, ast);
+  }
+
   visitContractDefinition(node: ContractDefinition, _ast: AST) {
+    this.removeUnreachableFunctions(node, _ast);
+  }
+
+  removeUnreachableFunctions(node: SourceUnit | ContractDefinition, ast: AST) {
     const reachableFunctions: Set<number> = new Set();
     // Collect visible functions and obtain ids of all reachable functions
     node.vFunctions
@@ -22,7 +31,11 @@ export class FunctionRemover extends ASTMapper {
     // Remove unreachable functions
     node.vFunctions
       .filter((func) => !reachableFunctions.has(func.id))
-      .forEach((func) => node.removeChild(func));
+      .forEach((func) => {
+        node.removeChild(func);
+        const utilFunGen = ast.getUtilFuncGen(node);
+        utilFunGen.removeGeneratedFunction(func.name);
+      });
   }
 
   dfs(f: FunctionDefinition, visited: Set<number>): void {

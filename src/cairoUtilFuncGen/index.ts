@@ -1,6 +1,6 @@
 import { AST } from '../ast/ast';
 import { mergeImports } from '../utils/utils';
-import { CairoUtilFuncGenBase } from './base';
+import { CairoUtilFuncGenBase, StringIndexedFuncGen } from './base';
 import { InputCheckGen } from './inputArgCheck/inputCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
 import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
@@ -247,6 +247,11 @@ export class CairoUtilFuncGen {
         return 0;
       })
       .join('\n\n');
+  }
+  removeGeneratedFunction(name: string) {
+    this.getAllChildren()
+      .filter((c) => c instanceof StringIndexedFuncGen)
+      .forEach((c) => (c as StringIndexedFuncGen).removeGeneratedFunction(name));
   }
   private getAllChildren(): CairoUtilFuncGenBase[] {
     return getAllGenerators(this);

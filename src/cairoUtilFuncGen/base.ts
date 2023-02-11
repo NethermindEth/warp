@@ -71,6 +71,13 @@ export abstract class CairoUtilFuncGenBase {
 export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   protected generatedFunctions: Map<string, CairoFunction> = new Map();
 
+  removeGeneratedFunction(fname: string) {
+    const functionsToRemove = [...this.generatedFunctions.keys()].filter(
+      (k) => this.generatedFunctions.get(k)?.name === fname,
+    );
+    functionsToRemove.forEach((fun) => this.generatedFunctions.delete(fun));
+  }
+
   getGeneratedCode(): string {
     return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }
