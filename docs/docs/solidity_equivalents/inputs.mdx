@@ -4,7 +4,7 @@ title: Transcoding Inputs for Starknet Contracts
 
 StarkNet contracts, also known as zk-STARK contracts, are a type of smart contract that utilizes zero-knowledge proof technology to provide privacy and security to its users and these contracts are written in [cairo](https://www.cairo-lang.org/docs/) language. Unlike traditional smart contracts written in Solidity, the inputs to a StarkNet contract are structurally different, making it necessary to understand how to interact with them effectively.
 
-[Warp](https://github.com/NethermindEth/warp) is a transpiler tool developed by NethermindEth, which is capable of converting Solidity smart contracts into StarkNet contracts. However, the input parameters `(calldata)` for the Solidity smart contracts may differ slightly from those required for StarkNet contracts written in Cairo. This is due to the differences in the programming languages used and the specific requirements of the respective platforms
+[Warp](https://github.com/NethermindEth/warp) is a transpiler tool developed by NethermindEth, which is capable of converting Solidity smart contracts into StarkNet contracts. However, the input parameters `(calldata)` for the Solidity smart contracts may differ slightly from those required for StarkNet contracts written in Cairo. This is due to the differences in the programming languages used and the specific requirements of the respective platforms.
 
 This is a guide on the structural differences between inputs i.e calldata in a StarkNet contract (Warped Version) compared to a Solidity smart contract:
 
@@ -62,7 +62,7 @@ warp invoke  --function increment_7cf5dab0 --inputs 45 0 --address `contract_add
 
 This section provides a detailed comparison of input data types used in smart contracts, including examples to demonstrate the differences.
 
-The goal is to give a comprehensive understanding of the variations in input parameters required for contract functions
+The goal is to give a comprehensive understanding of the variations in input parameters required for contract functions.
 
 It shows how solidity types in solidity contracts transforms to a cairo type in StarkNet contracts after **warping**.
 
@@ -72,14 +72,14 @@ The following types are also called value types because variables of these types
 
 #### Booleans
 
-`bool`: The possible values are constants `true` and `false`, these are represenrted in a single `felt` in cairo.
+`bool`: The possible values are constants `true` and `false`, these are represented in a single `felt` in cairo.
 0 for `false` and 1 for `true`.
 
 #### Integers
 
-Signed and unsigned integers of various sizes (from 8 bits to 256 bits). All integers are represented in a single `felt` with an expection for 256 width integers. 256 bits integers are represented in a pair of `felt`s . Negative Integers are represented as 2-complement of negative of the number.
+Signed and unsigned integers of various sizes (from 8 bits to 256 bits). All integers are represented in a single `felt` except for 256 width integers. 256 bits integers are represented in a pair of `felt`s . Negative Integers are represented as 2-complement of negative of the number.
 
-**Example**: `-1(int256)` is represnted as `Uint256(0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff)` in cairo. It should be passed as `0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff`.
+**Example**: `-1(int256)` is represented as `Uint256(0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff)` in cairo. It should be passed as `0xffffffffffffffffffffffffffffffff, 0xffffffffffffffffffffffffffffffff`.
 
 #### Addresses/Contract Types/Address Literals
 
@@ -91,7 +91,7 @@ The value types bytes1, bytes2, bytes3, …, bytes32 hold a sequence of bytes fr
 
 #### Enums
 
-Enum variables are converted into a single felt in accord with the position of enum deifnition.
+Enum variables are converted into a single felt in accord with the position of enum definition.
 
 #### User Defined Value Types
 
@@ -109,7 +109,7 @@ Strings are represented as a `felt` array with the leading element representing 
 
 #### bytes
 
-Same as `string`, use byte values in-place instead of acii values of characters.
+Same as `string`, use byte values in-place instead of ascii values of characters.
 
 #### Arrays
 
@@ -120,11 +120,11 @@ Arrays can have a compile-time fixed size, or they can have a dynamic size.
   **Example**:
 
   `uint[3][2]` is represented as `(Uint256, Uint256, Uint256), (Uint256, Uint256, Uint256))`.
-  So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you've to provide `12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
+  So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you have to provide `12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
 
 - Dynamic sized arrays are repsented as `(arr_len: felt, arr: (base type in cairo)*)`, the first value represents number of elements in the array.
 
- **Example**:
+  **Example**:
 
   `uint[3][]` is represented as `arr_len : felt, arr : (Uint256, Uint256, Uint256)*`.
   So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you've to provide `2, 12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
