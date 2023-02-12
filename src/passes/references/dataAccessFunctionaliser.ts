@@ -77,16 +77,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       if (actualLoc === DataLocation.Storage) {
         switch (expectedLoc) {
           case DataLocation.Default: {
-            console.log(
-              `From data access functionalizer (${
-                node.getClosestParentByType(FunctionDefinition)?.name
-              })`,
-            );
-            console.log(
-              `expression: ${printNode(node)}; type: ${printTypeNode(
-                safeGetNodeType(node, ast.inference),
-              )}`,
-            );
             copyFunc = utilFuncGen.storage.read.gen(node);
             break;
           }
@@ -238,7 +228,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       // Memory struct constructor calls should have been replaced by memoryAllocations
       return this.commonVisit(node, ast);
     } else {
-      console.log('Visiting', node.vFunctionName, node.vMemberName);
       return this.visitExpression(node, ast);
     }
   }

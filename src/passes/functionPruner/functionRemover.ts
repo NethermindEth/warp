@@ -22,10 +22,7 @@ export class FunctionRemover extends ASTMapper {
 
     node.vFunctions
       .filter((func) => !this.reachableFunctions.has(func.id))
-      .forEach((func) => {
-        console.log('removing', func.name);
-        node.removeChild(func);
-      });
+      .forEach((func) => node.removeChild(func));
   }
 
   visitContractDefinition(node: ContractDefinition, _ast: AST) {

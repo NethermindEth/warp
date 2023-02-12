@@ -69,7 +69,6 @@ export abstract class CairoUtilFuncGenBase {
   Most subclasses of CairoUtilFuncGenBase index their CairoFunctions off a single string,
   usually the cairo type of the input that the function's code depends on
 */
-console.log('a');
 export abstract class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   protected generatedFunctionsDef: Map<string, CairoFunctionDefinition> = new Map();
 }
