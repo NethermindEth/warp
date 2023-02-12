@@ -7,7 +7,6 @@ import {
   FunctionCall,
   generalizeType,
   IntType,
-  PointerType,
   SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
@@ -68,8 +67,17 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(targetType: TypeNode, sourceType: TypeNode) {
+    targetType = generalizeType(targetType)[0];
+    sourceType = generalizeType(sourceType)[0];
+    assert(
+      targetType instanceof ArrayType && sourceType instanceof ArrayType,
+      `Invalid calldata implicit conversion: Expected ArrayType type but found: ${printTypeNode(
+        targetType,
+      )} and ${printTypeNode(sourceType)}`,
+    );
+
     const sourceRepForKey = CairoType.fromSol(
-      generalizeType(sourceType)[0],
+      sourceType,
       this.ast,
       TypeConversionContext.CallDataRef,
     ).fullStringRepresentation;
@@ -78,7 +86,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     // Using Calldata here gives us the full representation instead of WarpId provided by Storage.
     // This is only for KeyGen and no further processing.
     const targetRepForKey = CairoType.fromSol(
-      generalizeType(targetType)[0],
+      targetType,
       this.ast,
       TypeConversionContext.CallDataRef,
     ).fullStringRepresentation;
@@ -106,10 +114,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(targetType: TypeNode, sourceType: TypeNode): GeneratedFunctionInfo {
-    assert(targetType instanceof PointerType && sourceType instanceof PointerType);
-    assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
-
+  private getOrCreate(targetType: ArrayType, sourceType: ArrayType): GeneratedFunctionInfo {
     const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Scaling ${printTypeNode(sourceType)} to ${printTypeNode(
@@ -298,7 +303,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       }
       if (targetElementT.signed) {
         const convertionFunc = this.requireImport(
-          'warplib.math.int_conversions',
+          'warplib.maths.int_conversions',
           `warp_int${sourceElementT.nBits}_to_int${targetElementT.nBits}`,
         );
         return [
@@ -310,7 +315,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           [writeToStorage, convertionFunc],
         ];
       }
-      const toUintFunc = this.requireImport('warplib.math.utils', 'felt_to_uint256');
+      const toUintFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
       return [
         (index, offset) =>
           [
@@ -326,7 +331,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       const writeToStorage = this.storageWriteGen.getOrCreateFuncDef(targetElementT);
       if (targetElementT.size > sourceElementT.size) {
         const widenFunc = this.requireImport(
-          'warplib.math.bytes_conversions',
+          'warplib.maths.bytes_conversions',
           `warp_bytes_widen${targetElementT.size === 32 ? '_256' : ''}`,
         );
         return [
@@ -383,7 +388,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       }
       if (targetElmType.signed) {
         const conversionFunc = this.requireImport(
-          'warplib.math.int_conversions',
+          'warplib.maths.int_conversions',
           `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
         );
         return [
@@ -396,7 +401,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           [arrayDef, writeDef, conversionFunc],
         ];
       }
-      const toUintFunc = this.requireImport('warplib.math.utils', 'felt_to_uint256');
+      const toUintFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
       return [
         (index) =>
           [
@@ -415,7 +420,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
       if (targetElmType.size > sourceElmType.size) {
         const widenFunc = this.requireImport(
-          'warplib.math.bytes_conversions',
+          'warplib.maths.bytes_conversions',
           `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
         );
         const bits = (targetElmType.size - sourceElmType.size) * 8;
@@ -454,7 +459,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
             // TODO: Potential bug here: when array size is reduced, remaining elements must be
             // deleted. Investigate
             `     ${dynArrayLength.name}.write(ref_${index}, ${uint256(sourceSize)});`,
-            `     ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}]);`,
+            `     ${auxFunc.name}(ref_${index}, arg[${index}]);`,
           ].join('\n'),
         [arrayDef, auxFunc, dynArrayLength],
       ];
@@ -482,10 +487,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       assert(sourceElmType instanceof IntType);
       const convertionFunc = targetElmType.signed
         ? this.requireImport(
-            'warplib.math.int_conversions',
+            'warplib.maths.int_conversions',
             `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
           )
-        : this.requireImport('warplib.math.utils', 'felt_to_uint256');
+        : this.requireImport('warplib.maths.utils', 'felt_to_uint256');
       return [
         () =>
           [
@@ -501,7 +506,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (targetElmType instanceof FixedBytesType) {
       assert(sourceElmType instanceof FixedBytesType);
       const widenFunc = this.requireImport(
-        'warplib.math.bytes_conversions',
+        'warplib.maths.bytes_conversions',
         `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
       );
       const bits = (targetElmType.size - sourceElmType.size) * 8;
@@ -544,24 +549,21 @@ function checkSizes(targetType: TypeNode, sourceType: TypeNode): boolean {
 }
 
 function checkDims(targetType: TypeNode, sourceType: TypeNode): boolean {
-  const targetArray = generalizeType(targetType)[0];
-  const sourceArray = generalizeType(sourceType)[0];
+  if (targetType instanceof ArrayType && sourceType instanceof ArrayType) {
+    const targetArrayElm = targetType.elementT;
+    const sourceArrayElm = sourceType.elementT;
 
-  if (targetArray instanceof ArrayType && sourceArray instanceof ArrayType) {
-    const targetArrayElm = generalizeType(targetArray.elementT)[0];
-    const sourceArrayElm = generalizeType(sourceArray.elementT)[0];
-
-    if (targetArray.size !== undefined && sourceArray.size !== undefined) {
-      if (targetArray.size > sourceArray.size) {
+    if (targetType.size !== undefined && sourceType.size !== undefined) {
+      if (targetType.size > sourceType.size) {
         return true;
       } else if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
         return checkDims(targetArrayElm, sourceArrayElm);
       } else {
         return false;
       }
-    } else if (targetArray.size === undefined && sourceArray.size !== undefined) {
+    } else if (targetType.size === undefined && sourceType.size !== undefined) {
       return true;
-    } else if (targetArray.size === undefined && sourceArray.size === undefined)
+    } else if (targetType.size === undefined && sourceType.size === undefined)
       if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
         return checkDims(targetArrayElm, sourceArrayElm);
       }
