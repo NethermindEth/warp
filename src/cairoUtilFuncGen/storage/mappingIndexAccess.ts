@@ -45,15 +45,14 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       const stringHashFunc = this.getOrCreateStringHashFunction(stringType, stringLoc);
       index = createCallToFunction(stringHashFunc, [index], this.ast, this.sourceUnit);
     }
-    const funcDef = this.getOrCreateIndexAccessFunction(baseType, nodeType);
+
+    const funcDef = this.getOrCreateIndexAccessFunction(baseType.to.keyType, nodeType);
     return createCallToFunction(funcDef, [base, index], this.ast);
   }
 
-  public getOrCreateIndexAccessFunction(baseType: TypeNode, nodeType: TypeNode) {
-    assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
-
-    const baseKey = CairoType.fromSol(
-      baseType,
+  public getOrCreateIndexAccessFunction(indexType: TypeNode, nodeType: TypeNode) {
+    const indexKey = CairoType.fromSol(
+      indexType,
       this.ast,
       TypeConversionContext.StorageAllocation,
     ).fullStringRepresentation;
@@ -62,23 +61,23 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       this.ast,
       TypeConversionContext.StorageAllocation,
     ).fullStringRepresentation;
-    const key = baseKey + '-' + nodeKey;
+    const key = indexKey + '-' + nodeKey;
     const existing = this.indexAccesFunctions.get(key);
     if (existing !== undefined) {
       console.log(`**** Exists: ${key}`, existing.name);
       return existing;
     }
 
-    const funcInfo = this.generateIndexAccess(baseType.to.keyType, nodeType);
+    const funcInfo = this.generateIndexAccess(indexType, nodeType);
     console.log(`**** creating: ${key}`, funcInfo.name);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
-        ['name', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
+        ['name', typeNameFromTypeNode(indexType, this.ast), DataLocation.Storage],
         [
           'index',
-          typeNameFromTypeNode(baseType.to.keyType, this.ast),
-          locationIfComplexType(baseType.to.keyType, DataLocation.Memory),
+          typeNameFromTypeNode(indexType, this.ast),
+          locationIfComplexType(indexType, DataLocation.Memory),
         ],
       ],
       [
