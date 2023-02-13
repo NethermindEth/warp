@@ -5,7 +5,6 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
-  FunctionDefinition,
   generalizeType,
   isReferenceType,
   SourceUnit,

@@ -20,7 +20,6 @@ import {
   FixedBytesType,
   BytesType,
   StringType,
-  FunctionDefinition,
 } from 'solc-typed-ast';
 import { TranspileFailedError, WillNotSupportError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
