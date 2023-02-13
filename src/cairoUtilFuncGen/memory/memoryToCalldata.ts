@@ -93,8 +93,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
   private createStructCopyFunction(type: TypeNode): GeneratedFunctionInfo {
     assert(type instanceof UserDefinedType && type.definition instanceof StructDefinition);
     const structDef = type.definition;
-
-    const funcName = `wm_to_calldata_struct_${structDef.name}`;
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
     const [code, funcCalls] = structDef.vMembers
@@ -111,6 +109,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
       );
 
+    const funcName = `wm_to_calldata_struct_${structDef.name}`;
     return {
       name: funcName,
       code: [
@@ -129,7 +128,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
   // TODO: With big static arrays, this functions gets huge. Can that be fixed?!
   private createStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
-    const funcName = `wm_to_calldata_static_array${this.generatedFunctionsDef.size}`;
+    console.log('Creating static for', printTypeNode(type));
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
     assert(type.size !== undefined);
@@ -149,6 +148,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       [...funcCalls, ...memberCalls],
     ]);
 
+    const funcName = `wm_to_calldata_static_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
@@ -259,6 +259,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     offset: number,
     index: number,
   ): [string[], CairoFunctionDefinition[], number] {
+    console.log('Generating copy code for', printTypeNode(type));
     const readFunc = this.memoryReadGen.getOrCreateFuncDef(type);
     if (isReferenceType(type)) {
       const memberGetterFunc = this.getOrCreateFuncDef(type);
