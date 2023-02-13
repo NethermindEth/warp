@@ -551,21 +551,21 @@ export function getSourceFromLocations(
 export function runStarkNetClassHash(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-  let classHash: string;
   try {
-    classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
-  } catch (error) {
-    throw new TranspileFailedError(
-      `starknet-class-hash command do not work as expected.
-      Please make sure you are using the required version of starknet by executing 'warp install' command.
-      Execute 'warp install --help' to know more about it.`,
-    );
+    return execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError('starknet-class-hash', e.stderr.toString());
+    throw new TranspileFailedError(error);
   }
+}
 
-  if (classHash === undefined) {
-    throw new Error(`starknet-class-hash failed`);
+export function getPersonalizedStarknetError(starknetCommand: string, err: string) {
+  if (err.includes('command not found')) {
+    return `'${starknetCommand}' command not found.
+  Please make sure you are using the required version of starknet by executing 'warp install' command.
+  See more about it using 'warp install --help'.`;
   }
-  return classHash;
+  return err;
 }
 
 export function getContainingFunction(node: ASTNode): FunctionDefinition {

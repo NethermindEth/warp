@@ -12,7 +12,7 @@ import {
   StarkNetNewAccountOptions,
 } from './cli';
 import { CLIError, logError } from './utils/errors';
-import { runStarkNetClassHash } from './utils/utils';
+import { getPersonalizedStarknetError, runStarkNetClassHash } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
@@ -53,22 +53,18 @@ export function compileCairo(
       ]
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')}`,
-      { stdio: 'inherit' },
     );
     return { success: true, resultPath, abiPath, solAbiPath, classHash: undefined };
-  } catch (e) {
-    if (e instanceof Error) {
-      logError('Compile failed');
-      return {
-        success: false,
-        resultPath: undefined,
-        abiPath: undefined,
-        solAbiPath: undefined,
-        classHash: undefined,
-      };
-    } else {
-      throw e;
-    }
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError('starknet-compile', e.stderr.toString());
+    logError(error);
+    return {
+      success: false,
+      resultPath: undefined,
+      abiPath: undefined,
+      solAbiPath: undefined,
+      classHash: undefined,
+    };
   }
 }
 
@@ -97,12 +93,10 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IG
   try {
     execSync(
       `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network} ${gatewayUrlOption} ${feederGatewayUrlOption}`.trim(),
-      {
-        stdio: 'inherit',
-      },
     );
-  } catch {
-    logError('starknet tx_status failed');
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError('starknet tx_status', e.stderr.toString());
+    logError(error);
   }
 }
 
@@ -168,12 +162,10 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
       } ${inputs} ${
         options.account !== undefined ? `--account ${options.account}` : ''
       } ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
-      {
-        stdio: 'inherit',
-      },
     );
-  } catch {
-    logError('starknet deploy failed');
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError('starknet deploy', e.stderr.toString());
+    logError(error);
   }
 }
 
@@ -202,12 +194,10 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
       } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
         options.max_fee ? `--max_fee ${options.max_fee}` : ''
       }`,
-      {
-        stdio: 'inherit',
-      },
     );
-  } catch {
-    logError('starknet deploy failed');
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError('starknet deploy_account', e.stderr.toString());
+    logError(error);
   }
 }
 
@@ -271,8 +261,9 @@ export async function runStarknetCallOrInvoke(
       warpOutput = decodedOutputsToString(decodedOutputs);
     }
     console.log(warpOutput);
-  } catch {
-    logError(`starknet ${callOrInvoke} failed`);
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError(`starknet ${callOrInvoke}`, e.stderr.toString());
+    logError(error);
   }
 }
 
@@ -312,12 +303,12 @@ function declareContract(filePath: string, options: IDeclareOptions) {
     execSync(
       `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
       {
-        stdio: 'inherit',
         encoding: 'utf8',
       },
     );
-  } catch {
-    logError('StarkNet declare failed');
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError('starknet declare', e.stderr.toString());
+    logError(error);
   }
 }
 
@@ -346,12 +337,12 @@ export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
     execSync(
       `${warpVenvPrefix} starknet new_account ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
       {
-        stdio: 'inherit',
         encoding: 'utf8',
       },
     );
-  } catch {
-    logError('StarkNet new account creation failed');
+  } catch (e: any) {
+    const error = getPersonalizedStarknetError('starknet new_account', e.stderr.toString());
+    logError(error);
   }
 }
 
