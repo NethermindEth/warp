@@ -198,7 +198,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const toSize = narrowBigIntSafe(toType.size);
 
     const funcName = `WS_COPY_STATIC_${this.generatedFunctionsDef.size}`;
-
     let optionalCalls: CairoFunctionDefinition[];
     let stopRecursion: string[];
     if (fromSize === toSize) {

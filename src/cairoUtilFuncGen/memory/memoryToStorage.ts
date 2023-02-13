@@ -131,14 +131,14 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
   }
 
   private createSmallStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
-    const funcName = `wm_to_storage_static_array_${this.generatedFunctionsDef.size}`;
-
     assert(type.size !== undefined);
     const size = narrowBigIntSafe(type.size, 'Static array size is unsupported');
 
     const [copyInstructions, funcsCalled] = this.generateTupleCopyInstructions(
       new Array(size).fill(type.elementT),
     );
+
+    const funcName = `wm_to_storage_static_array_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
@@ -158,7 +158,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       type.size,
       `Failed to narrow size of ${printTypeNode(type)} in memory->storage copy generation`,
     );
-    const funcName = `wm_to_storage_static_array_${this.generatedFunctionsDef.size}`;
 
     const elementStorageWidth = CairoType.fromSol(
       type.elementT,
@@ -198,6 +197,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       calledFuncs = [this.requireImport('starkware.cairo.common.dict', 'dict_read')];
     }
 
+    const funcName = `wm_to_storage_static_array_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: [
@@ -227,8 +227,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
   private createDynamicArrayCopyFunction(
     type: ArrayType | BytesType | StringType,
   ): GeneratedFunctionInfo {
-    const funcName = `wm_to_storage_dynamic_array${this.generatedFunctionsDef.size}`;
-
     const elementT = getElementType(type);
 
     const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
@@ -273,6 +271,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     const auxDeleteFuncName = deleteFunc.name + '_elem';
     const deleteRemainingCode = `${auxDeleteFuncName}(loc, mem_length, length);`;
 
+    const funcName = `wm_to_storage_dynamic_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
