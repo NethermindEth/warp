@@ -6,11 +6,6 @@ on:
       - main
       - develop
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,7 +16,6 @@ env:
 
 jobs:
   CLI_test:
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
