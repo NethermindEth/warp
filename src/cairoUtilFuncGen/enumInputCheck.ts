@@ -5,19 +5,19 @@ import {
   EnumDefinition,
   Expression,
   FunctionCall,
-  FunctionDefinition,
   FunctionStateMutability,
   IntType,
   TypeNode,
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
+import { printNode, printTypeNode } from '../export';
 import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 
 // TODO: Does this enum input check overrides the input check from the general method?!
-// It surely looks like it
+// It looks like it does
 export class EnumInputCheck extends StringIndexedFuncGen {
   // TODO: When is nodeInSourceUnit different thant the current sourceUnit??
   public gen(
@@ -35,11 +35,14 @@ export class EnumInputCheck extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(inputType: TypeNode, nodeType: TypeNode, enumDef: EnumDefinition) {
-    const key = inputType.pp() + nodeType.pp() + enumDef.name;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+    assert(inputType instanceof IntType);
+
+    const key = enumDef.name + (inputType.nBits === 256 ? '256' : '');
+    const exisiting = this.generatedFunctionsDef.get(key);
+    if (exisiting !== undefined) {
+      return exisiting;
     }
+
     const funcInfo = this.getOrCreate(inputType, enumDef);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -56,18 +59,18 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(type: TypeNode, enumDef: EnumDefinition) {
-    assert(type instanceof IntType);
+  private getOrCreate(type: IntType, enumDef: EnumDefinition) {
     const input256Bits = type.nBits === 256;
-    const funcName = `enum_bound_check_${enumDef.name}`;
-    const funcsCalled: FunctionDefinition[] = [];
+    const funcName = `enum_bound_check_${enumDef.name}` + (input256Bits ? '_256' : '');
+
+    const imports = [this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt')];
     if (input256Bits) {
-      funcsCalled.push(
+      imports.push(
         this.requireImport('warplib.maths.utils', 'narrow_safe'),
         this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
       );
     }
-    funcsCalled.push(this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt'));
+
     const implicits = '{range_check_ptr : felt}';
     const nMembers = enumDef.vMembers.length;
     const funcInfo: GeneratedFunctionInfo = {
@@ -87,7 +90,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
         `    return (arg,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: imports,
     };
     return funcInfo;
   }

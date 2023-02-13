@@ -116,6 +116,7 @@ export function delegateBasedOnType<T>(
   valueFunc: (type: TypeNode) => T,
 ): T {
   if (type instanceof PointerType) {
+    assert(false);
     throw new TranspileFailedError(
       `Attempted to delegate copy semantics based on specialised type ${type.pp()}`,
     );

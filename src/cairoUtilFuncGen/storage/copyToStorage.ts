@@ -135,7 +135,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
           const toLoc = add('to_loc', offset);
           const fromLoc = add('from_loc', offset);
           return [
-            [...copyCode, `${memberCopyFunc.name}(${toLoc}, ${fromLoc})`],
+            [...copyCode, `${memberCopyFunc.name}(${toLoc}, ${fromLoc});`],
             [...funcsCalled, memberCopyFunc],
             offset + width,
           ];
@@ -354,7 +354,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     const [toElementMapping, toLengthMapping] = this.dynArrayGen.getOrCreateFuncDef(toElementT);
     const toElementMappingName = toElementMapping.name;
-    const toLengthMappingName = toLengthMapping.name + '_LENGTH';
+    const toLengthMappingName = toLengthMapping.name;
     const copyCode = createElementCopy(
       toElementCairoType,
       fromElementCairoType,
@@ -466,7 +466,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
         toType.signed
           ? this.requireImport(
-              'warplib.mathss.int_conversions',
+              'warplib.maths.int_conversions',
               `warp_int${fromType.nBits}_to_int${toType.nBits}`,
             )
           : this.requireImport('warplib.maths.utils', 'felt_to_uint256'),

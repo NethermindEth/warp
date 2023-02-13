@@ -191,6 +191,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcInfo;
   }
 
+  // TODO: this function and EnumInputCheck single file do the same???
   // TODO: When does takesUint == true?
   private createEnumInputCheck(type: UserDefinedType, takesUint = false): GeneratedFunctionInfo {
     const enumDef = type.definition;

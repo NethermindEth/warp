@@ -360,7 +360,7 @@ export class AbiEncode extends AbiBase {
       `  // Storing the data`,
       `  let length = ${type.size};`,
       `  let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)};`,
-      `  let (_, extended_offset) = ${inlineEncoding}(`,
+      `  let (_, extended_offset) = ${inlineEncoding.name}(`,
       `    bytes_offset,`,
       `    bytes_offset_offset,`,
       `    bytes_array,`,
@@ -483,7 +483,7 @@ export class AbiEncode extends AbiBase {
       `  let new_bytes_index = bytes_index + 32;`,
       `  // Storing the data`,
       `  let bytes_offset_offset = bytes_offset + ${typeByteSize};`,
-      `  let (_, new_bytes_offset) = ${inlineEncoding}(`,
+      `  let (_, new_bytes_offset) = ${inlineEncoding.name}(`,
       `    bytes_offset,`,
       `    bytes_offset_offset,`,
       `    bytes_array,`,
@@ -494,12 +494,14 @@ export class AbiEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunc = [this.requireImport('warplib.maths.utils', 'felt_to_uint256')];
-
     const genFuncInfo = {
       name,
       code,
-      functionsCalled: [...importedFunc, inlineEncoding, valueEncoding],
+      functionsCalled: [
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        inlineEncoding,
+        valueEncoding,
+      ],
     };
     const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
 

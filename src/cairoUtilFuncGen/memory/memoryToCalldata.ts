@@ -16,12 +16,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
-import {
-  CairoDynArray,
-  CairoType,
-  generateCallDataDynArrayStructName,
-  TypeConversionContext,
-} from '../../utils/cairoTypeSystem';
+import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
@@ -184,6 +179,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     }
 
     const dynArrayReaderInfo = this.createDynArrayReader(elementT);
+    const calldataDynArrayStruct = this.dynamicArrayStructGen.getOrCreateFuncDef(type);
 
     const funcName = `wm_to_calldata_dynamic_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
@@ -196,18 +192,14 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
         `    let (len_felt) = narrow_safe(len_256);`,
         `    ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);`,
-        // What about this CallDataDynArrayStruct bussines
-        `    return (${generateCallDataDynArrayStructName(
-          elementT,
-          this.ast,
-        )}(len=len_felt, ptr=ptr),);`,
+        `    return (${calldataDynArrayStruct.name}(len=len_felt, ptr=ptr),);`,
         `}`,
       ].join('\n'),
       functionsCalled: [
         this.requireImport('starkware.cairo.common.alloc', 'alloc'),
         this.requireImport('warplib.maths.utils', 'narrow_safe'),
         this.requireImport('warplib.memory', 'wm_read_256'),
-        this.dynamicArrayStructGen.getOrCreateFuncDef(type),
+        calldataDynArrayStruct,
         ...dynArrayReaderInfo.functionsCalled,
       ],
     };
@@ -218,7 +210,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const funcName = `wm_to_calldata_dynamic_array_reader${this.generatedFunctionsDef.size}`;
 
     const cairoType = CairoType.fromSol(elementT, this.ast, TypeConversionContext.CallDataRef);
-    const memWidth = CairoType.fromSol(elementT, this.ast).width;
+    const memWidth = CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
     const ptrString = `${cairoType.toString()}`;
 
     const readFunc = this.memoryReadGen.getOrCreateFuncDef(elementT);

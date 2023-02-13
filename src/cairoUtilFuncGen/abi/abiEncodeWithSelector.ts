@@ -46,8 +46,7 @@ export class AbiEncodeWithSelector extends AbiBase {
         );
 
         encodings.push(paramEncodings);
-        functionsCalled.concat(paramFuncCalls);
-        return [params, encodings, functionsCalled];
+        return [params, encodings, functionsCalled.concat(paramFuncCalls)];
       },
       [
         [{ name: 'selector', type: 'felt' }],

@@ -325,9 +325,12 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
   private createStaticArrayDecoding(type: ArrayType): CairoFunctionDefinition {
     assert(type.size !== undefined);
+
     const key = 'static' + removeSizeInfo(type);
     const existing = this.auxiliarGeneratedFunctions.get(key);
-    if (existing !== undefined) return existing;
+    if (existing !== undefined) {
+      return existing;
+    }
 
     const elementTWidth = CairoType.fromSol(type.elementT, this.ast).width;
 
@@ -342,7 +345,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       elementTWidth,
     )};`;
     const writeToMemFunc = this.memoryWrite.getOrCreateFuncDef(type.elementT);
-    const writeToMemCode = `${writeToMemFunc.name}(write_to_mem_location, element)`;
+    const writeToMemCode = `${writeToMemFunc.name}(write_to_mem_location, element);`;
 
     const name = `${this.functionName}_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
@@ -364,11 +367,17 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const funcInfo = {
+      name,
+      code,
+      functionsCalled: [
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        ...functionsCalled,
+        writeToMemFunc,
+      ],
+    };
 
-    const funcInfo = { name, code, functionsCalled: [...functionsCalled, writeToMemFunc] };
     const generatedFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
-
     this.auxiliarGeneratedFunctions.set(key, generatedFunc);
     return generatedFunc;
   }

@@ -194,7 +194,11 @@ export class AbiEncodePacked extends AbiBase {
     const readFunc = this.memoryRead.getOrCreateFuncDef(elementT);
     const readCode = `let (elem) = ${readFunc.name}(elem_loc);`;
 
-    const encodingCode = this.generateEncodingCode(elementT, 'new_bytes_index', 'elem');
+    const [encodingCode, funcCalls] = this.generateEncodingCode(
+      elementT,
+      'new_bytes_index',
+      'elem',
+    );
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
@@ -226,6 +230,7 @@ export class AbiEncodePacked extends AbiBase {
       ? [
           this.requireImport('warplib.memory', 'wm_index_dyn'),
           this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+          ...funcCalls,
         ]
       : [];
 

@@ -56,9 +56,7 @@ export class IndexEncode extends AbiBase {
           false,
         );
         encodings.push(paramEncoding);
-        functionsCalled.concat(paramFuncCalls);
-
-        return [params, encodings, functionsCalled];
+        return [params, encodings, functionsCalled.concat(paramFuncCalls)];
       },
       [
         new Array<{ name: string; type: string }>(),
