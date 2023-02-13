@@ -235,7 +235,7 @@ export class AbiEncodePacked extends AbiBase {
       : [];
 
     const genFuncInfo = { name, code, functionsCalled: [...importedFuncs] };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;

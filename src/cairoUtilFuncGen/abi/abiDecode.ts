@@ -377,7 +377,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       ],
     };
 
-    const generatedFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const generatedFunc = this.createAuxiliarGeneratedFunction(funcInfo);
     this.auxiliarGeneratedFunctions.set(key, generatedFunc);
     return generatedFunc;
   }
@@ -443,7 +443,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       code,
       functionsCalled: [...importedFuncs, ...functionsCalled, writeToMemFunc],
     };
-    const generatedFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const generatedFunc = this.createAuxiliarGeneratedFunction(funcInfo);
 
     this.auxiliarGeneratedFunctions.set(key, generatedFunc);
     return generatedFunc;
@@ -514,7 +514,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       code,
       functionsCalled: [...importedFuncs, ...functionsCalled],
     };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;

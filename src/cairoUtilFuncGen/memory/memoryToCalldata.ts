@@ -128,7 +128,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
   // TODO: With big static arrays, this functions gets huge. Can that be fixed?!
   private createStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
-    console.log('Creating static for', printTypeNode(type));
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
     assert(type.size !== undefined);
@@ -259,7 +258,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     offset: number,
     index: number,
   ): [string[], CairoFunctionDefinition[], number] {
-    console.log('Generating copy code for', printTypeNode(type));
     const readFunc = this.memoryReadGen.getOrCreateFuncDef(type);
     if (isReferenceType(type)) {
       const memberGetterFunc = this.getOrCreateFuncDef(type);

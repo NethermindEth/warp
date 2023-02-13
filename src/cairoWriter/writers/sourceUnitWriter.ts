@@ -24,7 +24,7 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
         ? node.vContracts.filter((cd) => !cd.name.endsWith(TEMP_INTERFACE_SUFFIX))
         : node.vContracts;
 
-    assert(mainContract_.length <= 1, 'xx');
+    assert(mainContract_.length <= 1);
     const [mainContract] = mainContract_;
 
     const [freeStructs, freeStructRemappings_] = mainContract

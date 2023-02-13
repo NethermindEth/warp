@@ -76,12 +76,8 @@ export abstract class StringIndexedFuncGen extends CairoUtilFuncGenBase {
 export abstract class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
   protected auxiliarGeneratedFunctions: Map<string, CairoFunctionDefinition> = new Map();
 
-  protected createAuxiliarGeneratedFunction(
-    genFuncInfo: GeneratedFunctionInfo,
-    ast: AST,
-    sourceUnit: SourceUnit,
-  ) {
-    return createCairoGeneratedFunction(genFuncInfo, [], [], ast, sourceUnit);
+  protected createAuxiliarGeneratedFunction(genFuncInfo: GeneratedFunctionInfo) {
+    return createCairoGeneratedFunction(genFuncInfo, [], [], this.ast, this.sourceUnit);
   }
 }
 

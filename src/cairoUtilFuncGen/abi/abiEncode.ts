@@ -270,7 +270,7 @@ export class AbiEncode extends AbiBase {
       code,
       functionsCalled: [...importedFuncs, valueEncoding, tailEncoding],
     };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -325,7 +325,7 @@ export class AbiEncode extends AbiBase {
       code,
       functionsCalled: [...importedFuncs, ...functionsCalled, readFunc],
     };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -383,7 +383,7 @@ export class AbiEncode extends AbiBase {
       code,
       functionsCalled: [importedFunc, inlineEncoding, valueEncoding],
     };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -437,7 +437,7 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const genFuncInfo = { name, code, functionsCalled: [...functionsCalled, readFunc] };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -503,7 +503,7 @@ export class AbiEncode extends AbiBase {
         valueEncoding,
       ],
     };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -565,7 +565,7 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const genFuncInfo = { name, code, functionsCalled };
-    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;

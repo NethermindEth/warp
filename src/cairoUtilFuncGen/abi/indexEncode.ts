@@ -230,7 +230,7 @@ export class IndexEncode extends AbiBase {
     ];
 
     const funcInfo = { name, code, functionsCalled: [...importedFuncs, tailEncoding] };
-    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -281,7 +281,7 @@ export class IndexEncode extends AbiBase {
       code,
       functionsCalled: [...importedFuncs, ...functionsCalled, readFunc],
     };
-    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -321,7 +321,7 @@ export class IndexEncode extends AbiBase {
     const importedFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
 
     const funcInfo = { name, code, functionsCalled: [importedFunc] };
-    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -370,7 +370,7 @@ export class IndexEncode extends AbiBase {
 
     const funcInfo = { name, code, functionsCalled: [...functionsCalled, readFunc] };
 
-    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
@@ -407,7 +407,7 @@ export class IndexEncode extends AbiBase {
     const importedFunction = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
 
     const funcInfo = { name, code, functionsCalled: [importedFunction, inlineEncoding] };
-    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
 
@@ -466,7 +466,7 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const funcInfo = { name, code, functionsCalled };
-    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo, this.ast, this.sourceUnit);
+    const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
     return auxFunc;
