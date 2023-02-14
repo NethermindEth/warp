@@ -109,7 +109,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
       );
 
-    const funcName = `wm_to_calldata_struct_${structDef.name}`;
+    const funcName = `wm_to_calldata${this.generatedFunctionsDef.size}_struct_${structDef.name}`;
     return {
       name: funcName,
       code: [
