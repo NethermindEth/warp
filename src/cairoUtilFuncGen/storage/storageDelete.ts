@@ -15,7 +15,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes';
-import { CairoFunctionDefinition, TranspileFailedError } from '../../export';
+import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
