@@ -53,10 +53,10 @@ export class MemoryReadGen extends StringIndexedFuncGen {
   }
 
   getOrCreateFuncDef(typeToRead: TypeNode) {
-    const key = `memoryRead(${typeToRead.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+    const key = typeToRead.pp();
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const typeToReadName = typeNameFromTypeNode(typeToRead, this.ast);
