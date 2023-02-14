@@ -60,7 +60,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(type: TypeNode) {
-    const key = `memoryToStorage(${type.pp()})`;
+    const key = type.pp();
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
@@ -340,7 +340,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               ]
             : [
                 `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(
-                  typeFeltWidth,
+                  CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width,
                 )});`,
                 `${auxFunc.name}(${add('loc', offset)}, ${elemLoc});`,
               ];
