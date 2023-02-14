@@ -18,7 +18,12 @@ import {
   ParameterInfo,
 } from '../../utils/functionGeneration';
 import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
-import { isReferenceType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  isDynamicArray,
+  isReferenceType,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase, GeneratedFunctionInfo, locationIfComplexType } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -64,12 +69,10 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     const key = indexKey + '-' + nodeKey;
     const existing = this.indexAccesFunctions.get(key);
     if (existing !== undefined) {
-      console.log(`**** Exists: ${key}`, existing.name);
       return existing;
     }
 
     const funcInfo = this.generateIndexAccess(indexType, nodeType);
-    console.log(`**** creating: ${key}`, funcInfo.name);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       [
@@ -103,7 +106,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     );
 
     const identifier = this.indexAccesFunctions.size;
-    const funcName = `WS${identifier}_INDEX_${indexCairoType.typeName}_to_${valueCairoType.typeName}`;
+    const funcName = `WS_INDEX_${indexCairoType.typeName}_to_${valueCairoType.typeName}${identifier}`;
     const mappingName = `WARP_MAPPING${identifier}`;
     const indexTypeString = indexCairoType.toString();
 
@@ -175,7 +178,6 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
         inputInfo,
         outputInfo,
       );
-      this.stringHashFunctions.set(key, importFunction);
       return importFunction;
     }
 
@@ -187,7 +189,6 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
         inputInfo,
         outputInfo,
       );
-      this.stringHashFunctions.set(key, importFunction);
       return importFunction;
     }
 
@@ -205,13 +206,15 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
   }
 
   private generateStringHashFunction(indexType: TypeNode): GeneratedFunctionInfo {
-    const [dynArray, dynArrayLen] = this.dynArrayGen.getOrCreateFuncDef(indexType);
+    assert(isDynamicArray(indexType));
+    const elemenT = getElementType(indexType);
+
+    const [dynArray, dynArrayLen] = this.dynArrayGen.getOrCreateFuncDef(elemenT);
     const arrayName = dynArray.name;
     const lenName = dynArrayLen.name;
 
-    const funcName = `ws_string_hash${this.stringHashFunctions.size}`;
-    const helperFuncName = `ws_to_felt_array${this.stringHashFunctions.size}`;
-
+    const funcName = `WS_STRING_HASH${this.stringHashFunctions.size}`;
+    const helperFuncName = `WS_TO_FELT_ARRAY${this.stringHashFunctions.size}`;
     return {
       name: funcName,
       code: [

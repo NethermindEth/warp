@@ -63,27 +63,18 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    const cairoFuncName = delegateBasedOnType<string>(
-      type,
-      () => `WS${this.generatedFunctionsDef.size}_DYNAMIC_ARRAY_DELETE`,
-      () => `WS${this.generatedFunctionsDef.size}_STATIC_ARRAY_DELETE`,
-      (_type, def) => `WS_STRUCT_${def.name}_DELETE`,
-      () => `WS_MAP_DELETE`,
-      () => `WS${this.generatedFunctionsDef.size}_DELETE`,
-    );
-
     const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       type,
-      (type) => this.deleteDynamicArray(type, cairoFuncName),
+      (type) => this.deleteDynamicArray(type),
       (type) => {
         assert(type.size !== undefined);
         return type.size <= 5
-          ? this.deleteSmallStaticArray(type, cairoFuncName)
-          : this.deleteLargeStaticArray(type, cairoFuncName);
+          ? this.deleteSmallStaticArray(type)
+          : this.deleteLargeStaticArray(type);
       },
-      (_type, def) => this.deleteStruct(def, cairoFuncName),
-      () => this.deleteNothing(cairoFuncName),
-      () => this.deleteGeneric(CairoType.fromSol(type, this.ast), cairoFuncName),
+      (_type, def) => this.deleteStruct(def),
+      () => this.deleteNothing(),
+      () => this.deleteGeneric(CairoType.fromSol(type, this.ast)),
     );
 
     // WS_MAP_DELETE can be keyed with multiple types but since its definition
@@ -98,7 +89,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return funcInfo;
   }
 
-  private deleteGeneric(cairoType: CairoType, funcName: string): GeneratedFunctionInfo {
+  private deleteGeneric(cairoType: CairoType): GeneratedFunctionInfo {
+    const funcName = `WS${this.generatedFunctionsDef.size}_GENERIC_DELETE`;
     return {
       name: funcName,
       code: [
@@ -111,10 +103,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteDynamicArray(
-    type: ArrayType | BytesType | StringType,
-    funcName: string,
-  ): GeneratedFunctionInfo {
+  private deleteDynamicArray(type: ArrayType | BytesType | StringType): GeneratedFunctionInfo {
     const elementT = generalizeType(getElementType(type))[0];
 
     const [dynArray, dynArrayLen] = this.dynArrayGen.getOrCreateFuncDef(elementT);
@@ -128,6 +117,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       ? [`   let (elem_id) = ${readFunc.name}(elem_loc);`, `   ${auxDeleteFunc.name}(elem_id);`]
       : [`    ${auxDeleteFunc.name}(elem_loc);`];
 
+    const funcName = `WS${this.generatedFunctionsDef.size}_DYNAMIC_ARRAY_DELETE`;
     const deleteFunc = [
       `func ${funcName}_elem${IMPLICITS}(loc : felt, index : Uint256, length : Uint256){`,
       `     alloc_locals;`,
@@ -160,13 +150,14 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteSmallStaticArray(type: ArrayType, funcName: string): GeneratedFunctionInfo {
+  private deleteSmallStaticArray(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined);
     const [deleteCode, funcCalls] = this.generateStaticArrayDeletionCode(
       type.elementT,
       narrowBigIntSafe(type.size),
     );
 
+    const funcName = `WS${this.generatedFunctionsDef.size}_SMALL_STATIC_ARRAY_DELETE`;
     const code = [
       `func ${funcName}${IMPLICITS}(loc: felt) {`,
       `   alloc_locals;`,
@@ -182,7 +173,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteLargeStaticArray(type: ArrayType, funcName: string): GeneratedFunctionInfo {
+  private deleteLargeStaticArray(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined);
 
     const elementT = generalizeType(type.elementT)[0];
@@ -203,6 +194,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       : [`    ${auxiliarDeleteFunc.name}(loc);`];
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidht);
+
+    const funcName = `WS${this.generatedFunctionsDef.size}_LARGE_STATIC_ARRAY_DELETE`;
     const deleteFunc = [
       `func ${funcName}_elem${IMPLICITS}(loc : felt, index : felt){`,
       `     alloc_locals;`,
@@ -232,11 +225,12 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteStruct(structDef: StructDefinition, funcName: string): GeneratedFunctionInfo {
+  private deleteStruct(structDef: StructDefinition): GeneratedFunctionInfo {
     const [deleteCode, funcCalls] = this.generateStructDeletionCode(
       structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.inference)),
     );
 
+    const funcName = `WS_STRUCT_${structDef.name}_DELETE`;
     const deleteFunc = [
       `func ${funcName}${IMPLICITS}(loc : felt){`,
       `   alloc_locals;`,
@@ -248,7 +242,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return { name: funcName, code: deleteFunc, functionsCalled: funcCalls };
   }
 
-  private deleteNothing(funcName: string): GeneratedFunctionInfo {
+  private deleteNothing(): GeneratedFunctionInfo {
+    const funcName = 'WS_MAP_DELETE';
     return {
       name: funcName,
       code: [`func ${funcName}${IMPLICITS}(loc: felt){`, `    return ();`, `}`].join('\n'),
