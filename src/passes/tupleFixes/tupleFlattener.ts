@@ -1,7 +1,6 @@
 import { TupleExpression, TypeNameType } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { safeGetNodeType } from '../../export';
 import { WillNotSupportError } from '../../utils/errors';
 
 export class TupleFlattener extends ASTMapper {
