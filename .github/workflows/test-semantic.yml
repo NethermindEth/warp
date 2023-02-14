@@ -6,15 +6,22 @@ on:
       - main
       - develop
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CAIRO_LANG_VERSION: 0.10.3
 
 jobs:
   semantic_test:
+    if: github.event.pull_request.draft == false
     strategy:
       fail-fast: false
       matrix:
