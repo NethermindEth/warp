@@ -1,4 +1,12 @@
-import { ElementaryTypeName, IntType, Literal } from 'solc-typed-ast';
+import {
+  ElementaryTypeName,
+  IntType,
+  Literal,
+  SourceUnit,
+  StructDefinition,
+  UserDefinedType,
+  VariableDeclaration,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
@@ -13,9 +21,6 @@ import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
   Uint256 needs to be imported, it's easier to do it here
 */
 
-// TODO: This pass should be addressed!!!
-// Functions should be imported accordingly when they are needed
-// Structs are harder, perhaps not prunning those!!!
 export class CairoUtilImporter extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
@@ -36,8 +41,29 @@ export class CairoUtilImporter extends ASTMapper {
     }
   }
 
+  //  Patch to struct inlining
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    const type = safeGetNodeType(node, ast.inference);
+    if (type instanceof IntType && type.nBits > 251) {
+      createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
+    }
+
+    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+      if (
+        node.getClosestParentByType(SourceUnit) !==
+        type.definition.getClosestParentByType(SourceUnit)
+      ) {
+        type.definition.vMembers.forEach((decl) => {
+          const declType = safeGetNodeType(decl, ast.inference);
+          if (declType instanceof IntType && declType.nBits > 251) {
+            createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
+          }
+        });
+      }
+    }
+  }
+
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
-    // This shouldn't be necesary...
     if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
       createImportFuncDefinition(
         'starkware.cairo.common.default_dict',

@@ -147,8 +147,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   ): GeneratedFunctionInfo {
     assert(targetType.size !== undefined && sourceType.size !== undefined);
     assert(
-      targetType.size > sourceType.size,
-      'Cannot convert a bigger static array into a smaller one',
+      targetType.size >= sourceType.size,
+      `Cannot convert a bigger static array (${targetType.size}) into a smaller one (${sourceType.size})`,
     );
 
     const [generateCopyCode, requiredFunctions] = this.createStaticToStaticCopyCode(
@@ -173,7 +173,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     ).toString();
     const funcName = `calldata_conversion_static_to_static${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(storage_loc: felt, arg: ${cairoSourceTypeName}`,
+      `func ${funcName}${IMPLICITS}(storage_loc: felt, arg: ${cairoSourceTypeName}){`,
       `alloc_locals;`,
       ...copyInstructions,
       '    return ();',
@@ -217,7 +217,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     ).toString();
     const funcName = `calldata_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(storage_loc: felt, arg: ${cairoSourceTypeName}`,
+      `func ${funcName}${IMPLICITS}(ref: felt, arg: ${cairoSourceTypeName}){`,
       `alloc_locals;`,
       `    ${optionalCode}`,
       ...copyInstructions,
@@ -381,7 +381,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           (index) =>
             [
               `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-              `    ${writeDef}(storage_loc${index}, arg[${index}]);`,
+              `    ${writeDef.name}(storage_loc${index}, arg[${index}]);`,
             ].join('\n'),
           [arrayDef, writeDef],
         ];
@@ -394,7 +394,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         return [
           (index) =>
             [
-              `    let (arg_${index}) = ${conversionFunc}(arg[${index}]);`,
+              `    let (arg_${index}) = ${conversionFunc.name}(arg[${index}]);`,
               `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
               `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
             ].join('\n'),
@@ -427,7 +427,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         return [
           (index) =>
             [
-              `    let (arg_${index}) = ${widenFunc}(arg[${index}], ${bits});`,
+              `    let (arg_${index}) = ${widenFunc.name}(arg[${index}], ${bits});`,
               `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
               `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
             ].join('\n'),
@@ -520,7 +520,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       ];
     }
 
-    const auxFunc = this.getOrCreateFuncDef(targetType, sourceType);
+    const auxFunc = this.getOrCreateFuncDef(targetElmType, sourceElmType);
     return [
       isDynamicStorageArray(targetElmType)
         ? () =>
