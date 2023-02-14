@@ -10,7 +10,6 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
-import { printNode, printTypeNode } from '../export';
 import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
