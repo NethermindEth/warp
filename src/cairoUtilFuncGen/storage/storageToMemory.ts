@@ -5,9 +5,9 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
-  FunctionDefinition,
   FunctionStateMutability,
   generalizeType,
+  isReferenceType,
   SourceUnit,
   StringType,
   StructDefinition,
@@ -15,7 +15,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoFunctionDefinition } from '../../export';
+import { CairoFunctionDefinition, TranspileFailedError } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
@@ -181,16 +181,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       type.size,
       `Failed to narrow size of ${printTypeNode(type)} in memory->storage copy generation`,
     );
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
-    const funcsCalled: FunctionDefinition[] = [];
-    funcsCalled.push(
-      this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      this.requireImport('warplib.memory', 'wm_alloc'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-    );
 
     const elementMemoryWidth = CairoType.fromSol(type.elementT, this.ast).width;
     const elementStorageWidth = CairoType.fromSol(
@@ -198,8 +188,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     ).width;
-
-    const copyCode: string = this.getRecursiveCopyCode(
+    const [copyCode, copyCalls] = this.getRecursiveCopyCode(
       type.elementT,
       elementMemoryWidth,
       'loc',
@@ -209,7 +198,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(mem_start: felt, loc : felt, length: Uint256) -> (){`,
+        `func ${funcName}_elem${IMPLICITS}(mem_start: felt, loc : felt, length: Uint256) -> (){`,
         `   alloc_locals;`,
         `   if (length.low == 0){`,
         `       if (length.high == 0){`,
@@ -224,7 +213,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         )}, index);`,
         `}`,
 
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let length = ${uint256(length)};`,
         `    let (mem_start) = wm_alloc(length);`,
@@ -232,7 +221,13 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return (mem_start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: funcsCalled,
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        ...copyCalls,
+      ],
     };
     return funcInfo;
   }
@@ -251,7 +246,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     // This is the code to copy a single element
     // Complex types require calls to another function generated here
     // Simple types take one or two WARP_STORAGE-dict_write pairs
-    const copyCode: string = this.getRecursiveCopyCode(
+    const [copyCode, copyCalls] = this.getRecursiveCopyCode(
       elementT,
       memoryElementType.width,
       'element_storage_loc',
@@ -288,6 +283,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
         this.requireImport('warplib.memory', 'wm_new'),
         this.requireImport('warplib.memory', 'wm_index_dyn'),
+        ...copyCalls,
         dynArray,
         dynArrayLength,
       ],
@@ -324,26 +320,43 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     elementMemoryWidth: number,
     storageLoc: string,
     memoryLoc: string,
-  ) {
-    if (isStaticArrayOrStruct(elementT)) {
-      return [
-        `   let (copy) = ${this.getOrCreate(elementT).name}(${storageLoc});`,
-        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
-      ].join('\n');
-    } else if (isDynamicArray(elementT)) {
-      return [
-        `   let (dyn_loc) = readId(${storageLoc});`,
-        `   let (copy) = ${this.getOrCreate(elementT).name}(dyn_loc);`,
-        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
-      ].join('\n');
-    } else {
-      return mapRange(elementMemoryWidth, (n) =>
+  ): [string, CairoFunctionDefinition[]] {
+    if (isReferenceType(elementT)) {
+      const auxFunc = this.getOrCreateFuncDef(elementT);
+      if (isStaticArrayOrStruct(elementT)) {
+        return [
+          [
+            `   let (copy) = ${auxFunc.name}(${storageLoc});`,
+            `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
+          ].join('\n'),
+          [auxFunc],
+        ];
+      } else if (isDynamicArray(elementT)) {
+        return [
+          [
+            `   let (dyn_loc) = readId(${storageLoc});`,
+            `   let (copy) = ${auxFunc.name}(dyn_loc);`,
+            `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
+          ].join('\n'),
+          [auxFunc],
+        ];
+      }
+      throw new TranspileFailedError(
+        `Trying to create recursive code for unsupported referency type: ${printTypeNode(
+          elementT,
+        )}`,
+      );
+    }
+
+    return [
+      mapRange(elementMemoryWidth, (n) =>
         [
           `   let (copy) = WARP_STORAGE.read(${add(`${storageLoc}`, n)});`,
           `   dict_write{dict_ptr=warp_memory}(${add(`${memoryLoc}`, n)}, copy);`,
         ].join('\n'),
-      ).join('\n');
-    }
+      ).join('\n'),
+      [],
+    ];
   }
 }
 
