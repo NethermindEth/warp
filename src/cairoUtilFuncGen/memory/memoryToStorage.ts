@@ -334,12 +334,12 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
           const auxFunc = this.getOrCreateFuncDef(type);
           const copyCode = isDynamicArray(type)
             ? [
-                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(2)});`,
+                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', index)}, ${uint256(2)});`,
                 `let (storage_dyn_array_loc) = readId(${add('loc', offset)});`,
                 `${auxFunc.name}(storage_dyn_array_loc, ${elemLoc});`,
               ]
             : [
-                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(
+                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', index)}, ${uint256(
                   CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width,
                 )});`,
                 `${auxFunc.name}(${add('loc', offset)}, ${elemLoc});`,
