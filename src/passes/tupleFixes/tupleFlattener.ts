@@ -19,7 +19,7 @@ export class TupleFlattener extends ASTMapper {
       node.vOriginalComponents[0].typeString === node.typeString &&
       !node.isInlineArray
     ) {
-      if (safeGetNodeType(node.vOriginalComponents[0], ast.inference) instanceof TypeNameType) {
+      if (ast.inference.typeOf(node.vOriginalComponents[0]) instanceof TypeNameType) {
         return this.commonVisit(node, ast);
       }
       const parent = node.parent;
