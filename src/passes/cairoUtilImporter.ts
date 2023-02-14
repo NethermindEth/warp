@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   ElementaryTypeName,
   IntType,
@@ -22,6 +23,8 @@ import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 */
 
 export class CairoUtilImporter extends ASTMapper {
+  private dummySourceUnit: SourceUnit | undefined;
+
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([]);
@@ -30,37 +33,57 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
+      createImportFuncDefinition(
+        'starkware.cairo.common.uint256',
+        'Uint256',
+        this.dummySourceUnit ?? node,
+        ast,
+      );
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
+      createImportFuncDefinition(
+        'starkware.cairo.common.uint256',
+        'Uint256',
+        this.dummySourceUnit ?? node,
+        ast,
+      );
     }
   }
 
-  //  Patch to struct inlining
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
+      createImportFuncDefinition(
+        'starkware.cairo.common.uint256',
+        'Uint256',
+        this.dummySourceUnit ?? node,
+        ast,
+      );
     }
 
+    //  Patch to struct inlining
     if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      if (
-        node.getClosestParentByType(SourceUnit) !==
-        type.definition.getClosestParentByType(SourceUnit)
-      ) {
-        type.definition.vMembers.forEach((decl) => {
-          const declType = safeGetNodeType(decl, ast.inference);
-          if (declType instanceof IntType && declType.nBits > 251) {
-            createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
-          }
-        });
+      const currentSourceUnit = node.getClosestParentByType(SourceUnit);
+      assert(currentSourceUnit !== undefined);
+      if (currentSourceUnit !== type.definition.getClosestParentByType(SourceUnit)) {
+        this.dummySourceUnit = this.dummySourceUnit ?? currentSourceUnit;
+        type.definition.walkChildren((child) => this.commonVisit(child, ast));
+        this.dummySourceUnit =
+          this.dummySourceUnit === currentSourceUnit ? undefined : this.dummySourceUnit;
+
+        // type.definition.vMembers.forEach((decl) => {
+        //   const declType = safeGetNodeType(decl, ast.inference);
+        //   if (declType instanceof IntType && declType.nBits > 251) {
+        //     createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
+        //   }
+        // });
       }
     }
+    this.visitExpression(node, ast);
   }
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
