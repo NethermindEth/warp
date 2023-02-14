@@ -326,7 +326,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
   }
   private generateTupleCopyInstructions(types: TypeNode[]): [string[], CairoFunctionDefinition[]] {
     const [code, funcCalls] = types.reduce(
-      ([code, funcCalls, offset], type, index) => {
+      ([code, funcCalls, storageOffset, memOffset], type, index) => {
         const typeFeltWidth = getFeltWidth(type, this.ast);
         const readFunc = this.memoryReadGen.getOrCreateFuncDef(type);
         const elemLoc = `elem_mem_loc_${index}`;
@@ -334,15 +334,15 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
           const auxFunc = this.getOrCreateFuncDef(type);
           const copyCode = isDynamicArray(type)
             ? [
-                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', index)}, ${uint256(2)});`,
-                `let (storage_dyn_array_loc) = readId(${add('loc', offset)});`,
+                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', memOffset)}, ${uint256(2)});`,
+                `let (storage_dyn_array_loc) = readId(${add('loc', storageOffset)});`,
                 `${auxFunc.name}(storage_dyn_array_loc, ${elemLoc});`,
               ]
             : [
-                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', index)}, ${uint256(
+                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', memOffset)}, ${uint256(
                   CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width,
                 )});`,
-                `${auxFunc.name}(${add('loc', offset)}, ${elemLoc});`,
+                `${auxFunc.name}(${add('loc', storageOffset)}, ${elemLoc});`,
               ];
           return [
             [...code, ...copyCode],
@@ -352,7 +352,8 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               readFunc,
               auxFunc,
             ],
-            offset + typeFeltWidth,
+            storageOffset + typeFeltWidth,
+            memOffset + 1,
           ];
         }
         return [
@@ -362,17 +363,18 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               [
                 `let (${elemLoc}_prt_${n}) = dict_read{dict_ptr=warp_memory}(${add(
                   'mem_loc',
-                  offset + n,
+                  memOffset + n,
                 )});`,
-                `WARP_STORAGE.write(${add('loc', offset + n)}, ${elemLoc}_prt_${n});`,
+                `WARP_STORAGE.write(${add('loc', storageOffset + n)}, ${elemLoc}_prt_${n});`,
               ].join('\n'),
             ),
           ],
           [...funcCalls, this.requireImport('starkware.cairo.common.dict', 'dict_read')],
-          offset + typeFeltWidth,
+          storageOffset + typeFeltWidth,
+          memOffset + typeFeltWidth,
         ];
       },
-      [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
+      [new Array<string>(), new Array<CairoFunctionDefinition>(), 0, 0],
     );
     return [code, funcCalls];
   }
