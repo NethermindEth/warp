@@ -41,17 +41,19 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   }
 
   public gen(node: Expression): FunctionCall {
-    const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
+    const type = safeGetNodeType(node, this.ast.inference);
 
     const funcDef = this.getOrCreateFuncDef(type);
     return createCallToFunction(funcDef, [node], this.ast);
   }
 
   public getOrCreateFuncDef(type: TypeNode): CairoFunctionDefinition {
-    const key = `storageToMemory(${type.pp()})`;
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+    type = generalizeType(type)[0];
+
+    const key = type.pp();
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const funcInfo = this.getOrCreate(type);
@@ -90,8 +92,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   ): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
-    const funcName = `ws_to_memory_struct_${def.name}`;
-
     const [copyInstructions, copyCalls] = generateCopyInstructions(type, this.ast).reduce(
       ([copyInstructions, copyCalls], { storageOffset, copyType }, index) => {
         const [copyCode, calls] = this.getIterCopyCode(copyType, index, storageOffset);
@@ -107,6 +107,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       [new Array<string>(), new Array<CairoFunctionDefinition>()],
     );
 
+    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}_struct_${def.name}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -136,8 +137,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   private createSmallStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
-    const funcName = `ws_to_memory_static_array${this.generatedFunctionsDef.size}`;
-
     const [copyInstructions, copyCalls] = generateCopyInstructions(type, this.ast).reduce(
       ([copyInstructions, copyCalls], { storageOffset, copyType }, index) => {
         const [copyCode, calls] = this.getIterCopyCode(copyType, index, storageOffset);
@@ -153,6 +152,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       [new Array<string>(), new Array<CairoFunctionDefinition>()],
     );
 
+    const funcName = `ws_to_memory_small_static_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -176,7 +176,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
 
   private createLargeStaticArrayCopyFunction(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined, 'Expected static array with known size');
-    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
     const length = narrowBigIntSafe(
       type.size,
       `Failed to narrow size of ${printTypeNode(type)} in memory->storage copy generation`,
@@ -195,6 +194,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       'mem_start',
     );
 
+    const funcName = `ws_to_memory_large_static_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -237,7 +237,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   ): GeneratedFunctionInfo {
     const elementT = getElementType(type);
     const memoryElementType = CairoType.fromSol(elementT, this.ast);
-    const funcName = `ws_to_memory${this.generatedFunctionsDef.size}`;
 
     const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
     const elemMappingName = dynArray.name;
@@ -253,7 +252,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       'mem_loc',
     );
 
-    // Now generate two functions: the setup function funcName, and the elementwise copy function: funcName_elem
+    const funcName = `ws_to_memory_dynamic_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
