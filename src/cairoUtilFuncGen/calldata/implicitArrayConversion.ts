@@ -15,7 +15,11 @@ import { CairoFunctionDefinition } from '../../export';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { isDynamicStorageArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import {
+  isDynamicArray,
+  isDynamicStorageArray,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -29,6 +33,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 const IMPLICITS =
   '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
 
+// TODO: Add checks for expressions locations when generating
 export class ImplicitArrayConversion extends StringIndexedFuncGen {
   public constructor(
     private storageWriteGen: StorageWriteGen,
@@ -203,11 +208,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     let optionalCode = '';
     let optionalImport: CairoFunctionDefinition[] = [];
-    if (isDynamicStorageArray(targetType)) {
-      // TODO: Check this, this makes no sense to me
+    if (isDynamicArray(targetType)) {
       const [_dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(targetType.elementT);
       optionalImport = [dynArrayLength];
-      optionalCode = `${dynArrayLength.name}.write(ref, ${uint256(sourceSize)})`;
+      optionalCode = `${dynArrayLength.name}.write(ref, ${uint256(sourceSize)});`;
     }
 
     const cairoSourceTypeName = CairoType.fromSol(
@@ -354,7 +358,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     const auxFunc = this.getOrCreateFuncDef(targetElementT, sourceElementT);
     return [
-      isDynamicStorageArray(targetElementT)
+      isDynamicArray(targetElementT)
         ? (index, offset) =>
             [
               `    let (ref_${index}) = readId(${add('storage_loc', offset)});`,
