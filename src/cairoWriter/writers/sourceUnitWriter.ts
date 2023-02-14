@@ -62,13 +62,13 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
     const writtenImportFuncs =
       importFunctions.length === 0
         ? ''
-        : importFunctions
-            .sort((funcA, funcB) =>
-              `${funcA.path}.${funcA.name}`.localeCompare(`${funcB.path}.${funcB.name}`),
-            )
-            .filter((func, index, importFuncs) => func.name !== importFuncs[index - 1]?.name)
-            .map((importFunc) => writer.write(importFunc))
-            .reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`);
+        : getGroupedImports(
+            importFunctions
+              .sort((funcA, funcB) =>
+                `${funcA.path}.${funcA.name}`.localeCompare(`${funcB.path}.${funcB.name}`),
+              )
+              .filter((func, index, importFuncs) => func.name !== importFuncs[index - 1]?.name),
+          ).reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`);
 
     const writtenGeneratedFuncs = generatedFunctions
       .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
@@ -125,4 +125,17 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
 
     interfaceNameMappings.set(node, map);
   }
+}
+
+function getGroupedImports(imports: CairoImportFunctionDefinition[]): string[] {
+  const processedImports: string[] = [];
+  imports.reduce((functionNames: string[], importNode, index) => {
+    functionNames.push(importNode.name);
+    if (importNode.path !== imports[index + 1]?.path) {
+      processedImports.push(`from ${importNode.path} import ${functionNames.join(', ')}`);
+      functionNames = [];
+    }
+    return functionNames;
+  }, []);
+  return processedImports;
 }
