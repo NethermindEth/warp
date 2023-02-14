@@ -11,9 +11,11 @@ import {
   StringType,
   StructDefinition,
   TypeNode,
+  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoFunctionDefinition } from '../../export';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes';
+import { CairoFunctionDefinition, TranspileFailedError } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -26,7 +28,15 @@ import { StorageReadGen } from './storageRead';
 const IMPLICITS = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
 export class StorageDeleteGen extends StringIndexedFuncGen {
-  private nothingHandlerGen: boolean;
+  // Map to store functions being created to
+  // avoid infinite recursion when deleting
+  // recursive types such as:
+  // struct S {
+  //    S[];
+  // }
+  private creatingFunctions: Map<string, string>;
+  private functionDependencies: Map<string, string[]>;
+  // private nothingHandlerGen: boolean;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageReadGen: StorageReadGen,
@@ -34,7 +44,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     sourceUnit: SourceUnit,
   ) {
     super(ast, sourceUnit);
-    this.nothingHandlerGen = false;
+    this.creatingFunctions = new Map();
+    this.functionDependencies = new Map();
+    // this.nothingHandlerGen = false;
   }
 
   public gen(node: Expression): FunctionCall {
@@ -44,10 +56,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(type: TypeNode) {
-    const key = type.pp();
-    const value = this.generatedFunctionsDef.get(key);
-    if (value !== undefined) {
-      return value;
+    const key = generateKey(type);
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const funcInfo = this.getOrCreate(type);
@@ -58,11 +70,49 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       this.ast,
       this.sourceUnit,
     );
+
+    assert(
+      this.creatingFunctions.delete(key),
+      'Cannot delete function which is not being processed',
+    );
     this.generatedFunctionsDef.set(key, funcDef);
+    this.processRecursiveDependencies();
+
     return funcDef;
   }
 
+  private safeGetOrCreateFuncDef(parentType: TypeNode, type: TypeNode) {
+    const parentKey = generateKey(parentType);
+    const childKey = generateKey(type);
+    const dependencies = this.functionDependencies.get(parentKey);
+    if (dependencies === undefined) {
+      this.functionDependencies.set(parentKey, [childKey]);
+    } else {
+      dependencies.push(childKey);
+    }
+
+    const processingName = this.creatingFunctions.get(childKey);
+    if (processingName !== undefined) {
+      return processingName;
+    }
+
+    return this.getOrCreateFuncDef(type).name;
+  }
+
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
+    // const processingName = this.creatingFunctions.get(generateKey(type));
+    // if (processingName !== undefined) {
+    //   return {
+    //     name: processingName,
+    //     get code(): string {
+    //       throw new TranspileFailedError('Attempting to access unexistent code');
+    //     },
+    //     get functionsCalled(): CairoFunctionDefinition {
+    //       throw new TranspileFailedError('Attempting to access unexistent calls');
+    //     },
+    //   };
+    // }
+
     const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       type,
       (type) => this.deleteDynamicArray(type),
@@ -72,25 +122,28 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
           ? this.deleteSmallStaticArray(type)
           : this.deleteLargeStaticArray(type);
       },
-      (_type, def) => this.deleteStruct(def),
-      () => this.deleteNothing(),
-      () => this.deleteGeneric(CairoType.fromSol(type, this.ast)),
+      (type, def) => this.deleteStruct(type, def),
+      (type) => this.deleteNothing(type),
+      (type) => this.deleteGeneric(type),
     );
 
     // WS_MAP_DELETE can be keyed with multiple types but since its definition
     // is always the same we want to make sure its not duplicated or else it
     // clashes with itself.
-    if (funcInfo.name === 'WS_MAP_DELETE' && !this.nothingHandlerGen) {
-      this.nothingHandlerGen = true;
-    } else if (funcInfo.name === 'WS_MAP_DELETE' && this.nothingHandlerGen) {
-      funcInfo.code = '';
-      return funcInfo;
-    }
+    // if (funcInfo.name === 'WS_MAP_DELETE' && !this.nothingHandlerGen) {
+    //   this.nothingHandlerGen = true;
+    // } else if (funcInfo.name === 'WS_MAP_DELETE' && this.nothingHandlerGen) {
+    //   funcInfo.code = '';
+    //   return funcInfo;
+    // }
     return funcInfo;
   }
 
-  private deleteGeneric(cairoType: CairoType): GeneratedFunctionInfo {
-    const funcName = `WS${this.generatedFunctionsDef.size}_GENERIC_DELETE`;
+  private deleteGeneric(type: TypeNode): GeneratedFunctionInfo {
+    const funcName = `WS${this.getId()}_GENERIC_DELETE`;
+    this.creatingFunctions.set(generateKey(type), funcName);
+
+    const cairoType = CairoType.fromSol(type, this.ast);
     return {
       name: funcName,
       code: [
@@ -104,6 +157,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private deleteDynamicArray(type: ArrayType | BytesType | StringType): GeneratedFunctionInfo {
+    const funcName = `WS${this.getId()}_DYNAMIC_ARRAY_DELETE`;
+    this.creatingFunctions.set(generateKey(type), funcName);
+
     const elementT = generalizeType(getElementType(type))[0];
 
     const [dynArray, dynArrayLen] = this.dynArrayGen.getOrCreateFuncDef(elementT);
@@ -111,13 +167,12 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const lengthName = dynArrayLen.name;
 
     const readFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
-    const auxDeleteFunc = this.getOrCreateFuncDef(elementT);
+    const auxDeleteFuncName = this.safeGetOrCreateFuncDef(type, elementT);
 
     const deleteCode = requiresReadBeforeRecursing(elementT)
-      ? [`   let (elem_id) = ${readFunc.name}(elem_loc);`, `   ${auxDeleteFunc.name}(elem_id);`]
-      : [`    ${auxDeleteFunc.name}(elem_loc);`];
+      ? [`   let (elem_id) = ${readFunc.name}(elem_loc);`, `   ${auxDeleteFuncName}(elem_id);`]
+      : [`    ${auxDeleteFuncName}(elem_loc);`];
 
-    const funcName = `WS${this.generatedFunctionsDef.size}_DYNAMIC_ARRAY_DELETE`;
     const deleteFunc = [
       `func ${funcName}_elem${IMPLICITS}(loc : felt, index : Uint256, length : Uint256){`,
       `     alloc_locals;`,
@@ -146,18 +201,21 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: deleteFunc,
-      functionsCalled: [...importedFuncs, dynArray, dynArrayLen, readFunc, auxDeleteFunc],
+      functionsCalled: [...importedFuncs, dynArray, dynArrayLen, readFunc],
     };
   }
 
   private deleteSmallStaticArray(type: ArrayType): GeneratedFunctionInfo {
+    const funcName = `WS${this.getId()}_SMALL_STATIC_ARRAY_DELETE`;
+    this.creatingFunctions.set(generateKey(type), funcName);
+
     assert(type.size !== undefined);
     const [deleteCode, funcCalls] = this.generateStaticArrayDeletionCode(
+      type,
       type.elementT,
       narrowBigIntSafe(type.size),
     );
 
-    const funcName = `WS${this.generatedFunctionsDef.size}_SMALL_STATIC_ARRAY_DELETE`;
     const code = [
       `func ${funcName}${IMPLICITS}(loc: felt) {`,
       `   alloc_locals;`,
@@ -175,6 +233,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
   private deleteLargeStaticArray(type: ArrayType): GeneratedFunctionInfo {
     assert(type.size !== undefined);
+    const funcName = `WS${this.getId()}_LARGE_STATIC_ARRAY_DELETE`;
+    this.creatingFunctions.set(generateKey(type), funcName);
 
     const elementT = generalizeType(type.elementT)[0];
     const elementTWidht = CairoType.fromSol(
@@ -184,18 +244,14 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     ).width;
 
     const storageReadFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
-    const auxiliarDeleteFunc = this.getOrCreateFuncDef(elementT);
+    const auxDeleteFuncName = this.safeGetOrCreateFuncDef(type, elementT);
 
     const deleteCode = requiresReadBeforeRecursing(elementT)
-      ? [
-          `   let (elem_id) = ${storageReadFunc.name}(loc);`,
-          `   ${auxiliarDeleteFunc.name}(elem_id);`,
-        ]
-      : [`    ${auxiliarDeleteFunc.name}(loc);`];
+      ? [`   let (elem_id) = ${storageReadFunc.name}(loc);`, `   ${auxDeleteFuncName}(elem_id);`]
+      : [`    ${auxDeleteFuncName}(loc);`];
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidht);
 
-    const funcName = `WS${this.generatedFunctionsDef.size}_LARGE_STATIC_ARRAY_DELETE`;
     const deleteFunc = [
       `func ${funcName}_elem${IMPLICITS}(loc : felt, index : felt){`,
       `     alloc_locals;`,
@@ -221,16 +277,19 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: deleteFunc,
-      functionsCalled: [...importedFuncs, storageReadFunc, auxiliarDeleteFunc],
+      functionsCalled: [...importedFuncs, storageReadFunc],
     };
   }
 
-  private deleteStruct(structDef: StructDefinition): GeneratedFunctionInfo {
+  private deleteStruct(type: UserDefinedType, structDef: StructDefinition): GeneratedFunctionInfo {
+    const funcName = `WS_STRUCT_${structDef.name}_DELETE`;
+    this.creatingFunctions.set(generateKey(type), funcName);
+
     const [deleteCode, funcCalls] = this.generateStructDeletionCode(
+      type,
       structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.inference)),
     );
 
-    const funcName = `WS_STRUCT_${structDef.name}_DELETE`;
     const deleteFunc = [
       `func ${funcName}${IMPLICITS}(loc : felt){`,
       `   alloc_locals;`,
@@ -242,8 +301,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return { name: funcName, code: deleteFunc, functionsCalled: funcCalls };
   }
 
-  private deleteNothing(): GeneratedFunctionInfo {
+  private deleteNothing(type: TypeNode): GeneratedFunctionInfo {
     const funcName = 'WS_MAP_DELETE';
+    this.creatingFunctions.set(generateKey(type), funcName);
+
     return {
       name: funcName,
       code: [`func ${funcName}${IMPLICITS}(loc: felt){`, `    return ();`, `}`].join('\n'),
@@ -252,6 +313,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private generateStructDeletionCode(
+    structType: UserDefinedType,
     varDeclarations: TypeNode[],
     index = 0,
     offset = 0,
@@ -268,28 +330,30 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     ).width;
 
     const readIdFunc = this.storageReadGen.getOrCreateFuncDef(varType);
-    const auxDeleteFunc = this.getOrCreateFuncDef(varType);
+    const auxDeleteFuncName = this.safeGetOrCreateFuncDef(structType, varType);
 
     const deleteLoc = add('loc', offset);
     const deleteCode = requiresReadBeforeRecursing(varType)
       ? [
           `   let (elem_id) = ${readIdFunc.name}(${deleteLoc});`,
-          `   ${auxDeleteFunc.name}(elem_id);`,
+          `   ${auxDeleteFuncName}(elem_id);`,
         ]
-      : [`    ${auxDeleteFunc.name}(${deleteLoc});`];
+      : [`    ${auxDeleteFuncName}(${deleteLoc});`];
 
     const [code, funcsCalled] = this.generateStructDeletionCode(
+      structType,
       varDeclarations,
       index + 1,
       offset + varWidth,
     );
     return [
       [...deleteCode, ...code],
-      [readIdFunc, auxDeleteFunc, ...funcsCalled],
+      [readIdFunc, ...funcsCalled],
     ];
   }
 
   private generateStaticArrayDeletionCode(
+    arrayType: ArrayType,
     elementT: TypeNode,
     size: number,
   ): [string[], CairoFunctionDefinition[]] {
@@ -299,14 +363,14 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     ).width;
     const readIdFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
-    const auxDeleteFunc = this.getOrCreateFuncDef(elementT);
+    const auxDeleteFuncName = this.safeGetOrCreateFuncDef(arrayType, elementT);
 
     const generateDeleteCode = requiresReadBeforeRecursing(elementT)
       ? (deleteLoc: string) => [
           `   let (elem_id) = ${readIdFunc.name}(${deleteLoc});`,
-          `   ${auxDeleteFunc.name}(elem_id);`,
+          `   ${auxDeleteFuncName}(elem_id);`,
         ]
-      : (deleteLoc: string) => [`    ${auxDeleteFunc.name}(${deleteLoc});`];
+      : (deleteLoc: string) => [`    ${auxDeleteFuncName}(${deleteLoc});`];
 
     const generateCode = (index: number, offset: number): string[] => {
       if (index === size) {
@@ -318,10 +382,36 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       return [...deleteCode, ...generateCode(index + 1, offset + elementTWidth)];
     };
 
-    return [generateCode(0, 0), [readIdFunc, auxDeleteFunc]];
+    return [generateCode(0, 0), requiresReadBeforeRecursing(elementT) ? [readIdFunc] : []];
+  }
+
+  private processRecursiveDependencies() {
+    [...this.functionDependencies.entries()].forEach(([key, dependencies]) => {
+      if (!this.creatingFunctions.has(key)) {
+        const generatedFunc = this.generatedFunctionsDef.get(key);
+        assert(generatedFunc instanceof CairoGeneratedFunctionDefinition);
+
+        dependencies.forEach((otherKey) => {
+          const otherFunc = this.generatedFunctionsDef.get(otherKey);
+          if (otherFunc === undefined) {
+            assert(this.creatingFunctions.has(otherKey));
+            return;
+          }
+          generatedFunc.functionsCalled.push(otherFunc);
+        });
+      }
+    });
+  }
+
+  private getId() {
+    return this.generatedFunctionsDef.size + this.creatingFunctions.size;
   }
 }
 
 function requiresReadBeforeRecursing(type: TypeNode): boolean {
   return isDynamicArray(type) || type instanceof MappingType;
+}
+
+function generateKey(type: TypeNode) {
+  return type.pp();
 }
