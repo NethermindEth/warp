@@ -15,11 +15,7 @@ import { CairoFunctionDefinition } from '../../export';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  isDynamicArray,
-  isDynamicStorageArray,
-  safeGetNodeType,
-} from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -438,6 +434,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           [arrayDef, writeDef, widenFunc],
         ];
       }
+
       return [
         (index) =>
           [
@@ -454,7 +451,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const arrayDef = this.dynArrayIndexAccessGen.getOrCreateFuncDef(targetElmType, targetType);
     const auxFunc = this.getOrCreateFuncDef(targetElmType, sourceElmType);
     const [_dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(targetElmType);
-    if (isDynamicStorageArray(targetElmType)) {
+    if (isDynamicArray(targetElmType)) {
       return [
         (index) =>
           [
@@ -468,6 +465,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         [arrayDef, auxFunc, dynArrayLength],
       ];
     }
+
     return [
       (index) =>
         [
@@ -526,9 +524,9 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     const auxFunc = this.getOrCreateFuncDef(targetElmType, sourceElmType);
     return [
-      isDynamicStorageArray(targetElmType)
+      isDynamicArray(targetElmType)
         ? () =>
-            [`let (ref_name) = readId(storage_loc)`, `${auxFunc.name}(ref_name, ptr[0]);`].join(
+            [`let (ref_name) = readId(storage_loc);`, `${auxFunc.name}(ref_name, ptr[0]);`].join(
               '\n',
             )
         : () => `${auxFunc.name}(storage_loc, ptr[0]);`,
