@@ -9,7 +9,7 @@ export class CairoAssertWriter extends CairoASTNodeWriter {
     if (node.assertMessage === null) {
       return [`assert( ${expression} = 1 );`];
     } else {
-      return [`assert( ${expression}, "${node.assertMessage}" );`];
+      return [`assert( ${expression} = 1, "${node.assertMessage}" );`];
     }
   }
 }
