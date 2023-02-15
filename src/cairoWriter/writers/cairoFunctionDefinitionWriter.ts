@@ -43,14 +43,14 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const implicits = this.getImplicits(node);
 
     return [
-      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}{`, body, `}`]
+      [documentation, ...decorator, `fn ${name}(${args})${returns}{`, body, `}`]
         .filter(notNull)
         .join('\n'),
     ];
   }
 
   private getDecorator(node: CairoFunctionDefinition): string[] {
-    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    if (node.kind === FunctionKind.Constructor) return ['#[constructor]'];
     const decorators: string[] = [];
     if (node.kind === FunctionKind.Fallback) {
       decorators.push('@raw_input');
@@ -61,8 +61,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       if (
         [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
       )
-        decorators.push('@view');
-      else decorators.push('@external');
+        decorators.push('#[view]');
+      else decorators.push('#[external]');
     }
 
     return decorators;
@@ -90,7 +90,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
       return [
-        'alloc_locals;',
         this.getConstructorStorageAllocation(node),
         ...keccakPtrInit,
         withKeccak,
@@ -105,7 +104,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
     return [
-      'alloc_locals;',
       this.getConstructorStorageAllocation(node),
       ...keccakPtrInit,
       'let (local warp_memory : DictAccess*) = default_dict_new(0);',
