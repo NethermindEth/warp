@@ -1,4 +1,4 @@
-import { ASTWriter, ContractKind, SrcDesc } from 'solc-typed-ast';
+import { assert, ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
 import { isExternallyVisible } from '../../utils/utils';
 import { CairoContract } from '../../ast/cairoNodes';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
@@ -8,6 +8,7 @@ import {
   getInterfaceNameForContract,
   INCLUDE_CAIRO_DUMP_FUNCTIONS,
   INDENT,
+  writeImports,
 } from '../utils';
 import { interfaceNameMappings } from './sourceUnitWriter';
 
@@ -80,7 +81,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       '@storage_var',
       'func WARP_NAMEGEN() -> (name: felt){',
       '}',
-      'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt){',
+      'fn readId(loc: felt) -> (val: felt){',
       '    alloc_locals;',
       '    let (id) = WARP_STORAGE.read(loc);',
       '    if (id == 0){',
@@ -94,7 +95,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       '}',
       ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
         ? [
-            'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){',
+            'fn DUMP_WARP_STORAGE_ITER(length : felt, ptr: felt*){',
             '    alloc_locals;',
             '    if (length == 0){',
             '        return ();',
@@ -105,8 +106,8 @@ export class CairoContractWriter extends CairoASTNodeWriter {
             '    DUMP_WARP_STORAGE_ITER(index, ptr);',
             '    return ();',
             '}',
-            '@external',
-            'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){',
+            '#[external]',
+            'fn DUMP_WARP_STORAGE(length : felt) -> (data_len : felt, data: felt*){',
             '    alloc_locals;',
             '    let (p: felt*) = alloc();',
             '    DUMP_WARP_STORAGE_ITER(length, p);',
@@ -114,21 +115,42 @@ export class CairoContractWriter extends CairoASTNodeWriter {
             '}',
           ]
         : []),
-    ].join('\n');
+    ]
+      .map((l) => (l.length > 0 ? INDENT + l : l))
+      .join('\n');
+
+    assert(node.parent instanceof SourceUnit, 'Contract node parent should be a Source Unit node.');
+    const imports = writeImports(this.ast.getImports(node.parent))
+      .split('\n')
+      .map((l) => (l.length > 0 ? INDENT + l : l))
+      .join('\n');
+
+    const generatedUtilFunctions = this.ast
+      .getUtilFuncGen(node)
+      .getGeneratedCode()
+      .split('\n')
+      .map((l) => (l.length > 0 ? INDENT + l : l))
+      .join('\n');
+
+    const contractHeader = '#[contract] \n' + `mod ${node.name} {`;
 
     return [
       [
+        contractHeader,
         documentation,
-        ...events,
-        `namespace ${node.name}{\n\n${body}\n\n}`,
-        outsideNamespaceBody,
+        imports,
         storageCode,
+        ...events,
+        body,
+        outsideNamespaceBody,
+        generatedUtilFunctions,
+        `}`,
       ].join('\n\n'),
     ];
   }
 
   writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {
-    return [`// Contract Def ${node.name}\n\n${this.writeInner(node, writer)}`];
+    return [`${this.writeInner(node, writer)}`];
   }
 
   private writeContractInterface(node: CairoContract, writer: ASTWriter): SrcDesc {

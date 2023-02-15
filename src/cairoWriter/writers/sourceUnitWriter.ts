@@ -50,12 +50,9 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
     return [
       removeExcessNewlines(
         [
-          '%lang starknet',
-          [imports],
-          ...constants,
-          ...structs,
-          generatedUtilFunctions,
-          ...functions,
+          // ...constants,
+          // ...structs,
+          // ...functions,
           ...contracts,
         ].join('\n\n\n'),
         3,
