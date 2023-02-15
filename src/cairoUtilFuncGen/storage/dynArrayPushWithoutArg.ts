@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  BytesType,
   DataLocation,
   FunctionCall,
   generalizeType,
@@ -12,7 +13,7 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -28,7 +29,7 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       safeGetNodeType(push.vExpression.vExpression, this.ast.inference),
     )[0];
     assert(
-      arrayType instanceof ArrayType,
+      arrayType instanceof ArrayType || arrayType instanceof BytesType,
       `Pushing without args to a non array: ${printTypeNode(arrayType)}`,
     );
     const funcDef = this.getOrCreateFuncDef(arrayType);
@@ -36,15 +37,15 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, [push.vExpression.vExpression], this.ast);
   }
 
-  getOrCreateFuncDef(arrayType: ArrayType) {
-    const elementType = arrayType.elementT;
+  getOrCreateFuncDef(arrayType: ArrayType | BytesType) {
+    const elementType = getElementType(arrayType);
     const cairoElementType = CairoType.fromSol(
       elementType,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
 
-    const key = cairoElementType.fullStringRepresentation;
+    const key = elementType.pp(); //cairoElementType.fullStringRepresentation;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;

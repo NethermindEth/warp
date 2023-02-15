@@ -70,8 +70,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
         );
 
         encodings.push(paramEncodings);
-        functionsCalled.concat(paramFuncCalls);
-        return [params, encodings, functionsCalled];
+        return [params, encodings, functionsCalled.concat(paramFuncCalls)];
       },
       [
         [{ name: 'signature', type: 'felt' }],
