@@ -230,11 +230,10 @@ export class AbiEncodePacked extends AbiBase {
       ? [
           this.requireImport('warplib.memory', 'wm_index_dyn'),
           this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-          ...funcCalls,
         ]
       : [];
 
-    const genFuncInfo = { name, code, functionsCalled: [...importedFuncs] };
+    const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...funcCalls, readFunc] };
     const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
     this.auxiliarGeneratedFunctions.set(key, auxFunc);
