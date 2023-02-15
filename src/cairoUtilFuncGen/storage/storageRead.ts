@@ -35,10 +35,8 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const key = resultCairoType.fullStringRepresentation + typeName.typeString;
     const existing = this.generatedFunctionsDef.get(key);
     if (existing !== undefined) {
-      console.log(key, 'exists');
       return existing;
     }
-    console.log(key, 'creates');
 
     const funcInfo = this.getOrCreate(resultCairoType);
     const funcDef = createCairoGeneratedFunction(
