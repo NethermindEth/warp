@@ -1850,6 +1850,23 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('cross_contract_calls', [
+          // Force "A" contract deployment
+          File.Simple('invalid_output', [], 'A'),
+          File.Simple(
+            'invalid_output',
+            [
+              new Expect('f', [
+                [
+                  'f',
+                  ['address@tests/behaviour/contracts/cross_contract_calls/invalid_output.A'],
+                  null,
+                  '1',
+                  'Error: value out-of-bounds. Value must be less than 2**8',
+                ],
+              ]),
+            ],
+            'WARP',
+          ),
           File.Simple(
             'this_methods_call',
             [Expect.Simple('execute_add', ['2', '0', '35', '0'], ['637', '0'])],
