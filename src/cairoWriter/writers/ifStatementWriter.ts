@@ -9,9 +9,9 @@ export class IfStatementWriter extends CairoASTNodeWriter {
     return [
       [
         documentation,
-        `if (${writer.write(node.vCondition)} != 0){`,
+        `if ${writer.write(node.vCondition)} != 0 {`,
         writer.write(node.vTrueBody),
-        ...(node.vFalseBody ? ['}else{', writer.write(node.vFalseBody)] : []),
+        ...(node.vFalseBody ? ['} else {', writer.write(node.vFalseBody)] : []),
         '}',
       ]
         .filter(notUndefined)
