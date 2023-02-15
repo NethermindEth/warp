@@ -24,10 +24,12 @@ export function writeImports(imports: Map<string, Set<string>>): string {
     );
   }
   return [...imports.entries()]
-    .map(
-      ([location, importedSymbols]) =>
-        `from ${location} import ${[...importedSymbols.keys()].join(', ')}`,
-    )
+    .map(([location, importedSymbols]) => {
+      const toImport = [...importedSymbols.keys()];
+      const toImportFormatted =
+        toImport.length === 1 ? toImport[0] : '{' + toImport.join(', ') + '}';
+      return `use ${location.replaceAll('.', '::')}::${toImportFormatted};`;
+    })
     .join('\n');
 }
 
