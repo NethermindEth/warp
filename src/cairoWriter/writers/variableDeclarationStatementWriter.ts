@@ -22,7 +22,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
   writeInner(node: VariableDeclarationStatement, writer: ASTWriter): SrcDesc {
     assert(
       node.vInitialValue !== undefined,
-      'Variables should be initialised. Did you use VariableDeclarationInitialiser?',
+      'Variables should be initialized. Did you use VariableDeclarationInitializer?',
     );
 
     const documentation = getDocumentation(node.documentation, writer);
@@ -68,22 +68,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         return [writer.write(getDeclarationForId(id))];
       }
     });
-    if (
-      node.vInitialValue instanceof FunctionCall &&
-      node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-      node.vInitialValue.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
-    ) {
-      // This local statement is needed since Cairo is not supporting member access of structs with let.
-      // The type hint also needs to be placed there since Cairo's default type hint is a felt.
-      return [
-        [
-          documentation,
-          `local ${declarations.join(', ')} : ${
-            node.vInitialValue.vReferencedDeclaration.name
-          } = ${writer.write(node.vInitialValue)};`,
-        ].join('\n'),
-      ];
-    } else if (declarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
+    if (declarations.length > 1) {
       return [
         [
           documentation,
