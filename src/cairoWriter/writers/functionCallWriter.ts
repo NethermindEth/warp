@@ -85,12 +85,6 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
         return [`${func}(${args})`];
       }
       case FunctionCallKind.StructConstructorCall:
-        // TODO: the way to instantiate a structs is
-        // StructName {
-        //    prop1: value1,
-        //    ...
-        //    propN: valueN,
-        // } ;
         return [
           `${
             node.vReferencedDeclaration && node.vReferencedDeclaration instanceof StructDefinition
