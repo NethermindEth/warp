@@ -3,6 +3,6 @@ import { CairoASTNodeWriter } from '../base';
 
 export class MemberAccessWriter extends CairoASTNodeWriter {
   writeInner(node: MemberAccess, writer: ASTWriter): SrcDesc {
-    return [`${writer.write(node.vExpression)}.${node.memberName}`];
+    return [`${writer.write(node.vExpression)}::${node.memberName}`];
   }
 }
