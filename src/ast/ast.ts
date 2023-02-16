@@ -325,9 +325,6 @@ export class AST {
     replaceNode(oldNode, newNode, parent);
     this.context.unregister(oldNode);
     this.setContextRecursive(newNode);
-    // if (copyImports) {
-    //   this.copyRegisteredImports(oldNode, newNode);
-    // }
     return newNode.id;
   }
 
