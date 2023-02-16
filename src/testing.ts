@@ -134,7 +134,7 @@ const expectedResults = new Map<string, ResultType>(
     ['exampleContracts/inheritance/variables.sol', 'Success'],
     ['exampleContracts/interfaces.sol', 'Success'],
     ['exampleContracts/interfaceFromBaseContract.sol', 'Success'],
-    ['example_contracts/internalFunctions.sol', 'Success'],
+    ['exampleContracts/internalFunctions.sol', 'Success'],
     ['exampleContracts/invalidSolidity.sol', 'SolCompileFailed'],
     ['exampleContracts/lib.sol', 'Success'],
     ['exampleContracts/libraries/usingForStar.sol', 'Success'],
