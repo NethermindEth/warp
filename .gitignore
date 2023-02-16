@@ -137,7 +137,7 @@ solc-v0.7.6
 
 # output from warp
 warp_output/
-warp_test/
+warpTest/
 
 #benchmark
 benchmark/*
