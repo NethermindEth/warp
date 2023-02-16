@@ -318,7 +318,7 @@ function declareContract(filePath: string, options: IDeclareOptions) {
       },
     );
   } catch {
-    logError('StarkNet declare failed');
+    logError('Starknet declare failed');
   }
 }
 
@@ -352,7 +352,7 @@ export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
       },
     );
   } catch {
-    logError('StarkNet new account creation failed');
+    logError('Starknet new account creation failed');
   }
 }
 

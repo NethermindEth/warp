@@ -79,7 +79,7 @@ export class WarnSupportedFeatures extends ASTMapper {
       console.log(
         `${warning(
           'Warning',
-        )}: Due to StarkNet restrictions, salt used for contract creation is narrowed from 'uint256' to 'felt' taking the first 248 most significant bits`,
+        )}: Due to Starknet restrictions, salt used for contract creation is narrowed from 'uint256' to 'felt' taking the first 248 most significant bits`,
       );
       [...deploySalts.entries()].forEach(([path, nodes]) => warn(path, nodes));
     }
