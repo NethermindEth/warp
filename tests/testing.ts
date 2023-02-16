@@ -1,18 +1,18 @@
 import path from 'path';
 import { CompileFailedError } from 'solc-typed-ast';
-import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from './io';
-import { compileSolFiles } from './solCompile';
-import { compileCairo } from './starknetCli';
-import { transpile } from './transpiler';
+import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from '../src/io';
+import { compileSolFiles } from '../src/solCompile';
+import { compileCairo } from '../src/starknetCli';
+import { transpile } from '../src/transpiler';
 import {
   NotSupportedYetError,
   TranspilationAbandonedError,
   WillNotSupportError,
-} from './utils/errors';
-import { groupBy, printCompileErrors } from './utils/utils';
+} from '../src/utils/errors';
+import { groupBy, printCompileErrors } from '../src/utils/utils';
 import * as fs from 'fs';
-import { outputFileSync } from './utils/fs';
-import { error } from './utils/formatting';
+import { outputFileSync } from '../src/utils/fs';
+import { error } from '../src/utils/formatting';
 
 const WARP_TEST = 'warp_test';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, 'example_contracts');
