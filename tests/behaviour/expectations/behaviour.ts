@@ -11,7 +11,6 @@ import {
   toCairoInt8,
   MIN_INT8,
   MAX_INT8,
-  cairoUint256toHex,
   encodeString,
 } from './utils';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
@@ -263,9 +262,9 @@ export const expectations = flatten(
             ),
           ]),
         ]),
-        new Dir('anonymous_parameters', [
+        new Dir('anonymousParameters', [
           new File(
-            'func_override',
+            'funcOverride',
             'A',
             [],
             [
@@ -274,7 +273,7 @@ export const expectations = flatten(
             ],
           ),
           new File(
-            'func_override',
+            'funcOverride',
             'B',
             [],
             [
@@ -285,7 +284,7 @@ export const expectations = flatten(
             ],
           ),
         ]),
-        new Dir('array_len', [
+        new Dir('arrayLen', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
           File.Simple('calldataArray', [
@@ -334,7 +333,7 @@ export const expectations = flatten(
             Expect.Simple('gapAndOrder', [], ['4', '0', '17', '0', '1', '0']),
           ]),
         ]),
-        new Dir('bool_operators', [
+        new Dir('boolOperators', [
           File.Simple('and', [
             Expect.Simple('test', ['1', '1'], ['1']),
             Expect.Simple('test', ['1', '0'], ['0']),
@@ -523,7 +522,7 @@ export const expectations = flatten(
             Expect.Simple('getLength', [], ['4', '0']),
           ]),
         ]),
-        new Dir('cairo_stubs', [
+        new Dir('cairoStubs', [
           File.Simple('basic', [Expect.Simple('useStub', [], ['5'])]),
           File.Simple('currentFunc', [
             Expect.Simple('simpleCase', [], ['1']),
@@ -533,7 +532,7 @@ export const expectations = flatten(
           ]),
           File.Simple('proxy', [
             new Expect('set hash and use', [
-              ['setHash', ['hash@tests/behaviour/contracts/cairo_stubs/basic.WARP'], [], '0'],
+              ['setHash', ['hash@tests/behaviour/contracts/cairoStubs/basic.WARP'], [], '0'],
               ['useStub_16588e6a', [], ['5'], '0'],
             ]),
           ]),
@@ -675,7 +674,7 @@ export const expectations = flatten(
             Expect.Simple('x', [], ['0', '0']),
           ]),
           new File(
-            'nested_and_or',
+            'nestedAndOr',
             'WARP',
             ['740', '0'],
             [
@@ -688,7 +687,7 @@ export const expectations = flatten(
           ),
         ]),
         new Dir('constants', [
-          File.Simple('constant_string_at_file_level', [
+          File.Simple('constantStringAtFileLevel', [
             Expect.Simple('f', [], ['3', '0x3', '0x1', '0x2']),
             Expect.Simple('g', [], ['3', '0x3', '0x1', '0x2']),
             Expect.Simple('h', [], ['5', '0x68', '0x65', '0x6C', '0x6C', '0x6F']),
@@ -854,7 +853,7 @@ export const expectations = flatten(
             Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
           ]),
         ]),
-        new Dir('copy_calldata_to_storage', [
+        new Dir('copyCalldataToStorage', [
           new Dir('implicitArrayConversions', [
             File.Simple('singleLayerBytes', [
               new Expect('BY0', [['testby0', ['10', '20', '30'], ['30', '20', '10'], '0']]),
@@ -1329,7 +1328,7 @@ export const expectations = flatten(
               ),
             ]),
           ]),
-          File.Simple('dynamic_arrays', [
+          File.Simple('dynamicArrays', [
             new Expect('felt dynamic arrays is copied from calldata to storage', [
               ['setX', ['4', '2', '3', '5', '7'], [], '0'],
               ['getXFull', [], ['4', '2', '3', '5', '7'], '0'],
@@ -1341,7 +1340,7 @@ export const expectations = flatten(
               ['getY', [], ['10', '0'], '0'],
             ]),
           ]),
-          File.Simple('static_arrays', [
+          File.Simple('staticArrays', [
             new Expect('static array is copied from calldata to storage', [
               ['setX', ['3', '0', '5', '0', '1', '0'], [], '0'],
               ['getX', [], ['9', '0'], '0'],
@@ -1383,7 +1382,7 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('copy_memory_to_calldata', [
+        new Dir('copyMemoryToCalldata', [
           File.Simple('dynArray', [
             new Expect('returning a dynarray of felts', [
               ['returnFelt', [], ['3', '10', '20', '30'], '0'],
@@ -1447,8 +1446,8 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('copy_memory_to_storage', [
-          File.Simple('array_conversions', [
+        new Dir('copyMemoryToStorage', [
+          File.Simple('arrayConversions', [
             Expect.Simple(
               'scalingDynamicCopy',
               ['4', '1', '2', '3', '4'],
@@ -1552,7 +1551,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
-          File.Simple('dynamic_arrays', [
+          File.Simple('dynamicArrays', [
             new Expect('arrays are initialised correctly', [
               ['getLengths', [], ['5', '0', '10', '0'], '0'],
               ['arr8', ['4', '0'], ['0'], '0'],
@@ -1591,7 +1590,7 @@ export const expectations = flatten(
               ['getLengths', [], ['12', '0', '5', '0'], '0'],
             ]),
           ]),
-          File.Simple('dynamic_arrays_2d', [
+          File.Simple('dynamicArrays2d', [
             new Expect('two dimensional dynamic arrays to storage', [
               ['setArr8', [], ['1', '1', '2', '0', '2', '3', '0', '0', '3'], '0'],
               ['arr8', ['0', '0', '0', '0'], ['1'], '0'],
@@ -1612,8 +1611,8 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('copy_storage_to_calldata', [
-          File.Simple('dynamic_arrays', [
+        new Dir('copyStorageToCalldata', [
+          File.Simple('dynamicArrays', [
             new Expect('felt dynamic array from storage to calldata', [
               ['pushToX', ['1'], [], '0'],
               ['pushToX', ['2'], [], '0'],
@@ -1627,7 +1626,7 @@ export const expectations = flatten(
               ['getY', [], ['3', '1', '0', '2', '0', '3', '0'], '0'],
             ]),
           ]),
-          File.Simple('static_arrays', [
+          File.Simple('staticArrays', [
             new Expect('static array copy from storage to calldata', [
               ['setX', ['1', '0', '2', '0', '3', '0'], [], '0'],
               ['getX', [], ['1', '0', '2', '0', '3', '0'], '0'],
@@ -1640,8 +1639,8 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('copy_storage_to_memory', [
-          File.Simple('dynamic_arrays', [
+        new Dir('copyStorageToMemory', [
+          File.Simple('dynamicArrays', [
             Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
             Expect.Simple('copySimpleArrayValues', [], ['5', '0', '4']),
             Expect.Simple('copySimpleArrayToIdentifier', [], ['3', '5', '0', '4']),
@@ -1651,7 +1650,7 @@ export const expectations = flatten(
               [...['3', '1', '2', '3'], ...['2', '1', '0'], ...['3', '4', '5', '6']],
             ),
           ]),
-          File.Simple('static_arrays', [
+          File.Simple('staticArrays', [
             Expect.Simple('getX', [], ['1', '2', '3', '4', '5']),
             Expect.Simple(
               'getY',
@@ -1693,8 +1692,8 @@ export const expectations = flatten(
             Expect.Simple('getP', [], ['3', '3', '5', '7']),
           ]),
         ]),
-        new Dir('copy_storage_to_storage', [
-          File.Simple('array_conversions', [
+        new Dir('copyStorageToStorage', [
+          File.Simple('arrayConversions', [
             new Expect('copy static to dynamic', [
               ['setStatic', ['4', '5', '7', '6'], ['4', '5', '7', '6'], '0'],
               ['copyStaticToDynamic', [], ['2', '4', '5', '7', '6', '4', '5', '7', '6'], '0'],
@@ -1799,7 +1798,7 @@ export const expectations = flatten(
               [...['3', '2', '3', '5'], ...['3', '2', '0', '3', '0', '5', '0']],
             ),
           ]),
-          File.Simple('dynamic_arrays', [
+          File.Simple('dynamicArrays', [
             new Expect('copy values', [
               ['setArr1', ['5', '7', '6', ' 8', '3', '2', '1', ' 9'], [], '0'],
               ['copy', [], [], '0'],
@@ -1818,7 +1817,7 @@ export const expectations = flatten(
               ['getValues', [], ['4', '4', '3'], '0'],
             ]),
           ]),
-          File.Simple('static_arrays', [
+          File.Simple('staticArrays', [
             new Expect('copy values', [
               ['setArr1', ['5', '7', '6', ' 8'], [], '0'],
               ['copy', [], [], '0'],
@@ -1849,9 +1848,9 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('cross_contract_calls', [
+        new Dir('crossContractCalls', [
           File.Simple(
-            'this_methods_call',
+            'thisMethodsCall',
             [Expect.Simple('execute_add', ['2', '0', '35', '0'], ['637', '0'])],
             'A',
           ),
@@ -1861,62 +1860,62 @@ export const expectations = flatten(
             [
               Expect.Simple(
                 'f',
-                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['address@tests/behaviour/contracts/crossContractCalls/simple.A'],
                 ['69', '0'],
               ),
             ],
             'WARP',
           ),
-          File.Simple('public_vars', [Expect.Simple('f', [], ['696', '0'])], 'A'),
+          File.Simple('publicVars', [Expect.Simple('f', [], ['696', '0'])], 'A'),
           File.Simple(
-            'public_vars',
+            'publicVars',
             [
               Expect.Simple(
                 'setA',
-                ['address@tests/behaviour/contracts/cross_contract_calls/public_vars.A'],
+                ['address@tests/behaviour/contracts/crossContractCalls/publicVars.A'],
                 [],
               ),
             ],
             'B',
           ),
           File.Simple(
-            'public_vars',
+            'publicVars',
             [
               Expect.Simple(
                 'setB',
                 [
-                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.A',
-                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.B',
+                  'address@tests/behaviour/contracts/crossContractCalls/publicVars.A',
+                  'address@tests/behaviour/contracts/crossContractCalls/publicVars.B',
                 ],
                 [],
               ),
               Expect.Simple('foo', [], ['696', '0']),
               Expect.Simple(
                 'f',
-                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['address@tests/behaviour/contracts/crossContractCalls/simple.A'],
                 ['69', '0'],
               ),
             ],
             'C',
           ),
           File.Simple(
-            'other_contract_same_type',
+            'otherContractSameType',
             [Expect.Simple('counter', [], ['0', '0'])],
             'WARPDuplicate',
           ),
-          File.Simple('other_contract_same_type', [
+          File.Simple('otherContractSameType', [
             Expect.Simple('counter', [], ['0', '0']),
             Expect.Simple(
               'getAndIncrementOtherCounter',
               [
-                'address@tests/behaviour/contracts/cross_contract_calls/other_contract_same_type.WARPDuplicate',
+                'address@tests/behaviour/contracts/crossContractCalls/otherContractSameType.WARPDuplicate',
               ],
               ['0', '0'],
             ),
             Expect.Simple(
               'getCounters',
               [
-                'address@tests/behaviour/contracts/cross_contract_calls/other_contract_same_type.WARPDuplicate',
+                'address@tests/behaviour/contracts/crossContractCalls/otherContractSameType.WARPDuplicate',
               ],
               [...['0', '0'], ...['1', '0']],
             ),
@@ -1925,7 +1924,7 @@ export const expectations = flatten(
           File.Simple('dynArrays', [
             Expect.Simple(
               'receiveArr',
-              ['address@tests/behaviour/contracts/cross_contract_calls/dynArrays.ArrayProvider'],
+              ['address@tests/behaviour/contracts/crossContractCalls/dynArrays.ArrayProvider'],
               ['3', '0'],
             ),
             Expect.Simple(
@@ -1936,12 +1935,12 @@ export const expectations = flatten(
                 '8',
                 '9',
                 '3',
-                'address@tests/behaviour/contracts/cross_contract_calls/dynArrays.ArrayProvider',
+                'address@tests/behaviour/contracts/crossContractCalls/dynArrays.ArrayProvider',
               ],
               ['2', '0', '5', '0', '4', '0', '2', '0', '5', '0', '4', '0'],
             ),
           ]),
-          File.Simple('external_base_this_call', [
+          File.Simple('externalBaseThisCall', [
             Expect.Simple('externalCallSelfAsBase', [], ['23', '0']),
           ]),
           File.Simple('otherReferenceTypes', [
@@ -1951,7 +1950,7 @@ export const expectations = flatten(
           ]),
         ]),
         // covers nested mappings
-        new Dir('Dai', [
+        new Dir('daii', [
           new File(
             'dai',
             'Dai',
@@ -1992,7 +1991,7 @@ export const expectations = flatten(
         new Dir('delete', [
           File.Simple('address', [Expect.Simple('f', [], ['23', '0'])]),
 
-          File.Simple('array_static', [
+          File.Simple('arrayStatic', [
             new Expect('delete', [
               ['set', ['2', '0', '3', '4'], ['3', '4'], '0'],
               ['clearAt', ['2', '0'], [], '0'],
@@ -2005,7 +2004,7 @@ export const expectations = flatten(
             ]),
           ]),
 
-          File.Simple('array_dynamic', [
+          File.Simple('arrayDynamic', [
             new Expect('delete', [
               ['initialize', [], [], '0'],
               ['clearAt', ['2', '0'], [], '0'],
@@ -2068,18 +2067,18 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('ElementaryTypeNames', [
+        new Dir('elementaryTypesNames', [
           File.Simple('example', [Expect.Simple('ArrayFunc', [], ['69', '0'])]),
         ]),
         new Dir('ecrecover', [
-          File.Simple('failing_ecrecover_invalid_input', [
+          File.Simple('failingEcrecoverInvalidInput', [
             Expect.Simple('f', [], ['0']),
             Expect.Simple('g', [], ['0']),
             Expect.Simple('h', [], ['0']),
             Expect.Simple('i', [], ['0']),
             Expect.Simple('j', [], ['0']),
           ]),
-          File.Simple('ecrecover_abiV2', [
+          File.Simple('ecrecoverAbiV2', [
             Expect.Simple(
               'a',
               [
@@ -2195,7 +2194,7 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('error_handling', [
+        new Dir('errorHandling', [
           File.Simple('revert', [
             new Expect('conditionalRevert', [['couldFail', ['2'], ['4', '0'], '0']]),
             new Expect('conditionalRevert should fail', [
@@ -2739,7 +2738,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
-          File.Simple('assign_split', [
+          File.Simple('assignSplit', [
             Expect.Simple('plusEqual', [], ['60', '0']),
             Expect.Simple('starEqual', [], ['20', '0']),
             Expect.Simple('equal', [], ['4', '0']),
@@ -2747,7 +2746,7 @@ export const expectations = flatten(
             Expect.Simple('starEqualTotal', ['5', '0'], ['30', '0']),
             Expect.Simple('equalTotal', ['10', '0'], ['16', '0']),
           ]),
-          File.Simple('assignments_as_rvalues', [
+          File.Simple('assignmentsAsRvalues', [
             Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
             Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
             Expect.Simple('assigningLocalStoragePointers', [], ['42', '0', '0', '21']),
@@ -2810,7 +2809,7 @@ export const expectations = flatten(
             Expect.Simple('bitwiseOr', [], ['22']),
             Expect.Simple('bitwiseXor', [], ['20']),
           ]),
-          File.Simple('short_circuit', [
+          File.Simple('shortCircuit', [
             Expect.Simple('and_sc', [], ['56', '0']),
             Expect.Simple('and_no_sc', [], ['1', '0']),
             Expect.Simple('or_sc', [], ['56', '0']),
@@ -2826,8 +2825,8 @@ export const expectations = flatten(
             Expect.Simple('test3', ['3', '0', '8', '0'], ['3', '0', '8', '0']),
           ]),
         ]),
-        new Dir('external_function_inputs', [
-          File.Simple('dynamic_array_return_index', [
+        new Dir('externalFunctionInputs', [
+          File.Simple('dynamicArrayReturnIndex', [
             new Expect(
               'testing that dynamic memory array as calldata are tranformed and returned correctly',
               [
@@ -2927,7 +2926,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
-          File.Simple('dynarray_array_conversion', [
+          File.Simple('dynarrayArrayConversion', [
             new Expect(
               'testing that dynamic arrays of (nested) static arrays have their length encoded correctly when returned from memory',
               [
@@ -2963,7 +2962,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
-          File.Simple('struct_return_member', [
+          File.Simple('structReturnMember', [
             new Expect('testing that memory struct is written to memory and member is returned', [
               ['testReturnMember', ['1', '2'], ['1'], '0'],
             ]),
@@ -2983,7 +2982,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
-          File.Simple('struct_return_struct', [
+          File.Simple('structReturnStruct', [
             new Expect(
               'testing that memory struct is written to memory and full struct is returned from external function',
               [['testReturnStruct', ['1', '2'], ['1', '2'], '0']],
@@ -2993,7 +2992,7 @@ export const expectations = flatten(
               [['testReturnStructPublic', ['1', '2'], ['1', '2'], '0']],
             ),
           ]),
-          File.Simple('static_array_return_index', [
+          File.Simple('staticArrayReturnIndex', [
             new Expect(
               'testing a static array of ints can be passed into an external function and written to memory and index returned.',
               [['testIntExternal', ['1', '2', '3'], ['3'], '0']],
@@ -3030,7 +3029,7 @@ export const expectations = flatten(
             ),
           ]),
         ]),
-        new Dir('external_input_checks', [
+        new Dir('externalInputChecks', [
           File.Simple('address', [
             new Expect('testing an address in bounds does not throw', [
               [
@@ -3355,7 +3354,7 @@ export const expectations = flatten(
         ]),
         new Dir('fallback', [
           new File(
-            'fallback_overriden',
+            'fallbackOverriden',
             'A',
             ['100', '0'],
             [
@@ -3369,7 +3368,7 @@ export const expectations = flatten(
             ],
           ),
           new File(
-            'fallback_overriden',
+            'fallbackOverriden',
             'B',
             ['100', '0'],
             [
@@ -3380,7 +3379,7 @@ export const expectations = flatten(
             ],
           ),
           new File(
-            'fallback_overriden',
+            'fallbackOverriden',
             'C',
             ['100', '0'],
             [
@@ -3389,7 +3388,7 @@ export const expectations = flatten(
               ]),
             ],
           ),
-          File.Simple('fallback_return', [
+          File.Simple('fallbackReturn', [
             Expect.Simple('unexistent', [], []),
             Expect.Simple('x', [], ['1', '0']),
             Expect.Simple('unexistent', [], []),
@@ -3493,7 +3492,7 @@ export const expectations = flatten(
               [Expect.Simple('a', [], ['0', '0'])],
             ),
             new File(
-              'order_of_eval',
+              'orderOfEval',
               'X',
               [],
               [Expect.Simple('g', [], ['4', '4', '0', '2', '0', '1', '0', '3', '0'])],
@@ -3583,11 +3582,11 @@ export const expectations = flatten(
               Expect.Simple('set', ['1', '5'], ['1']),
             ]),
           ]),
-          new Dir('super_calls', [
+          new Dir('superCalls', [
             new File('order', 'Final', [], [Expect.Simple('f', [], ['2', '0'])]),
-            new File('super_in_constructor', 'D', [], [Expect.Simple('f', [], ['15', '0'])]),
+            new File('superInConstructor', 'D', [], [Expect.Simple('f', [], ['15', '0'])]),
             new File(
-              'super_in_modifier',
+              'superInModifier',
               'Final',
               [],
               [Expect.Simple('f', ['75', '0'], ['50', '0'])],
@@ -3609,13 +3608,13 @@ export const expectations = flatten(
         ]),
         new Dir('libraries', [
           File.Simple('constantInitialization', [Expect.Simple('f', [], ['20001'])]),
-          File.Simple('using_for', [
+          File.Simple('usingFor', [
             Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
           ]),
           File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
           File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
-          new File('libraries_in_inheritance', 'C', [], [Expect.Simple('g', [], ['1', '0'])]),
-          File.Simple('library_call_in_homestead', [
+          new File('librariesInInheritance', 'C', [], [Expect.Simple('g', [], ['1', '0'])]),
+          File.Simple('libraryCallInHomestead', [
             new Expect('f', [['f', [], [], '234']]),
             new Expect('sender', [['sender', [], ['234'], '465']]),
           ]),
@@ -3628,7 +3627,7 @@ export const expectations = flatten(
             ),
           ]),
           new Dir('freeFunctionsLib', [
-            File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),
+            File.Simple('directAndIndirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),
             File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
           ]),
         ]),
@@ -3646,8 +3645,8 @@ export const expectations = flatten(
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
         ]),
-        new Dir('mangled_identifiers', [
-          File.Simple('free_function', [
+        new Dir('mangledIdentifiers', [
+          File.Simple('freeFunction', [
             Expect.Simple('f', [], ['20']),
             Expect.Simple('s', [], ['10']),
           ]),
@@ -3747,7 +3746,7 @@ export const expectations = flatten(
             ),
             Expect.Simple('addition256signedunsafe', ['20', '1', '5', '2'], ['25', '3']),
           ]),
-          File.Simple('bitwise_and', [
+          File.Simple('bitwiseAnd', [
             Expect.Simple('bitwise_and8safe', ['15', '45'], ['13']),
             Expect.Simple('bitwise_and8signedsafe', ['15', '45'], ['13']),
             Expect.Simple('bitwise_and8unsafe', ['15', '45'], ['13']),
@@ -3757,7 +3756,7 @@ export const expectations = flatten(
             Expect.Simple('bitwise_and256unsafe', ['15', '90', '45', '80'], ['13', '80']),
             Expect.Simple('bitwise_and256signedunsafe', ['15', '90', '45', '80'], ['13', '80']),
           ]),
-          File.Simple('bitwise_or', [
+          File.Simple('bitwiseOr', [
             Expect.Simple('bitwise_or8safe', ['14', '57'], ['63']),
             Expect.Simple('bitwise_or8signedsafe', ['14', '57'], ['63']),
             Expect.Simple('bitwise_or8unsafe', ['14', '57'], ['63']),
@@ -4240,7 +4239,7 @@ export const expectations = flatten(
             ),
           ]),
         ]),
-        new Dir('named_args', [
+        new Dir('namedArgs', [
           File.Simple('function', [
             Expect.Simple('f', [], []),
             Expect.Simple('k', [], ['365', '0']),
@@ -4255,24 +4254,24 @@ export const expectations = flatten(
             ),
           ]),
         ]),
-        new Dir('public_func_splitter', [
-          File.Simple('value_passing', [], 'A'),
+        new Dir('publicFuncSplitter', [
+          File.Simple('valuePassing', [], 'A'),
           File.Simple(
-            'value_passing',
+            'valuePassing',
             [
               Expect.Simple('testExternalCallMemberAccess', [], ['1', '2']),
               Expect.Simple('testInternalCallMemberAccess', [], ['10', '11']),
               Expect.Simple('testInternalCallIdentifier', [], ['10', '11']),
               Expect.Simple(
                 'testExternalCallCrossContract',
-                ['address@tests/behaviour/contracts/public_func_splitter/value_passing.A'],
+                ['address@tests/behaviour/contracts/publicFuncSplitter/valuePassing.A'],
                 ['1', '2'],
               ),
             ],
             'WARP',
           ),
         ]),
-        new Dir('public_state_vars', [
+        new Dir('publicStateVars', [
           File.Simple('elementary', [
             Expect.Simple('a', [], ['234', '0']),
             Expect.Simple('b', [], ['23']),
@@ -4346,8 +4345,8 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('preExpressionSplitter', [
-          File.Simple('assign_simple', [Expect.Simple('f', [], ['10', ''])]),
-          File.Simple('assign_simple', [Expect.Simple('g', [], ['15', ''])]),
+          File.Simple('assignSimple', [Expect.Simple('f', [], ['10', ''])]),
+          File.Simple('assignSimple', [Expect.Simple('g', [], ['15', ''])]),
         ]),
         new Dir('returns', [
           File.Simple('initialiseStorageReturns', [
@@ -4372,8 +4371,8 @@ export const expectations = flatten(
             Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
-        new Dir('static_array_index_access', [
-          File.Simple('static_array_index_access', [
+        new Dir('staticArrayIndexAccess', [
+          File.Simple('staticArrayIndexAccess', [
             Expect.Simple('t0', ['3', '2', '1', '0', '0'], ['3']),
             Expect.Simple(
               't1',
@@ -4417,11 +4416,11 @@ export const expectations = flatten(
         ]),
         new Dir('storage', [
           new Dir('delete', [
-            File.Simple('value_dyn_array', [
+            File.Simple('valueDynArray', [
               Expect.Simple('tryDeleteX', [], ['28']),
               Expect.Simple('tryDeleteY', [], ['71', '0']),
             ]),
-            File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
+            File.Simple('refDynArray', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
             File.Simple('struct', [
               Expect.Simple(
                 'deleteValueStruct',
@@ -4444,7 +4443,7 @@ export const expectations = flatten(
                 ['getMapStruct', ['5'], ['10'], '0'],
               ]),
             ]),
-            File.Simple('map_2d_dyn_array', [
+            File.Simple('map2dDynArray', [
               new Expect('delete 2d dynamic arrays with mappings', [
                 ['n1', ['3', '0', '5', '0'], [], '0'],
                 ['map', ['3', '0'], ['5', '0'], '0'],
@@ -4456,7 +4455,7 @@ export const expectations = flatten(
                 ['map', ['3', '0'], ['5', '0'], '0'],
               ]),
             ]),
-            File.Simple('static_array', [
+            File.Simple('staticArray', [
               new Expect('delete small static array', [
                 ['setSmall', ['0', '1'], [], '0'],
                 ['setSmall', ['0', '2'], [], '0'],
@@ -4479,7 +4478,7 @@ export const expectations = flatten(
               ]),
             ]),
           ]),
-          File.Simple('dynamic_arrays', [
+          File.Simple('dynamicArrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),
             Expect.Simple('set', ['0', '0', '0'], null, 'out of range set should fail'),
             Expect.Simple('length', [], ['0', '0'], 'length should start as 0'),
@@ -4571,7 +4570,7 @@ export const expectations = flatten(
               ['getValues', [], ['11', '32'], '0'],
             ]),
           ]),
-          File.Simple('static_arrays', [
+          File.Simple('staticArrays', [
             Expect.Simple('length', [], ['5', '0']),
             Expect.Simple('get', ['2', '0'], ['0'], 'initial value'),
             Expect.Simple('get', ['5', '0'], null, 'out of range'),
@@ -4615,31 +4614,31 @@ export const expectations = flatten(
             Expect.Simple('memoryToStorageAssignment', [], [...encodeString('WARP')]),
           ]),
         ]),
-        new Dir('this_keyword', [
+        new Dir('thisKeyword', [
           File.Simple('thisKeyword', [
             Expect.Simple(
               'simpleThis',
               [],
-              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+              ['address@tests/behaviour/contracts/thisKeyword/thisKeyword.WARP'],
             ),
             Expect.Simple(
               'getAddress',
               [],
-              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+              ['address@tests/behaviour/contracts/thisKeyword/thisKeyword.WARP'],
             ),
             Expect.Simple(
               'getAddressAssignment',
               [],
-              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+              ['address@tests/behaviour/contracts/thisKeyword/thisKeyword.WARP'],
             ),
           ]),
         ]),
         new Dir('tuples', [
-          File.Simple('calldata_tuple', [
+          File.Simple('calldataTuple', [
             Expect.Simple('tupleSplit', ['3', '1', '2', '3', '5'], ['5']),
           ]),
         ]),
-        new Dir('type_information', [
+        new Dir('typeInformation', [
           File.Simple('informationEnum', [
             Expect.Simple('dMin', [], ['0']),
             Expect.Simple('dMax', [], ['3']),
@@ -4649,7 +4648,7 @@ export const expectations = flatten(
             Expect.Simple('getId', [], ['3619205059']),
           ]),
         ]),
-        new Dir('type_name_type_removal', [
+        new Dir('typeNameTypeRemoval', [
           File.Simple('complex', [
             Expect.Simple('assignment', [], []),
             Expect.Simple('varDeclStatement', [], []),
@@ -4662,13 +4661,13 @@ export const expectations = flatten(
             Expect.Simple('indexAccess', [], []),
           ]),
         ]),
-        new Dir('underscore_integers', [
-          File.Simple('underscore_integers', [
+        new Dir('underscoreIntegers', [
+          File.Simple('underscoreIntegers', [
             Expect.Simple('a', [], ['10000', '0']),
             Expect.Simple('b', [], ['10000', '0']),
           ]),
         ]),
-        new Dir('user_defined_value_types', [
+        new Dir('userDefinedValueTypes', [
           File.Simple('overloading', [
             Expect.Simple(
               'callOverloads',
@@ -4677,7 +4676,7 @@ export const expectations = flatten(
               'test wrapped value goes to different overload',
             ),
           ]),
-          File.Simple('user_defined_value_types', [
+          File.Simple('userDefinedValueTypes', [
             Expect.Simple('narrowUnsigned', ['1', '0'], ['1']),
             Expect.Simple('narrowUnsigned', ['2', '0'], ['2']),
             Expect.Simple('narrowUnsigned', ['257', '0'], ['1']),
@@ -4704,7 +4703,7 @@ export const expectations = flatten(
             Expect.Simple('narrowWithUnwrap', ['257'], ['1']),
           ]),
         ]),
-        new Dir('using_for', [
+        new Dir('usingFor', [
           File.Simple('simple', [
             Expect.Simple('callOnIdentifier', [], ['6', '0']),
             Expect.Simple('callOnFunctionCall', [], ['60', '0']),
@@ -4751,7 +4750,7 @@ export const expectations = flatten(
           ),
         ],
       ),
-      File.Simple('ERC20_storage', [
+      File.Simple('ERC20Storage', [
         Expect.Simple('deposit', ['74', '0', '500', '0'], []),
         Expect.Simple('transferFrom', ['74', '0', '68', '0', '400', '0', '74', '0'], ['1']),
         Expect.Simple('withdraw', ['80', '0', '74', '0'], []),

@@ -9,11 +9,11 @@ To execute this script, run:
 ` $ VERSION=*SOLC_VERSION* FITLER=*filter* yarn test:semantic --compare `
 
 - compare flag will tell the differences between tests list present in 
-  semantic_whitelist.ts and tests written in specified version of solc
+  semanticWhitelist.ts and tests written in specified version of solc
 - filter can be specified to run a specfic group of tests or an individual 
   test
 
-It generates a file `tests/behaviour/expectations/semantic_tests_generated.ts`
+It generates a file `tests/behaviour/expectations/semanticTestsGenerated.ts`
 which contains the list of tests and call the routine `behaviour.test.ts`
 test execution step for every group of semantic tests.
 */
@@ -38,7 +38,7 @@ if (!existsSync('./tests/behaviour/solidity')) {
   execSync(`VERSION=${version}./tests/behaviour/setup.sh`);
 }
 
-const whitelistPath = './tests/behaviour/expectations/semantic_whitelist.ts';
+const whitelistPath = './tests/behaviour/expectations/semanticWhitelist.ts';
 const whitelistData = readFileSync(whitelistPath, 'utf-8');
 
 const testsSupportStatus: Map<string, string> = new Map(); // key: test-name , value : string
@@ -48,7 +48,7 @@ whitelistData.split('\n').forEach((line) => {
 
   if (trimmed.startsWith(`// 'tests/behaviour/solidity/test/libsolidity/semanticTests/`)) {
     /**
-     *  Tests with comments in semantic_whitelist.ts is considered as unsupported
+     *  Tests with comments in semanticWhitelist.ts is considered as unsupported
      *  So, a unsupported test entry in the list contains more than one '//'s.
      *  An example entry of unsupported test is:
      *      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_variables_init_order_3.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
@@ -126,9 +126,9 @@ const filterDirs: string[] = [
 ];
 
 const currentTestsFileBody = readFileSync(
-  './tests/behaviour/expectations/semantic_tests_generated.ts',
+  './tests/behaviour/expectations/semanticTestsGenerated.ts',
   'utf-8',
-); // Read current state of semantic_tests_generated.ts
+); // Read current state of semanticTestsGenerated.ts
 
 filterDirs.forEach((dir) => {
   const testFiles = execSync(`find ./${dir} -mindepth 1 -maxdepth 1 -name '*.sol'`)
@@ -139,7 +139,7 @@ filterDirs.forEach((dir) => {
     .map((file) => file.slice(2))
     .filter((file) => {
       // ASK: what if there is new test added in the release
-      // ASK: i.e test present in this release but not in semantic_whitelist
+      // ASK: i.e test present in this release but not in semanticWhitelist
       if (filter) {
         return file.includes(filter) && testsSupportStatus.get(file) === 'SUPPORTED';
       }
@@ -162,7 +162,7 @@ filterDirs.forEach((dir) => {
       'export default tests;',
     ];
     writeFileSync(
-      './tests/behaviour/expectations/semantic_tests_generated.ts',
+      './tests/behaviour/expectations/semanticTestsGenerated.ts',
       testsFileBody.join('\n'),
     );
     try {
@@ -176,4 +176,4 @@ filterDirs.forEach((dir) => {
   }
 });
 
-writeFileSync('./tests/behaviour/expectations/semantic_tests_generated.ts', currentTestsFileBody); // restore the content of the file
+writeFileSync('./tests/behaviour/expectations/semanticTestsGenerated.ts', currentTestsFileBody); // restore the content of the file
