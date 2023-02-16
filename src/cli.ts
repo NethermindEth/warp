@@ -17,7 +17,6 @@ import {
 } from './starknetCli';
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
-import { runTests } from './testing';
 
 import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
@@ -183,22 +182,6 @@ export function runTransform(file: string, options: CliOptions) {
     handleTranspilationError(e);
   }
 }
-
-program
-  .command('test')
-  .description('Deprecated testing framework')
-  .option('-f --force')
-  .option('-r --results')
-  .option('-u --unsafe')
-  .option('-e --exact')
-  .action((options) =>
-    runTests(
-      options.force ?? false,
-      options.results ?? false,
-      options.unsafe ?? false,
-      options.exact ?? false,
-    ),
-  );
 
 program
   .command('analyse <file>')
