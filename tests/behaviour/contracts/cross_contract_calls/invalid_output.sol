@@ -13,10 +13,10 @@ interface I{
 contract A{
     /// warp-cairo
     /// DECORATOR(external)
-    /// func invalid_bde9e40e() -> (number : felt) {
+    /// func CURRENTFUNC()() -> (number : felt) {
     ///     return (783495,);
     /// }
-    function invalid() public returns (uint) {
+    function invalid() public returns (uint128) {
     }
 }
 
