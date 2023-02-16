@@ -7,7 +7,7 @@ import {
 import { FunctionStubKind } from './cairoFunctionDefinition';
 import { CairoRawStringFunctionDefinition } from './cairoRawStringFunctionDefinition';
 
-export class CairoFunctionStub extends CairoRawStringFunctionDefinition {
+export class CairoBlockFunctionDefinition extends CairoRawStringFunctionDefinition {
   constructor(
     id: number,
     src: string,

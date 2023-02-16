@@ -35,8 +35,11 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   //    S[];
   // }
   private creatingFunctions: Map<string, string>;
+
+  // Map to store unsolved function dependecies
+  // of generated functions
   private functionDependencies: Map<string, string[]>;
-  // private nothingHandlerGen: boolean;
+
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageReadGen: StorageReadGen,
@@ -46,7 +49,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
     this.creatingFunctions = new Map();
     this.functionDependencies = new Map();
-    // this.nothingHandlerGen = false;
   }
 
   public gen(node: Expression): FunctionCall {
@@ -100,19 +102,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): GeneratedFunctionInfo {
-    // const processingName = this.creatingFunctions.get(generateKey(type));
-    // if (processingName !== undefined) {
-    //   return {
-    //     name: processingName,
-    //     get code(): string {
-    //       throw new TranspileFailedError('Attempting to access unexistent code');
-    //     },
-    //     get functionsCalled(): CairoFunctionDefinition {
-    //       throw new TranspileFailedError('Attempting to access unexistent calls');
-    //     },
-    //   };
-    // }
-
     const funcInfo = delegateBasedOnType<GeneratedFunctionInfo>(
       type,
       (type) => this.deleteDynamicArray(type),
@@ -126,16 +115,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       (type) => this.deleteNothing(type),
       (type) => this.deleteGeneric(type),
     );
-
-    // WS_MAP_DELETE can be keyed with multiple types but since its definition
-    // is always the same we want to make sure its not duplicated or else it
-    // clashes with itself.
-    // if (funcInfo.name === 'WS_MAP_DELETE' && !this.nothingHandlerGen) {
-    //   this.nothingHandlerGen = true;
-    // } else if (funcInfo.name === 'WS_MAP_DELETE' && this.nothingHandlerGen) {
-    //   funcInfo.code = '';
-    //   return funcInfo;
-    // }
     return funcInfo;
   }
 
