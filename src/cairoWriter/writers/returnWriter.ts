@@ -17,17 +17,8 @@ const WARP_MEMORY = 'warp_memory';
 
 export class ReturnWriter extends CairoASTNodeWriter {
   writeInner(node: Return, writer: ASTWriter): SrcDesc {
-    let returns = '()';
     const documentation = getDocumentation(node.documentation, writer);
-    if (node.vExpression) {
-      const expWriten = writer.write(node.vExpression);
-      returns =
-        node.vExpression instanceof TupleExpression ||
-        (node.vExpression instanceof FunctionCall &&
-          node.vExpression.kind !== FunctionCallKind.StructConstructorCall)
-          ? expWriten
-          : `(${expWriten},)`;
-    }
+    const returns = node.vExpression ? writer.write(node.vExpression) : '';
 
     const finalizeWarpMemory = this.usesImplicit(WARP_MEMORY, node)
       ? 'default_dict_finalize(warp_memory_start, warp_memory, 0);\n'
