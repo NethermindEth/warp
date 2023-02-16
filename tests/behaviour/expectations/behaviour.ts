@@ -1948,6 +1948,23 @@ export const expectations = flatten(
             Expect.Simple('getS', [], ['1', '2', '3', '5']),
             Expect.Simple('getT', [], ['7', '11', '13']),
           ]),
+          // Force "A" contract deployment
+          File.Simple('invalidOutput', [], 'A'),
+          File.Simple(
+            'invalidOutput',
+            [
+              new Expect('f', [
+                [
+                  'f',
+                  ['address@tests/behaviour/contracts/crossContractCalls/invalidOutput.A'],
+                  null,
+                  '1',
+                  'Error: value out-of-bounds. Value must be less than 2**8',
+                ],
+              ]),
+            ],
+            'WARP',
+          ),
         ]),
         // covers nested mappings
         new Dir('daii', [
