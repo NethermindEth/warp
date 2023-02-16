@@ -58,7 +58,7 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
                 nodeType.definition.name,
                 node,
                 interfaceNameMappings,
-              )}.${(isDelegateCall ? 'library_call_' : '') + memberName}(${firstArg}${
+              )}::${(isDelegateCall ? 'library_call_' : '') + memberName}(${firstArg}${
                 args ? ', ' : ''
               }${args})`,
             ];
@@ -70,7 +70,7 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
         ) {
           const [len_suffix, name_suffix] = node.vReferencedDeclaration.acceptsRawDarray
             ? ['_len', '']
-            : ['.len', '.ptr'];
+            : ['::len', '::ptr'];
           const argTypes = node.vArguments.map((v) => ({
             name: writer.write(v),
             type: safeGetNodeType(v, this.ast.inference),
@@ -85,6 +85,12 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
         return [`${func}(${args})`];
       }
       case FunctionCallKind.StructConstructorCall:
+        // TODO: the way to instantiate a structs is
+        // StructName {
+        //    prop1: value1,
+        //    ...
+        //    propN: valueN,
+        // } ;
         return [
           `${
             node.vReferencedDeclaration && node.vReferencedDeclaration instanceof StructDefinition
