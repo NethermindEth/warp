@@ -1,10 +1,4 @@
-import {
-  ASTWriter,
-  ExternalReferenceType,
-  Identifier,
-  MemberAccess,
-  SrcDesc,
-} from 'solc-typed-ast';
+import { ASTWriter, Identifier, SrcDesc } from 'solc-typed-ast';
 import { isCalldataDynArrayStruct, isExternalMemoryDynArray } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { structRemappings } from './sourceUnitWriter';
