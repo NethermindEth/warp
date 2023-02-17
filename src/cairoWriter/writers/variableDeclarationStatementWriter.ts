@@ -10,7 +10,6 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 import { TranspileFailedError } from '../../utils/errors';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternalCall } from '../../utils/utils';

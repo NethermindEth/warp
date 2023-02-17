@@ -1,11 +1,4 @@
-import {
-  ASTWriter,
-  FunctionCall,
-  FunctionCallKind,
-  Return,
-  SrcDesc,
-  TupleExpression,
-} from 'solc-typed-ast';
+import { ASTWriter, Return, SrcDesc } from 'solc-typed-ast';
 import { CairoFunctionDefinition } from '../../ast/cairoNodes/cairoFunctionDefinition';
 import { Implicits } from '../../utils/implicits';
 import { isExternallyVisible } from '../../utils/utils';
