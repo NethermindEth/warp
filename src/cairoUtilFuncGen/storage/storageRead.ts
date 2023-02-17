@@ -60,7 +60,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}){`,
-        `    alloc_locals;`,
+        `    `,
         ...reads.map((s) => `    ${s}`),
         `    return (${pack},);`,
         '}',

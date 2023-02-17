@@ -32,7 +32,7 @@ export function uint256(n: bigint | number): string {
   }
   const low = n % 2n ** 128n;
   const high = (n - low) / 2n ** 128n;
-  return `Uint256(0x${low.toString(16)}, 0x${high.toString(16)})`;
+  return `u256(0x${low.toString(16)}, 0x${high.toString(16)})`;
 }
 
 export function bound(width: number): string {

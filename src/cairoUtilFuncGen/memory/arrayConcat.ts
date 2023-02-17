@@ -94,13 +94,13 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const funcName = `concat${this.generatedFunctions.size}_${argAmount}`;
 
     if (argAmount === 0) {
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+      this.requireImport('starkware.cairo.common.uint256', 'u256');
       this.requireImport('warplib.memory', 'wm_new');
       return {
         name: funcName,
         code: [
           `func ${funcName}${implicits}() -> (res_loc : felt){`,
-          `   alloc_locals;`,
+          `   `,
           `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
           `   return (res_loc,);`,
           `}`,
@@ -114,7 +114,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     });
     const code = [
       `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt){`,
-      `    alloc_locals;`,
+      `    `,
       `    // Get all sizes`,
       ...argTypes.map((t, n) => this.getSize(t, n)),
       `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};`,
@@ -134,7 +134,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
 

@@ -8,13 +8,13 @@ export function add(): void {
     'add',
     [
       'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
+      'from starkware.cairo.common.uint256 import u256, uint256_add',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs);`,
+          `func warp_add256{range_check_ptr}(lhs : u256, rhs : u256) -> (res : u256){`,
+          `    let (res : u256, carry : felt) = uint256_add(lhs, rhs);`,
           `    assert carry = 0;`,
           `    return (res,);`,
           `}`,
@@ -40,13 +40,13 @@ export function add_unsafe(): void {
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
+      'from starkware.cairo.common.uint256 import u256, uint256_add',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-          `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
+          `func warp_add_unsafe256{range_check_ptr}(lhs : u256, rhs : u256) -> (res : u256){`,
+          `    let (res : u256, _) = uint256_add(lhs, rhs);`,
           `    return (res,);`,
           `}`,
         ];
@@ -70,16 +70,16 @@ export function add_signed(): void {
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
+      'from starkware.cairo.common.uint256 import u256, uint256_add',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_add_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
+          `        lhs : u256, rhs : u256) -> (res : u256){`,
           `    let (lhs_extend) = bitwise_and(lhs.high, ${msb(128)});`,
           `    let (rhs_extend) = bitwise_and(rhs.high, ${msb(128)});`,
-          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs);`,
+          `    let (res : u256, carry : felt) = uint256_add(lhs, rhs);`,
           `    let carry_extend = lhs_extend + rhs_extend + carry*${msb(128)};`,
           `    let (msb) = bitwise_and(res.high, ${msb(128)});`,
           `    let (carry_lsb) = bitwise_and(carry_extend, ${msb(128)});`,
@@ -115,13 +115,13 @@ export function add_signed_unsafe(): void {
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
+      'from starkware.cairo.common.uint256 import u256, uint256_add',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add_signed_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-          `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
+          `func warp_add_signed_unsafe256{range_check_ptr}(lhs : u256, rhs : u256) -> (res : u256){`,
+          `    let (res : u256, _) = uint256_add(lhs, rhs);`,
           `    return (res,);`,
           `}`,
         ];

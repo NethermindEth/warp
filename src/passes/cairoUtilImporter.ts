@@ -9,7 +9,7 @@ import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
   Analyses the tree after all processing has been done to find code the relies on
   cairo imports that are not easy to add elsewhere. For example it's easy to import
   the warplib maths functions as they are added to the code, but for determining if
-  Uint256 needs to be imported, it's easier to do it here
+  u256 needs to be imported, it's easier to do it here
 */
 export class CairoUtilImporter extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -19,15 +19,15 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
-    if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+    if (primitiveTypeToCairo(node.name) === 'u256') {
+      ast.registerImport(node, 'starkware.cairo.common.uint256', 'u256');
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+      ast.registerImport(node, 'starkware.cairo.common.uint256', 'u256');
     }
   }
 

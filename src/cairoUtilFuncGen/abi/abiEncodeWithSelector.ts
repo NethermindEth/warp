@@ -72,7 +72,7 @@ export class AbiEncodeWithSelector extends AbiBase {
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  let bytes_index : felt = 0;`,
       `  let bytes_offset : felt = ${initialOffset};`,
       `  let (bytes_array : felt*) = alloc();`,
@@ -84,7 +84,7 @@ export class AbiEncodeWithSelector extends AbiBase {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');

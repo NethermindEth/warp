@@ -43,26 +43,26 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const implicits = this.getImplicits(node);
 
     return [
-      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}{`, body, `}`]
+      [documentation, ...decorator, `fn ${name}${/*implicits*/ ' '}(${args})${returns}{`, body, `}`]
         .filter(notNull)
         .join('\n'),
     ];
   }
 
   private getDecorator(node: CairoFunctionDefinition): string[] {
-    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    if (node.kind === FunctionKind.Constructor) return ['#[constructor]'];
     const decorators: string[] = [];
     if (node.kind === FunctionKind.Fallback) {
-      decorators.push('@raw_input');
-      if (node.vParameters.vParameters.length > 0) decorators.push('@raw_output');
+      decorators.push('#[raw_input]');
+      if (node.vParameters.vParameters.length > 0) decorators.push('#[raw_output]');
     }
 
     if (node.visibility === FunctionVisibility.External) {
       if (
         [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
       )
-        decorators.push('@view');
-      else decorators.push('@external');
+        decorators.push('#[view]');
+      else decorators.push('#[external]');
     }
 
     return decorators;
@@ -90,7 +90,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
       return [
-        'alloc_locals;',
+        '',
         this.getConstructorStorageAllocation(node),
         ...keccakPtrInit,
         withKeccak,
@@ -105,7 +105,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
     return [
-      'alloc_locals;',
+      '',
       this.getConstructorStorageAllocation(node),
       ...keccakPtrInit,
       'let (local warp_memory : DictAccess*) = default_dict_new(0);',

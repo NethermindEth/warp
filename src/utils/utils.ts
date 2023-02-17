@@ -79,13 +79,13 @@ export function divmod(x: bigint, y: bigint): [bigint, bigint] {
   return [div, rem];
 }
 
-export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
+export function primitiveTypeToCairo(typeString: string): 'u256' | 'felt' {
   switch (typeString) {
     case 'uint':
     case 'uint256':
     case 'int':
     case 'int256':
-      return 'Uint256';
+      return 'u256';
     case 'fixed':
     case 'ufixed':
       throw new NotSupportedYetError('Fixed types not implemented');

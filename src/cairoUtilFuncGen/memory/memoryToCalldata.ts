@@ -105,7 +105,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
+        `    `,
         ...structDef.vMembers.map((decl, index) => {
           const memberType = safeGetNodeType(decl, this.ast.inference);
           if (isReferenceType(memberType)) {
@@ -165,7 +165,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
+        `    `,
         ...mapRange(length, (index) => {
           if (isReferenceType(elementT)) {
             this.requireImport('warplib.memory', 'wm_read_id');
@@ -199,7 +199,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     });
 
     this.requireImport('starkware.cairo.common.dict', 'dict_read');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
 
     return funcName;
   }
@@ -230,7 +230,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
+        `    `,
         `    let (len_256) = wm_read_256(mem_loc);`,
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
         `    let (len_felt) = narrow_safe(len_256);`,
@@ -273,7 +273,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `assert ptr[0] = mem_read1;`,
       ];
       this.requireImport('warplib.memory', 'wm_read_id');
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+      this.requireImport('starkware.cairo.common.uint256', 'u256');
     } else if (cairoType.width === 1) {
       code = ['let (mem_read0) = wm_read_felt(mem_loc);', 'assert ptr[0] = mem_read0;'];
       this.requireImport('warplib.memory', 'wm_read_felt');
@@ -290,7 +290,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
-        `    alloc_locals;`,
+        `    `,
         `    if (len == 0){`,
         `         return ();`,
         `    }`,

@@ -185,7 +185,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
       `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceType.toString()}){`,
-      `alloc_locals;`,
+      ``,
       ...copyInstructions,
       '    return ();',
       '}',
@@ -319,7 +319,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
       `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}){`,
-      `     alloc_locals;`,
+      `     `,
       isDynamicStorageArray(targetType)
         ? `    ${dynArrayLengthName}.write(ref, ${uint256(sourceType.to.size)});`
         : '',
@@ -466,21 +466,21 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     const code = [
       `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
-      `    alloc_locals;`,
+      `    `,
       `    if (len == 0){`,
       `      return ();`,
       `    }`,
       `    let (storage_loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
         targetElmType,
-      )}(ref, Uint256(target_index, 0));`,
+      )}(ref, u256(target_index, 0));`,
       copyInstructions,
 
       `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
       `}`,
       ``,
       `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceType.toString()}){`,
-      `     alloc_locals;`,
-      `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0));`,
+      `     `,
+      `    ${dynArrayLengthName}.write(ref, u256(source.len, 0));`,
       `    ${loaderName}(ref, source.len, source.ptr, 0);`,
       '    return ();',
       '}',
@@ -534,6 +534,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         targetElmType.size === 32 ? 'warp_bytes_widen_256' : 'warp_bytes_widen',
       );
     }
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
   }
 }

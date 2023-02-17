@@ -122,7 +122,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt){`,
-        `    alloc_locals;`,
+        `    `,
         `    let (start) = wm_alloc(${uint256(alloc_len)});`,
         [
           ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`] : []),
@@ -143,7 +143,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     this.requireImport('warplib.memory', 'wm_alloc');
     this.requireImport('warplib.memory', 'wm_write_256');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
 
     return funcName;

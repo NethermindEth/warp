@@ -107,7 +107,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc : felt, mem_loc: felt) -> (loc: felt){`,
-        `    alloc_locals;`,
+        `    `,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => {
             const elemLoc = `elem_mem_loc_${index}`;
@@ -147,7 +147,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     });
 
     this.requireImport('starkware.cairo.common.dict', 'dict_read');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     return funcName;
   }
 
@@ -204,7 +204,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
-        `    alloc_locals;`,
+        `    `,
         `    if (length == 0){`,
         `        return ();`,
         `    }`,
@@ -217,7 +217,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `}`,
 
         `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
-        `    alloc_locals;`,
+        `    `,
         `    ${funcName}_elem(loc, mem_loc, ${length});`,
         `    return (loc,);`,
         `}`,
@@ -227,7 +227,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
     this.requireImport('warplib.memory', 'wm_alloc');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     if (isReferenceType(type.elementT)) {
       this.requireImport('warplib.memory', 'wm_read_id');
     }
@@ -286,12 +286,12 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_name: felt, mem_loc : felt, length: Uint256) -> (){`,
-        `    alloc_locals;`,
+        `func ${funcName}_elem${implicits}(storage_name: felt, mem_loc : felt, length: u256) -> (){`,
+        `    `,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
         `    }`,
-        `    let (index) = uint256_sub(length, Uint256(1,0));`,
+        `    let (index) = uint256_sub(length, u256(1,0));`,
         `    let (storage_loc) = ${elemMapping}.read(storage_name, index);`,
         `    let mem_loc = mem_loc - ${elementMemoryWidth};`,
         `    if (storage_loc == 0){`,
@@ -307,7 +307,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `}`,
 
         `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
-        `    alloc_locals;`,
+        `    `,
         `    let (length) = ${lengthMapping}.read(loc);`,
         `    let (mem_length) = wm_dyn_array_length(mem_loc);`,
         `    ${lengthMapping}.write(loc, mem_length);`,
@@ -327,7 +327,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.dict', 'dict_read');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('warplib.memory', 'wm_dyn_array_length');
     this.requireImport('warplib.maths.utils', 'narrow_safe');
     if (isReferenceType(elementT)) {

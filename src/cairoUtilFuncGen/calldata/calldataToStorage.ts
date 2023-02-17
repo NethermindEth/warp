@@ -97,7 +97,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const funcName = `cd_struct_${cairoStruct.toString()}_to_storage`;
     const code = [
       `func ${funcName}${implicits}(loc : felt, ${structName} : ${cairoStruct.toString()}) -> (loc : felt){`,
-      `   alloc_locals;`,
+      `   `,
       ...copyInstructions,
       `   return (loc,);`,
       `}`,
@@ -124,7 +124,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const funcName = `cd_static_array_to_storage${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${implicits}(loc : felt, static_array : ${cairoType.toString()}) -> (loc : felt){`,
-      `   alloc_locals;`,
+      `   `,
       ...copyInstructions,
       `   return (loc,);`,
       `}`,
@@ -160,7 +160,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const funcName = `cd_dynamic_array_to_storage${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}_write${implicits}(loc : felt, index : felt, len : felt, elem: ${pointerType}){`,
-      `   alloc_locals;`,
+      `   `,
       `   if (index == len){`,
       `       return ();`,
       `   }`,
@@ -179,7 +179,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       `}`,
 
       `func ${funcName}${implicits}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt){ `,
-      `   alloc_locals;`,
+      `   `,
       `   let (len_uint256) = warp_uint256(dyn_array_struct.len);`,
       `   ${arrayLen}.write(loc, len_uint256);`,
       `   ${funcName}_write(loc, 0, dyn_array_struct.len, dyn_array_struct.ptr);`,

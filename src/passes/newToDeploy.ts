@@ -61,7 +61,7 @@ import { getContainingSourceUnit } from '../utils/utils';
  *
  *   Encode is a util function generated which takes all the transpiled arguments
  *   and makes them a big dynamic arrays of felts. For example arguments:
- *   (a : Uint256, b : felt, c : (felt, felt, felt))
+ *   (a : u256, b : felt, c : (felt, felt, felt))
  *   are encoded as (6, [a.low, a.high, b, c[0], c[1], c[2]])
  *
  *   deploy_from_zero is a bool which determines if the deployer's address will

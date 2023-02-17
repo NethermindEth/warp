@@ -4,7 +4,7 @@ import { INDENT } from '../genCairo';
 
 export function stringfyStructs(structs: StructAbiItemType[]): string[] {
   return structs
-    .filter((item: AbiItemType) => item.name !== 'Uint256')
+    .filter((item: AbiItemType) => item.name !== 'u256')
     .map((item: StructAbiItemType) => {
       return [
         `struct ${item.name} {`,
@@ -22,7 +22,7 @@ export function transformType(
   structToAdd?: Map<string, StructAbiItemType>,
 ): string {
   type = type.trim();
-  if (type === 'felt') return 'Uint256';
+  if (type === 'felt') return 'u256';
   if (typeToStruct.has(type)) return `${type}_uint256`;
   if (type.endsWith('*')) {
     return `${transformType(type.slice(0, -1), typeToStruct, structToAdd)}*`;

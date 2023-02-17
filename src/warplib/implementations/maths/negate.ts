@@ -10,12 +10,12 @@ export function negate(): void {
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_neg',
+      'from starkware.cairo.common.uint256 import u256, uint256_neg',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_negate256{range_check_ptr}(op : Uint256) -> (res : Uint256){',
+          'func warp_negate256{range_check_ptr}(op : u256) -> (res : u256){',
           '    let (res) = uint256_neg(op);',
           '    return (res,);',
           '}',

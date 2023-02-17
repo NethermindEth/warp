@@ -150,7 +150,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
-        `alloc_locals;`,
+        ``,
         ...structDef.vMembers.map((decl) => {
           const memberType = safeGetNodeType(decl, this.ast.inference);
           this.checkForImport(memberType);
@@ -182,7 +182,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
-        `alloc_locals;`,
+        ``,
         ...mapRange(length, (index) => {
           const indexCheck = this.getOrCreate(elementType);
           return [`${indexCheck}(arg[${index}]);`];
@@ -210,7 +210,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
+        `func ${funcName}${implicits}(arg : ${takesUint ? 'u256' : 'felt'}) -> (){`,
         takesUint
           ? [
               '    let (arg_0) = narrow_safe(arg);',
@@ -248,7 +248,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
-        `    alloc_locals;`,
+        `    `,
         `    if (len == 0){`,
         `        return ();`,
         `    }`,

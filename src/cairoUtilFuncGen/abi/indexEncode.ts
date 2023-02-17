@@ -66,7 +66,7 @@ export class IndexEncode extends AbiBase {
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  let bytes_index : felt = 0;`,
       `  let (bytes_array : felt*) = alloc();`,
       ...encodings,
@@ -79,7 +79,7 @@ export class IndexEncode extends AbiBase {
 
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
@@ -163,7 +163,7 @@ export class IndexEncode extends AbiBase {
     const size = getPackedByteSize(type, this.ast.inference);
     const instructions: string[] = [];
     // packed size of addresses is 32 bytes, but they are treated as felts,
-    // so they should be converted to Uint256 accordingly
+    // so they should be converted to u256 accordingly
     if (size < 32 || isAddressType(type)) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
@@ -191,7 +191,7 @@ export class IndexEncode extends AbiBase {
       `  bytes_array: felt*,`,
       `  mem_ptr : felt`,
       `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  let (length256) = wm_dyn_array_length(mem_ptr);`,
       `  let (length) = narrow_safe(length256);`,
       `  // Storing the element values encoding`,
@@ -235,7 +235,7 @@ export class IndexEncode extends AbiBase {
       `  length : felt,`,
       `  mem_ptr : felt`,
       `) -> (final_index : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  if (index == length){`,
       `     return (final_index=bytes_index);`,
       `  }`,
@@ -269,7 +269,7 @@ export class IndexEncode extends AbiBase {
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  let length = ${type.size};`,
       `  // Storing the data values encoding`,
       `  let (bytes_index) = ${inlineEncoding}(`,
@@ -311,7 +311,7 @@ export class IndexEncode extends AbiBase {
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  if (mem_index == mem_length){`,
       `     return (final_bytes_index=bytes_index);`,
       `  }`,
@@ -346,7 +346,7 @@ export class IndexEncode extends AbiBase {
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  // Storing the data values encoding`,
       `  let (bytes_index) = ${inlineEncoding}(`,
       `    bytes_index,`,
@@ -387,7 +387,7 @@ export class IndexEncode extends AbiBase {
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
+      `  `,
       ...instructions,
       `  return (bytes_index,);`,
       `}`,

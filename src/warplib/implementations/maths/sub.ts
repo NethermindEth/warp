@@ -20,26 +20,26 @@ export function sub_unsafe(): void {
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256',
+      'from starkware.cairo.common.uint256 import u256',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_sub_unsafe256{bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (`,
-          `        result : Uint256){`,
+          `func warp_sub_unsafe256{bitwise_ptr : BitwiseBuiltin*}(lhs : u256, rhs : u256) -> (`,
+          `        result : u256){`,
           '    //preemptively borrow from bit128',
           `    let (low_safe) = bitwise_and(${bound(128)} + lhs.low - rhs.low, ${mask(128)});`,
           `    let low_unsafe = lhs.low - rhs.low;`,
           `    if (low_safe == low_unsafe){`,
           '        //the borrow was not used',
           `        let (high) = bitwise_and(${bound(128)} + lhs.high - rhs.high, ${mask(128)});`,
-          `        return (Uint256(low_safe, high),);`,
+          `        return (u256(low_safe, high),);`,
           `    }else{`,
           '        //the borrow was used',
           `        let (high) = bitwise_and(${bound(128)} + lhs.high - rhs.high - 1, ${mask(
             128,
           )});`,
-          `        return (Uint256(low_safe, high),);`,
+          `        return (u256(low_safe, high),);`,
           `    }`,
           `}`,
         ];
@@ -63,13 +63,13 @@ export function sub_signed(): void {
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_signed_le, uint256_sub, uint256_not',
+      'from starkware.cairo.common.uint256 import u256, uint256_add, uint256_signed_le, uint256_sub, uint256_not',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_sub_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (`,
-          `        res : Uint256){`,
+          `func warp_sub_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : u256, rhs : u256) -> (`,
+          `        res : u256){`,
           `    // First sign extend both operands`,
           `    let (left_msb : felt) = bitwise_and(lhs.high, ${msb(128)});`,
           `    let (right_msb : felt) = bitwise_and(rhs.high, ${msb(128)});`,
@@ -77,8 +77,8 @@ export function sub_signed(): void {
           `    let right_overflow : felt = right_msb / ${msb(128)};`,
           ``,
           `    // Now safely negate the rhs and add (l - r = l + (-r))`,
-          `    let (right_flipped : Uint256) = uint256_not(rhs);`,
-          `    let (right_neg, overflow) = uint256_add(right_flipped, Uint256(1,0));`,
+          `    let (right_flipped : u256) = uint256_not(rhs);`,
+          `    let (right_neg, overflow) = uint256_add(right_flipped, u256(1,0));`,
           `    let right_overflow_neg = overflow + 1 - right_overflow;`,
           `    let (res, res_base_overflow) = uint256_add(lhs, right_neg);`,
           `    let res_overflow = res_base_overflow + left_overflow + right_overflow_neg;`,
@@ -126,12 +126,12 @@ export function sub_signed_unsafe(): void {
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_sub',
+      'from starkware.cairo.common.uint256 import u256, uint256_sub',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_sub_signed_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
+          'func warp_sub_signed_unsafe256{range_check_ptr}(lhs : u256, rhs : u256) -> (res : u256){',
           '    let (res) =  uint256_sub(lhs, rhs);',
           '    return (res,);',
           '}',
@@ -161,7 +161,7 @@ export function sub_signed_unsafe(): void {
 }
 
 //func warp_sub{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt):
-//func warp_sub256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):
+//func warp_sub256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : u256, rhs : u256) -> (res : u256):
 
 export function functionaliseSub(node: BinaryOperation, unsafe: boolean, ast: AST): void {
   const implicitsFn = (width: number, signed: boolean): Implicits[] => {

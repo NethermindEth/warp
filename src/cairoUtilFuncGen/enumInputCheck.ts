@@ -59,9 +59,9 @@ export class EnumInputCheck extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(${
-          input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'
+          input256Bits ? 'arg_Uint256 : u256' : 'arg : felt'
         }) -> (arg: felt){`,
-        '    alloc_locals;',
+        '    ',
         input256Bits ? ['    let (arg) = narrow_safe(arg_Uint256);'].join('\n') : ``,
         `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
         `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
@@ -75,7 +75,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     });
     if (input256Bits) {
       this.requireImport('warplib.maths.utils', 'narrow_safe');
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+      this.requireImport('starkware.cairo.common.uint256', 'u256');
     }
     this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
     return funcName;

@@ -216,7 +216,7 @@ function addForwarderContract(
 /**
   Add the solidity structs that are equivalent to the cairo structs after
   transformation of all felt types to uint256 and also structs corresponding to
-  heterogeneous tuples (e.g `param: (felt, (Uint256, felt))`) that are used
+  heterogeneous tuples (e.g `param: (felt, (u256, felt))`) that are used
   in the given cairo contract 
  * @param sourceUint : source unit to add the structs to
  * @param ast : ast of the given source unit
@@ -279,7 +279,7 @@ function getSolTypeName(
   ast: AST,
 ): TypeName {
   cairoType = cairoType.trim();
-  if (cairoType === 'Uint256' || cairoType === 'felt') {
+  if (cairoType === 'u256' || cairoType === 'felt') {
     return createUint256TypeName(ast);
   }
   if (cairoType.endsWith('*')) {

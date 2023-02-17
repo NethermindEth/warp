@@ -13,7 +13,7 @@ export function int_conversions(): void {
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math import split_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
+      'from starkware.cairo.common.uint256 import u256, uint256_add',
     ],
     [
       ...forAllWidths((from) => {
@@ -21,10 +21,10 @@ export function int_conversions(): void {
           if (from < to) {
             if (to === 256) {
               return [
-                `func warp_int${from}_to_int256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : Uint256){`,
+                `func warp_int${from}_to_int256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : u256){`,
                 `    let (msb) = bitwise_and(op, ${msb(from)});`,
                 `    let (high, low) = split_felt(op);`,
-                `    let naiveExtension = Uint256(low, high);`,
+                `    let naiveExtension = u256(low, high);`,
                 `    if (msb == 0){`,
                 `        return (naiveExtension,);`,
                 `    }else{`,
@@ -53,14 +53,14 @@ export function int_conversions(): void {
             if (from === 256) {
               if (to > 128) {
                 return [
-                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt){`,
+                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : u256) -> (res : felt){`,
                   `    let (high) = bitwise_and(op.high,${mask(to - 128)});`,
                   `    return (op.low + ${bound(128)} * high,);`,
                   `}`,
                 ];
               } else {
                 return [
-                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt){`,
+                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : u256) -> (res : felt){`,
                   `    let (res) = bitwise_and(op.low, ${mask(to)});`,
                   `    return (res,);`,
                   `}`,
@@ -78,9 +78,9 @@ export function int_conversions(): void {
         });
       }),
       '',
-      'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256){',
+      'func warp_uint256{range_check_ptr}(op : felt) -> (res : u256){',
       '    let split = split_felt(op);',
-      '    return (Uint256(low=split.low, high=split.high),);',
+      '    return (u256(low=split.low, high=split.high),);',
       '}',
     ],
   );

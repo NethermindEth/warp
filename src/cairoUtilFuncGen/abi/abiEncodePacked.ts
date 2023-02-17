@@ -51,7 +51,7 @@ export class AbiEncodePacked extends AbiBase {
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  let bytes_index : felt = 0;`,
       `  let (bytes_array : felt*) = alloc();`,
       ...encodings,
@@ -62,7 +62,7 @@ export class AbiEncodePacked extends AbiBase {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
@@ -166,7 +166,7 @@ export class AbiEncodePacked extends AbiBase {
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  if (mem_index == mem_length){`,
       `     return (final_bytes_index=bytes_index);`,
       `  }`,

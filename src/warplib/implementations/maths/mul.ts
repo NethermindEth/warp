@@ -17,7 +17,7 @@ export function mul(): void {
   generateFile(
     'mul',
     [
-      'from starkware.cairo.common.uint256 import Uint256, uint256_mul',
+      'from starkware.cairo.common.uint256 import u256, uint256_mul',
       'from starkware.cairo.common.math_cmp import is_le_felt',
       'from warplib.maths.ge import warp_ge256',
       'from warplib.maths.utils import felt_to_uint256',
@@ -25,8 +25,8 @@ export function mul(): void {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_mul256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
-          '    let (result : Uint256, overflow : Uint256) = uint256_mul(lhs, rhs);',
+          'func warp_mul256{range_check_ptr}(lhs : u256, rhs : u256) -> (res : u256){',
+          '    let (result : u256, overflow : u256) = uint256_mul(lhs, rhs);',
           '    assert overflow.low = 0;',
           '    assert overflow.high = 0;',
           '    return (result,);',
@@ -35,10 +35,10 @@ export function mul(): void {
       } else if (width >= 128) {
         return [
           `func warp_mul${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
-          '    alloc_locals;',
-          '    let (l256 : Uint256) = felt_to_uint256(lhs);',
-          '    let (r256 : Uint256) = felt_to_uint256(rhs);',
-          '    let (local res : Uint256) = warp_mul256(l256, r256);',
+          '    ',
+          '    let (l256 : u256) = felt_to_uint256(lhs);',
+          '    let (r256 : u256) = felt_to_uint256(rhs);',
+          '    let (local res : u256) = warp_mul256(l256, r256);',
           `    let (outOfRange : felt) = warp_ge256(res, ${uint256(pow2(width))});`,
           '    assert outOfRange = 0;',
           `    return (res.low + ${bound(128)} * res.high,);`,
@@ -64,24 +64,24 @@ export function mul_unsafe(): void {
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_mul',
+      'from starkware.cairo.common.uint256 import u256, uint256_mul',
       'from warplib.maths.utils import felt_to_uint256',
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_mul_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-          `    let (res : Uint256, _) = uint256_mul(lhs, rhs);`,
+          `func warp_mul_unsafe256{range_check_ptr}(lhs : u256, rhs : u256) -> (res : u256){`,
+          `    let (res : u256, _) = uint256_mul(lhs, rhs);`,
           `    return (res,);`,
           `}`,
         ];
       } else if (width >= 128) {
         return [
           `func warp_mul_unsafe${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
-          `    alloc_locals;`,
-          `    let (l256 : Uint256) = felt_to_uint256(lhs);`,
-          `    let (r256 : Uint256) = felt_to_uint256(rhs);`,
-          `    let (local res : Uint256, _) = uint256_mul(l256, r256);`,
+          `    `,
+          `    let (l256 : u256) = felt_to_uint256(lhs);`,
+          `    let (r256 : u256) = felt_to_uint256(rhs);`,
+          `    let (local res : u256, _) = uint256_mul(l256, r256);`,
           `    let (high) = bitwise_and(res.high, ${mask(width - 128)});`,
           `    return (res.low + ${bound(128)} * high,);`,
           `}`,
@@ -105,7 +105,7 @@ export function mul_signed(): void {
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_cond_neg, uint256_signed_nn, uint256_neg, uint256_le',
+      'from starkware.cairo.common.uint256 import u256, uint256_mul, uint256_cond_neg, uint256_signed_nn, uint256_neg, uint256_le',
       'from warplib.maths.utils import felt_to_uint256',
       `from warplib.maths.le import warp_le`,
       `from warplib.maths.mul import ${mapRange(31, (n) => `warp_mul${8 * n + 8}`).join(', ')}`,
@@ -117,8 +117,8 @@ export function mul_signed(): void {
       if (width === 256) {
         return [
           `func warp_mul_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `    lhs : Uint256, rhs : Uint256) -> (result : Uint256){`,
-          `    alloc_locals;`,
+          `    lhs : u256, rhs : u256) -> (result : u256){`,
+          `    `,
           `    // 1 => lhs >= 0, 0 => lhs < 0`,
           `    let (lhs_nn) = uint256_signed_nn(lhs);`,
           `    // 1 => rhs >= 0, 0 => rhs < 0`,
@@ -132,7 +132,7 @@ export function mul_signed(): void {
           `    assert overflow.high = 0;`,
           `    let res_should_be_neg = lhs_nn + rhs_nn;`,
           `    if (res_should_be_neg == 1){`,
-          `        let (in_range) = uint256_le(res_abs, Uint256(0,${msb(128)}));`,
+          `        let (in_range) = uint256_le(res_abs, u256(0,${msb(128)}));`,
           `        assert in_range = 1;`,
           `        let (negated) = uint256_neg(res_abs);`,
           `        return (negated,);`,
@@ -147,7 +147,7 @@ export function mul_signed(): void {
         return [
           `func warp_mul_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
           `        lhs : felt, rhs : felt) -> (res : felt){`,
-          `    alloc_locals;`,
+          `    `,
           `    let (left_msb) = bitwise_and(lhs, ${msb(width)});`,
           `    if (left_msb == 0){`,
           `        let (right_msb) = bitwise_and(rhs, ${msb(width)});`,
@@ -196,7 +196,7 @@ export function mul_signed_unsafe(): void {
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_cond_neg, uint256_signed_nn',
+      'from starkware.cairo.common.uint256 import u256, uint256_mul, uint256_cond_neg, uint256_signed_nn',
       `from warplib.maths.mul_unsafe import ${mapRange(
         31,
         (n) => `warp_mul_unsafe${8 * n + 8}`,
@@ -210,8 +210,8 @@ export function mul_signed_unsafe(): void {
       if (width === 256) {
         return [
           `func warp_mul_signed_unsafe256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `    lhs : Uint256, rhs : Uint256) -> (result : Uint256){`,
-          `    alloc_locals;`,
+          `    lhs : u256, rhs : u256) -> (result : u256){`,
+          `    `,
           `    let (lhs_nn) = uint256_signed_nn(lhs);`,
           `    let (local rhs_nn) = uint256_signed_nn(rhs);`,
           `    let (lhs_abs) = uint256_cond_neg(lhs, lhs_nn);`,
@@ -225,7 +225,7 @@ export function mul_signed_unsafe(): void {
         return [
           `func warp_mul_signed_unsafe${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
           `        lhs : felt, rhs : felt) -> (res : felt){`,
-          `    alloc_locals;`,
+          `    `,
           `    let (local left_msb) = bitwise_and(lhs, ${msb(width)});`,
           `    let (local right_msb) = bitwise_and(rhs, ${msb(width)});`,
           `    let (res) = warp_mul_unsafe${width}(lhs, rhs);`,

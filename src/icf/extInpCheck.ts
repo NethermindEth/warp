@@ -9,14 +9,14 @@ export function externalInputCheckStatement(
   typeToStruct?: Map<string, StructAbiItemType>,
   structTuplesMap?: Map<string, StructAbiItemType>,
 ): string {
-  if (type === 'Uint256') return `${INDENT}warp_external_input_check_int256(${input});`;
+  if (type === 'u256') return `${INDENT}warp_external_input_check_int256(${input});`;
   if (type.endsWith('*')) {
     const funcName = `external_input_check_${hashType(type)}`;
     expInpFunctionsMap.set(
       type,
       [
         `func ${funcName}{range_check_ptr : felt}(len: felt, ptr: ${type}) -> (){`,
-        `${INDENT}alloc_locals;`,
+        `${INDENT}`,
         `${INDENT}if (len == 0){`,
         `${INDENT}    return ();`,
         `${INDENT}}`,
@@ -41,7 +41,7 @@ export function externalInputCheckStatement(
       type,
       [
         `func ${funcName}{range_check_ptr : felt}(arg: ${type}) -> (){`,
-        `${INDENT}alloc_locals;`,
+        `${INDENT}`,
         ...(struct?.members.map((member) => {
           return externalInputCheckStatement(
             `arg.${member.name}`,

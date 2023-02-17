@@ -50,7 +50,7 @@ export function genCairoContract(
 }
 
 function getStarknetLangDirective(): string[] {
-  return ['%lang starknet'];
+  return ['#[contract]'];
 }
 
 function getForwarderInterface(abi: AbiType): string[] {
@@ -87,7 +87,7 @@ export function getInteractiveFuncs(
     uint256TransformStructs(structDependency);
 
   const imports: string[] = [
-    'from starkware.cairo.common.uint256 import Uint256',
+    'from starkware.cairo.common.uint256 import u256',
     'from starkware.cairo.common.cairo_builtins import HashBuiltin',
     'from warplib.maths.utils import felt_to_uint256, narrow_safe',
     'from warplib.maths.external_input_check_ints import warp_external_input_check_int256',
@@ -218,7 +218,7 @@ export function getInteractiveFuncs(
         ') -> (',
         ...funcReturnArgs,
         ') {',
-        `${INDENT}alloc_locals;`,
+        `${INDENT}`,
         `${INDENT}// check external input`,
         ...externalInputCheckStatements,
         `${INDENT}// cast inputs`,

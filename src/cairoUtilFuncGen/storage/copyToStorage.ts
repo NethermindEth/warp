@@ -130,7 +130,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
+        `    `,
         ...members.map((memberType): string => {
           const width = CairoType.fromSol(
             memberType,
@@ -232,7 +232,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     assert(toSize === undefined, 'Attempted to copy to storage static array as dynamic array');
     assert(fromSize === undefined, 'Attempted to copy from storage static array as dynamic array');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
 
@@ -259,12 +259,12 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
-        `    alloc_locals;`,
+        `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: u256) -> (){`,
+        `    `,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
         `    }`,
-        `    let (index) = uint256_sub(length, Uint256(1,0));`,
+        `    let (index) = uint256_sub(length, u256(1,0));`,
         `    let (from_elem_loc) = ${fromElementMapping}.read(from_loc, index);`,
         `    let (to_elem_loc) = ${toElementMapping}.read(to_loc, index);`,
         `    if (to_elem_loc == 0){`,
@@ -279,7 +279,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
+        `    `,
         `    let (from_length) = ${fromLengthMapping}.read(from_loc);`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
         `    ${toLengthMapping}.write(to_loc, from_length);`,
@@ -306,7 +306,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     assert(fromType.size !== undefined);
     assert(toSize === undefined);
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
 
@@ -331,15 +331,15 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
-        `    alloc_locals;`,
+        `func ${funcName}_elem${implicits}(to_loc: felt, from_elem_loc: felt, length: u256, index: u256) -> (){`,
+        `    `,
         `    if (length.low == index.low){`,
         `        if (length.high == index.high){`,
         `            return ();`,
         `        }`,
         `    }`,
         `    let (to_elem_loc) = ${toElementMapping}.read(to_loc, index);`,
-        `    let (next_index, carry) = uint256_add(index, Uint256(1,0));`,
+        `    let (next_index, carry) = uint256_add(index, u256(1,0));`,
         `    assert carry = 0;`,
         `    if (to_elem_loc == 0){`,
         `        let (to_elem_loc) = WARP_USED_STORAGE.read();`,
@@ -353,11 +353,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
+        `    `,
         `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
         `    ${toLengthMapping}.write(to_loc, from_length);`,
-        `    ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0));`,
+        `    ${funcName}_elem(to_loc, from_loc, from_length , u256(0,0));`,
         `    let (lesser) = uint256_lt(from_length, to_length);`,
         `    if (lesser == 1){`,
         `       ${deleteRemainingCode};`,
@@ -380,7 +380,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       `Attempted to scale integer ${fromType.nBits} to ${toType.nBits}`,
     );
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     if (toType.signed) {
       this.requireImport(
         'warplib.maths.int_conversions',
@@ -396,7 +396,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         ? [
             'let (from_low) = WARP_STORAGE.read(from_loc);',
             'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
-            'tempvar from_elem = Uint256(from_low, from_high);',
+            'tempvar from_elem = u256(from_low, from_high);',
           ].join('\n')
         : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
@@ -422,7 +422,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `   alloc_locals;`,
+        `   `,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
@@ -448,7 +448,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         ? [
             'let (from_low) = WARP_STORAGE.read(from_loc);',
             'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
-            'tempvar from_elem = Uint256(from_low, from_high);',
+            'tempvar from_elem = u256(from_low, from_high);',
           ].join('\n')
         : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
@@ -469,7 +469,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `   alloc_locals;`,
+        `   `,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
@@ -486,7 +486,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `    alloc_locals;`,
+        `    `,
         ...mapRange(width, copyAtOffset),
         `    return (to_loc,);`,
         `}`,

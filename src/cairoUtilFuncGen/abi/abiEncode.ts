@@ -70,7 +70,7 @@ export class AbiEncode extends AbiBase {
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  let bytes_index : felt = 0;`,
       `  let bytes_offset : felt = ${initialOffset};`,
       `  let (bytes_array : felt*) = alloc();`,
@@ -84,7 +84,7 @@ export class AbiEncode extends AbiBase {
 
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
@@ -173,7 +173,7 @@ export class AbiEncode extends AbiBase {
     const size = getPackedByteSize(type, this.ast.inference);
     const instructions: string[] = [];
     // packed size of addresses is 32 bytes, but they are treated as felts,
-    // so they should be converted to Uint256 accordingly
+    // so they should be converted to u256 accordingly
     if (size < 32 || isAddressType(type)) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
@@ -209,7 +209,7 @@ export class AbiEncode extends AbiBase {
       `  element_offset: felt,`,
       `  mem_ptr : felt`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  // Storing pointer to data`,
       `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256);`,
@@ -272,7 +272,7 @@ export class AbiEncode extends AbiBase {
       `  length : felt,`,
       `  mem_ptr : felt`,
       `) -> (final_offset : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  if (index == length){`,
       `     return (final_offset=bytes_offset);`,
       `  }`,
@@ -311,7 +311,7 @@ export class AbiEncode extends AbiBase {
       `  element_offset : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  // Storing pointer to data`,
       `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256);`,
@@ -369,7 +369,7 @@ export class AbiEncode extends AbiBase {
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  if (mem_index == mem_length){`,
       `     return (final_bytes_index=bytes_index, final_bytes_offset=bytes_offset);`,
       `  }`,
@@ -420,7 +420,7 @@ export class AbiEncode extends AbiBase {
       `  element_offset : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
+      `  `,
       `  // Storing pointer to data`,
       `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256);`,
@@ -476,7 +476,7 @@ export class AbiEncode extends AbiBase {
       `  element_offset : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
+      `  `,
       ...instructions,
       `  return (bytes_index, bytes_offset);`,
       `}`,

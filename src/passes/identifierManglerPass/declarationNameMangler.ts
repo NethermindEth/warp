@@ -29,7 +29,7 @@ export const reservedTerms = new Set<string>([
   'nondet',
   'felt',
   'codeoffset',
-  'Uint256',
+  'u256',
   'cast',
   'ap',
   'fp',

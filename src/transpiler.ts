@@ -153,7 +153,6 @@ function applyPasses(
     ['An', AnnotateImplicits],
     ['Lv', IfStatementTempVarPostpender],
     ['Ci', CairoUtilImporter],
-    ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
   ]);

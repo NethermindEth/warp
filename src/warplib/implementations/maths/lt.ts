@@ -9,7 +9,7 @@ export function lt_signed() {
     'lt_signed',
     [
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_signed_lt',
+      'from starkware.cairo.common.uint256 import u256, uint256_signed_lt',
       'from warplib.maths.utils import felt_to_uint256',
       `from warplib.maths.le_signed import ${mapRange(31, (n) => `warp_le_signed${8 * n + 8}`).join(
         ', ',
@@ -18,7 +18,7 @@ export function lt_signed() {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_lt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){',
+          'func warp_lt_signed256{range_check_ptr}(lhs : u256, rhs : u256) -> (res : felt){',
           '    let (res) = uint256_signed_lt(lhs, rhs);',
           '    return (res,);',
           '}',

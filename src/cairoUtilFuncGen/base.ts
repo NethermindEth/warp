@@ -59,7 +59,7 @@ export abstract class CairoUtilFuncGenBase {
 
   protected checkForImport(type: TypeNode): void {
     if (type instanceof IntType && type.nBits === 256) {
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+      this.requireImport('starkware.cairo.common.uint256', 'u256');
     }
   }
 }

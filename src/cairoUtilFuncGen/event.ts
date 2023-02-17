@@ -126,7 +126,7 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const code = [
       `func ${EMIT_PREFIX}${key}${IMPLICITS}(${cairoParams}){`,
-      `   alloc_locals;`,
+      `   `,
       `   // keys arrays`,
       `   let keys_len: felt = 0;`,
       `   let (keys: felt*) = alloc();`,
@@ -164,14 +164,14 @@ export class EventFunction extends StringIndexedFuncGen {
     topic: { low: string; high: string },
     eventSig: string,
   ): string {
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
     if (isAnonymous) {
       return [`// Event is anonymous, topic won't be added to keys`].join('\n');
     }
     return [
-      `    let topic256: Uint256 = Uint256(${topic.low}, ${topic.high});// keccak of event signature: ${eventSig}`,
+      `    let topic256: u256 = u256(${topic.low}, ${topic.high});// keccak of event signature: ${eventSig}`,
       `    let (keys_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(keys_len, keys, 0, topic256);`,
     ].join('\n');
   }
@@ -200,14 +200,14 @@ export class EventFunction extends StringIndexedFuncGen {
   ): string {
     const abiFunc = this.indexEncode.getOrCreate(types);
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
     this.requireImport('warplib.keccak', 'warp_keccak');
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array_spl');
 
     return [
       `   let (mem_encode: felt) = ${abiFunc}(${argNames.join(',')});`,
-      `   let (keccak_hash256: Uint256) = warp_keccak(mem_encode);`,
+      `   let (keccak_hash256: u256) = warp_keccak(mem_encode);`,
       `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
     ].join('\n');
   }

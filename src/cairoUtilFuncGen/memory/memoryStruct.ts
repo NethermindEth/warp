@@ -91,7 +91,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
-        `    alloc_locals;`,
+        `    `,
         `    let (start) = wm_alloc(${uint256(structType.width)});`,
         mangledStructMembers
           .flatMap(([name, type]) => type.serialiseMembers(name))
@@ -105,7 +105,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
     this.requireImport('warplib.memory', 'wm_alloc');
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
     this.requireImport('starkware.cairo.common.dict_access', 'DictAccess');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
 
     return funcName;
   }

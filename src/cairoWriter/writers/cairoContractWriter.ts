@@ -1,5 +1,4 @@
 import { ASTWriter, ContractKind, SrcDesc } from 'solc-typed-ast';
-import { isExternallyVisible } from '../../utils/utils';
 import { CairoContract } from '../../ast/cairoNodes';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
 import { CairoASTNodeWriter } from '../base';
@@ -48,23 +47,11 @@ export class CairoContractWriter extends CairoASTNodeWriter {
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
-    const externalFunctions = node.vFunctions
-      .filter((func) => isExternallyVisible(func))
-      .map((func) => writer.write(func));
-
-    const otherFunctions = node.vFunctions
-      .filter((func) => !isExternallyVisible(func))
-      .map((func) => writer.write(func));
+    const functions = node.vFunctions.map((func) => writer.write(func));
 
     const events = node.vEvents.map((value) => writer.write(value));
 
-    const body = [...variables, ...enums, ...otherFunctions]
-      .join('\n\n')
-      .split('\n')
-      .map((l) => (l.length > 0 ? INDENT + l : l))
-      .join('\n');
-
-    const outsideNamespaceBody = [...externalFunctions]
+    const body = [...variables, ...enums, ...functions]
       .join('\n\n')
       .split('\n')
       .map((l) => (l.length > 0 ? INDENT + l : l))
@@ -81,7 +68,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       'func WARP_NAMEGEN() -> (name: felt){',
       '}',
       'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt){',
-      '    alloc_locals;',
+      '    ',
       '    let (id) = WARP_STORAGE.read(loc);',
       '    if (id == 0){',
       '        let (id) = WARP_NAMEGEN.read();',
@@ -95,7 +82,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
         ? [
             'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){',
-            '    alloc_locals;',
+            '    ',
             '    if (length == 0){',
             '        return ();',
             '    }',
@@ -107,7 +94,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
             '}',
             '@external',
             'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){',
-            '    alloc_locals;',
+            '    ',
             '    let (p: felt*) = alloc();',
             '    DUMP_WARP_STORAGE_ITER(length, p);',
             '    return (length, p);',
@@ -120,9 +107,8 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       [
         documentation,
         ...events,
-        `namespace ${node.name}{\n\n${body}\n\n}`,
-        outsideNamespaceBody,
-        storageCode,
+        //storageCode,
+        `mod ${node.name}{\n\n${body}\n\n}`,
       ].join('\n\n'),
     ];
   }

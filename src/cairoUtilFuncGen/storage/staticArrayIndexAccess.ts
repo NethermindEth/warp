@@ -79,18 +79,18 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
 }
 
 const idxCode = [
-  `func WS0_IDX{range_check_ptr}(loc: felt, index: Uint256, size: Uint256, limit: Uint256) -> (resLoc: felt){`,
-  `    alloc_locals;`,
+  `func WS0_IDX{range_check_ptr}(loc: felt, index: u256, size: u256, limit: u256) -> (resLoc: felt){`,
+  `    `,
   `    let (inRange) = uint256_lt(index, limit);`,
   `    assert inRange = 1;`,
   `    let (locHigh, locLow) = split_felt(loc);`,
   `    let (offset, overflow) = uint256_mul(index, size);`,
   `    assert overflow.low = 0;`,
   `    assert overflow.high = 0;`,
-  `    let (res256, carry) = uint256_add(Uint256(locLow, locHigh), offset);`,
+  `    let (res256, carry) = uint256_add(u256(locLow, locHigh), offset);`,
   `    assert carry = 0;`,
   `    let (feltLimitHigh, feltLimitLow) = split_felt(-1);`,
-  `    let (narrowable) = uint256_le(res256, Uint256(feltLimitLow, feltLimitHigh));`,
+  `    let (narrowable) = uint256_le(res256, u256(feltLimitLow, feltLimitHigh));`,
   `    assert narrowable = 1;`,
   `    return (res256.low + 2**128 * res256.high,);`,
   `}`,

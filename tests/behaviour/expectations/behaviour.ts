@@ -106,19 +106,19 @@ export const expectations = flatten(
               'decodeAsUint256',
               getByte32Array(2n ** 128n - 1n),
               [`${2n ** 128n - 1n}`, '0'],
-              'Highest number in Uint256.low',
+              'Highest number in u256.low',
             ),
             Expect.Simple(
               'decodeAsUint256',
               getByte32Array(BigInt(2) ** BigInt(128)),
               ['0', '1'],
-              'Lowest number in Uint256.high',
+              'Lowest number in u256.high',
             ),
             Expect.Simple(
               'decodeAsUint256',
               getByte32Array(BigInt(2) ** BigInt(256) - BigInt(1)),
               [`${2n ** 128n - 1n}`, `${2n ** 128n - 1n}`],
-              'Highest number in Uint256.high and Uint256.low',
+              'Highest number in u256.high and u256.low',
             ),
             Expect.Simple(
               'decodeAsAddress',
@@ -1387,7 +1387,7 @@ export const expectations = flatten(
             new Expect('returning a dynarray of felts', [
               ['returnFelt', [], ['3', '10', '20', '30'], '0'],
             ]),
-            new Expect('returning a dynarray of Uint256', [
+            new Expect('returning a dynarray of u256', [
               ['returnUint256', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
             ]),
             new Expect('returning a dynarray of structs', [
@@ -3163,7 +3163,7 @@ export const expectations = flatten(
                 ['0', '340282366920938463463374607431768211456'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+                'Error: value out-of-bounds. Values passed to high and low members of u256 must be less than 2**128.',
               ],
             ]),
             new Expect('testing solidity unsigned int256 high out of bounds', [
@@ -3172,7 +3172,7 @@ export const expectations = flatten(
                 ['340282366920938463463374607431768211456', '0'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+                'Error: value out-of-bounds. Values passed to high and low members of u256 must be less than 2**128.',
               ],
             ]),
             new Expect('testing solidity unsigned int256 lower and high out of bounds', [
@@ -3184,7 +3184,7 @@ export const expectations = flatten(
                 ],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+                'Error: value out-of-bounds. Values passed to high and low members of u256 must be less than 2**128.',
               ],
             ]),
             new Expect('testing that more than 1 assert is placed when there are two inputs', [
@@ -4170,7 +4170,7 @@ export const expectations = flatten(
         new Dir('new', [
           File.Simple('deep', [Expect.Simple('createContracts', [], [])]),
           File.Simple('many', [
-            new Expect('Uint256 as argument', [
+            new Expect('u256 as argument', [
               ['createUint256Contract', ['0', '2'], [], '0'],
               ['getUint256X', [], ['0', '2'], '0'],
             ]),

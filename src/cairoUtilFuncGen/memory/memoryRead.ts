@@ -23,8 +23,8 @@ import { serialiseReads } from '../serialisation';
 
 /*
   Produces functions that when given a start location in warp_memory, deserialise all necessary
-  felts to produce a full value. For example, a function to read a Uint256 reads the given location
-  and the next one, and combines them into a Uint256 struct
+  felts to produce a full value. For example, a function to read a u256 reads the given location
+  and the next one, and combines them into a u256 struct
 */
 
 export class MemoryReadGen extends StringIndexedFuncGen {
@@ -97,7 +97,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}){`,
-        `    alloc_locals;`,
+        `    `,
         ...reads.map((s) => `    ${s}`),
         `    return (${pack},);`,
         '}',

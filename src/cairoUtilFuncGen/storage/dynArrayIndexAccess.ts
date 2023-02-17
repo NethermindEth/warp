@@ -65,8 +65,8 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(ref: felt, index: Uint256) -> (res: felt){`,
-        `    alloc_locals;`,
+        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(ref: felt, index: u256) -> (res: felt){`,
+        `    `,
         `    let (length) = ${lengthName}.read(ref);`,
         `    let (inRange) = uint256_lt(index, length);`,
         `    assert inRange = 1;`,
@@ -82,7 +82,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
     });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
     return funcName;
   }

@@ -115,7 +115,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(mem_ptr : felt) -> (${returnCairoParams}){`,
-      `  alloc_locals;`,
+      `  `,
       `  let max_index_length: felt = ${indexLength};`,
       `  let mem_index: felt = 0;`,
       ...decodings,
@@ -282,9 +282,9 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     if (byteSize === 32) {
       args.push('0');
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+      this.requireImport('starkware.cairo.common.uint256', 'u256');
     }
-    const decodeType = byteSize === 32 ? 'Uint256' : 'felt';
+    const decodeType = byteSize === 32 ? 'u256' : 'felt';
 
     return [
       `let (${decodeResult} : ${decodeType}) = ${funcName}(${args.join(',')});`,
@@ -323,7 +323,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `  array_length: felt,`,
       `  array_ptr: felt,`,
       `){`,
-      `  alloc_locals;`,
+      `  `,
       `  if (array_index == array_length) {`,
       `    return ();`,
       `  }`,
@@ -373,7 +373,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `  dyn_array_length: felt,`,
       `  dyn_array_ptr: felt`,
       `){`,
-      `  alloc_locals;`,
+      `  `,
       `  if (dyn_array_index == dyn_array_length){`,
       `    return ();`,
       `  }`,
@@ -390,7 +390,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('warplib.memory', 'wm_index_dyn');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.maths.utils', 'narrow_safe');
@@ -436,7 +436,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `  mem_ptr: felt,`,
       `  struct_ptr: felt`,
       `){`,
-      `  alloc_locals;`,
+      `  `,
       ...instructions,
       `  return ();`,
       `}`,

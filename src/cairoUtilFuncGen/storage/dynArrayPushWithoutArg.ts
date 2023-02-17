@@ -47,9 +47,9 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (newElemLoc: felt){`,
-        `    alloc_locals;`,
+        `    `,
         `    let (len) = ${lengthName}.read(loc);`,
-        `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
+        `    let (newLen, carry) = uint256_add(len, u256(1,0));`,
         `    assert carry = 0;`,
         `    ${lengthName}.write(loc, newLen);`,
         `    let (existing) = ${arrayName}.read(loc, len);`,
@@ -64,7 +64,7 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
     });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'u256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     return funcName;
   }

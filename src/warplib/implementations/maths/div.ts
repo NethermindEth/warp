@@ -10,7 +10,7 @@ export function div_signed() {
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_signed_div_rem, uint256_eq',
+      'from starkware.cairo.common.uint256 import u256, uint256_signed_div_rem, uint256_eq',
       'from warplib.maths.utils import felt_to_uint256',
       `from warplib.maths.int_conversions import ${mapRange(
         31,
@@ -21,25 +21,25 @@ export function div_signed() {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_div_signed256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
+          'func warp_div_signed256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : u256, rhs : u256) -> (res : u256){',
           `    if (rhs.high == 0 and rhs.low == 0){`,
           `       with_attr error_message("Division by zero error"){`,
           `          assert 1 = 0;`,
           `       }`,
           `    }`,
-          `    let (is_minus_one) = uint256_eq(rhs, Uint256(${mask(128)}, ${mask(128)}));`,
+          `    let (is_minus_one) = uint256_eq(rhs, u256(${mask(128)}, ${mask(128)}));`,
           `    if (is_minus_one == 1){`,
-          '        let (res : Uint256) = warp_mul_signed256(lhs, rhs);',
+          '        let (res : u256) = warp_mul_signed256(lhs, rhs);',
           '        return (res,);',
           '    }',
-          '    let (res : Uint256, _) = uint256_signed_div_rem(lhs, rhs);',
+          '    let (res : u256, _) = uint256_signed_div_rem(lhs, rhs);',
           '    return (res,);',
           '}',
         ];
       } else {
         return [
           `func warp_div_signed${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
-          `    alloc_locals;`,
+          `    `,
           `    if (rhs == 0){`,
           `        with_attr error_message("Division by zero error"){`,
           `            assert 1 = 0;`,
@@ -67,7 +67,7 @@ export function div_signed_unsafe() {
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_signed_div_rem, uint256_eq',
+      'from starkware.cairo.common.uint256 import u256, uint256_signed_div_rem, uint256_eq',
       'from warplib.maths.utils import felt_to_uint256',
       `from warplib.maths.int_conversions import ${mapRange(
         31,
@@ -81,25 +81,25 @@ export function div_signed_unsafe() {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_div_signed_unsafe256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
+          'func warp_div_signed_unsafe256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : u256, rhs : u256) -> (res : u256){',
           `    if (rhs.high == 0 and rhs.low == 0){`,
           `        with_attr error_message("Division by zero error"){`,
           `           assert 1 = 0;`,
           `        }`,
           `    }`,
-          `    let (is_minus_one) = uint256_eq(rhs, Uint256(${mask(128)}, ${mask(128)}));`,
+          `    let (is_minus_one) = uint256_eq(rhs, u256(${mask(128)}, ${mask(128)}));`,
           `    if (is_minus_one == 1){`,
-          '        let (res : Uint256) = warp_mul_signed_unsafe256(lhs, rhs);',
+          '        let (res : u256) = warp_mul_signed_unsafe256(lhs, rhs);',
           '        return (res,);',
           '    }',
-          '    let (res : Uint256, _) = uint256_signed_div_rem(lhs, rhs);',
+          '    let (res : u256, _) = uint256_signed_div_rem(lhs, rhs);',
           '    return (res,);',
           '}',
         ];
       } else {
         return [
           `func warp_div_signed_unsafe${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
-          `    alloc_locals;`,
+          `    `,
           `    if (rhs == 0){`,
           `        with_attr error_message("Division by zero error"){`,
           `            assert 1 = 0;`,
