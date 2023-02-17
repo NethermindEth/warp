@@ -29,6 +29,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
     return createCallToFunction(dynArrayLength, [node.vExpression], this.ast);
   }
 
+  // TODO: keep using storage vars as functions feels odd now
   public getOrCreateFuncDef(type: TypeNode): [CairoFunctionDefinition, CairoFunctionDefinition] {
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
 
@@ -78,21 +79,13 @@ export class DynArrayGen extends StringIndexedFuncGen {
     const mappingName = `WARP_DARRAY${this.generatedFunctionsDef.size}_${valueCairoType.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: [
-        `@storage_var`,
-        `func ${mappingName}(name: felt, index: Uint256) -> (res_loc : felt){`,
-        `}`,
-      ].join('\n'),
+      code: `${mappingName}: LegacyMap::<(felt, u256), felt>`,
       functionsCalled: [],
     };
 
     const lengthFuncInfo: GeneratedFunctionInfo = {
       name: `${mappingName}_LENGTH`,
-      code: [
-        `@storage_var`,
-        `func ${mappingName}_LENGTH(name: felt) -> (length: Uint256){`,
-        `}`,
-      ].join('\n'),
+      code: `${mappingName}_LENGTH: LegacyMap::<felt, u256>`,
       functionsCalled: [],
     };
     return [funcInfo, lengthFuncInfo];
