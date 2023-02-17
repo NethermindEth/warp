@@ -11,13 +11,6 @@ import { structRemappings } from './sourceUnitWriter';
 
 export class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
-    if (
-      node.vIdentifierType === ExternalReferenceType.Builtin &&
-      node.name === 'super' &&
-      !(node.parent instanceof MemberAccess)
-    ) {
-      return ['0'];
-    }
     if (isCalldataDynArrayStruct(node, this.ast.inference)) {
       // Calldata dynamic arrays have the element pointer and length variables
       // stored inside a struct. When the dynamic array is accessed, struct's members
