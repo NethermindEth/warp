@@ -2,8 +2,8 @@
 
 # Warp
 
-Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
-smart contracts to StarkNet Cairo Contracts.
+Warp brings Solidity to Starknet, making it possible to transpile Ethereum
+smart contracts to Starknet Cairo Contracts.
 
 ## Quickstart
 
@@ -176,18 +176,18 @@ bin/warp transpile exampleContracts/ERC20.sol
 
 If you have used installation method 1 you can use the `warp` command in any folder. If you have used installation method 2, you will have to specify the path to the warp directory followed by `bin/warp` e.g `path_to_warp_repo/bin/warp ...`
 
-### StarkNet setup
+### Starknet setup
 
 Select your network and wallet types. It's recommended to set these as
 environment variables but they can also be passed as explicit arguments to the
-Warp CLI and the StarkNet CLI.
+Warp CLI and the Starknet CLI.
 
 ```
 export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
 export STARKNET_NETWORK=alpha-goerli
 ```
 
-Make sure you have a StarkNet account set up, if you have not done so yet
+Make sure you have a Starknet account set up, if you have not done so yet
 please:
 
 ```
@@ -203,18 +203,18 @@ To transpile a Solidity contract:
 warp transpile <path to Solidity contract>
 ```
 
-To declare a StarkNet contract:
+To declare a Starknet contract:
 
 ```bash
-warp declare <path to StarkNet contract>
+warp declare <path to Starknet contract>
 ```
 
 _Please note to deploy a contract you will first have to declare it._
 
-To deploy a StarkNet contract:
+To deploy a Starknet contract:
 
 ```bash
-warp deploy <path to StarkNet contract>
+warp deploy <path to Starknet contract>
 ```
 
 The deploy command will generate the compiled json file as well as the abi json
@@ -233,7 +233,7 @@ Libraries are bundled into the point of use, therefore if you try transpile a st
 
 <hr>
 Several features of Solidity are not supported/do not have analogs in Starknet yet.
-We will try our best to add these features as StarkNet supports them, but some may not be
+We will try our best to add these features as Starknet supports them, but some may not be
 possible due to fundamental differences in the platforms.
 
 Please see the list below:
@@ -275,7 +275,7 @@ Please see the list below:
 | member access of address object e.g address.balance |    :question:     |
 |              nested tuple assignments               |    :question:     |
 
-Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
+Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for Starknet addresses.
 
 ## Docker :whale:
 
@@ -346,7 +346,7 @@ Then to see that your contribution doesn't break the behaviour tests follow thes
 tests/behaviour/setup.sh
 ```
 
-2. In a separate terminal, start a StarkNet testnet server (in an environment with cairo-lang installed):
+2. In a separate terminal, start a Starknet testnet server (in an environment with cairo-lang installed):
 
 ```bash
 yarn testnet

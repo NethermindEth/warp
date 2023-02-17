@@ -24,7 +24,7 @@ To use the Cairo ABI to pass inputs, add the `--use_cairo_abi` flag to the `depl
 
 Note that there are some nuances that come with using the Cairo ABI:
 
-- StarkNet does not support Solidity-style strings, so Warp represents strings as dynamic arrays of bytes.
+- Starknet does not support Solidity-style strings, so Warp represents strings as dynamic arrays of bytes.
   In Cairo ABI, each dynamic array is represented in two parts, the length of the string, and the values of the array
   `<arr_len>,<arr[0],arr[1]...arr[n-1]>`.
   e.g `ExampleString` -> `13,0x45,0x78,0x61,0x6d,0x70,0x6c,0x65,0x53,0x74,0x72,0x69,0x6e,0x67`

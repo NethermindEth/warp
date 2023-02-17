@@ -218,10 +218,10 @@ program
   .command('status <tx_hash>')
   .description('Get the status of a transaction')
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .action((tx_hash: string, options: IOptionalNetwork) => {
@@ -295,11 +295,11 @@ program
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option('--no_wallet', 'Do not use a wallet for deployment', false)
@@ -329,7 +329,7 @@ export type IDeployAccountProps = IOptionalAccount &
 
 program
   .command('deploy_account')
-  .description('Deploy an account to StarkNet')
+  .description('Deploy an account to Starknet')
   .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used',
@@ -339,11 +339,11 @@ program
     'The directory of the account.',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -387,11 +387,11 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -424,11 +424,11 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -472,7 +472,7 @@ export interface IDeclareOptions {
 program
   .command('declare <cairo_contract>')
   .description('Declare a Cairo contract')
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
@@ -482,10 +482,10 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -514,11 +514,11 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
