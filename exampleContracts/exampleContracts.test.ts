@@ -1,5 +1,5 @@
 import { describe } from 'mocha';
-import { runTests } from '../src/testing';
+import { runTests } from '../tests/testing';
 
 const TIME_LIMIT = 2 * 60 * 60 * 1000;
 
