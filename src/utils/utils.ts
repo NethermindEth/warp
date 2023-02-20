@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import assert from 'assert';
 import * as path from 'path';
 import { execSync } from 'child_process';
@@ -580,12 +580,12 @@ function markerExists(files: string[], markers: string[]) {
   });
 }
 
-export function traverseParent(
+export async function traverseParent(
   directory: string,
   levels: number,
   markers: string[],
-): string | null {
-  const files = fs.readdirSync(directory);
+): Promise<string | null> {
+  const files = await fs.readdir(directory);
   if (levels === 0) {
     return null;
   } else if (markerExists(files, markers)) {
@@ -595,12 +595,12 @@ export function traverseParent(
   }
 }
 
-export function traverseChildren(
+export async function traverseChildren(
   directory: string,
   levels: number,
   markers: string[],
-): string | null {
-  const files = fs.readdirSync(directory);
+): Promise<string | null> {
+  const files = await fs.readdir(directory);
   if (levels === 0) {
     return null;
   } else if (markerExists(files, markers)) {
@@ -609,7 +609,7 @@ export function traverseChildren(
     for (const file of files) {
       const child = path.join(directory, file);
 
-      if (fs.statSync(child).isDirectory()) {
+      if ((await fs.stat(child)).isDirectory()) {
         const result = traverseChildren(child, levels - 1, markers);
         if (result !== null) {
           return result;
@@ -620,15 +620,15 @@ export function traverseChildren(
   }
 }
 
-export function defaultBasePathAndIncludePath() {
+export async function defaultBasePathAndIncludePath() {
   const currentDirectory = process.cwd();
 
-  const parentNodeModules = traverseParent(currentDirectory, 4, NODE_MODULES_MARKER);
+  const parentNodeModules = await traverseParent(currentDirectory, 4, NODE_MODULES_MARKER);
   if (parentNodeModules !== null) {
     return [currentDirectory, path.resolve(parentNodeModules, 'node_modules')];
   }
 
-  const childNodeModules = traverseChildren(currentDirectory, 4, NODE_MODULES_MARKER);
+  const childNodeModules = await traverseChildren(currentDirectory, 4, NODE_MODULES_MARKER);
   if (childNodeModules !== null) {
     return [currentDirectory, path.resolve(childNodeModules, 'node_modules')];
   }

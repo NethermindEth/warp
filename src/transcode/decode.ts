@@ -15,7 +15,7 @@ export async function decodeOutputs(
   func: string,
   rawOutputs?: string[],
 ): Promise<Result> {
-  const solABI = parseSolAbi(filePath);
+  const solABI = await parseSolAbi(filePath);
 
   const funcSignature = await selectSignature(solABI, func);
 

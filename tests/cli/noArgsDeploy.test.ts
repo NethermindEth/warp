@@ -1,8 +1,7 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { sh } from '../util';
 import {
   extractFromStdout,
   mintEthToAccount,
@@ -18,6 +17,7 @@ import {
   WALLET,
   WARP_BIN,
 } from './utils';
+import { execAsync } from '../util';
 
 const contractCairoFile = path.resolve(
   __dirname,
@@ -39,18 +39,21 @@ describe('Manage starknet account', function () {
   this.timeout(TIME_LIMIT);
 
   it('should create a starknet account', async () => {
-    if (fs.existsSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'))) {
-      fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+    try {
+      await fs.access(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+      await fs.unlink(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+    } catch {
+      // file does not exist
     }
 
-    const { stdout } = await sh(
+    const { stdout } = await execAsync(
       `${WARP_BIN} new_account ${NETWORK_OPTIONS} --wallet ${WALLET} ${ACCOUNT0}`,
     );
 
     expect(stdout).to.not.be.empty;
 
     const starknet_open_zeppelin_accounts = JSON.parse(
-      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+      await fs.readFile(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
     );
 
     // verify the properties of the created account
@@ -66,7 +69,7 @@ describe('Manage starknet account', function () {
 
   it('mint wei to the generated account', async () => {
     const starknet_open_zeppelin_accounts = JSON.parse(
-      fs.readFileSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
+      await fs.readFile(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'), 'utf-8'),
     );
     const address = starknet_open_zeppelin_accounts[NETWORK]['account_0']['address'];
 
@@ -80,7 +83,7 @@ describe('Manage starknet account', function () {
   });
 
   it('should deploy the starknet account', async () => {
-    const { stdout } = await sh(
+    const { stdout } = await execAsync(
       `${WARP_BIN} deploy_account --wallet ${WALLET} ${NETWORK_OPTIONS} ${ACCOUNT0}`,
     );
 
@@ -96,7 +99,7 @@ describe('Manage starknet account', function () {
     expect(contract_address).to.not.be.undefined;
     expect(txHash).to.not.be.undefined;
 
-    const res = await sh(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
+    const res = await execAsync(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
 
     expect(res.stdout).to.not.be.empty;
 
@@ -109,13 +112,13 @@ describe('Transpile & compile constract', function () {
   this.timeout(TIME_LIMIT);
 
   it('should transpile the NoConstructor contract', async () => {
-    const { stdout } = await sh(
+    const { stdout } = await execAsync(
       `${WARP_BIN} transpile --dev ${path.resolve(__dirname, 'noArgsConstructor.sol')}`,
     );
 
     expect(stdout).to.be.empty;
 
-    const res = await sh(`${WARP_BIN} compile ${contractCairoFile}`);
+    const res = await execAsync(`${WARP_BIN} compile ${contractCairoFile}`);
 
     expect(res.stdout).to.not.be.empty;
   });
@@ -127,7 +130,7 @@ describe('Declare the NoConstructor contract', function () {
   let txHash: string;
 
   it('should declare the ERC20 contract', async () => {
-    const { stdout } = await sh(
+    const { stdout } = await execAsync(
       `${WARP_BIN} declare ${contractCairoFile} --wallet ${WALLET} ${NETWORK_OPTIONS} ${ACCOUNT0}`,
     );
 
@@ -145,7 +148,7 @@ describe('Declare the NoConstructor contract', function () {
   });
 
   this.afterAll('Declare transaction status', async () => {
-    const res = await sh(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
+    const res = await execAsync(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
 
     expect(res.stdout).to.not.be.empty;
 
@@ -160,7 +163,7 @@ describe('Deploy the NoConstructor contract', function () {
   let txHash: string;
 
   it('should deploy the ERC20 contract', async () => {
-    const { stdout } = await sh(
+    const { stdout } = await execAsync(
       `${WARP_BIN} deploy ${contractCairoFile} --wallet ${WALLET} ${NETWORK_OPTIONS} ${ACCOUNT0}`,
     );
 
@@ -177,7 +180,7 @@ describe('Deploy the NoConstructor contract', function () {
   });
 
   this.afterAll('Deploy transaction status', async () => {
-    const res = await sh(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
+    const res = await execAsync(`${WARP_BIN} status ${txHash} ${NETWORK_OPTIONS}`);
 
     expect(res.stdout).to.not.be.empty;
 
@@ -191,9 +194,12 @@ describe('Cleanup cli_test directory', function () {
   this.timeout(TIME_LIMIT);
 
   it('should remove the starknet account', async () => {
-    fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
-    if (fs.existsSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'))) {
-      fs.unlinkSync(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
+    await fs.unlink(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+    try {
+      await fs.access(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
+      await fs.unlink(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
+    } catch {
+      // file does not exist
     }
   });
 });

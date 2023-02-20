@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { execSync } from 'child_process';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import {
   ASTReader,
   CompileFailedError,
@@ -18,10 +18,11 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(files: string[], options: CompilationOptions): SolcOutput {
-  const sources = files.map((file) => {
-    return getSolFileVersion(file);
-  });
+async function compileSolFilesCommon(
+  files: string[],
+  options: CompilationOptions,
+): Promise<SolcOutput> {
+  const sources = await Promise.all(files.map((file) => getSolFileVersion(file)));
 
   sources.forEach((version, i) => {
     const [, majorVersion] = matchCompilerVersion(version);
@@ -40,8 +41,8 @@ function compileSolFilesCommon(files: string[], options: CompilationOptions): So
   return solcOutput;
 }
 
-export function compileSolFiles(files: string[], options: CompilationOptions): AST {
-  const solcOutput = compileSolFilesCommon(files, options);
+export async function compileSolFiles(files: string[], options: CompilationOptions): Promise<AST> {
+  const solcOutput = await compileSolFilesCommon(files, options);
   printErrors(solcOutput.result, options.warnings || false, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
@@ -51,8 +52,8 @@ export function compileSolFiles(files: string[], options: CompilationOptions): A
 
 const supportedVersions = ['0.8.14', '0.7.6'];
 
-function getSolFileVersion(file: string): string {
-  const content = fs.readFileSync(file, { encoding: 'utf-8' });
+async function getSolFileVersion(file: string): Promise<string> {
+  const content = await fs.readFile(file, { encoding: 'utf-8' });
   const pragma = extractSpecifiersFromSource(content);
   const retrievedVersions = getCompilerVersionsBySpecifiers(pragma, supportedVersions);
   const version =
@@ -210,9 +211,10 @@ function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion
 }
 
 // used for the semantic test suite
-export function compileSolFilesAndExtractContracts(file: string): unknown {
-  const requiredSolcVersion = getSolFileVersion(file);
+export async function compileSolFilesAndExtractContracts(file: string): Promise<any> {
+  const requiredSolcVersion = await getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
+
   if (majorVersion !== '7' && majorVersion !== '8') {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }

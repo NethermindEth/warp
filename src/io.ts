@@ -1,20 +1,23 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
 import { AST } from './ast/ast';
-import { outputFileSync } from './utils/fs';
+import { outputFile } from './utils/fs';
 
-export function isValidSolFile(path: string, printError = true): boolean {
-  if (!fs.existsSync(path)) {
+export async function isValidSolFile(path: string, printError = true): Promise<boolean> {
+  try {
+    await fs.access(path);
+  } catch {
     if (printError) logError(`${path} doesn't exist`);
     return false;
   }
 
-  if (!fs.lstatSync(path).isFile()) {
+  if (!(await fs.lstat(path)).isFile()) {
     if (printError) logError(`${path} is not a file`);
     return false;
   }
+
   if (!path.endsWith('.sol')) {
     if (printError) logError(`${path} is not a solidity source file`);
     return false;
@@ -23,16 +26,22 @@ export function isValidSolFile(path: string, printError = true): boolean {
   return true;
 }
 
-export function findSolSourceFilePaths(targetPath: string, recurse: boolean): string[] {
-  return findAllFiles(targetPath, recurse).filter((path) => path.endsWith('.sol'));
+export async function findSolSourceFilePaths(
+  targetPath: string,
+  recurse: boolean,
+): Promise<string[]> {
+  return (await findAllFiles(targetPath, recurse)).filter((path) => path.endsWith('.sol'));
 }
 
-export function findCairoSourceFilePaths(targetPath: string, recurse: boolean): string[] {
-  return findAllFiles(targetPath, recurse).filter((path) => path.endsWith('.cairo'));
+export async function findCairoSourceFilePaths(
+  targetPath: string,
+  recurse: boolean,
+): Promise<string[]> {
+  return (await findAllFiles(targetPath, recurse)).filter((path) => path.endsWith('.cairo'));
 }
 
-export function findAllFiles(targetPath: string, recurse: boolean): string[] {
-  const targetInformation = fs.lstatSync(targetPath);
+export async function findAllFiles(targetPath: string, recurse: boolean): Promise<string[]> {
+  const targetInformation = await fs.lstat(targetPath);
   if (targetInformation.isDirectory()) {
     return evaluateDirectory(targetPath, recurse);
   } else if (targetInformation.isFile()) {
@@ -43,13 +52,20 @@ export function findAllFiles(targetPath: string, recurse: boolean): string[] {
   }
 }
 
-function evaluateDirectory(path: string, recurse: boolean): string[] {
-  return fs.readdirSync(path, { withFileTypes: true }).flatMap((dirEntry) => {
-    if (!recurse && dirEntry.isDirectory()) {
-      return [];
-    }
-    return findAllFiles(`${path}/${dirEntry.name}`, recurse);
-  });
+async function evaluateDirectory(path: string, recurse: boolean): Promise<string[]> {
+  const dirEntries = await fs.readdir(path, { withFileTypes: true });
+
+  return (
+    await Promise.all(
+      dirEntries.map(async (dirEntry) => {
+        if (!recurse && dirEntry.isDirectory()) {
+          return [];
+        }
+
+        return await findAllFiles(`${path}/${dirEntry.name}`, recurse);
+      }),
+    )
+  ).flat();
 }
 
 export function replaceSuffix(filePath: string, suffix: string): string {
@@ -57,32 +73,39 @@ export function replaceSuffix(filePath: string, suffix: string): string {
   return path.join(parsedPath.dir, `${parsedPath.name}${suffix}`);
 }
 
-export function outputResult(
+export async function outputResult(
   contractName: string,
   outputPath: string,
   code: string,
   options: OutputOptions & TranspilationOptions,
   ast: AST,
-): void {
+): Promise<void> {
   if (options.outputDir !== undefined) {
-    if (fs.existsSync(options.outputDir)) {
-      const targetInformation = fs.lstatSync(options.outputDir);
-      if (!targetInformation.isDirectory()) {
+    try {
+      await fs.access(options.outputDir);
+
+      if (!(await fs.lstat(options.outputDir)).isDirectory()) {
         throw new TranspileFailedError(
           `Cannot output to ${options.outputDir}. Output-dir must be a directory`,
         );
       }
+    } catch {
+      // directory does not exist
     }
+
     const fullCodeOutPath = path.join(options.outputDir, outputPath);
     const abiOutPath = fullCodeOutPath.slice(0, -'.cairo'.length).concat('_sol_abi.json');
 
     const solFilePath = path.dirname(outputPath);
 
-    outputFileSync(
-      abiOutPath,
-      JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
-    );
-    outputFileSync(fullCodeOutPath, code);
+    await Promise.all([
+      outputFile(
+        abiOutPath,
+        JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
+      ),
+      outputFile(fullCodeOutPath, code),
+    ]);
+
     // Cairo-format is disabled, as it has a bug
     // if (options.formatCairo || options.dev) {
     //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;

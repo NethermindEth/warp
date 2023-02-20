@@ -15,62 +15,70 @@ import { shr, shr_signed } from './implementations/maths/shr';
 import { sub_unsafe, sub_signed, sub_signed_unsafe } from './implementations/maths/sub';
 import { external_input_check_ints } from './implementations/external_input_checks/externalInputChecksInts';
 
-add();
-add_unsafe();
-add_signed();
-add_signed_unsafe();
+async function generateWarplib() {
+  await Promise.all([
+    add(),
+    add_unsafe(),
+    add_signed(),
+    add_signed_unsafe(),
 
-//sub - handwritten
-sub_unsafe();
-sub_signed();
-sub_signed_unsafe();
+    //sub - handwritten
+    sub_unsafe(),
+    sub_signed(),
+    sub_signed_unsafe(),
 
-mul();
-mul_unsafe();
-mul_signed();
-mul_signed_unsafe();
+    mul(),
+    mul_unsafe(),
+    mul_signed(),
+    mul_signed_unsafe(),
 
-//div - handwritten
-div_signed();
-div_signed_unsafe();
+    //div - handwritten
+    div_signed(),
+    div_signed_unsafe(),
 
-// mod - handwritten
-mod_signed();
+    // mod - handwritten
+    mod_signed(),
 
-exp();
-exp_signed();
-exp_unsafe();
-exp_signed_unsafe();
+    exp(),
+    exp_signed(),
+    exp_unsafe(),
+    exp_signed_unsafe(),
 
-negate();
+    negate(),
 
-shl();
+    shl(),
 
-shr();
-shr_signed();
+    shr(),
+    shr_signed(),
 
-//ge - handwritten
-ge_signed();
+    //ge - handwritten
+    ge_signed(),
 
-//gt - handwritten
-gt_signed();
+    //gt - handwritten
+    gt_signed(),
 
-//le - handwritten
-le_signed();
+    //le - handwritten
+    le_signed(),
 
-//lt - handwritten
-lt_signed();
+    //lt - handwritten
+    lt_signed(),
 
-//xor - handwritten
-//bitwise_and - handwritten
-//bitwise_or - handwritten
-bitwise_not();
+    //xor - handwritten
+    //bitwise_and - handwritten
+    //bitwise_or - handwritten
+    bitwise_not(),
 
-// ---conversions---
+    // ---conversions---
 
-int_conversions();
+    int_conversions(),
 
-// ---external_input_checks---
-external_input_check_ints();
-// and - handwritten
-// or - handwritten
+    // ---external_input_checks---
+    external_input_check_ints(),
+    // and - handwritten
+    // or - handwritten
+  ]);
+}
+
+generateWarplib().catch((err) => {
+  throw err;
+});

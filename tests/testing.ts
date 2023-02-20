@@ -2,7 +2,7 @@ import path from 'path';
 import { CompileFailedError } from 'solc-typed-ast';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from '../src/io';
 import { compileSolFiles } from '../src/solCompile';
-import { compileCairo } from '../src/starknetCli';
+import { enqueueCompileCairo } from '../src/starknetCli';
 import { transpile } from '../src/transpiler';
 import {
   NotSupportedYetError,
@@ -10,12 +10,14 @@ import {
   WillNotSupportError,
 } from '../src/utils/errors';
 import { groupBy, printCompileErrors } from '../src/utils/utils';
-import * as fs from 'fs';
-import { outputFileSync } from '../src/utils/fs';
+import * as fs from 'fs/promises';
+import Bottleneck from 'bottleneck';
+import { outputFile } from '../src/utils/fs';
 import { error } from '../src/utils/formatting';
 
 const WARP_TEST = 'warpTest';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, 'exampleContracts');
+const PARALLEL_COUNT = 8;
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -249,23 +251,41 @@ const expectedResults = new Map<string, ResultType>(
   }),
 );
 
-export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {
-  const results = new Map<string, ResultType>();
+export async function runTests(
+  force: boolean,
+  onlyResults: boolean,
+  unsafe = false,
+  exact = false,
+) {
   if (force) {
-    postTestCleanup();
+    await postTestCleanup();
   } else if (!preTestChecks()) return;
+
   const filter = process.env.FILTER;
-  findSolSourceFilePaths('exampleContracts', true).forEach((file) => {
-    if (filter === undefined || file.includes(filter)) {
-      runSolFileTest(file, results, onlyResults, unsafe);
-    }
-  });
-  findCairoSourceFilePaths(WARP_TEST_FOLDER, true).forEach((file) => {
-    runCairoFileTest(file, results, onlyResults);
-  });
+  const results = new Map<string, ResultType>();
+
+  await Promise.all(
+    (
+      await findSolSourceFilePaths('exampleContracts', true)
+    ).map(async (file) => {
+      if (filter === undefined || file.includes(filter)) {
+        await runSolFileTest(file, results, onlyResults, unsafe);
+      }
+    }),
+  );
+
+  const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
+
+  await Promise.all(
+    (
+      await findCairoSourceFilePaths(WARP_TEST_FOLDER, true)
+    ).map((file) => bottleneck.schedule(() => runCairoFileTest(file, results, onlyResults))),
+  );
+
   const testsWithUnexpectedResults = getTestsWithUnexpectedResults(results);
   printResults(results, testsWithUnexpectedResults);
-  postTestCleanup();
+  await postTestCleanup();
+
   if (exact) {
     if (testsWithUnexpectedResults.length > 0) {
       throw new Error(
@@ -280,25 +300,33 @@ function preTestChecks(): boolean {
     console.log('Please remove warpTest/exampleContracts, or run with -f to delete it');
     return false;
   }
+
   if (!checkNoJson('warplib')) {
     console.log('Please remove all json files from warplib, or run with -f to delete them');
     return false;
   }
+
   return true;
 }
 
-function runSolFileTest(
+async function runSolFileTest(
   file: string,
   results: Map<string, ResultType>,
   onlyResults: boolean,
   unsafe: boolean,
-): void {
+): Promise<void> {
   console.log(`Warping ${file}`);
   const mangledPath = path.join(WARP_TEST, file);
   try {
-    transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
-      ([file, cairo]) => outputFileSync(path.join(WARP_TEST, file), cairo),
+    await Promise.all(
+      (
+        await transpile(await compileSolFiles([file], { warnings: false }), {
+          strict: true,
+          dev: true,
+        })
+      ).map(([file, cairo]) => outputFile(path.join(WARP_TEST, file), cairo)),
     );
+
     results.set(mangledPath, 'Success');
   } catch (e) {
     if (e instanceof CompileFailedError) {
@@ -323,14 +351,14 @@ function runSolFileTest(
   }
 }
 
-function runCairoFileTest(
+async function runCairoFileTest(
   file: string,
   results: Map<string, ResultType>,
   onlyResults: boolean,
   throwError = false,
-): void {
+): Promise<void> {
   if (!onlyResults) console.log(`Compiling ${file}`);
-  if (compileCairo(file).success) {
+  if ((await enqueueCompileCairo(file)).success) {
     results.set(file, 'Success');
   } else {
     if (throwError) {
@@ -393,26 +421,35 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
   }
 }
 
-function checkNoCairo(path: string): boolean {
-  return !fs.existsSync(path) || findCairoSourceFilePaths(path, true).length === 0;
+async function checkNoCairo(path: string): Promise<boolean> {
+  try {
+    await fs.access(path);
+  } catch {
+    return true;
+  }
+
+  return (await findCairoSourceFilePaths(path, true)).length === 0;
 }
 
-function checkNoJson(path: string): boolean {
-  return (
-    !fs.existsSync(path) ||
-    findAllFiles(path, true).filter((file) => file.endsWith('.json')).length === 0
-  );
+async function checkNoJson(path: string): Promise<boolean> {
+  try {
+    await fs.access(path);
+  } catch {
+    return true;
+  }
+
+  return (await findAllFiles(path, true)).filter((file) => file.endsWith('.json')).length === 0;
 }
 
-function postTestCleanup(): void {
-  deleteJson('warplib');
-  fs.rmSync(WARP_TEST_FOLDER, { recursive: true, force: true });
+async function postTestCleanup(): Promise<void> {
+  await deleteJson('warplib');
+  await fs.rm(WARP_TEST_FOLDER, { recursive: true, force: true });
 }
 
-function deleteJson(path: string): void {
-  findAllFiles(path, true)
-    .filter((file) => file.endsWith('.json'))
-    .forEach((file) => fs.unlinkSync(file));
+async function deleteJson(path: string): Promise<void> {
+  const jsonFiles = (await findAllFiles(path, true)).filter((file) => file.endsWith('.json'));
+
+  await Promise.all(jsonFiles.map((file) => fs.unlink(file)));
 }
 
 function removeExtension(file: string): string {

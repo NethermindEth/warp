@@ -1,5 +1,6 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
+import util from 'util';
 import assert from 'assert';
 import { exec } from 'child_process';
 import { expect } from 'chai';
@@ -12,30 +13,20 @@ interface AsyncTestCluster {
   dependencies: Map<string, string[]>;
 }
 
-export async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
-  return new Promise(function (resolve, reject) {
-    exec(cmd, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ stdout, stderr });
-      }
-    });
-  });
-}
-
 const warpBin = path.resolve(__dirname, '..', 'bin', 'warp');
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
+export const execAsync = util.promisify(exec);
+
 export function transpile(contractPath: string): Promise<{ stdout: string; stderr: string }> {
-  return sh(`${warpBin} transpile --dev ${contractPath}`);
+  return execAsync(`${warpBin} transpile --dev ${contractPath}`);
 }
 
 export function gen_interface(
   cairoContractPath: string,
   cairoContractAddress?: string,
 ): Promise<{ stdout: string; stderr: string }> {
-  return sh(
+  return execAsync(
     `${warpBin} gen-interface ${cairoContractPath} --contract-address ${cairoContractAddress}`,
   );
 }
@@ -44,49 +35,19 @@ export function starknetCompile(
   cairoPath: string,
   jsonOutputPath: string,
 ): Promise<{ stdout: string; stderr: string }> {
-  return sh(
+  return execAsync(
     `${warpVenvPrefix} starknet-compile --cairo_path ${OUTPUT_DIR} ${cairoPath} --output ${jsonOutputPath}`,
   );
 }
 
-export function batchPromises<In, Out>(
-  inputs: In[],
-  parallelCount: number,
-  func: (i: In) => Promise<Out>,
-): SafePromise<Out>[] {
-  const unwrappedPromises: Promise<Out>[] = [];
-
-  for (let i = 0; i < inputs.length; ++i) {
-    if (i < parallelCount) {
-      unwrappedPromises.push(func(inputs[i]));
-    } else {
-      unwrappedPromises.push(
-        unwrappedPromises[i - parallelCount].then(
-          () => func(inputs[i]),
-          () => func(inputs[i]),
-        ),
-      );
-    }
+export async function cleanup(path: string): Promise<void> {
+  try {
+    await fs.access(path);
+  } catch {
+    return;
   }
 
-  return unwrappedPromises.map(wrapPromise);
-}
-
-export type SafePromise<T> = Promise<
-  { success: true; result: T } | { success: false; result: unknown }
->;
-
-export function wrapPromise<T>(promise: Promise<T>): SafePromise<T> {
-  return promise.then(
-    (res) => ({ success: true, result: res }),
-    (reason) => ({ success: false, result: reason }),
-  );
-}
-
-export function cleanupSync(path: string): void {
-  if (fs.existsSync(path)) {
-    fs.unlinkSync(path);
-  }
+  await fs.unlink(path);
 }
 
 export function validateInput(input: string): void {
@@ -143,11 +104,15 @@ export async function compileCluster(
   assert(dependencies !== undefined);
 
   const declared = new Map<string, string>();
-  for (const fileToDeclare of dependencies) {
-    const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-    const fileLocationHash = hashFilename(fileToDeclare);
-    declared.set(fileLocationHash, declareHash);
-  }
+
+  await Promise.all(
+    dependencies.map(async (fileToDeclare) => {
+      const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
+      const fileLocationHash = hashFilename(fileToDeclare);
+      declared.set(fileLocationHash, declareHash);
+    }),
+  );
+
   return starknetCompile(path.join(OUTPUT_DIR, root), test.asyncTest.compiled);
 }
 
@@ -163,19 +128,25 @@ async function compileDependencyGraph(
   }
 
   const dependencies = graph.get(root);
+
   if (dependencies !== undefined) {
-    for (const fileToDeclare of dependencies) {
-      const declaredHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-      const fileLocationHash = hashFilename(fileToDeclare);
-      declared.set(fileLocationHash, declaredHash);
-    }
+    await Promise.all(
+      dependencies.map(async (fileToDeclare) => {
+        const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
+        const fileLocationHash = hashFilename(fileToDeclare);
+        declared.set(fileLocationHash, declareHash);
+      }),
+    );
   }
 
   const outputRoot = path.join(OUTPUT_DIR, root);
   const compiledRoot = compileLocation(outputRoot);
+
   await starknetCompile(outputRoot, compiledRoot);
+
   const hash = await declare(compiledRoot);
   assert(!hash.threw, `Error during declaration: ${hash.error_message}`);
+
   return hash.class_hash;
 }
 

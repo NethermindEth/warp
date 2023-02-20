@@ -2,10 +2,10 @@ import { expectations as semantic } from './semantic';
 import { expectations as behaviour } from './behaviour';
 import { exceptions } from './semanticExceptions';
 import { AsyncTest, Expect, File } from './types';
-import { readFileSync } from 'fs';
+import fs from 'fs/promises';
 
-function getSyncTestFromPath(path: string): File {
-  const text = readFileSync(path + '.sol', 'utf-8');
+async function getSyncTestFromPath(path: string): Promise<File> {
+  const text = await fs.readFile(path + '.sol', 'utf-8');
 
   const contractNames = [...text.matchAll(/contract (\w+)/g)].map(([_, name]) => name);
   const lastContract = contractNames[contractNames.length - 1];
@@ -21,21 +21,28 @@ function getSyncTestFromPath(path: string): File {
       matches[0][3] === 'FAILURE' ? null : [matches[0][3]],
     );
   });
+
   return File.Simple(path, expects, lastContract);
 }
 
 // Don't be fooled, process.env.BLAH can be undefined
-function filterTests(
+async function filterTests(
   syncTests: File[],
-  asyncTests: AsyncTest[],
+  asyncTests: AsyncTest[] | Promise<AsyncTest[]>,
   filter = process.env.FILTER,
-): AsyncTest[] {
+): Promise<AsyncTest[]> {
+  asyncTests = await asyncTests;
+
   // Separate the exceptions from the selected semanticTests
   // into a different array 'newSyncTests'
   const newAsyncTests = asyncTests.filter((test) => !exceptions.includes(test.name));
   const newSyncTests = asyncTests.filter((test) => exceptions.includes(test.name));
 
-  syncTests = [...syncTests, ...newSyncTests.map((test) => getSyncTestFromPath(test.name))];
+  syncTests = [
+    ...syncTests,
+    ...(await Promise.all(newSyncTests.map((test) => getSyncTestFromPath(test.name)))),
+  ];
+
   const tests = [...syncTests.map(AsyncTest.fromSync), ...newAsyncTests];
   if (filter === undefined) {
     return tests;
@@ -45,4 +52,4 @@ function filterTests(
   return tests.filter((test) => test.name.includes(filter));
 }
 
-export const expectations = filterTests(behaviour, semantic);
+export const getExpectations = () => filterTests(behaviour, semantic);

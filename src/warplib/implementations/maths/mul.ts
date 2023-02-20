@@ -13,8 +13,8 @@ import {
   IntxIntFunction,
 } from '../../utils';
 
-export function mul(): void {
-  generateFile(
+export async function mul(): Promise<void> {
+  await generateFile(
     'mul',
     [
       'from starkware.cairo.common.uint256 import Uint256, uint256_mul',
@@ -58,8 +58,8 @@ export function mul(): void {
   );
 }
 
-export function mul_unsafe(): void {
-  generateFile(
+export async function mul_unsafe(): Promise<void> {
+  await generateFile(
     'mul_unsafe',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
@@ -98,8 +98,8 @@ export function mul_unsafe(): void {
   );
 }
 
-export function mul_signed(): void {
-  generateFile(
+export async function mul_signed(): Promise<void> {
+  await generateFile(
     'mul_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
@@ -189,8 +189,8 @@ export function mul_signed(): void {
   );
 }
 
-export function mul_signed_unsafe(): void {
-  generateFile(
+export async function mul_signed_unsafe(): Promise<void> {
+  await generateFile(
     'mul_signed_unsafe',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

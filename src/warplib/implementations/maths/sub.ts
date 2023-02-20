@@ -14,8 +14,8 @@ import {
   IntxIntFunction,
 } from '../../utils';
 
-export function sub_unsafe(): void {
-  generateFile(
+export async function sub_unsafe(): Promise<void> {
+  await generateFile(
     'sub_unsafe',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
@@ -57,8 +57,8 @@ export function sub_unsafe(): void {
   );
 }
 
-export function sub_signed(): void {
-  generateFile(
+export async function sub_signed(): Promise<void> {
+  await generateFile(
     'sub_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
@@ -120,8 +120,8 @@ export function sub_signed(): void {
   );
 }
 
-export function sub_signed_unsafe(): void {
-  generateFile(
+export async function sub_signed_unsafe(): Promise<void> {
+  await generateFile(
     'sub_signed_unsafe',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

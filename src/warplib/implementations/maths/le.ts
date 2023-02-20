@@ -3,8 +3,8 @@ import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { generateFile, forAllWidths, msb, Comparison } from '../../utils';
 
-export function le_signed() {
-  generateFile(
+export async function le_signed(): Promise<void> {
+  await generateFile(
     'le_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import {
   BinaryOperation,
   BoolType,
@@ -54,8 +54,12 @@ export function msbAndNext(width: number): string {
 // This is used along with the commented out code in generateFile to enable cairo-formatting
 // const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-export function generateFile(name: string, imports: string[], functions: string[]): void {
-  fs.writeFileSync(
+export async function generateFile(
+  name: string,
+  imports: string[],
+  functions: string[],
+): Promise<void> {
+  await fs.writeFile(
     `./warplib/maths/${name}.cairo`,
     `//AUTO-GENERATED\n${imports.join('\n')}\n\n${functions.join('\n')}\n`,
   );

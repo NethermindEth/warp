@@ -1,6 +1,9 @@
 import assert from 'assert';
+import util from 'util';
+import os from 'os';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
+import Bottleneck from 'bottleneck';
 import {
   IDeployProps,
   ICallOrInvokeProps,
@@ -17,6 +20,8 @@ import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
 
+const execAsync = util.promisify(exec);
+const compilationBottleneck = new Bottleneck({ maxConcurrent: os.cpus().length });
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
 interface CompileResult {
@@ -27,11 +32,19 @@ interface CompileResult {
   classHash?: string;
 }
 
-export function compileCairo(
+export async function enqueueCompileCairo(
   filePath: string,
   cairoPath: string = path.resolve(__dirname, '..'),
   debugInfo: IOptionalDebugInfo = { debugInfo: false },
-): CompileResult {
+): Promise<CompileResult> {
+  return compilationBottleneck.schedule(() => compileCairo(filePath, cairoPath, debugInfo));
+}
+
+export async function compileCairo(
+  filePath: string,
+  cairoPath: string = path.resolve(__dirname, '..'),
+  debugInfo: IOptionalDebugInfo = { debugInfo: false },
+): Promise<CompileResult> {
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   const resultPath = `${cairoPathRoot}_compiled.json`;
@@ -47,13 +60,12 @@ export function compileCairo(
   const debug: string = debugInfo.debugInfo ? '--debug_info_with_source' : '--no_debug_info';
   try {
     console.log(`Running starknet compile with cairoPath ${cairoPath}`);
-    execSync(
+    await execAsync(
       `${warpVenvPrefix} starknet-compile --disable_hint_validation ${debug} ${filePath} ${[
         ...parameters.entries(),
       ]
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')}`,
-      { stdio: 'inherit' },
     );
 
     return { success: true, resultPath, abiPath, solAbiPath, classHash: undefined };
@@ -73,8 +85,12 @@ export function compileCairo(
   }
 }
 
-export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'), debug_info);
+export async function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
+  const { success, resultPath } = await enqueueCompileCairo(
+    filePath,
+    path.resolve(__dirname, '..'),
+    debug_info,
+  );
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -82,7 +98,7 @@ export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugI
   console.log(`starknet-compile output written to ${resultPath}`);
 }
 
-export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IGatewayProps) {
+export async function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IGatewayProps) {
   if (option.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "status" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -96,11 +112,8 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IG
     : '';
 
   try {
-    execSync(
+    await execAsync(
       `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network} ${gatewayUrlOption} ${feederGatewayUrlOption}`.trim(),
-      {
-        stdio: 'inherit',
-      },
     );
   } catch {
     logError('starknet tx_status failed');
@@ -118,7 +131,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   // such option does not exists currently when deploying, should be added
   let compileResult;
   try {
-    compileResult = compileCairo(filePath, path.resolve(__dirname, '..'), options);
+    compileResult = await enqueueCompileCairo(filePath, path.resolve(__dirname, '..'), options);
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -159,7 +172,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
     const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
     const resultPath = compileResult.resultPath;
-    execSync(
+    await execAsync(
       `${warpVenvPrefix} starknet deploy --network ${options.network} ${
         options.no_wallet
           ? `--no_wallet --contract ${resultPath} `
@@ -169,16 +182,13 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
       } ${inputs} ${
         options.account !== undefined ? `--account ${options.account}` : ''
       } ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
-      {
-        stdio: 'inherit',
-      },
     );
   } catch {
     logError('starknet deploy failed');
   }
 }
 
-export function runStarknetDeployAccount(options: IDeployAccountProps) {
+export async function runStarknetDeployAccount(options: IDeployAccountProps) {
   if (options.wallet === undefined) {
     logError(
       `Error: AssertionError: --wallet must be specified with the "deploy_account" subcommand.`,
@@ -195,7 +205,7 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   const account = options.account ? `--account ${options.account}` : '';
 
   try {
-    execSync(
+    await execAsync(
       `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${
         options.network
       } ${account} ${options.gateway_url ? `--gateway_url ${options.gateway_url}` : ''} ${
@@ -203,9 +213,6 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
       } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
         options.max_fee ? `--max_fee ${options.max_fee}` : ''
       }`,
-      {
-        stdio: 'inherit',
-      },
     );
   } catch {
     logError('starknet deploy failed');
@@ -236,7 +243,10 @@ export async function runStarknetCallOrInvoke(
   const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
   const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
 
-  const { success, abiPath, solAbiPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+  const { success, abiPath, solAbiPath } = await enqueueCompileCairo(
+    filePath,
+    path.resolve(__dirname, '..'),
+  );
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -259,9 +269,11 @@ export async function runStarknetCallOrInvoke(
     throw e;
   }
   try {
-    let warpOutput: string = execSync(
-      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`.trim(),
-    ).toString('utf-8');
+    let warpOutput: string = (
+      await execAsync(
+        `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`.trim(),
+      )
+    ).stdout;
 
     if (isCall && !options.use_cairo_abi) {
       const decodedOutputs = await decodeOutputs(
@@ -277,7 +289,7 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-function declareContract(filePath: string, options: IDeclareOptions) {
+async function declareContract(filePath: string, options: IDeclareOptions) {
   // wallet check
   if (!options.no_wallet) {
     if (options.wallet === undefined) {
@@ -310,10 +322,9 @@ function declareContract(filePath: string, options: IDeclareOptions) {
   const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
 
   try {
-    execSync(
+    await execAsync(
       `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
       {
-        stdio: 'inherit',
         encoding: 'utf8',
       },
     );
@@ -322,18 +333,21 @@ function declareContract(filePath: string, options: IDeclareOptions) {
   }
 }
 
-export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+export async function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
+  const { success, resultPath } = await enqueueCompileCairo(
+    filePath,
+    path.resolve(__dirname, '..'),
+  );
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
   } else {
     assert(resultPath !== undefined);
-    declareContract(resultPath, options);
+    await declareContract(resultPath, options);
   }
 }
 
-export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
+export async function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
   const networkOption = options.network ? `--network ${options.network}` : ``;
   const walletOption = options.wallet ? `--wallet ${options.wallet}` : ``;
   const accountOption = options.account ? `--account ${options.account}` : '';
@@ -344,10 +358,9 @@ export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
     : '';
   const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
   try {
-    execSync(
+    await execAsync(
       `${warpVenvPrefix} starknet new_account ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
       {
-        stdio: 'inherit',
         encoding: 'utf8',
       },
     );

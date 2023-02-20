@@ -6,8 +6,8 @@ import { Implicits } from '../../../utils/implicits';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { bound, forAllWidths, generateFile, IntFunction, mask, msb, uint256 } from '../../utils';
 
-export function int_conversions(): void {
-  generateFile(
+export async function int_conversions(): Promise<void> {
+  await generateFile(
     'int_conversions',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

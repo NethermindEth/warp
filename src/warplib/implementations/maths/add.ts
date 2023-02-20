@@ -3,8 +3,8 @@ import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { forAllWidths, generateFile, IntxIntFunction, mask, msb, msbAndNext } from '../../utils';
 
-export function add(): void {
-  generateFile(
+export async function add(): Promise<void> {
+  await generateFile(
     'add',
     [
       'from starkware.cairo.common.math_cmp import is_le_felt',
@@ -33,8 +33,8 @@ export function add(): void {
   );
 }
 
-export function add_unsafe(): void {
-  generateFile(
+export async function add_unsafe(): Promise<void> {
+  await generateFile(
     'add_unsafe',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
@@ -63,8 +63,8 @@ export function add_unsafe(): void {
   );
 }
 
-export function add_signed(): void {
-  generateFile(
+export async function add_signed(): Promise<void> {
+  await generateFile(
     'add_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
@@ -108,8 +108,8 @@ export function add_signed(): void {
   );
 }
 
-export function add_signed_unsafe(): void {
-  generateFile(
+export async function add_signed_unsafe(): Promise<void> {
+  await generateFile(
     'add_signed_unsafe',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

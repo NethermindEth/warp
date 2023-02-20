@@ -72,8 +72,11 @@ import { printCompileErrors, runSanityCheck } from './utils/utils';
 
 type CairoSource = [file: string, source: string];
 
-export function transpile(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
-  const cairoAST = applyPasses(ast, options);
+export async function transpile(
+  ast: AST,
+  options: TranspilationOptions & PrintOptions,
+): Promise<CairoSource[]> {
+  const cairoAST = await applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
     new PrettyFormatter(4, 0),
@@ -82,23 +85,28 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
   return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
-export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
-  const cairoAST = applyPasses(ast, options);
+export async function transform(
+  ast: AST,
+  options: TranspilationOptions & PrintOptions,
+): Promise<CairoSource[]> {
+  const cairoAST = await applyPasses(ast, options);
+
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
     new PrettyFormatter(4, 0),
     ast.inference.version,
   );
+
   return cairoAST.roots.map((sourceUnit) => [
     sourceUnit.absolutePath,
     removeExcessNewlines(writer.write(sourceUnit), 2),
   ]);
 }
 
-function applyPasses(
+async function applyPasses(
   ast: AST,
   options: TranspilationOptions & PrintOptions & CompilationOptions,
-): AST {
+): Promise<AST> {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
@@ -175,13 +183,12 @@ function applyPasses(
   // Reject code that contains identifiers starting with certain patterns
   RejectPrefix.map(ast);
 
-  const finalAst = passesInOrder.reduce((ast, mapper) => {
+  for (const mapper of passesInOrder) {
     printPassName(mapper.getPassName(), options);
-    const newAst = mapper.map(ast);
+    ast = mapper.map(ast);
     checkAST(ast, options, mapper.getPassName());
     printAST(ast, options);
-    return newAst;
-  }, ast);
+  }
 
   const finalOpts: TranspilationOptions = {
     checkTrees: options.checkTrees,
@@ -192,8 +199,9 @@ function applyPasses(
     warnings: options.warnings,
     until: options.until,
   };
-  checkAST(finalAst, finalOpts, 'Final AST (after all passes)');
-  return finalAst;
+
+  await checkAST(ast, finalOpts, 'Final AST (after all passes)');
+  return ast;
 }
 
 export function handleTranspilationError(e: unknown) {

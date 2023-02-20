@@ -3,8 +3,8 @@ import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { forAllWidths, generateFile, IntFunction, mask } from '../../utils';
 
-export function bitwise_not(): void {
-  generateFile(
+export async function bitwise_not(): Promise<void> {
+  await generateFile(
     'bitwise_not',
     [
       'from starkware.cairo.common.bitwise import bitwise_xor',

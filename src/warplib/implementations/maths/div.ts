@@ -4,8 +4,8 @@ import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { forAllWidths, generateFile, IntxIntFunction, mask } from '../../utils';
 
-export function div_signed() {
-  generateFile(
+export async function div_signed(): Promise<void> {
+  await generateFile(
     'div_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
@@ -61,8 +61,8 @@ export function div_signed() {
   );
 }
 
-export function div_signed_unsafe() {
-  generateFile(
+export async function div_signed_unsafe(): Promise<void> {
+  await generateFile(
     'div_signed_unsafe',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

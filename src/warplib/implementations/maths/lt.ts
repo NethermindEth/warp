@@ -4,8 +4,8 @@ import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { generateFile, forAllWidths, Comparison } from '../../utils';
 
-export function lt_signed() {
-  generateFile(
+export async function lt_signed(): Promise<void> {
+  await generateFile(
     'lt_signed',
     [
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',

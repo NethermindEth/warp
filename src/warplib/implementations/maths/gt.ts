@@ -4,8 +4,8 @@ import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { generateFile, forAllWidths, Comparison } from '../../utils';
 
-export function gt_signed() {
-  generateFile(
+export async function gt_signed(): Promise<void> {
+  await generateFile(
     'gt_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

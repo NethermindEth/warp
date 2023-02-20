@@ -4,8 +4,8 @@ import { Implicits } from '../../../utils/implicits';
 import { bound, forAllWidths, generateFile, IntFunction, mask } from '../../utils';
 
 // This satisfies the solidity convention of -type(intX).min = type(intX).min
-export function negate(): void {
-  generateFile(
+export async function negate(): Promise<void> {
+  await generateFile(
     'negate',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

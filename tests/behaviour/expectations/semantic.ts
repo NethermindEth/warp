@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import fs from 'fs/promises';
 import AbiCoder from 'web3-eth-abi';
 import {
   AddressType,
@@ -106,40 +106,43 @@ const initialRun: Promise<CompileResult> =
         resolvedFileNames: new Map(),
       });
 
-export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTest => {
-  try {
-    // The solidity test dsl assumes the last contract defined in the file is
-    // the target of the function calls. solc-typed-ast sorts the contracts
-    // so we need to do a dumb regex to find the right contract
-    const contractNames = [
-      ...readFileSync(file, 'utf-8')
-        .split('\n')
-        .map((line) => {
-          const commentStart = line.indexOf('//');
-          if (commentStart === -1) return line;
-          return line.slice(0, commentStart);
-        })
-        .join('\n')
-        .matchAll(/contract (\w+)/g),
-    ].map(([_, name]) => name);
-    const lastContract = contractNames[contractNames.length - 1];
-    const truncatedFileName = file.substring(0, file.length - '.sol'.length);
+export const expectations: Promise<AsyncTest[]> = Promise.all(
+  validTests.map(async ([file, tests]): Promise<AsyncTest> => {
+    try {
+      // The solidity test dsl assumes the last contract defined in the file is
+      // the target of the function calls. solc-typed-ast sorts the contracts
+      // so we need to do a dumb regex to find the right contract
+      const contractNames = [
+        ...(await fs.readFile(file, 'utf-8'))
+          .split('\n')
+          .map((line) => {
+            const commentStart = line.indexOf('//');
+            if (commentStart === -1) return line;
+            return line.slice(0, commentStart);
+          })
+          .join('\n')
+          .matchAll(/contract (\w+)/g),
+      ].map(([_, name]) => name);
 
-    const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
+      const lastContract = contractNames[contractNames.length - 1];
+      const truncatedFileName = file.substring(0, file.length - '.sol'.length);
 
-    // Encode constructor arguments
-    const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
+      const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
 
-    return new AsyncTest(
-      truncatedFileName,
-      lastContract,
-      constructorArgs,
-      transcodeTests(tests, contractAbiDefAst),
-    );
-  } catch (e) {
-    return new AsyncTest(file, '', [], [], `${e}`);
-  }
-});
+      // Encode constructor arguments
+      const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
+
+      return new AsyncTest(
+        truncatedFileName,
+        lastContract,
+        constructorArgs,
+        transcodeTests(tests, contractAbiDefAst),
+      );
+    } catch (e) {
+      return new AsyncTest(file, '', [], [], `${e}`);
+    }
+  }),
+);
 
 // ------------------------ Transcode the tests ------------------------------
 
@@ -393,7 +396,7 @@ async function getContractAbiAndDefinition(
   lastContractName: string,
 ): Promise<[FunABI[], ContractDefinition, AST]> {
   // Get the abi of the contract for web3
-  const contracts: any = compileSolFilesAndExtractContracts(file);
+  const contracts = await compileSolFilesAndExtractContracts(file);
   const lastContract = contracts[lastContractName];
   if (lastContract === undefined) {
     throw new InvalidTestError(`Unable to find contract ${lastContractName} in file ${file}`);
@@ -402,7 +405,7 @@ async function getContractAbiAndDefinition(
 
   // Get the ast itself so we can resolve the types for our type conversion
   // later
-  const ast = compileSolFiles([file], { warnings: false });
+  const ast = await compileSolFiles([file], { warnings: false });
   const astRoot = ast.roots[ast.roots.length - 1];
   const [contractDef] = astRoot
     .getChildrenByType(ContractDefinition, true)

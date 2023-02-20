@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Command } from 'commander';
 import { isValidSolFile, outputResult, replaceSuffix } from './io';
@@ -6,7 +6,7 @@ import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
-  compileCairo,
+  enqueueCompileCairo,
   runStarknetCallOrInvoke,
   runStarknetCompile,
   runStarknetDeclare,
@@ -86,12 +86,13 @@ program
   .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTranspile);
 
-export function runTranspile(files: string[], options: CliOptions) {
+export async function runTranspile(files: string[], options: CliOptions) {
   // We do the extra work here to make sure all the errors are printed out
   // for all files which are invalid.
-  if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
+  if ((await Promise.all(files.map((file) => isValidSolFile(file)))).some((result) => !result))
+    return;
 
-  const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+  const [defaultBasePath, defaultIncludePath] = await defaultBasePathAndIncludePath();
 
   if (defaultBasePath !== null && defaultIncludePath !== null) {
     options.includePaths =
@@ -104,35 +105,35 @@ export function runTranspile(files: string[], options: CliOptions) {
   // map file location relative to current working directory
   const mFiles = files.map((file) => path.relative(process.cwd(), file));
 
-  const ast = compileSolFiles(mFiles, options);
+  const ast = await compileSolFiles(mFiles, options);
   const contractToHashMap = new Map<string, string>();
 
   try {
-    transpile(ast, options)
-      .map(([fname, cairo]) => {
-        outputResult(parse(fname).name, fname, cairo, options, ast);
-        return fname;
-      })
-      .map((file) =>
-        postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
-      )
-      .forEach((file: string) => {
+    await Promise.all(
+      (
+        await transpile(ast, options)
+      ).map(async ([fname, cairo]) => {
+        await outputResult(parse(fname).name, fname, cairo, options, ast);
+        await postProcessCairoFile(fname, options.outputDir, options.debugInfo, contractToHashMap);
+
         if (options.compileCairo) {
-          const { success, resultPath, abiPath } = compileCairo(
-            path.join(options.outputDir, file),
+          const { success, resultPath, abiPath } = await enqueueCompileCairo(
+            path.join(options.outputDir, fname),
             path.resolve(__dirname, '..'),
             options,
           );
+
           if (!success) {
             if (resultPath) {
-              fs.unlinkSync(resultPath);
+              await fs.unlink(resultPath);
             }
             if (abiPath) {
-              fs.unlinkSync(abiPath);
+              await fs.unlink(abiPath);
             }
           }
         }
-      });
+      }),
+    );
   } catch (e) {
     handleTranspilationError(e);
   }
@@ -159,10 +160,10 @@ program
   .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTransform);
 
-export function runTransform(file: string, options: CliOptions) {
+export async function runTransform(file: string, options: CliOptions) {
   if (!isValidSolFile(file)) return;
 
-  const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+  const [defaultBasePath, defaultIncludePath] = await defaultBasePathAndIncludePath();
 
   if (defaultBasePath !== null && defaultIncludePath !== null) {
     options.includePaths =
@@ -174,10 +175,20 @@ export function runTransform(file: string, options: CliOptions) {
 
   try {
     const mFile = path.relative(process.cwd(), file);
-    const ast = compileSolFiles([mFile], options);
-    transform(ast, options).map(([fname, solidity]) => {
-      outputResult(parse(fname).name, replaceSuffix(fname, '_warp.cairo'), solidity, options, ast);
-    });
+    const ast = await compileSolFiles([mFile], options);
+    await Promise.all(
+      (
+        await transform(ast, options)
+      ).map(([fname, solidity]) =>
+        outputResult(
+          parse(fname).name,
+          replaceSuffix(fname, '_warp.cairo'),
+          solidity,
+          options,
+          ast,
+        ),
+      ),
+    );
   } catch (e) {
     handleTranspilationError(e);
   }
@@ -207,8 +218,8 @@ program
     'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
-  .action((tx_hash: string, options: IOptionalNetwork) => {
-    runStarknetStatus(tx_hash, options);
+  .action(async (tx_hash: string, options: IOptionalNetwork) => {
+    await runStarknetStatus(tx_hash, options);
   });
 
 export interface IOptionalDebugInfo {
@@ -219,8 +230,8 @@ program
   .command('compile <file>')
   .description('Compile cairo files with warplib in the cairo-path')
   .option('-d, --debug-info', 'Include debug information', false)
-  .action((file: string, options: IOptionalDebugInfo) => {
-    runStarknetCompile(file, options);
+  .action(async (file: string, options: IOptionalDebugInfo) => {
+    await runStarknetCompile(file, options);
   });
 
 export interface SolcInterfaceGenOptions {
@@ -384,7 +395,7 @@ program
   )
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
   .action(async (file: string, options: ICallOrInvokeProps) => {
-    runStarknetCallOrInvoke(file, false, options);
+    await runStarknetCallOrInvoke(file, false, options);
   });
 
 program
@@ -421,7 +432,7 @@ program
   )
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
   .action(async (file: string, options: ICallOrInvokeProps) => {
-    runStarknetCallOrInvoke(file, true, options);
+    await runStarknetCallOrInvoke(file, true, options);
   });
 
 interface IOptionalVerbose {
@@ -516,13 +527,13 @@ const green = chalk.bold.green;
 program
   .command('version')
   .description('Warp version')
-  .action(() => {
+  .action(async () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pjson = require('../package.json');
 
-    const cairoInstallScript = fs
-      .readFileSync(path.join(__dirname, '..', 'warp_venv.sh'))
-      .toString();
+    const cairoInstallScript = (
+      await fs.readFile(path.join(__dirname, '..', 'warp_venv.sh'))
+    ).toString();
 
     const starknetVersion: string = (cairoInstallScript.match(/cairo-lang==(.*)/) || [])[1];
 

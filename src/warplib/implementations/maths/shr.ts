@@ -21,8 +21,8 @@ import {
   getIntOrFixedByteBitWidth,
 } from '../../utils';
 
-export function shr(): void {
-  generateFile(
+export async function shr(): Promise<void> {
+  await generateFile(
     'shr',
     [
       'from starkware.cairo.common.bitwise import bitwise_and, bitwise_not',
@@ -128,8 +128,8 @@ export function shr(): void {
   );
 }
 
-export function shr_signed(): void {
-  generateFile(
+export async function shr_signed(): Promise<void> {
+  await generateFile(
     'shr_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

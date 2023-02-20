@@ -33,6 +33,7 @@ export class TypeStringsChecker extends ASTMapper {
       const mapper = new AssertTypeStrings();
       mapper.dispatchVisit(root, ast);
     });
+
     return ast;
   }
 }

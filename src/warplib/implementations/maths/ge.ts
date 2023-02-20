@@ -4,8 +4,8 @@ import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { generateFile, forAllWidths, Comparison } from '../../utils';
 
-export function ge_signed() {
-  generateFile(
+export async function ge_signed(): Promise<void> {
+  await generateFile(
     'ge_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

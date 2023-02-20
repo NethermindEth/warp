@@ -15,9 +15,9 @@ import { typeNameFromTypeNode } from '../../../utils/utils';
 import { generateFile, forAllWidths, getIntOrFixedByteBitWidth } from '../../utils';
 
 // rhs is always unsigned, and signed and unsigned shl are the same
-export function shl(): void {
+export async function shl(): Promise<void> {
   //Need to provide an implementation with 256bit rhs and <256bit lhs
-  generateFile(
+  await generateFile(
     'shl',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

@@ -1,8 +1,8 @@
-import { compileCairo } from '../starknetCli';
+import { enqueueCompileCairo } from '../starknetCli';
 import * as path from 'path';
 import { logError } from '../utils/errors';
 import { SolcInterfaceGenOptions } from '../cli';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { AST } from '../ast/ast';
 
 import {
@@ -64,17 +64,21 @@ const defaultSolcVersion = '0.8.14';
  * @param options : options for the generation (solc version, output directory, etc.)
  * @returns : none
  */
-export function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
+export async function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
-  const { success, resultPath, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..'), {
-    debugInfo: false,
-  });
+  const { success, resultPath, abiPath } = await enqueueCompileCairo(
+    filePath,
+    path.resolve(__dirname, '..'),
+    {
+      debugInfo: false,
+    },
+  );
 
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
   } else {
-    if (resultPath) fs.unlinkSync(resultPath);
+    if (resultPath) await fs.unlink(resultPath);
   }
 
   let solPath = `${cairoPathRoot}.sol`; // default path for the generated solidity file
@@ -86,7 +90,7 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     cairoContractPath = filePathRoot + '.cairo';
   }
 
-  const abi: AbiType = abiPath ? JSON.parse(fs.readFileSync(abiPath, 'utf8')) : [];
+  const abi: AbiType = abiPath ? JSON.parse(await fs.readFile(abiPath, 'utf8')) : [];
 
   // generate the cairo contract that will be used to interact with the given cairo contract
   let cairoContract: string = genCairoContract(abi, options.contractAddress, options.classHash);
@@ -120,7 +124,7 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     cairoPathRoot.split('/').pop(),
   );
 
-  if (abiPath) fs.unlinkSync(abiPath);
+  if (abiPath) await fs.unlink(abiPath);
 
   // replace function names in the generated cairo contract such that it'll match the function
   // names in the generated solidity contract after transpilation of the latter
@@ -128,23 +132,27 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     cairoContract = cairoContract.replace(`_ITR_${key}`, `${key}_${value}`);
   });
 
-  fs.writeFileSync(cairoContractPath, cairoContract);
+  await fs.writeFile(cairoContractPath, cairoContract);
 
-  const compileForwarder = compileCairo(cairoContractPath, path.resolve(__dirname, '../../'), {
-    debugInfo: false,
-  });
+  const compileForwarder = await enqueueCompileCairo(
+    cairoContractPath,
+    path.resolve(__dirname, '../../'),
+    {
+      debugInfo: false,
+    },
+  );
 
   contract.documentation = `WARP-GENERATED\nclass_hash: ${
     compileForwarder.resultPath ? runStarkNetClassHash(compileForwarder.resultPath) : '0x0'
   }`;
 
   if (compileForwarder.success) {
-    if (compileForwarder.resultPath) fs.unlinkSync(compileForwarder.resultPath);
-    if (compileForwarder.abiPath) fs.unlinkSync(compileForwarder.abiPath);
+    if (compileForwarder.resultPath) await fs.unlink(compileForwarder.resultPath);
+    if (compileForwarder.abiPath) await fs.unlink(compileForwarder.abiPath);
   }
 
   const result: string = removeExcessNewlines(writer.write(ast.roots[0] as SourceUnit), 2);
-  fs.writeFileSync(solPath, result);
+  await fs.writeFile(solPath, result);
 }
 
 function addPragmaDirective(version: string, sourceUint: SourceUnit, ast: AST): void {

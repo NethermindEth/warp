@@ -1,5 +1,5 @@
 import assert from 'assert';
-import fs from 'fs';
+import fs from 'fs/promises';
 import {
   AddressType,
   ASTNode,
@@ -88,8 +88,8 @@ export class WarnSupportedFeatures extends ASTMapper {
   }
 }
 
-function warn(path: string, nodes: ASTNode[]): void {
-  const content = fs.readFileSync(path, { encoding: 'utf-8' });
+async function warn(path: string, nodes: ASTNode[]): Promise<void> {
+  const content = await fs.readFile(path, { encoding: 'utf-8' });
   const extendedMessage = [
     `File ${path}:`,
     ...getSourceFromLocations(

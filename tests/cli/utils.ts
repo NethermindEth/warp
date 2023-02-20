@@ -1,5 +1,5 @@
-import { sh } from '../util';
 import * as path from 'path';
+import { execAsync } from '../util';
 
 export const WALLET = 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount';
 export const GATEWAY_URL = 'http://127.0.0.1:5050';
@@ -22,8 +22,9 @@ export function extractFromStdout(stdout: string, regex: RegExp) {
 export async function mintEthToAccount(
   address: string,
 ): Promise<{ stdout: string; stderr: string }> {
-  const res = await sh(
+  const res = await execAsync(
     `curl localhost:5050/mint -H "Content-Type: application/json" -d "{ \\"address\\": \\"${address}\\", \\"amount\\": 1000000000000000000, \\"lite\\": false }"`,
   );
+
   return res;
 }

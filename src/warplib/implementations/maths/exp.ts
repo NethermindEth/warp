@@ -13,25 +13,25 @@ import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import { forAllWidths, generateFile, getIntOrFixedByteBitWidth, mask } from '../../utils';
 
-export function exp() {
-  createExp(false, false);
+export async function exp(): Promise<void> {
+  await createExp(false, false);
 }
 
-export function exp_signed() {
-  createExp(true, false);
+export async function exp_signed(): Promise<void> {
+  await createExp(true, false);
 }
 
-export function exp_unsafe() {
-  createExp(false, true);
+export async function exp_unsafe(): Promise<void> {
+  await createExp(false, true);
 }
 
-export function exp_signed_unsafe() {
-  createExp(true, true);
+export async function exp_signed_unsafe(): Promise<void> {
+  await createExp(true, true);
 }
 
-function createExp(signed: boolean, unsafe: boolean) {
+async function createExp(signed: boolean, unsafe: boolean): Promise<void> {
   const suffix = `${signed ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`;
-  generateFile(
+  await generateFile(
     `exp${suffix}`,
     [
       'from starkware.cairo.common.bitwise import bitwise_and',

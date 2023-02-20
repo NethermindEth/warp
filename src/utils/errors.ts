@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { ASTNode, parseSourceLocation, SourceUnit } from 'solc-typed-ast';
 import { error } from './formatting';
 import { getSourceFromLocations } from './utils';
@@ -27,8 +27,8 @@ function getSourceCode(node: ASTNode | undefined): string {
   const sourceUnit = node.getClosestParentByType(SourceUnit);
   if (sourceUnit === undefined) return '';
   const filePath = sourceUnit.absolutePath;
-  if (fs.existsSync(filePath)) {
-    const content = fs.readFileSync(filePath, { encoding: 'utf-8' });
+  if (existsSync(filePath)) {
+    const content = readFileSync(filePath, { encoding: 'utf-8' });
     return [
       `File ${filePath}:\n`,
       ...getSourceFromLocations(content, [parseSourceLocation(node.src)], error, 3)
@@ -50,24 +50,27 @@ export function getErrorMessage(
   unsupportedPerSource: Map<string, [string, ASTNode][]>,
   initialMessage: string,
 ): string {
-  let errorNum = 0;
-  const errorMsg = [...unsupportedPerSource.entries()].reduce(
-    (fullMsg, [filePath, unsopported]) => {
-      const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-      const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
-        const errorCode = getSourceFromLocations(
-          content,
-          [parseSourceLocation(node.src)],
-          error,
-          4,
-        );
-        errorNum += 1;
-        return newMessage + `\n${error(`${errorNum}. ` + errorMsg)}:\n\n${errorCode}\n`;
-      }, `\nFile ${filePath}:\n`);
+  const errorData = Array.from(unsupportedPerSource.entries());
 
-      return fullMsg + newMessage;
-    },
-    error(initialMessage + '\n'),
-  );
-  return errorMsg;
+  const sourceErrors = errorData.map(([filePath, errors]) => {
+    const content = readFileSync(filePath, { encoding: 'utf8' });
+
+    return {
+      path: filePath,
+      errors: errors.map(([message, node]) => ({
+        message,
+        code: getSourceFromLocations(content, [parseSourceLocation(node.src)], error, 4),
+      })),
+    };
+  });
+
+  let errorId = 0;
+
+  return [
+    error(initialMessage),
+    sourceErrors.flatMap((source) => [
+      `File: ${source.path}:`,
+      ...source.errors.map((err) => `${error(`${++errorId}. ${err.message}`)}:\n\n${err.code}`),
+    ]),
+  ].join('\n');
 }

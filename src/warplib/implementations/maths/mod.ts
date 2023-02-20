@@ -4,8 +4,8 @@ import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { forAllWidths, generateFile, IntxIntFunction } from '../../utils';
 
-export function mod_signed() {
-  generateFile(
+export async function mod_signed(): Promise<void> {
+  await generateFile(
     'mod_signed',
     [
       'from starkware.cairo.common.bitwise import bitwise_and',
