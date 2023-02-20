@@ -10,9 +10,10 @@ import { CairoRawStringFunctionDefinition } from './cairoRawStringFunctionDefini
 
 export class CairoGeneratedFunctionDefinition extends CairoRawStringFunctionDefinition {
   /**
-   * List of functions defintions called by the generated function
+   * List of function defintions called by the generated function
    */
-  functionsCalled: FunctionDefinition[];
+  public functionsCalled: FunctionDefinition[];
+
   constructor(
     id: number,
     src: string,

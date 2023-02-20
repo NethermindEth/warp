@@ -74,13 +74,6 @@ export class CairoUtilImporter extends ASTMapper {
         type.definition.walkChildren((child) => this.commonVisit(child, ast));
         this.dummySourceUnit =
           this.dummySourceUnit === currentSourceUnit ? undefined : this.dummySourceUnit;
-
-        // type.definition.vMembers.forEach((decl) => {
-        //   const declType = safeGetNodeType(decl, ast.inference);
-        //   if (declType instanceof IntType && declType.nBits > 251) {
-        //     createImportFuncDefinition('starkware.cairo.common.uint256', 'Uint256', node, ast);
-        //   }
-        // });
       }
     }
     this.visitExpression(node, ast);

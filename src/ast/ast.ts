@@ -56,7 +56,6 @@ export class AST {
   private cairoUtilFuncGen: Map<number, CairoUtilFuncGen> = new Map();
 
   context: ASTContext;
-  // node requiring cairo import -> file to import from -> symbols to import
   public inference: InferType;
 
   readonly tempId = -1;

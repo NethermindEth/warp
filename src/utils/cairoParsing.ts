@@ -35,17 +35,12 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
   );
 
   const name = funcSignature.groups.name;
-  //try {
-  // console.log('parsing implicits of', name);
   const implicits =
     funcSignature.groups.implicits !== undefined
       ? parseImplicits(funcSignature.groups.implicits)
       : [];
 
   return { name, implicits };
-  //} catch (err) {
-  throw new Error(`Error in implicits for:\n${rawFunction}`);
-  //}
 }
 
 /**

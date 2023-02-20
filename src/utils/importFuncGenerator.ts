@@ -39,16 +39,9 @@ export function createImportFuncDefinition(
   const hasOutputs = outputs !== undefined && outputs.length > 0;
 
   const existingImport = findExistingImport(name, sourceUnit);
-  // PATCH PATCH PATCH
   if (existingImport !== undefined) {
-    //if (
-    //  existingImport.vParameters.vParameters.length > 0 ||
-    //  existingImport.vReturnParameters.vParameters.length > 0
-    //)
-    //  return existingImport;
     if (!hasInputs || !hasOutputs) return existingImport;
 
-    // sourceUnit.removeChild(existingImport);
     return createImportFuncFuncDefinition(
       name,
       path,
@@ -127,7 +120,6 @@ export function createImportFuncDefinition(
     case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_contract_address':
       return createFuncImport('syscall_ptr');
     default:
-      assert(false, `Import ${name} from ${path} is not defined.`);
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
 }
@@ -136,8 +128,6 @@ function findExistingImport(name: string, node: SourceUnit) {
   const found = node.vFunctions.filter(
     (n) => n instanceof CairoImportFunctionDefinition && n.name === name,
   );
-
-  // assert(found.length < 2, `More than 1 import functions where found with name: ${name}.`);
 
   if (found[0] !== undefined) {
     assert(found[0] instanceof CairoImportFunctionDefinition);

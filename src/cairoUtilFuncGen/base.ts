@@ -56,13 +56,6 @@ export abstract class CairoUtilFuncGenBase {
   ): CairoImportFunctionDefinition {
     return createImportFuncDefinition(location, name, this.sourceUnit, this.ast, inputs, outputs);
   }
-
-  // TODO: Erase this
-  // protected checkForImport(type: TypeNode): void {
-  //   if (type instanceof IntType && type.nBits === 256) {
-  //     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-  //   }
-  // }
 }
 
 /*
@@ -112,7 +105,6 @@ export function delegateBasedOnType<T>(
   valueFunc: (type: TypeNode) => T,
 ): T {
   if (type instanceof PointerType) {
-    assert(false);
     throw new TranspileFailedError(
       `Attempted to delegate copy semantics based on specialised type ${type.pp()}`,
     );
