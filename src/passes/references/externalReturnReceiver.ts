@@ -60,7 +60,7 @@ export class ExternalReturnReceiver extends ASTMapper {
 function addOutputValidation(decl: VariableDeclaration, ast: AST) {
   const validationFunctionCall = ast
     .getUtilFuncGen(decl)
-    .boundChecks.inputCheck.gen(decl, safeGetNodeType(decl, ast.inference), decl);
+    .boundChecks.inputCheck.gen(decl, safeGetNodeType(decl, ast.inference));
   const validationStatement = createExpressionStatement(ast, validationFunctionCall);
   ast.insertStatementAfter(decl, validationStatement);
 }
