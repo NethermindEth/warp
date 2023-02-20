@@ -2,7 +2,7 @@ import assert from 'assert';
 import util from 'util';
 import os from 'os';
 import * as path from 'path';
-import { exec } from 'child_process';
+import { exec, ExecOptions } from 'child_process';
 import Bottleneck from 'bottleneck';
 import {
   IDeployProps,
@@ -20,7 +20,42 @@ import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
 
-const execAsync = util.promisify(exec);
+const _execAsync = util.promisify(exec);
+async function execAsync(
+  cmd: string,
+  options: { encoding?: BufferEncoding } & ExecOptions & { log?: boolean } = {},
+): Promise<{ stdout: string; stderr: string }> {
+  if (options.encoding === undefined) options.encoding = 'utf8';
+
+  try {
+    let { stdout, stderr } = await _execAsync(cmd, options);
+
+    // removing newline
+    stdout = stdout.slice(0, -1);
+    stderr = stderr.slice(0, -1);
+
+    if (options.log) {
+      if (stdout) console.log(stdout);
+      if (stderr) console.error(stderr);
+    }
+
+    return { stdout, stderr };
+  } catch (err) {
+    let { stdout, stderr } = err as { stdout: string; stderr: string };
+
+    // removing newline
+    stdout = stdout.slice(0, -1);
+    stderr = stderr.slice(0, -1);
+
+    if (options.log) {
+      if (stdout) console.log(stdout);
+      if (stderr) console.error(stderr);
+    }
+
+    throw err;
+  }
+}
+
 const compilationBottleneck = new Bottleneck({ maxConcurrent: os.cpus().length });
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -66,6 +101,9 @@ export async function compileCairo(
       ]
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')}`,
+      {
+        log: true,
+      },
     );
 
     return { success: true, resultPath, abiPath, solAbiPath, classHash: undefined };
@@ -114,6 +152,9 @@ export async function runStarknetStatus(tx_hash: string, option: IOptionalNetwor
   try {
     await execAsync(
       `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network} ${gatewayUrlOption} ${feederGatewayUrlOption}`.trim(),
+      {
+        log: true,
+      },
     );
   } catch {
     logError('starknet tx_status failed');
@@ -182,9 +223,12 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
       } ${inputs} ${
         options.account !== undefined ? `--account ${options.account}` : ''
       } ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
+      {
+        log: true,
+      },
     );
-  } catch {
-    logError('starknet deploy failed');
+  } catch (err) {
+    logError(`starknet deploy failed ${err}`);
   }
 }
 
@@ -213,9 +257,13 @@ export async function runStarknetDeployAccount(options: IDeployAccountProps) {
       } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
         options.max_fee ? `--max_fee ${options.max_fee}` : ''
       }`,
+      {
+        log: true,
+      },
     );
-  } catch {
-    logError('starknet deploy failed');
+  } catch (err) {
+    logError(`starknet deploy failed ${err}`);
+    console.log(err);
   }
 }
 
@@ -271,7 +319,7 @@ export async function runStarknetCallOrInvoke(
   try {
     let warpOutput: string = (
       await execAsync(
-        `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`.trim(),
+        `${warpVenvPrefix} starknet ${callOrInvoke} --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`.trim(),
       )
     ).stdout;
 
@@ -325,7 +373,7 @@ async function declareContract(filePath: string, options: IDeclareOptions) {
     await execAsync(
       `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
       {
-        encoding: 'utf8',
+        log: true,
       },
     );
   } catch {
@@ -361,7 +409,7 @@ export async function runStarknetNewAccount(options: StarkNetNewAccountOptions) 
     await execAsync(
       `${warpVenvPrefix} starknet new_account ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
       {
-        encoding: 'utf8',
+        log: true,
       },
     );
   } catch {
