@@ -36,6 +36,8 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
   }
 
   public gen(node: IndexAccess): FunctionCall {
+    console.log('gen in ', 'MappingIndexAccessGen ');
+
     const base = node.vBaseExpression;
     let index = node.vIndexExpression;
     assert(index !== undefined);
@@ -218,31 +220,23 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     return {
       name: funcName,
       code: [
-        `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-        `    name : felt, ptr : felt*, len : felt`,
-        `){`,
-        `    alloc_locals;`,
-        `    if (len == 0){`,
-        `        return ();`,
+        `fn ${helperFuncName}(name : felt, ptr : felt*, len : felt){`,
+        `    if len == 0{`,
+        `        return;`,
         `    }`,
         `    let index = len - 1;`,
-        `    let (index256) = felt_to_uint256(index);`,
-        `    let (loc) = ${arrayName}.read(name, index256);`,
-        `    let (value) = WARP_STORAGE.read(loc);`,
+        `    let index256 = felt_to_uint256(index);`,
+        `    let loc = ${arrayName}::read(name, index256);`,
+        `    let value = WARP_STORAGE::read(loc);`,
         `    assert ptr[index] = value;`,
         `    ${helperFuncName}(name, ptr, index);`,
-        `    return ();`,
         `}`,
-        `func ${funcName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-        `    name : felt`,
-        `) -> (hashedValue : felt){`,
-        `    alloc_locals;`,
-        `    let (len256) = ${lenName}.read(name);`,
-        `    let (len) = narrow_safe(len256);`,
-        `    let (ptr) = alloc();`,
+        `fn ${funcName}(name: felt) -> felt {`,
+        `    let len256 = ${lenName}::read(name);`,
+        `    let len = narrow_safe(len256);`,
+        `    let ptr = alloc();`,
         `    ${helperFuncName}(name, ptr, len);`,
-        `    let (hashValue) = string_hash(len, ptr);`,
-        `    return (hashValue,);`,
+        `    string_hash(len, ptr)`,
         `}`,
       ].join('\n'),
       functionsCalled: [

@@ -8,13 +8,15 @@ import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class StorageWriteGen extends StringIndexedFuncGen {
   public gen(storageLocation: Expression, writeValue: Expression): FunctionCall {
+    console.log('gen in ', 'StorageWriteGen ');
+
     const typeToWrite = safeGetNodeType(storageLocation, this.ast.inference);
     const funcDef = this.getOrCreateFuncDef(typeToWrite);
     return createCallToFunction(funcDef, [storageLocation, writeValue], this.ast);
   }
 
   public getOrCreateFuncDef(typeToWrite: TypeNode) {
-    const key = `dynArrayPop(${typeToWrite.pp()})`;
+    const key = typeToWrite.pp();
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
@@ -58,11 +60,11 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
+        `fn ${funcName}(loc: felt, value: ${cairoTypeString}) -> ${cairoTypeString}{`,
         ...cairoTypeToWrite
           .serialiseMembers('value')
           .map((name, index) => `    ${write(add('loc', index), name)}`),
-        '    return (value,);',
+        '    value',
         '}',
       ].join('\n'),
       functionsCalled: [],
@@ -72,5 +74,5 @@ export class StorageWriteGen extends StringIndexedFuncGen {
 }
 
 function write(offset: string, value: string): string {
-  return `WARP_STORAGE.write(${offset}, ${value});`;
+  return `WARP_STORAGE::write(${offset}, ${value});`;
 }

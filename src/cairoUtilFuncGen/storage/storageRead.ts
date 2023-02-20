@@ -17,6 +17,8 @@ import { serialiseReads } from '../serialisation';
 export class StorageReadGen extends StringIndexedFuncGen {
   // TODO: is typename safe to remove?
   public gen(storageLocation: Expression, typeName?: TypeName): FunctionCall {
+    console.log('gen in ', 'StorageReadGen ');
+
     const valueType = safeGetNodeType(storageLocation, this.ast.inference);
 
     const funcDef = this.getOrCreateFuncDef(valueType, typeName);
@@ -64,10 +66,9 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}){`,
-        `    alloc_locals;`,
+        `fn ${funcName}(loc: felt) ->${resultCairoType}{`,
         ...reads.map((s) => `    ${s}`),
-        `    return (${pack},);`,
+        `    ${pack}`,
         '}',
       ].join('\n'),
       functionsCalled: [],
@@ -77,9 +78,9 @@ export class StorageReadGen extends StringIndexedFuncGen {
 }
 
 function readFelt(offset: number): string {
-  return `let (read${offset}) = WARP_STORAGE.read(${add('loc', offset)});`;
+  return `let read${offset} = WARP_STORAGE::read(${add('loc', offset)});`;
 }
 
 function readId(offset: number): string {
-  return `let (read${offset}) = readId(${add('loc', offset)});`;
+  return `let read${offset} = readId(${add('loc', offset)});`;
 }
