@@ -126,6 +126,9 @@ dist
 .venv/
 venv
 
+# Pyenv
+.python-version
+
 # tests
 starknet-testnet/__pycache__/*
 

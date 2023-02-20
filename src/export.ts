@@ -9,7 +9,6 @@ export * from './passes/export';
 export * from './solCompile';
 export * from './solWriter';
 export * from './starknetCli';
-export * from './testing';
 export * from './transpiler';
 export * from './utils/export';
 export * from './transcode/encode';
