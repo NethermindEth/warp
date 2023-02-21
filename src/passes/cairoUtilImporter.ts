@@ -13,7 +13,7 @@ import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { createImportFuncDefinition } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
+import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 
 /*
   Analyses the tree after all processing has been done to find code the relies on
@@ -67,8 +67,7 @@ export class CairoUtilImporter extends ASTMapper {
 
     //  Patch to struct inlining
     if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      const currentSourceUnit = node.getClosestParentByType(SourceUnit);
-      assert(currentSourceUnit !== undefined);
+      const currentSourceUnit = getContainingSourceUnit(node);
       if (currentSourceUnit !== type.definition.getClosestParentByType(SourceUnit)) {
         this.dummySourceUnit = this.dummySourceUnit ?? currentSourceUnit;
         type.definition.walkChildren((child) => this.commonVisit(child, ast));

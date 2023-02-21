@@ -1,7 +1,10 @@
 import assert from 'assert';
 import { ASTWriter, ContractKind, FunctionDefinition, SourceUnit, SrcDesc } from 'solc-typed-ast';
-import { CairoImportFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
-import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
+import {
+  CairoImportFunctionDefinition,
+  CairoGeneratedFunctionDefinition,
+  FunctionStubKind,
+} from '../../ast/cairoNodes';
 import { getStructsAndRemappings } from '../../freeStructWritter';
 import { removeExcessNewlines } from '../../utils/formatting';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
@@ -42,33 +45,27 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
       writer.write(v),
     );
 
-    const [importFunctions, generatedFunctions, functions] =
-      node.vFunctions.length === 0
-        ? [[], [], []]
-        : node.vFunctions.reduce(
-            ([importFunctions, generatedFunctions, functions], funcDef) =>
-              funcDef instanceof CairoImportFunctionDefinition
-                ? [[funcDef, ...importFunctions], generatedFunctions, functions]
-                : funcDef instanceof CairoGeneratedFunctionDefinition
-                ? [importFunctions, [funcDef, ...generatedFunctions], functions]
-                : [importFunctions, generatedFunctions, [funcDef, ...functions]],
-            [
-              new Array<CairoImportFunctionDefinition>(),
-              new Array<CairoGeneratedFunctionDefinition>(),
-              new Array<FunctionDefinition>(),
-            ],
-          );
+    const [importFunctions, generatedFunctions, functions] = node.vFunctions.reduce(
+      ([importFunctions, generatedFunctions, functions], funcDef) =>
+        funcDef instanceof CairoImportFunctionDefinition
+          ? [[funcDef, ...importFunctions], generatedFunctions, functions]
+          : funcDef instanceof CairoGeneratedFunctionDefinition
+          ? [importFunctions, [funcDef, ...generatedFunctions], functions]
+          : [importFunctions, generatedFunctions, [funcDef, ...functions]],
+      [
+        new Array<CairoImportFunctionDefinition>(),
+        new Array<CairoGeneratedFunctionDefinition>(),
+        new Array<FunctionDefinition>(),
+      ],
+    );
 
-    const writtenImportFuncs =
-      importFunctions.length === 0
-        ? ''
-        : getGroupedImports(
-            importFunctions
-              .sort((funcA, funcB) =>
-                `${funcA.path}.${funcA.name}`.localeCompare(`${funcB.path}.${funcB.name}`),
-              )
-              .filter((func, index, importFuncs) => func.name !== importFuncs[index - 1]?.name),
-          ).reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`);
+    const writtenImportFuncs = getGroupedImports(
+      importFunctions
+        .sort((funcA, funcB) =>
+          `${funcA.path}.${funcA.name}`.localeCompare(`${funcB.path}.${funcB.name}`),
+        )
+        .filter((func, index, importFuncs) => func.name !== importFuncs[index - 1]?.name),
+    ).reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`, '');
 
     const writtenGeneratedFuncs = generatedFunctions
       .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))

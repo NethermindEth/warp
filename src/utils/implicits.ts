@@ -35,7 +35,6 @@ export const implicitTypes: { [key in Implicits]: string } = {
   dict_ptr: 'DictAccess*',
 };
 
-// TODO: look at this again by the end
 export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Implicits) {
   switch (implicit) {
     case 'bitwise_ptr':

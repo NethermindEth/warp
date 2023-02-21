@@ -20,11 +20,7 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import {
-  CairoFunctionDefinition,
-  CairoImportFunctionDefinition,
-  FunctionStubKind,
-} from '../ast/cairoNodes';
+import { CairoImportFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
@@ -78,48 +74,6 @@ interface CairoFunctionStubOptions {
 }
 
 export type ParameterInfo = [string, TypeName] | [string, TypeName, DataLocation];
-
-export function createCairoFunctionStub(
-  name: string,
-  inputs: ParameterInfo[],
-  returns: ParameterInfo[],
-  implicits: Implicits[],
-  ast: AST,
-  nodeInSourceUnit: ASTNode,
-  options: CairoFunctionStubOptions = {
-    mutability: FunctionStateMutability.NonPayable,
-    stubKind: FunctionStubKind.FunctionDefStub,
-    acceptsRawDArray: false,
-    acceptsUnpackedStructArray: false,
-  },
-): CairoFunctionDefinition {
-  const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
-  const funcDefId = ast.reserveId();
-
-  const funcDef = new CairoFunctionDefinition(
-    funcDefId,
-    '',
-    sourceUnit.id,
-    FunctionKind.Function,
-    name,
-    false, // virtual
-    FunctionVisibility.Private,
-    options.mutability ?? FunctionStateMutability.NonPayable,
-    false, // isConstructor
-    createParameterList(createParameters(inputs, funcDefId, ast), ast),
-    createParameterList(createParameters(returns, funcDefId, ast), ast),
-    [],
-    new Set(implicits),
-    options.stubKind ?? FunctionStubKind.FunctionDefStub,
-    options.acceptsRawDArray ?? false,
-    options.acceptsUnpackedStructArray ?? false,
-  );
-
-  ast.setContextRecursive(funcDef);
-  sourceUnit.insertAtBeginning(funcDef);
-
-  return funcDef;
-}
 
 export function createCairoGeneratedFunction(
   genFuncInfo: { name: string; code: string; functionsCalled: FunctionDefinition[] },
