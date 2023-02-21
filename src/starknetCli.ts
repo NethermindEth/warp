@@ -21,6 +21,10 @@ import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
 
 const _execAsync = util.promisify(exec);
+
+const stdoutWrite = util.promisify(process.stdout.write.bind(process.stdout));
+const stderrWrite = util.promisify(process.stderr.write.bind(process.stderr));
+
 async function execAsync(
   cmd: string,
   options: { encoding?: BufferEncoding } & ExecOptions & { log?: boolean } = {},
@@ -28,28 +32,20 @@ async function execAsync(
   if (options.encoding === undefined) options.encoding = 'utf8';
 
   try {
-    let { stdout, stderr } = await _execAsync(cmd, options);
-
-    // removing newline
-    stdout = stdout.slice(0, -1);
-    stderr = stderr.slice(0, -1);
+    const { stdout, stderr } = await _execAsync(cmd, options);
 
     if (options.log) {
-      if (stdout) console.log(stdout);
-      if (stderr) console.error(stderr);
+      await stdoutWrite(stdout);
+      await stderrWrite(stderr);
     }
 
     return { stdout, stderr };
   } catch (err) {
-    let { stdout, stderr } = err as { stdout: string; stderr: string };
-
-    // removing newline
-    stdout = stdout.slice(0, -1);
-    stderr = stderr.slice(0, -1);
+    const { stdout, stderr } = err as { stdout: string; stderr: string };
 
     if (options.log) {
-      if (stdout) console.log(stdout);
-      if (stderr) console.error(stderr);
+      await stdoutWrite(stdout);
+      await stderrWrite(stderr);
     }
 
     throw err;
