@@ -6,26 +6,22 @@ import { forAllWidths, generateFile, IntxIntFunction, mask, msb, msbAndNext } fr
 export function add(): void {
   generateFile(
     'add',
-    [
-      'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
-    ],
+    [],
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs);`,
-          `    assert carry = 0;`,
-          `    return (res,);`,
+          // Add is safe by default with u256
+          `fn warp_add256(lhs : u256, rhs : u256) -> u256 {`,
+          `    return lhs + rhs;`,
           `}`,
         ];
       } else {
         return [
-          `func warp_add${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
+          `fn warp_add${width}(lhs : felt, rhs : felt) -> felt{`,
           `    let res = lhs + rhs;`,
-          `    let inRange : felt = is_le_felt(res, ${mask(width)});`,
-          `    assert inRange = 1;`,
-          `    return (res,);`,
+          `    let max: felt = ${mask(width)};`,
+          `    assert (res <= max, 'Value out of bounds');`,
+          `    return res;`,
           `}`,
         ];
       }
@@ -45,9 +41,8 @@ export function add_unsafe(): void {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-          `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
-          `    return (res,);`,
+          `fn warp_add_unsafe256(lhs : u256, rhs : u256) -> u256 {`,
+          `    return lhs + rhs;`,
           `}`,
         ];
       } else {
