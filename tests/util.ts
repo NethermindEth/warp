@@ -47,7 +47,13 @@ export async function cleanup(path: string): Promise<void> {
     return;
   }
 
-  await fs.unlink(path);
+  try {
+    await fs.unlink(path);
+  } catch (err) {
+    // ignore ENOENT since if the file does not exist anymore at this point, work is also done
+    if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') return;
+    throw err;
+  }
 }
 
 export function validateInput(input: string): void {
