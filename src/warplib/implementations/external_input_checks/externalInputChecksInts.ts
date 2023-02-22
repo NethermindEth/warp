@@ -14,7 +14,7 @@ export function external_input_check_ints(): WarplibFunctionInfo {
         return [
           `fn warp_external_input_check_int${int_width}(x : felt){`,
           `${INDENT}let max: felt = ${mask(int_width)};`,
-          `${INDENT}assert( x <= max, 'Error: value out-of-bounds.');`,
+          `${INDENT}assert( x <= max, "Error: value out-of-bounds.");`,
           `}\n`,
         ].join('\n');
       }
