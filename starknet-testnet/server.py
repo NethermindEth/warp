@@ -36,9 +36,12 @@ async def pingpost():
 @app.route("/deploy", methods=["POST"])
 async def deploy():
     data = request.get_json()
+
     state = await starknet_wrapper.get_state()
     input = [int(x) for x in data["input"]]
-    compiled_cairo = open(data["compiled_cairo"]).read()
+    
+    with open(data["compiled_cairo"], "r") as f:
+        compiled_cairo = f.read()
     contract_def: ContractClass = ContractClass.loads(compiled_cairo)
 
     try:
@@ -82,7 +85,8 @@ async def declare():
     assert data is not None, "Requested data is `None` when trying to declare"
 
     state = await starknet_wrapper.get_state()
-    compiled_cairo = open(data["compiled_cairo"]).read()
+    with open(data["compiled_cairo"], "r") as f:
+        compiled_cairo = f.read()
     contract_class = ContractClass.loads(compiled_cairo)
 
     try:
