@@ -18,6 +18,7 @@ contract_name_map = {}
 
 json_lock = threading.Lock()
 
+
 def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInfo):
     with json_lock:
         if os.path.exists(JSON_PATH):
@@ -32,6 +33,7 @@ def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInf
 
         with open(JSON_PATH, "w") as json_file:
             json.dump(benchmark_data, json_file, indent=3)
+
 
 def steps_in_function_invoke(function_name: str, result: CallInfo):
     with json_lock:
@@ -49,6 +51,7 @@ def steps_in_function_invoke(function_name: str, result: CallInfo):
         with open(JSON_PATH, "w") as json_file:
             json.dump(benchmark_data, json_file, indent=3)
 
+
 def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo):
     with json_lock:
         if os.path.exists(JSON_PATH):
@@ -63,6 +66,7 @@ def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo)
 
         with open(JSON_PATH, "w") as json_file:
             json.dump(benchmark_data, json_file, indent=3)
+
 
 def json_size_count(file_path: str):
     with json_lock:

@@ -39,7 +39,7 @@ async def deploy():
 
     state = await starknet_wrapper.get_state()
     input = [int(x) for x in data["input"]]
-    
+
     with open(data["compiled_cairo"], "r") as f:
         compiled_cairo = f.read()
     contract_def: ContractClass = ContractClass.loads(compiled_cairo)
