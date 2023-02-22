@@ -1,4 +1,3 @@
-import fs from 'fs/promises';
 import AbiCoder from 'web3-eth-abi';
 import {
   AddressType,
@@ -47,6 +46,7 @@ import { AST } from '../../../src/ast/ast';
 import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
 import { safeGetNodeType } from '../../../src/utils/nodeTypeProcessing';
 import { encodeString } from './utils';
+import { readFileSync } from 'fs';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -106,43 +106,41 @@ const initialRun: Promise<CompileResult> =
         resolvedFileNames: new Map(),
       });
 
-export const expectations: Promise<AsyncTest[]> = Promise.all(
-  validTests.map(async ([file, tests]): Promise<AsyncTest> => {
-    try {
-      // The solidity test dsl assumes the last contract defined in the file is
-      // the target of the function calls. solc-typed-ast sorts the contracts
-      // so we need to do a dumb regex to find the right contract
-      const contractNames = [
-        ...(await fs.readFile(file, 'utf-8'))
-          .split('\n')
-          .map((line) => {
-            const commentStart = line.indexOf('//');
-            if (commentStart === -1) return line;
-            return line.slice(0, commentStart);
-          })
-          .join('\n')
-          .matchAll(/contract (\w+)/g),
-      ].map(([_, name]) => name);
+export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTest => {
+  try {
+    // The solidity test dsl assumes the last contract defined in the file is
+    // the target of the function calls. solc-typed-ast sorts the contracts
+    // so we need to do a dumb regex to find the right contract
+    const contractNames = [
+      ...readFileSync(file, 'utf-8')
+        .split('\n')
+        .map((line) => {
+          const commentStart = line.indexOf('//');
+          if (commentStart === -1) return line;
+          return line.slice(0, commentStart);
+        })
+        .join('\n')
+        .matchAll(/contract (\w+)/g),
+    ].map(([_, name]) => name);
 
-      const lastContract = contractNames[contractNames.length - 1];
-      const truncatedFileName = file.substring(0, file.length - '.sol'.length);
+    const lastContract = contractNames[contractNames.length - 1];
+    const truncatedFileName = file.substring(0, file.length - '.sol'.length);
 
-      const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
+    const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
 
-      // Encode constructor arguments
-      const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
+    // Encode constructor arguments
+    const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
 
-      return new AsyncTest(
-        truncatedFileName,
-        lastContract,
-        constructorArgs,
-        transcodeTests(tests, contractAbiDefAst),
-      );
-    } catch (e) {
-      return new AsyncTest(file, '', [], [], `${e}`);
-    }
-  }),
-);
+    return new AsyncTest(
+      truncatedFileName,
+      lastContract,
+      constructorArgs,
+      transcodeTests(tests, contractAbiDefAst),
+    );
+  } catch (e) {
+    return new AsyncTest(file, '', [], [], `${e}`);
+  }
+});
 
 // ------------------------ Transcode the tests ------------------------------
 

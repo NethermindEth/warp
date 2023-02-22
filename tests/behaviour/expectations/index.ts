@@ -2,10 +2,10 @@ import { expectations as semantic } from './semantic';
 import { expectations as behaviour } from './behaviour';
 import { exceptions } from './semanticExceptions';
 import { AsyncTest, Expect, File } from './types';
-import fs from 'fs/promises';
+import { readFileSync } from 'fs';
 
-async function getSyncTestFromPath(path: string): Promise<File> {
-  const text = await fs.readFile(path + '.sol', 'utf-8');
+function getSyncTestFromPath(path: string): File {
+  const text = readFileSync(path + '.sol', 'utf-8');
 
   const contractNames = [...text.matchAll(/contract (\w+)/g)].map(([_, name]) => name);
   const lastContract = contractNames[contractNames.length - 1];
@@ -26,22 +26,17 @@ async function getSyncTestFromPath(path: string): Promise<File> {
 }
 
 // Don't be fooled, process.env.BLAH can be undefined
-async function filterTests(
+function filterTests(
   syncTests: File[],
-  asyncTests: AsyncTest[] | Promise<AsyncTest[]>,
+  asyncTests: AsyncTest[],
   filter = process.env.FILTER,
-): Promise<AsyncTest[]> {
-  asyncTests = await asyncTests;
-
+): AsyncTest[] {
   // Separate the exceptions from the selected semanticTests
   // into a different array 'newSyncTests'
   const newAsyncTests = asyncTests.filter((test) => !exceptions.includes(test.name));
   const newSyncTests = asyncTests.filter((test) => exceptions.includes(test.name));
 
-  syncTests = [
-    ...syncTests,
-    ...(await Promise.all(newSyncTests.map((test) => getSyncTestFromPath(test.name)))),
-  ];
+  syncTests = [...syncTests, ...newSyncTests.map((test) => getSyncTestFromPath(test.name))];
 
   const tests = [...syncTests.map(AsyncTest.fromSync), ...newAsyncTests];
   if (filter === undefined) {
