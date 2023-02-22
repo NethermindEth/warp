@@ -33,11 +33,13 @@ describe('Transpile solidity', function () {
   let transpileResults: Array<{ success: boolean; result: { stderr: string; stdout: string } }>;
 
   before(async function () {
-    for (const fileTest of expectations) {
-      if (fileTest.encodingError === undefined) {
-        await Promise.all([cleanup(fileTest.cairo), cleanup(fileTest.compiled)]);
-      }
-    }
+    await Promise.all(
+      expectations.flatMap((fileTest) => {
+        return fileTest.encodingError === undefined
+          ? [cleanup(fileTest.cairo), cleanup(fileTest.compiled)]
+          : [];
+      }),
+    );
 
     const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
 
@@ -165,7 +167,7 @@ describe('Compiled contracts are deployable', function () {
     const testnetContactable = await ensureTestnetContactable(60000);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
 
-    const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
+    const bottleneck = new Bottleneck({ maxConcurrent: 100 });
 
     deployResults = await Promise.all(
       expectations.map((expectation) =>
@@ -211,7 +213,7 @@ describe('Compiled contracts are deployable', function () {
 describe('Deployed contracts have correct behaviour', function () {
   this.timeout(TIME_LIMIT);
 
-  const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
+  const bottleneck = new Bottleneck({ maxConcurrent: 100 });
 
   expectations.forEach((expectation) => {
     let expects = expectation.expectations;
