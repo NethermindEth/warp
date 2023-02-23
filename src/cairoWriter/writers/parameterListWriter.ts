@@ -29,14 +29,32 @@ export class ParameterListWriter extends CairoASTNodeWriter {
         this.ast,
         varTypeConversionContext,
       );
-      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
-        return isExternallyVisible(node.parent) ||
-          node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
-          ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-          : `${value.name} : ${tp.toString()}`;
+      if (isReturnParamList(node)) {
+        // In Cairo1 return parameters are not named
+        if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+          return isExternallyVisible(node.parent) ||
+            node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
+            ? `${tp.vLen.toString()}, ${tp.vPtr.toString()}`
+            : `${tp.toString()}`;
+        }
+        return `${tp}`;
+      } else {
+        if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+          return isExternallyVisible(node.parent) ||
+            node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
+            ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
+            : `${value.name} : ${tp.toString()}`;
+        }
+        return `${value.name} : ${tp}`;
       }
-      return `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }
+}
+
+function isReturnParamList(node: ParameterList) {
+  if (node.parent instanceof FunctionDefinition && node.parent.vReturnParameters === node) {
+    return true;
+  }
+  return false;
 }
