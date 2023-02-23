@@ -27,6 +27,44 @@ interface CompileResult {
   classHash?: string;
 }
 
+interface CompileCairo1Result {
+  success: boolean;
+  sierraResultPath?: string;
+  casmResultPath?: string;
+}
+
+export function compileCairo1(filePath: string, cairoTomlPath: string): CompileCairo1Result {
+  assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
+  const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
+  const sierraResultPath = `${cairoPathRoot}.sierra`;
+  const casmResultPath = `${cairoPathRoot}.casm`;
+
+  try {
+    console.log(`Running cairo1 compile with cargo`);
+    execSync(
+      `${warpVenvPrefix} cargo run --manifest-path ${cairoTomlPath} --bin cairo-compile -- ${filePath} ${sierraResultPath} --replace-ids`,
+      { stdio: 'inherit' },
+    );
+
+    execSync(
+      `${warpVenvPrefix} cargo run --manifest-path ${cairoTomlPath} --bin sierra-compile -- ${sierraResultPath} ${casmResultPath}`,
+      { stdio: 'inherit' },
+    );
+    return { success: true, sierraResultPath: sierraResultPath, casmResultPath: casmResultPath };
+  } catch (e) {
+    if (e instanceof Error) {
+      logError('Compile failed');
+      return {
+        success: false,
+        sierraResultPath: undefined,
+        casmResultPath: undefined,
+      };
+    } else {
+      throw e;
+    }
+  }
+}
+
 export function compileCairo(
   filePath: string,
   cairoPath: string = path.resolve(__dirname, '..'),

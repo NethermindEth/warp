@@ -2,7 +2,7 @@ import path from 'path';
 import { CompileFailedError } from 'solc-typed-ast';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from '../src/io';
 import { compileSolFiles } from '../src/solCompile';
-import { compileCairo } from '../src/starknetCli';
+import { compileCairo1 } from '../src/starknetCli';
 import { transpile } from '../src/transpiler';
 import {
   NotSupportedYetError,
@@ -13,9 +13,14 @@ import { groupBy, printCompileErrors } from '../src/utils/utils';
 import * as fs from 'fs';
 import { outputFileSync } from '../src/utils/fs';
 import { error } from '../src/utils/formatting';
+import { execSync } from 'child_process';
 
 const WARP_TEST = 'warpTest';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, 'exampleContracts');
+const CAIRO1_DIR = path.join('..', 'cairo');
+const CAIRO1_CARGO_TOML = path.join(CAIRO1_DIR, 'Cargo.toml');
+const CAIRO1_COMPILE_BIN = path.join(CAIRO1_DIR, 'target', 'debug', 'cairo-compile');
+const SIERRA_RUN_BIN = path.join(CAIRO1_DIR, 'target', 'debug', 'sierra-compile');
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -252,8 +257,11 @@ const expectedResults = new Map<string, ResultType>(
 export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {
   const results = new Map<string, ResultType>();
   if (force) {
+    if (!cairo1setup()) doCairo1Setup();
     postTestCleanup();
-  } else if (!preTestChecks()) return;
+  } else {
+    if (!cairo1setup() || !preTestChecks()) return;
+  }
   const filter = process.env.FILTER;
   findSolSourceFilePaths('exampleContracts', true).forEach((file) => {
     if (filter === undefined || file.includes(filter)) {
@@ -272,6 +280,74 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
         error(`${testsWithUnexpectedResults.length} test(s) had unexpected outcome(s)`),
       );
     }
+  }
+}
+
+function isRustInstalled() {
+  try {
+    execSync('rustc --version', { stdio: 'inherit' });
+    execSync('cargo --version', { stdio: 'inherit' });
+    execSync('rustup --version', { stdio: 'inherit' });
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
+function cairo1setup(): boolean {
+  // check if rust is installed
+  if (!isRustInstalled()) {
+    console.log(
+      "Please make sure you've installed rust alongside with rustup and cargo from here: https://www.rust-lang.org/tools/install",
+    );
+    return false;
+  }
+
+  // check if cairo1 directory exists and setup has been done
+  if (
+    !fs.existsSync(CAIRO1_DIR) ||
+    !fs.existsSync(CAIRO1_CARGO_TOML) ||
+    !fs.existsSync(CAIRO1_COMPILE_BIN) ||
+    !fs.existsSync(SIERRA_RUN_BIN)
+  ) {
+    console.log(
+      "Please make sure you've done the cairo1 setup from here: https://github.com/starkware-libs/cairo#readme",
+    );
+    return false;
+  }
+  return true;
+}
+
+function doCairo1Setup() {
+  if (!isRustInstalled) {
+    try {
+      console.log('Installing rust...');
+      execSync("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh", {
+        stdio: 'inherit',
+      });
+      execSync('rustup override set stable && rustup update', { stdio: 'inherit' });
+    } catch (e) {
+      throw new Error(
+        'Failed to install rust, try manual installation of rust from https://www.rust-lang.org/tools/install',
+      );
+    }
+  }
+  try {
+    console.log('Cloning cairo1 repo...');
+    if (fs.existsSync(CAIRO1_DIR)) {
+      console.warn('!! cairo directory already exists, overwriting it...');
+      execSync(`rm -rf ${CAIRO1_DIR}`, { stdio: 'inherit' });
+    }
+    execSync('git clone https://github.com/starkware-libs/cairo', { stdio: 'inherit' });
+  } catch (e) {
+    throw new Error('Failed to clone cairo repo');
+  }
+  // follow cairo1 README setup instructions
+  try {
+    console.log('Installing cairo1 dependencies...');
+    execSync(`cargo test --manifest-path ${CAIRO1_CARGO_TOML}`, { stdio: 'inherit' });
+  } catch (e) {
+    throw new Error('Failed to compile cairo1 and its dependencies');
   }
 }
 
@@ -330,7 +406,7 @@ function runCairoFileTest(
   throwError = false,
 ): void {
   if (!onlyResults) console.log(`Compiling ${file}`);
-  if (compileCairo(file).success) {
+  if (compileCairo1(file, CAIRO1_CARGO_TOML).success) {
     results.set(file, 'Success');
   } else {
     if (throwError) {
