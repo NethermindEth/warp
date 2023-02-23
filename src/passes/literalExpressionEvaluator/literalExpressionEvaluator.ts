@@ -235,6 +235,7 @@ function evaluateBinaryLiteral(node: BinaryOperation, ast: AST): NodeEvaluationI
         break;
       case '||':
         result = generateInfo(left.evaluation || right.evaluation, node, ast);
+        break;
       default:
         throw new TranspileFailedError(`Unexpected boolean x boolean operator ${node.operator}`);
     }
