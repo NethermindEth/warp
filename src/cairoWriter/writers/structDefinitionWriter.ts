@@ -6,7 +6,7 @@ import { CairoASTNodeWriter } from '../base';
 import { INDENT } from '../utils';
 
 export class StructDefinitionWriter extends CairoASTNodeWriter {
-  writeInner(node: StructDefinition, writer: ASTWriter): SrcDesc {
+  writeInner(node: StructDefinition, _writer: ASTWriter): SrcDesc {
     return [
       [
         `struct ${mangleStructName(node)}{`,

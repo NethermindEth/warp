@@ -12,7 +12,7 @@ import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 
 export class ParameterListWriter extends CairoASTNodeWriter {
-  writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
+  writeInner(node: ParameterList, _writer: ASTWriter): SrcDesc {
     const defContext =
       node.parent instanceof FunctionDefinition && isExternallyVisible(node.parent)
         ? TypeConversionContext.CallDataRef
