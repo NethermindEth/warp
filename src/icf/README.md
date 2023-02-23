@@ -220,6 +220,6 @@ starknet invoke \
 
 ## Running tests
 
-For more detailed and implemented steps, you can look at the [interface_forwarder.test.ts](../../tests/interface_call_forwarder/interface_forwarder.test.ts) file.
+For more detailed and implemented steps, you can look at the [interfaceForwarder.test.ts](../../tests/interfaceCallForwarder/interfaceForwarder.test.ts) file.
 
 To execute interface call forwarder test, run `$ yarn test:forwarder`

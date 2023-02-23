@@ -89,7 +89,6 @@ import {
   StructDefinitionWriter,
   StructuredDocumentationWriter,
   TupleExpressionWriter,
-  UncheckedBlockWriter,
   VariableDeclarationStatementWriter,
   VariableDeclarationWriter,
 } from './writers';
@@ -150,7 +149,7 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [TryStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [TupleExpression, new TupleExpressionWriter(ast, throwOnUnimplemented)],
     [UnaryOperation, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [UncheckedBlock, new UncheckedBlockWriter(ast, throwOnUnimplemented)],
+    [UncheckedBlock, new BlockWriter(ast, throwOnUnimplemented)],
     [UserDefinedTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [UsingForDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [VariableDeclaration, new VariableDeclarationWriter(ast, throwOnUnimplemented)],

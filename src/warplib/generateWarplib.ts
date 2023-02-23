@@ -1,6 +1,6 @@
 import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
-import { bitwise_not } from './implementations/maths/bitwise_not';
+import { bitwise_not } from './implementations/maths/bitwiseNot';
 import { div_signed, div_signed_unsafe } from './implementations/maths/div';
 import { exp, exp_signed, exp_signed_unsafe, exp_unsafe } from './implementations/maths/exp';
 import { ge_signed } from './implementations/maths/ge';
@@ -13,7 +13,7 @@ import { negate } from './implementations/maths/negate';
 import { shl } from './implementations/maths/shl';
 import { shr, shr_signed } from './implementations/maths/shr';
 import { sub_unsafe, sub_signed, sub_signed_unsafe } from './implementations/maths/sub';
-import { external_input_check_ints } from './implementations/external_input_checks/external_input_checks_ints';
+import { external_input_check_ints } from './implementations/external_input_checks/externalInputChecksInts';
 
 add();
 add_unsafe();

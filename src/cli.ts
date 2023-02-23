@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { replaceSuffix, isValidSolFile, outputResult } from './io';
+import { isValidSolFile, outputResult, replaceSuffix } from './io';
 import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
@@ -17,11 +17,11 @@ import {
 } from './starknetCli';
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
-import { runTests } from './testing';
 
 import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from './utils/utils';
+import { parse } from 'path';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -109,9 +109,9 @@ export function runTranspile(files: string[], options: CliOptions) {
 
   try {
     transpile(ast, options)
-      .map(([name, cairo]) => {
-        outputResult(name, cairo, options, ast);
-        return name;
+      .map(([fname, cairo]) => {
+        outputResult(parse(fname).name, fname, cairo, options, ast);
+        return fname;
       })
       .map((file) =>
         postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
@@ -175,29 +175,13 @@ export function runTransform(file: string, options: CliOptions) {
   try {
     const mFile = path.relative(process.cwd(), file);
     const ast = compileSolFiles([mFile], options);
-    transform(ast, options).map(([name, solidity]) => {
-      outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
+    transform(ast, options).map(([fname, solidity]) => {
+      outputResult(parse(fname).name, replaceSuffix(fname, '_warp.cairo'), solidity, options, ast);
     });
   } catch (e) {
     handleTranspilationError(e);
   }
 }
-
-program
-  .command('test')
-  .description('Deprecated testing framework')
-  .option('-f --force')
-  .option('-r --results')
-  .option('-u --unsafe')
-  .option('-e --exact')
-  .action((options) =>
-    runTests(
-      options.force ?? false,
-      options.results ?? false,
-      options.unsafe ?? false,
-      options.exact ?? false,
-    ),
-  );
 
 program
   .command('analyse <file>')
@@ -217,10 +201,10 @@ program
   .command('status <tx_hash>')
   .description('Get the status of a transaction')
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .action((tx_hash: string, options: IOptionalNetwork) => {
@@ -248,7 +232,7 @@ export interface SolcInterfaceGenOptions {
 }
 
 program
-  .command('gen_interface <file>')
+  .command('gen-interface <file>')
   .description(
     'Use native Cairo contracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
   )
@@ -294,11 +278,11 @@ program
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option('--no_wallet', 'Do not use a wallet for deployment', false)
@@ -328,7 +312,7 @@ export type IDeployAccountProps = IOptionalAccount &
 
 program
   .command('deploy_account')
-  .description('Deploy an account to StarkNet')
+  .description('Deploy an account to Starknet')
   .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used',
@@ -338,11 +322,11 @@ program
     'The directory of the account.',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -386,11 +370,11 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -423,11 +407,11 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -471,7 +455,7 @@ export interface IDeclareOptions {
 program
   .command('declare <cairo_contract>')
   .description('Declare a Cairo contract')
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
@@ -481,10 +465,10 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -513,11 +497,11 @@ program
     'The directory of the account',
     process.env.STARKNET_ACCOUNT_DIR,
   )
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
-  .option('--gateway_url <gateway_url>', 'StarkNet gateway URL', process.env.STARKNET_GATEWAY_URL)
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--gateway_url <gateway_url>', 'Starknet gateway URL', process.env.STARKNET_GATEWAY_URL)
   .option(
     '--feeder_gateway_url <feeder_gateway_url>',
-    'StarkNet feeder gateway URL',
+    'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
   .option(
@@ -535,5 +519,16 @@ program
   .action(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pjson = require('../package.json');
+
+    const cairoInstallScript = fs
+      .readFileSync(path.join(__dirname, '..', 'warp_venv.sh'))
+      .toString();
+
+    const starknetVersion: string = (cairoInstallScript.match(/cairo-lang==(.*)/) || [])[1];
+
     console.log(blue(`Warp Version `) + green(pjson.version));
+
+    if (starknetVersion !== undefined) {
+      console.log(blue(`Starknet Version `) + green(starknetVersion));
+    }
   });

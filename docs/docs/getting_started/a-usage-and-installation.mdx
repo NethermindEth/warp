@@ -48,7 +48,7 @@ warp install
 4. Test the installation worked by transpiling an example ERC20 contract:
 
 ```
-warp transpile example_contracts/ERC20.sol
+warp transpile exampleContracts/ERC20.sol
 ```
 
 ### Warp Installation Method 2 (from source/for devs)
@@ -71,7 +71,7 @@ yarn
 pip install -r requirements.txt
 ```
 
-If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
+If you are using an M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
 
 ```
 CFLAGS=-Ibrew --prefix gmp/include LDFLAGS=-Lbrew --prefix gmp/lib pip install ecdsa fastecdsa sympy
@@ -89,7 +89,7 @@ yarn warplib
 5. Test the installation worked by transpiling an example ERC20 contract:
 
 ```
-bin/warp transpile example_contracts/ERC20.sol
+bin/warp transpile exampleContracts/ERC20.sol
 ```
 
 ## Usage
