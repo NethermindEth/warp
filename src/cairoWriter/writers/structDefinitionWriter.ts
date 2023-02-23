@@ -1,4 +1,4 @@
-import { ASTWriter, InferType, SrcDesc, StructDefinition } from 'solc-typed-ast';
+import { ASTWriter, SrcDesc, StructDefinition } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mangleStructName } from '../../utils/utils';
@@ -14,7 +14,7 @@ export class StructDefinitionWriter extends CairoASTNodeWriter {
           .map(
             (value) =>
               `${value.name} : ${CairoType.fromSol(
-                safeGetNodeType(value, new InferType(writer.targetCompilerVersion)),
+                safeGetNodeType(value, this.ast.inference),
                 this.ast,
                 TypeConversionContext.StorageAllocation,
               )},`,
