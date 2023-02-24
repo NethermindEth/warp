@@ -35,6 +35,7 @@ import {
   MappingType,
   MemberAccess,
   Mutability,
+  ParameterList,
   PointerType,
   Return,
   SourceLocation,
@@ -323,6 +324,10 @@ export function isExternallyVisible(node: FunctionDefinition): boolean {
   return (
     node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
   );
+}
+
+export function isReturnParamList(node: ParameterList) {
+  return node.parent instanceof FunctionDefinition && node.parent.vReturnParameters === node;
 }
 
 export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
