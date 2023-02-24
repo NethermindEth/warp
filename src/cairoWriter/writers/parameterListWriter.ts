@@ -9,7 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { isExternallyVisible } from '../../utils/utils';
+import { isExternallyVisible, isReturnParamList } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 
 export class ParameterListWriter extends CairoASTNodeWriter {
@@ -51,11 +51,4 @@ export class ParameterListWriter extends CairoASTNodeWriter {
     });
     return [params.join(', ')];
   }
-}
-
-function isReturnParamList(node: ParameterList) {
-  if (node.parent instanceof FunctionDefinition && node.parent.vReturnParameters === node) {
-    return true;
-  }
-  return false;
 }
