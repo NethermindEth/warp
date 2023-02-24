@@ -161,29 +161,25 @@ const deployedAddresses: Map<string, { address: string; hash: string }> = new Ma
 describe('Compiled contracts are deployable', function () {
   this.timeout(TIME_LIMIT);
 
-  let deployResults: (DeployResponse | null)[];
+  const deployResults: (DeployResponse | null)[] = [];
 
   before(async function () {
     const testnetContactable = await ensureTestnetContactable(60000);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
 
-    const bottleneck = new Bottleneck({ maxConcurrent: 100 });
+    for (const expectation of expectations) {
+      try {
+        if ((await fs.stat(expectation.compiled)).size === 0) {
+          deployResults.push(null);
+          continue;
+        }
+      } catch {
+        deployResults.push(null);
+        continue;
+      }
 
-    deployResults = await Promise.all(
-      expectations.map((expectation) =>
-        bottleneck.schedule(async () => {
-          try {
-            const fileSize = (await fs.stat(expectation.compiled)).size;
-
-            if (fileSize === 0) return null;
-
-            return await deploy(expectation.compiled, await expectation.constructorArgs);
-          } catch {
-            return null;
-          }
-        }),
-      ),
-    );
+      deployResults.push(await deploy(expectation.compiled, await expectation.constructorArgs));
+    }
   });
 
   expectations.forEach((expectation, i) => {
@@ -213,8 +209,6 @@ describe('Compiled contracts are deployable', function () {
 describe('Deployed contracts have correct behaviour', function () {
   this.timeout(TIME_LIMIT);
 
-  const bottleneck = new Bottleneck({ maxConcurrent: 100 });
-
   expectations.forEach((expectation) => {
     let expects = expectation.expectations;
 
@@ -231,13 +225,9 @@ describe('Deployed contracts have correct behaviour', function () {
 
         expects = await expects;
 
-        await Promise.all(
-          expects.map((expect) =>
-            bottleneck.schedule(() =>
-              behaviourTest(deployedAddresses, expect, expectation, address),
-            ),
-          ),
-        );
+        for (const expect of expects) {
+          await behaviourTest(deployedAddresses, expect, expectation, address);
+        }
       });
     } else {
       describe(expectation.name, function () {
@@ -249,9 +239,7 @@ describe('Deployed contracts have correct behaviour', function () {
 
             if (address === undefined) this.skip();
 
-            await bottleneck.schedule(() =>
-              behaviourTest(deployedAddresses, expect, expectation, address),
-            );
+            await behaviourTest(deployedAddresses, expect, expectation, address);
           });
         });
       });
