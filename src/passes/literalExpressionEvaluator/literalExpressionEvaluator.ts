@@ -27,6 +27,11 @@ import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
   Hence all literal nodes are of type Literal | UnaryOperation | BinaryOperation
 */
 
+interface NodeEvaluationInfo {
+  evaluation: RationalLiteral | boolean | null;
+  node: ASTNode;
+}
+
 export class LiteralExpressionEvaluator extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
@@ -358,11 +363,6 @@ function createNumberLiteralNode(result: RationalLiteral, ast: AST): Literal {
     throw new TranspileFailedError('Attempted to make node for non-integral literal');
   }
   return createNumberLiteral(intValue, ast);
-}
-
-interface NodeEvaluationInfo {
-  evaluation: RationalLiteral | boolean | null;
-  node: ASTNode;
 }
 
 function generateInfo(
