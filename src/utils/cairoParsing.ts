@@ -13,7 +13,14 @@ export type RawCairoFunctionInfo = {
  *  @returns A list of each function information
  */
 export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFunctionInfo[] {
-  const functions = rawFunctions.matchAll(/fn (\w+)\s*[{]?.*?[}]?\s*[(].*?[)]/gis);
+  const functions = [
+    // For cairo1
+    ...rawFunctions.matchAll(/fn (\w+)\s*[{].*?[}]/gis),
+    ...rawFunctions.matchAll(/fn (\w+)\s*/gis),
+    // For cairo 10: Should be deleted eventually
+    ...rawFunctions.matchAll(/func (\w+)\s*[{].*?[}]/gis),
+    ...rawFunctions.matchAll(/func (\w+)\s*/gis),
+  ];
 
   return [...functions].map((func) => getRawCairoFunctionInfo(func[0]));
 }
@@ -26,8 +33,12 @@ export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFu
 export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionInfo {
   // Todo: Update match so implicit can be empty and there is a version of them without keys
   const funcSignature =
+    // For cairo1
     rawFunction.match(/fn (?<name>\w+)\s*[{](?<implicits>.+)[}]/is) ??
-    rawFunction.match(/fn (?<name>\w+)\s*/);
+    rawFunction.match(/fn (?<name>\w+)/) ??
+    // For cairo 10: Should be deleted eventually
+    rawFunction.match(/func (?<name>\w+)\s*[{](?<implicits>.+)[}]/is) ??
+    rawFunction.match(/func (?<name>\w+)/);
 
   assert(
     funcSignature !== null && funcSignature.groups !== undefined,
@@ -35,6 +46,8 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
   );
 
   const name = funcSignature.groups.name;
+
+  console.log(name);
   const implicits =
     funcSignature.groups.implicits !== undefined
       ? parseImplicits(funcSignature.groups.implicits)
