@@ -541,13 +541,8 @@ export class AbiEncode extends AbiBase {
       },
     );
 
-    const [instructions, functionsCalled] = decodingInfo.reduce(
-      ([instructions, functionsCalled], [currentInstruction, currentFuncs]) => [
-        [...instructions, currentInstruction],
-        [...functionsCalled, ...currentFuncs],
-      ],
-      [new Array<string>(), new Array<CairoFunctionDefinition>()],
-    );
+    const instructions = decodingInfo.map((info) => info[0]);
+    const functionsCalled = decodingInfo.flatMap((info) => info[1]);
 
     const name = `${this.functionName}_inline_struct_${def.name}`;
     const code = [
