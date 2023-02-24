@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-import threading
 
 from pathlib import Path
 from starkware.starknet.business_logic.execution.objects import (
@@ -16,72 +15,66 @@ JSON_PATH = os.path.abspath(TMP / (FILE_NAME + ".json"))
 
 contract_name_map = {}
 
-json_lock = threading.Lock()
-
 
 def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInfo):
-    with json_lock:
-        if os.path.exists(JSON_PATH):
-            with open(JSON_PATH, "r") as json_file:
-                benchmark_data = json.load(json_file)
-        else:
-            benchmark_data = {}
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
+            benchmark_data = json.load(json_file)
+    else:
+        benchmark_data = {}
 
-        benchmark_data.setdefault(contract_name, {})[
-            "steps"
-        ] = result.call_info.execution_resources.n_steps
+    benchmark_data.setdefault(contract_name, {})[
+        "steps"
+    ] = result.call_info.execution_resources.n_steps
 
-        with open(JSON_PATH, "w") as json_file:
-            json.dump(benchmark_data, json_file, indent=3)
+    with open(JSON_PATH, "w") as json_file:
+        json.dump(benchmark_data, json_file, indent=3)
 
 
 def steps_in_function_invoke(function_name: str, result: CallInfo):
-    with json_lock:
-        if os.path.exists(JSON_PATH):
-            with open(JSON_PATH, "r") as json_file:
-                benchmark_data = json.load(json_file)
-        else:
-            benchmark_data = {}
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
+            benchmark_data = json.load(json_file)
+    else:
+        benchmark_data = {}
 
-        contract_name = contract_name_map.get(result.contract_address, "UNKNOWN")
-        benchmark_data.setdefault(contract_name, {}).setdefault("function_steps", {})[
-            function_name
-        ] = result.execution_resources.n_steps
+    contract_name = contract_name_map.get(result.contract_address, "UNKNOWN")
+    benchmark_data.setdefault(contract_name, {}).setdefault("function_steps", {})[
+        function_name
+    ] = result.execution_resources.n_steps
 
-        with open(JSON_PATH, "w") as json_file:
-            json.dump(benchmark_data, json_file, indent=3)
+    with open(JSON_PATH, "w") as json_file:
+        json.dump(benchmark_data, json_file, indent=3)
 
 
 def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo):
-    with json_lock:
-        if os.path.exists(JSON_PATH):
-            with open(JSON_PATH, "r") as json_file:
-                benchmark_data = json.load(json_file)
-        else:
-            benchmark_data = {}
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
+            benchmark_data = json.load(json_file)
+    else:
+        benchmark_data = {}
 
-        benchmark_data.setdefault(contract_name, {})[
-            "builtin_instances"
-        ] = result.call_info.execution_resources.builtin_instance_counter
+    benchmark_data.setdefault(contract_name, {})[
+        "builtin_instances"
+    ] = result.call_info.execution_resources.builtin_instance_counter
 
-        with open(JSON_PATH, "w") as json_file:
-            json.dump(benchmark_data, json_file, indent=3)
+    with open(JSON_PATH, "w") as json_file:
+        json.dump(benchmark_data, json_file, indent=3)
 
 
 def json_size_count(file_path: str):
-    with json_lock:
-        if os.path.exists(JSON_PATH):
-            with open(JSON_PATH, "r") as json_file:
-                benchmark_data = json.load(json_file)
-        else:
-            benchmark_data = {}
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
+            benchmark_data = json.load(json_file)
+    else:
+        benchmark_data = {}
 
-        benchmark_data.setdefault(file_path, {})[
-            "json_size"
-        ] = f"{os.path.getsize(file_path)/1024} KB"
+    benchmark_data.setdefault(file_path, {})[
+        "json_size"
+    ] = f"{os.path.getsize(file_path)/1024} KB"
 
-        with open(JSON_PATH, "w") as json_file:
-            json.dump(benchmark_data, json_file, indent=3)
+    with open(JSON_PATH, "w") as json_file:
+        json.dump(benchmark_data, json_file, indent=3)
 
 
 def create_markdown():
