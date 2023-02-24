@@ -82,7 +82,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       '   WARP_STORAGE: LegacyMap::<felt, felt>,',
       '   WARP_USED_STORAGE: felt,',
       '   WARP_NAMEGEN: felt,',
-      ...otherStorageVars.map((v) => writer.write(v)),
+      ...otherStorageVars.map((v) => '   ' + writer.write(v)),
       '}',
 
       'fn readId(loc: felt) -> (val: felt){',

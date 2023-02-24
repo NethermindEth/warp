@@ -8,8 +8,6 @@ import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class StorageWriteGen extends StringIndexedFuncGen {
   public gen(storageLocation: Expression, writeValue: Expression): FunctionCall {
-    console.log('gen in ', 'StorageWriteGen ');
-
     const typeToWrite = safeGetNodeType(storageLocation, this.ast.inference);
     const funcDef = this.getOrCreateFuncDef(typeToWrite);
     return createCallToFunction(funcDef, [storageLocation, writeValue], this.ast);

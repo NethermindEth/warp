@@ -36,8 +36,6 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
   }
 
   public gen(node: IndexAccess): FunctionCall {
-    console.log('gen in ', 'MappingIndexAccessGen ');
-
     const base = node.vBaseExpression;
     let index = node.vIndexExpression;
     assert(index !== undefined);
@@ -114,7 +112,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
 
     const mappingFuncInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: [`${mappingName}:LegacyMap::<(felt, ${indexTypeString}), felt}>`].join('\n'),
+      code: [`${mappingName}: LegacyMap::<(felt, ${indexTypeString}), felt}>`].join('\n'),
       functionsCalled: [],
     };
     const mappingFunc = createCairoGeneratedFunction(

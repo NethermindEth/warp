@@ -17,8 +17,6 @@ import { serialiseReads } from '../serialisation';
 export class StorageReadGen extends StringIndexedFuncGen {
   // TODO: is typename safe to remove?
   public gen(storageLocation: Expression, typeName?: TypeName): FunctionCall {
-    console.log('gen in ', 'StorageReadGen ');
-
     const valueType = safeGetNodeType(storageLocation, this.ast.inference);
 
     const funcDef = this.getOrCreateFuncDef(valueType, typeName);

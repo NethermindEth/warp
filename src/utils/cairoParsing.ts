@@ -47,7 +47,6 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
 
   const name = funcSignature.groups.name;
 
-  console.log(name);
   const implicits =
     funcSignature.groups.implicits !== undefined
       ? parseImplicits(funcSignature.groups.implicits)
