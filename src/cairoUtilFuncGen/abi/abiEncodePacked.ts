@@ -83,13 +83,11 @@ export class AbiEncodePacked extends AbiBase {
       this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
     ];
 
-    const cairoFuncInfo = {
+    return {
       name: funcName,
       code: code,
       functionsCalled: [...importedFuncs, ...functionsCalled],
     };
-
-    return cairoFuncInfo;
   }
 
   public override getOrCreateEncoding(type: TypeNode): CairoFunctionDefinition {

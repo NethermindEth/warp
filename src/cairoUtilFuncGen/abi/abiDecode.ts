@@ -144,8 +144,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    const cairoFunc = { name: funcName, code: code, functionsCalled: functionsCalled };
-    return cairoFunc;
+    return { name: funcName, code: code, functionsCalled: functionsCalled };
   }
 
   public getOrCreateDecoding(type: TypeNode): CairoFunctionDefinition {
@@ -461,7 +460,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     let structWriteLocation = 0;
     const decodingInfo: [string, CairoFunctionDefinition[]][] = definition.vMembers.map(
       (member, index) => {
-        const type = generalizeType(safeGetNodeType(member, this.ast.inference))[0];
+        const [type] = generalizeType(safeGetNodeType(member, this.ast.inference));
         const elemWidth = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
         const [decodingCode, functionsCalled] = this.generateDecodingCode(
           type,
@@ -487,13 +486,8 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       },
     );
 
-    const [instructions, functionsCalled] = decodingInfo.reduce(
-      ([instructions, functionsCalled], [currentInstruction, currentFuncs]) => [
-        [...instructions, currentInstruction],
-        [...functionsCalled, ...currentFuncs],
-      ],
-      [new Array<string>(), new Array<CairoFunctionDefinition>()],
-    );
+    const instructions = decodingInfo.map((info) => info[0]);
+    const functionsCalled = decodingInfo.flatMap((info) => info[1]);
 
     const name = `${this.functionName}_struct_${definition.name}`;
     const code = [
