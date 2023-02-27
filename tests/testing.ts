@@ -320,27 +320,18 @@ function cairo1setup(): boolean {
 
 function doCairo1Setup() {
   if (!isRustInstalled) {
-    try {
-      console.log('Installing rust...');
-      execSync("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh", {
-        stdio: 'inherit',
-      });
-      execSync('rustup override set stable && rustup update', { stdio: 'inherit' });
-    } catch (e) {
-      throw new Error(
-        'Failed to install rust, try manual installation of rust from https://www.rust-lang.org/tools/install',
-      );
-    }
+    throw new Error(
+      "Please make sure you've installed rust alongside with rustup and cargo from here: https://www.rust-lang.org/tools/install",
+    );
   }
   try {
     console.log('Cloning cairo1 repo...');
-    if (fs.existsSync(CAIRO1_DIR)) {
-      console.warn('!! cairo directory already exists, overwriting it...');
-      execSync(`rm -rf ${CAIRO1_DIR}`, { stdio: 'inherit' });
-    }
     execSync('git clone https://github.com/starkware-libs/cairo', { stdio: 'inherit' });
   } catch (e) {
-    throw new Error('Failed to clone cairo repo');
+    if (e instanceof Error) {
+      throw `Failed to clone the cairo1 repo: ${e.message}`;
+    }
+    throw e;
   }
   // follow cairo1 README setup instructions
   try {
@@ -412,7 +403,7 @@ function runCairoFileTest(
     if (throwError) {
       throw new Error(error(`Compilation of ${file} failed`));
     }
-    results.set(removeExtension(file), 'CairoCompileFailed');
+    results.set(file, 'CairoCompileFailed');
   }
 }
 
@@ -491,8 +482,8 @@ function deleteJson(path: string): void {
     .forEach((file) => fs.unlinkSync(file));
 }
 
-function removeExtension(file: string): string {
-  const index = file.lastIndexOf('.');
-  if (index === -1) return file;
-  return file.slice(0, index);
-}
+// function removeExtension(file: string): string {
+//   const index = file.lastIndexOf('.');
+//   if (index === -1) return file;
+//   return file.slice(0, index);
+// }
