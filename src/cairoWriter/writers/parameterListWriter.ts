@@ -1,12 +1,11 @@
 import {
   ASTWriter,
-  ContractDefinition,
   DataLocation,
   FunctionDefinition,
   ParameterList,
   SrcDesc,
 } from 'solc-typed-ast';
-import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible, isReturnParamList } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
