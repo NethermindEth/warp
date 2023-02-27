@@ -10,7 +10,7 @@ export class VariableDeclarationWriter extends CairoASTNodeWriter {
     if ((node.stateVariable || node.parent instanceof SourceUnit) && isCairoConstant(node)) {
       assert(node.vValue !== undefined, 'Constant should have a defined value.');
       const constantValue = writer.write(node.vValue);
-      return [[documentation, `let ${node.name} = ${constantValue};`].join('\n')];
+      return [[documentation, `const ${node.name} = ${constantValue};`].join('\n')];
     }
 
     return [node.name];
