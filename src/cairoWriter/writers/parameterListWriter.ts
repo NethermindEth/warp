@@ -30,20 +30,8 @@ export class ParameterListWriter extends CairoASTNodeWriter {
         this.ast,
         varTypeConversionContext,
       );
-      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
-        if (
-          isExternallyVisible(node.parent) ||
-          node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
-        ) {
-          const vLenStr = tp.vLen.toString();
-          const vPtrStr = tp.vPtr.toString();
-          return isReturnParamList(node)
-            ? `${vLenStr}, ${vPtrStr}`
-            : `${value.name}_len : ${vLenStr}, ${value.name} : ${vPtrStr}`;
-        } else {
-          return isReturnParamList(node) ? `${tp.toString()}` : `${value.name} : ${tp.toString()}`;
-        }
-      }
+      // TODO: In the position of the type is written the typeString of the var. Needs to be checked the transformation
+      // of that typestring into de Cairo 1 syntax for that type (Eg: dynamic arrays of some variable)
       return isReturnParamList(node) ? `${tp}` : `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
