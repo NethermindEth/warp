@@ -1,11 +1,17 @@
-import path from 'path';
 import fs from 'fs';
 import { Implicits } from '../utils/implicits';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
+import { glob } from 'glob';
 
-export const warplibImportInfo = readAllCairoScripts('warplib', 'warplib').reduce(
-  (warplibMap, [pathToFile, importPath]) => {
+export const warplibImportInfo = glob
+  .sync('warplib/**/*.cairo')
+  .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
+
+    const importPath = pathToFile
+      .split('/')
+      .join('.')
+      .slice(0, pathToFile.length - '.cairo'.length);
 
     const fileMap: Map<string, Implicits[]> =
       warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
@@ -19,25 +25,4 @@ export const warplibImportInfo = readAllCairoScripts('warplib', 'warplib').reduc
     );
 
     return warplibMap;
-  },
-  new Map<string, Map<string, Implicits[]>>(),
-);
-
-function readAllCairoScripts(dirPath: string, importPath: string): [string, string][] {
-  return fs.readdirSync(dirPath).reduce((filesInfo, file) => {
-    const fullPathName = path.join(dirPath, file);
-
-    if (fs.statSync(fullPathName).isDirectory()) {
-      const newFilesInfo = readAllCairoScripts(fullPathName, `${importPath}.${file}`);
-      return [...filesInfo, ...newFilesInfo];
-    }
-    if (file.endsWith('.cairo')) {
-      return [
-        ...filesInfo,
-        [fullPathName, `${importPath}.${file.slice(0, file.length - '.cairo'.length)}`],
-      ];
-    }
-
-    return filesInfo;
-  }, new Array<[string, string]>());
-}
+  }, new Map<string, Map<string, Implicits[]>>());
