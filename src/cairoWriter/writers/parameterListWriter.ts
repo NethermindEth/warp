@@ -30,24 +30,21 @@ export class ParameterListWriter extends CairoASTNodeWriter {
         this.ast,
         varTypeConversionContext,
       );
-      if (isReturnParamList(node)) {
-        // In Cairo1 return parameters are not named
-        if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
-          return isExternallyVisible(node.parent) ||
-            node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
-            ? `${tp.vLen.toString()}, ${tp.vPtr.toString()}`
-            : `${tp.toString()}`;
+      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+        if (
+          isExternallyVisible(node.parent) ||
+          node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
+        ) {
+          const vLenStr = tp.vLen.toString();
+          const vPtrStr = tp.vPtr.toString();
+          return isReturnParamList(node)
+            ? `${vLenStr}, ${vPtrStr}`
+            : `${value.name}_len : ${vLenStr}, ${value.name} : ${vPtrStr}`;
+        } else {
+          return isReturnParamList(node) ? `${tp.toString()}` : `${value.name} : ${tp.toString()}`;
         }
-        return `${tp}`;
-      } else {
-        if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
-          return isExternallyVisible(node.parent) ||
-            node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
-            ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-            : `${value.name} : ${tp.toString()}`;
-        }
-        return `${value.name} : ${tp}`;
       }
+      return isReturnParamList(node) ? `${tp}` : `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }
