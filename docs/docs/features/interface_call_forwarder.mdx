@@ -31,7 +31,7 @@ The cairo contract `a.cairo` has been deployed at address `addr`. And, we want t
 
 ### Step 1.
 
-Run the following command with appropriate cairo file name and it's address at which it has been deployed
+Run the following command with appropriate cairo file name and its address at which it has been deployed
 
 ```sh
 bin/warp gen_interface a.cairo --contract-address `${addr}` --class_hash `${cairo_contract_class_hash}`
@@ -127,7 +127,7 @@ bin/warp transpile /path/to/solc_file
 
 to get corresponding cairo code.
 
-This is a traspiled cairo output for `my_impl.sol`:
+This is a transpiled cairo output for `my_impl.sol`:
 
 ```js
 %lang starknet
@@ -209,6 +209,6 @@ starknet invoke \
 
 ## Running tests
 
-For more detailed and implemented steps, you can look at the [interface_forwarder.test.ts](https://github.com/NethermindEth/warp/blob/develop/tests/interface_call_forwarder/interface_forwarder.test.ts) file.
+For more detailed and implemented steps, you can look at the [interfaceForwarder.test.ts](https://github.com/NethermindEth/warp/blob/develop/tests/interfaceCallForwarder/interfaceForwarder.test.ts) file.
 
 To execute interface call forwarder test, run `$ yarn test:forwarder`

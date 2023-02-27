@@ -130,7 +130,7 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
 
   fs.writeFileSync(cairoContractPath, cairoContract);
 
-  const compileForwarder = compileCairo(cairoContractPath, path.resolve(__dirname, '..'), {
+  const compileForwarder = compileCairo(cairoContractPath, path.resolve(__dirname, '../../'), {
     debugInfo: false,
   });
 

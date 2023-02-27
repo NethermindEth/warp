@@ -28,12 +28,12 @@ import {
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
-import tests from '../test_calldata';
+import tests from '../testCalldata';
 import { InvalidTestError } from '../errors';
 
-import whiteList from './semantic_whitelist';
+import whiteList from './semanticWhitelist';
 
-import whileListGenerated from './semantic_tests_generated';
+import whileListGenerated from './semanticTestsGenerated';
 
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFiles, compileSolFilesAndExtractContracts } from '../../../src/solCompile';
@@ -46,6 +46,7 @@ import assert from 'assert';
 import { AST } from '../../../src/ast/ast';
 import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
 import { safeGetNodeType } from '../../../src/utils/nodeTypeProcessing';
+import { encodeString } from './utils';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -283,11 +284,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, inference: InferType)
     if (typeof value !== 'string') {
       throw new Error(`Can't encode ${value} as stringType`);
     }
-    const valueEncoded: number[] = Buffer.from(value).toJSON().data;
-
-    const byteString: string[] = [];
-    valueEncoded.forEach((val) => byteString.push(val.toString()));
-    return [byteString.length.toString()].concat(byteString);
+    return encodeString(value);
   } else if (tp instanceof AddressType) {
     return encodeAsUintOrFelt(tp, value, 160);
   } else if (tp instanceof BuiltinType) {

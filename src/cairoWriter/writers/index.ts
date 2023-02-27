@@ -23,6 +23,5 @@ export * from './sourceUnitWriter';
 export * from './structDefinitionWriter';
 export * from './structuredDocumentationWriter';
 export * from './tupleExpressionWriter';
-export * from './uncheckedBlockWriter';
 export * from './variableDeclarationStatementWriter';
 export * from './variableDeclarationWriter';

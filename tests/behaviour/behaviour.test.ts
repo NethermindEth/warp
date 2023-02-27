@@ -17,7 +17,7 @@ import { expectations } from './expectations';
 import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
-import { decodeEventLog, EventItem } from '../../src/utils/event';
+import { EventItem } from '../../src/utils/event';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -64,7 +64,7 @@ describe('Transpile solidity', function () {
   }
 });
 
-// Compiling the transpiled contracts using the StarkNet CLI.
+// Compiling the transpiled contracts using the Starknet CLI.
 describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
@@ -113,7 +113,7 @@ const deployedAddresses: Map<string, { address: string; hash: string }> = new Ma
 
 // Deploying the tests to the Testnet thought interface commands
 // The test net is a flask server that runs and therefor cannot be interacted with
-// in the same manner as the StarkNet CLI.
+// in the same manner as the Starknet CLI.
 describe('Compiled contracts are deployable', function () {
   this.timeout(TIME_LIMIT);
 
@@ -242,12 +242,8 @@ async function behaviourTest(
           `${name} - Return data should match expectation`,
         ).to.deep.equal(replaced_expectedResult);
         if (events !== undefined) {
-          events.forEach((e) => {
-            e.data = e.data.map((n) => `0x${BigInt(n).toString(16)}`);
-            e.keys = e.keys.map((n) => `0x${BigInt(n).toString(16)}`);
-          });
           expect(
-            decodeEventLog(response.events as EventItem[]),
+            response.events as EventItem[],
             `${name} - Events should match events expectation`,
           ).to.deep.equal(events);
         }
