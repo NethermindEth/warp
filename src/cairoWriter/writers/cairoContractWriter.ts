@@ -81,7 +81,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       '@storage_var',
       'func WARP_NAMEGEN() -> (name: felt){',
       '}',
-      'fn readId(loc: felt) -> (val: felt){',
+      'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt){',
       '    alloc_locals;',
       '    let (id) = WARP_STORAGE.read(loc);',
       '    if (id == 0){',
@@ -95,7 +95,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       '}',
       ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
         ? [
-            'fn DUMP_WARP_STORAGE_ITER(length : felt, ptr: felt*){',
+            'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){',
             '    alloc_locals;',
             '    if (length == 0){',
             '        return ();',
@@ -106,8 +106,8 @@ export class CairoContractWriter extends CairoASTNodeWriter {
             '    DUMP_WARP_STORAGE_ITER(index, ptr);',
             '    return ();',
             '}',
-            '#[external]',
-            'fn DUMP_WARP_STORAGE(length : felt) -> (data_len : felt, data: felt*){',
+            '@external',
+            'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){',
             '    alloc_locals;',
             '    let (p: felt*) = alloc();',
             '    DUMP_WARP_STORAGE_ITER(length, p);',
