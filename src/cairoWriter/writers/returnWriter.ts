@@ -11,7 +11,7 @@ const WARP_MEMORY = 'warp_memory';
 export class ReturnWriter extends CairoASTNodeWriter {
   writeInner(node: Return, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
-    const returns = node.vExpression ? writer.write(node.vExpression) : '';
+    const returns = node.vExpression ? writer.write(node.vExpression) : '()';
 
     const finalizeWarpMemory = this.usesImplicit(WARP_MEMORY, node)
       ? 'default_dict_finalize(warp_memory_start, warp_memory, 0);\n'
