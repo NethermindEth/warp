@@ -6,7 +6,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  isReferenceType,
   SourceUnit,
   StringType,
   StructDefinition,
@@ -355,21 +354,30 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
 
     const elemenT = type.elementT;
 
-    const auxFunc = isReferenceType(elemenT) ? this.getOrCreateAuxiliar(elemenT) : undefined;
-
     const cairoElementT = CairoType.fromSol(elemenT, this.ast, TypeConversionContext.CallDataRef);
-    const staticArrayEncoding = (element: string) => {
-      if (isValueType(elemenT)) {
-        return cairoElementT.width === 2
-          ? [
+
+    let staticArrayEncoding: (element: string) => string[];
+    let funcsCalled: CairoFunctionDefinition[];
+    if (isValueType(elemenT)) {
+      staticArrayEncoding =
+        cairoElementT.width === 2
+          ? (element: string) => [
               `assert to_array[to_index] = ${element}.low;`,
               `assert to_array[to_index + 1] = ${element}.high;`,
               `let to_index = to_index + 2;`,
             ]
-          : [`assert to_array[to_index] = ${element};`, `let to_index = to_index + 1;`];
-      }
-      return [`let (to_index) = ${auxFunc!.name}(to_index, to_array, ${element});`];
-    };
+          : (element: string) => [
+              `assert to_array[to_index] = ${element};`,
+              `let to_index = to_index + 1;`,
+            ];
+      funcsCalled = [];
+    } else {
+      const auxFunc = this.getOrCreateAuxiliar(elemenT);
+      staticArrayEncoding = (element: string) => [
+        `let (to_index) = ${auxFunc.name}(to_index, to_array, ${element});`,
+      ];
+      funcsCalled = [auxFunc];
+    }
 
     const encodeCode = mapRange(narrowBigIntSafe(type.size), (index) => {
       return [
@@ -385,12 +393,12 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
       ...encodeCode,
       `    return (to_index,);`,
       `}`,
-    ];
+    ].join('\n');
 
     return this.createAuxiliarGeneratedFunction({
       name: funcName,
-      code: code.join('\n'),
-      functionsCalled: auxFunc !== undefined ? [auxFunc] : [],
+      code: code,
+      functionsCalled: funcsCalled,
     });
   }
 }
