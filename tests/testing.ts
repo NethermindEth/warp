@@ -481,9 +481,3 @@ function deleteJson(path: string): void {
     .filter((file) => file.endsWith('.json'))
     .forEach((file) => fs.unlinkSync(file));
 }
-
-// function removeExtension(file: string): string {
-//   const index = file.lastIndexOf('.');
-//   if (index === -1) return file;
-//   return file.slice(0, index);
-// }
