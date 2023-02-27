@@ -28,19 +28,9 @@ import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayConcat extends StringIndexedFuncGen {
   public gen(concat: FunctionCall) {
-    const argTypes = concat.vArguments.map((expr) => {
-      const exprType = generalizeType(safeGetNodeType(expr, this.ast.inference))[0];
-      return exprType;
-      // TODO: Only string and bytes (with fixed bytes) are concatenable, why there are extra types here!!!
-      // if (
-      //   !isDynamicArray(exprType) &&
-      //   !(exprType instanceof IntType || exprType instanceof FixedBytesType)
-      // )
-      //   throw new TranspileFailedError(
-      //     `Unexpected type ${printTypeNode(exprType)} in ${printNode(expr)} to concatenate.` +
-      //       'Expected FixedBytes, IntType, ArrayType, BytesType, or StringType',
-      //   );
-    });
+    const argTypes = concat.vArguments.map(
+      (expr) => generalizeType(safeGetNodeType(expr, this.ast.inference))[0],
+    );
 
     const funcDef = this.getOrCreateFuncDef(argTypes);
     return createCallToFunction(funcDef, concat.vArguments, this.ast);

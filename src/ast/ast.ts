@@ -25,7 +25,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
 import { createBlock } from '../utils/nodeTemplates';
-import { createImportFuncDefinition } from '../utils/importFuncGenerator';
+import { createImport } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternalCall } from '../utils/utils';
 import { CairoFunctionDefinition, CairoImportFunctionDefinition } from './cairoNodes';
@@ -282,7 +282,7 @@ export class AST {
     outputs: ParameterInfo[],
     options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean },
   ): CairoImportFunctionDefinition {
-    return createImportFuncDefinition(location, name, node, this, inputs, outputs, options);
+    return createImport(location, name, node, this, inputs, outputs, options);
   }
 
   removeStatement(statement: Statement): void {

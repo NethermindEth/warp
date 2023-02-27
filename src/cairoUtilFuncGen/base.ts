@@ -17,7 +17,7 @@ import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, CairoImportFunctionDefinition } from '../ast/cairoNodes';
 import { createCairoGeneratedFunction, ParameterInfo } from '../utils/functionGeneration';
 import { TranspileFailedError } from '../utils/errors';
-import { createImportFuncDefinition } from '../utils/importFuncGenerator';
+import { createImport } from '../utils/importFuncGenerator';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
 
 export type CairoStructDef = {
@@ -54,7 +54,7 @@ export abstract class CairoUtilFuncGenBase {
     inputs?: ParameterInfo[],
     outputs?: ParameterInfo[],
   ): CairoImportFunctionDefinition {
-    return createImportFuncDefinition(location, name, this.sourceUnit, this.ast, inputs, outputs);
+    return createImport(location, name, this.sourceUnit, this.ast, inputs, outputs);
   }
 }
 

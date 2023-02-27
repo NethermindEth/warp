@@ -6,8 +6,8 @@ import { TranspileFailedError } from '../utils/errors';
 import { warplibImportInfo } from '../warplib/gatherWarplibImports';
 import { Implicits } from './implicits';
 import {
-  createImportFuncFuncDefinition,
-  createImportStructFuncDefinition,
+  createCairoImportFunctionDefintion,
+  createCairoImportStructDefinition,
   ParameterInfo,
 } from './functionGeneration';
 import { getContainingSourceUnit } from './utils';
@@ -24,7 +24,7 @@ const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
 
-export function createImportFuncDefinition(
+export function createImport(
   path: string,
   name: string,
   nodeInSourceUnit: ASTNode,
@@ -35,14 +35,12 @@ export function createImportFuncDefinition(
 ) {
   const sourceUnit = getContainingSourceUnit(nodeInSourceUnit);
 
-  const hasInputs = inputs !== undefined && inputs.length > 0;
-  const hasOutputs = outputs !== undefined && outputs.length > 0;
-
   const existingImport = findExistingImport(name, sourceUnit);
   if (existingImport !== undefined) {
+    const hasInputs = inputs !== undefined && inputs.length > 0;
+    const hasOutputs = outputs !== undefined && outputs.length > 0;
     if (!hasInputs || !hasOutputs) return existingImport;
-
-    return createImportFuncFuncDefinition(
+    return createCairoImportFunctionDefintion(
       name,
       path,
       existingImport.implicits,
@@ -55,7 +53,7 @@ export function createImportFuncDefinition(
   }
 
   const createFuncImport = (...implicits: Implicits[]) =>
-    createImportFuncFuncDefinition(
+    createCairoImportFunctionDefintion(
       name,
       path,
       new Set(implicits),
@@ -65,7 +63,7 @@ export function createImportFuncDefinition(
       sourceUnit,
       options,
     );
-  const createStructImport = () => createImportStructFuncDefinition(name, path, ast, sourceUnit);
+  const createStructImport = () => createCairoImportStructDefinition(name, path, ast, sourceUnit);
 
   const warplibFunc = warplibImportInfo.get(path)?.get(name);
   if (warplibFunc !== undefined) {

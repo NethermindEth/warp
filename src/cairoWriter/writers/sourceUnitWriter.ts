@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ASTWriter, ContractKind, FunctionDefinition, SourceUnit, SrcDesc } from 'solc-typed-ast';
+import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
 import {
   CairoImportFunctionDefinition,
   CairoGeneratedFunctionDefinition,
@@ -45,18 +45,16 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
       writer.write(v),
     );
 
-    const [importFunctions, generatedFunctions, functions] = node.vFunctions.reduce(
-      ([importFunctions, generatedFunctions, functions], funcDef) =>
-        funcDef instanceof CairoImportFunctionDefinition
-          ? [[funcDef, ...importFunctions], generatedFunctions, functions]
-          : funcDef instanceof CairoGeneratedFunctionDefinition
-          ? [importFunctions, [funcDef, ...generatedFunctions], functions]
-          : [importFunctions, generatedFunctions, [funcDef, ...functions]],
-      [
-        new Array<CairoImportFunctionDefinition>(),
-        new Array<CairoGeneratedFunctionDefinition>(),
-        new Array<FunctionDefinition>(),
-      ],
+    const importFunctions = node.vFunctions.filter(
+      (f): f is CairoImportFunctionDefinition => f instanceof CairoImportFunctionDefinition,
+    );
+    const generatedFunctions = node.vFunctions.filter(
+      (f): f is CairoGeneratedFunctionDefinition => f instanceof CairoGeneratedFunctionDefinition,
+    );
+    const functions = node.vFunctions.filter(
+      (f) =>
+        !(f instanceof CairoGeneratedFunctionDefinition) &&
+        !(f instanceof CairoImportFunctionDefinition),
     );
 
     const writtenImportFuncs = getGroupedImports(

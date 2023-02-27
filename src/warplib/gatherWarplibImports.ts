@@ -7,11 +7,10 @@ export const warplibImportInfo = readAllCairoScripts('warplib', 'warplib').reduc
   (warplibMap, [pathToFile, importPath]) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
-    let fileMap: Map<string, Implicits[]>;
-    if (warplibMap.has(importPath)) {
-      fileMap = warplibMap.get(importPath)!;
-    } else {
-      fileMap = new Map<string, Implicits[]>();
+    const fileMap: Map<string, Implicits[]> =
+      warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
+
+    if (!warplibMap.has(importPath)) {
       warplibMap.set(importPath, fileMap);
     }
 

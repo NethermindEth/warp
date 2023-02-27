@@ -113,7 +113,7 @@ export function createCairoGeneratedFunction(
   return funcDef;
 }
 
-export function createImportFuncFuncDefinition(
+export function createCairoImportFunctionDefintion(
   funcName: string,
   path: string,
   implicits: Set<Implicits>,
@@ -149,7 +149,7 @@ export function createImportFuncFuncDefinition(
   return funcDef;
 }
 
-export function createImportStructFuncDefinition(
+export function createCairoImportStructDefinition(
   structName: string,
   path: string,
   ast: AST,

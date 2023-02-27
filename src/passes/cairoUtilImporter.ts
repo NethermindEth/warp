@@ -10,7 +10,7 @@ import {
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
-import { createImportFuncDefinition } from '../utils/importFuncGenerator';
+import { createImport } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 
@@ -32,36 +32,21 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImportFuncDefinition(
-        'starkware.cairo.common.uint256',
-        'Uint256',
-        this.dummySourceUnit ?? node,
-        ast,
-      );
+      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImportFuncDefinition(
-        'starkware.cairo.common.uint256',
-        'Uint256',
-        this.dummySourceUnit ?? node,
-        ast,
-      );
+      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImportFuncDefinition(
-        'starkware.cairo.common.uint256',
-        'Uint256',
-        this.dummySourceUnit ?? node,
-        ast,
-      );
+      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining
@@ -79,30 +64,15 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
     if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
-      createImportFuncDefinition(
-        'starkware.cairo.common.default_dict',
-        'default_dict_new',
-        node,
-        ast,
-      );
-      createImportFuncDefinition(
-        'starkware.cairo.common.default_dict',
-        'default_dict_finalize',
-        node,
-        ast,
-      );
-      createImportFuncDefinition('starkware.cairo.common.dict', 'dict_write', node, ast);
+      createImport('starkware.cairo.common.default_dict', 'default_dict_new', node, ast);
+      createImport('starkware.cairo.common.default_dict', 'default_dict_finalize', node, ast);
+      createImport('starkware.cairo.common.dict', 'dict_write', node, ast);
     }
 
     if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
-      createImportFuncDefinition(
-        'starkware.cairo.common.cairo_keccak.keccak',
-        'finalize_keccak',
-        node,
-        ast,
-      );
+      createImport('starkware.cairo.common.cairo_keccak.keccak', 'finalize_keccak', node, ast);
       // Required to create a keccak_ptr
-      createImportFuncDefinition('starkware.cairo.common.alloc', 'alloc', node, ast);
+      createImport('starkware.cairo.common.alloc', 'alloc', node, ast);
     }
 
     this.commonVisit(node, ast);
