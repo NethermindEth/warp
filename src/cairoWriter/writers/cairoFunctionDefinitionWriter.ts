@@ -40,7 +40,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const body = this.getBody(node, writer);
 
     const returns = this.getReturns(node, writer);
-    const implicits = this.getImplicits(node);
 
     return [
       [documentation, ...decorator, `fn ${name}(${args})${returns}{`, body, `}`]
