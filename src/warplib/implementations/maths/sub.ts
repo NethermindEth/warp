@@ -16,17 +16,18 @@ import {
 export function sub_unsafe(): WarplibFunctionInfo {
   return {
     fileName: 'sub_unsafe',
-    imports: [],
+    imports: ['use integer::u256_overflow_sub'],
     functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `fn warp_sub_unsafe256(lhs : u256, rhs : u256) -> u256 {`,
-          '    return lhs - rhs;',
+          `    let (value, _) u256_overflow_sub(lhs, rhs);`,
+          `    return value;`,
           `}`,
         ].join('\n');
       } else {
         return [
-          // TODO: Check if default sub of felt thrown error on underflow
+          // TODO: Use bitwise '&' to take just the width-bits
           `fn warp_sub_unsafe${width}(lhs : felt, rhs : felt) -> felt {`,
           `    return lhs - rhs;`,
           `}`,
