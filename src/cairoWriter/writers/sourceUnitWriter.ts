@@ -56,6 +56,8 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
         !(f instanceof CairoGeneratedFunctionDefinition) &&
         !(f instanceof CairoImportFunctionDefinition),
     );
+    //dummyline
+    functions.concat([]);
 
     const writtenImportFuncs = getGroupedImports(
       importFunctions
