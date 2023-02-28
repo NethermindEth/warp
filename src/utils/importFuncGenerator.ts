@@ -1,7 +1,6 @@
 import { ASTNode, SourceUnit } from 'solc-typed-ast';
 import { CairoImportFunctionDefinition } from '../ast/cairoNodes';
 import { AST } from '../ast/ast';
-import assert from 'assert';
 import { TranspileFailedError } from '../utils/errors';
 import { warplibImportInfo } from '../warplib/gatherWarplibImports';
 import { Implicits } from './implicits';
@@ -122,14 +121,13 @@ export function createImport(
   }
 }
 
-function findExistingImport(name: string, node: SourceUnit) {
+function findExistingImport(
+  name: string,
+  node: SourceUnit,
+): CairoImportFunctionDefinition | undefined {
   const found = node.vFunctions.filter(
-    (n) => n instanceof CairoImportFunctionDefinition && n.name === name,
+    (n): n is CairoImportFunctionDefinition =>
+      n instanceof CairoImportFunctionDefinition && n.name === name,
   );
-
-  if (found[0] !== undefined) {
-    assert(found[0] instanceof CairoImportFunctionDefinition);
-    return found[0];
-  }
-  return undefined;
+  return found[0];
 }
