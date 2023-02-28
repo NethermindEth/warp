@@ -11,11 +11,11 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
-import { TranspileFailedError } from '../utils/errors';
 import { Implicits, implicitTypes, registerImportsForImplicit } from '../utils/implicits';
 import { isExternallyVisible, union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
 import { EMIT_PREFIX } from '../export';
+import { parseImplicits } from '../utils/cairoParsing';
 
 export class AnnotateImplicits extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -139,34 +139,14 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
   }
 }
 
-// TODO: There is code repetition here with utils/cairoParsing.ts
-// Should be updated before merging
 function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicits>) {
   const cairoCode = getDocString(node.documentation);
   assert(cairoCode !== undefined);
   const funcSignature = cairoCode.match(/func .+\{(.+)\}/);
   if (funcSignature === null) return;
 
-  // implicits -> impl1 : type1, impl2, ..., impln : typen
-  const implicits = funcSignature[1];
-
-  // implicitsList -> [impl1 : type1, impl2, ...., impln : typen]
-  const implicitsList = [...implicits.matchAll(/[A-Za-z][A-Za-z_: 0-9]*/g)].map((w) => w[0]);
-
-  // implicitsNameList -> [impl1, impl2, ..., impln]
-  const implicitsNameList = implicitsList.map((i) => i.match(/[A-Za-z][A-Za-z_0-9]*/));
-  if (!notContainsNull(implicitsNameList)) return;
-
-  // Check that implicits are valid and add them to result
-  implicitsNameList.forEach((i) => {
-    const impl = i[0];
-    if (!elementIsImplicit(impl)) {
-      throw new TranspileFailedError(
-        `Implicit ${impl} defined on function stub (${printNode(node)}) is not known`,
-      );
-    }
-    result.add(impl);
-  });
+  const implicits = parseImplicits(funcSignature[1]);
+  implicits.forEach((impl) => result.add(impl));
 }
 
 function elementIsImplicit(e: string): e is Implicits {
