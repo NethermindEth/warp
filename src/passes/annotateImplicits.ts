@@ -148,11 +148,3 @@ function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicit
   const implicits = parseImplicits(funcSignature[1]);
   implicits.forEach((impl) => result.add(impl));
 }
-
-function elementIsImplicit(e: string): e is Implicits {
-  return Object.keys(implicitTypes).includes(e);
-}
-
-function notContainsNull<T>(l: (T | null)[]): l is T[] {
-  return !l.some((e) => e === null);
-}
