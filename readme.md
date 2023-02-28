@@ -1,7 +1,7 @@
 <img src="https://raw.githubusercontent.com/NethermindEth/warp/develop/resources/warp.png"/>
 
 # Warp
-
+jejekekekerfjfrjkrfkljr
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
 smart contracts to StarkNet Cairo Contracts.
 
@@ -372,5 +372,11 @@ python starknet-testnet/generateMarkdown.py
 This saves the benchmarks at `benchmark/stats/data.md`
 
 ## Contact Us :phone:
+[![](https://dcbadge.vercel.app/api/server/INVITEID)](https://discord.gg/PaCMRFdvWT)/
 
-If you run into any problems please raise an issue or contact us on our Nethermind discord server: https://discord.com/invite/PaCMRFdvWT
+
+
+info test
+ejehwrrioj3esto7gb
+bjklfnbfdbndsnbsadfuwr
+dnmdf
