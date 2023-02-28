@@ -11,7 +11,7 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
-import { Implicits, implicitTypes, registerImportsForImplicit } from '../utils/implicits';
+import { Implicits, registerImportsForImplicit } from '../utils/implicits';
 import { isExternallyVisible, union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
 import { EMIT_PREFIX } from '../export';
