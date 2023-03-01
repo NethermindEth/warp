@@ -7,7 +7,7 @@ export class CairoAssertWriter extends CairoASTNodeWriter {
     const expression = writer.write(node.vExpression);
 
     if (node.assertMessage === null) {
-      return [`assert( ${expression} = 1 );`];
+      return [`assert( ${expression} = 1, "Assertion error" );`];
     } else {
       return [`assert( ${expression} = 1, "${node.assertMessage}" );`];
     }
