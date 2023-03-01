@@ -1,65 +1,86 @@
 import assert from 'assert';
 import {
-  ASTNode,
   DataLocation,
-  Expression,
   FunctionCall,
   generalizeType,
   IndexAccess,
   MappingType,
   PointerType,
   SourceUnit,
+  TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition, FunctionStubKind } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createUint8TypeName } from '../../utils/nodeTemplates';
-import { isReferenceType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import {
+  createCairoGeneratedFunction,
+  createCallToFunction,
+  ParameterInfo,
+} from '../../utils/functionGeneration';
+import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
+import {
+  getElementType,
+  isDynamicArray,
+  isReferenceType,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { CairoUtilFuncGenBase, GeneratedFunctionInfo, locationIfComplexType } from '../base';
 import { DynArrayGen } from './dynArray';
 
-export class MappingIndexAccessGen extends StringIndexedFuncGen {
-  private generatedHashFunctionNumber = 0;
-
+export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
+  private indexAccesFunctions = new Map<string, CairoFunctionDefinition>();
+  private stringHashFunctions = new Map<string, CairoFunctionDefinition>();
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
-  gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
+  public gen(node: IndexAccess): FunctionCall {
     const base = node.vBaseExpression;
     let index = node.vIndexExpression;
     assert(index !== undefined);
 
     const nodeType = safeGetNodeType(node, this.ast.inference);
     const baseType = safeGetNodeType(base, this.ast.inference);
-
     assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
 
-    const indexCairoType = CairoType.fromSol(baseType.to.keyType, this.ast);
-    const valueCairoType = CairoType.fromSol(
+    if (isReferenceType(baseType.to.keyType)) {
+      const [stringType, stringLoc] = generalizeType(safeGetNodeType(index, this.ast.inference));
+      assert(stringLoc !== undefined);
+      const stringHashFunc = this.getOrCreateStringHashFunction(stringType, stringLoc);
+      index = createCallToFunction(stringHashFunc, [index], this.ast, this.sourceUnit);
+    }
+
+    const funcDef = this.getOrCreateIndexAccessFunction(baseType.to.keyType, nodeType);
+    return createCallToFunction(funcDef, [base, index], this.ast);
+  }
+
+  public getOrCreateIndexAccessFunction(indexType: TypeNode, nodeType: TypeNode) {
+    const indexKey = CairoType.fromSol(
+      indexType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    ).fullStringRepresentation;
+    const nodeKey = CairoType.fromSol(
       nodeType,
       this.ast,
       TypeConversionContext.StorageAllocation,
-    );
-
-    if (isReferenceType(baseType.to.keyType)) {
-      const stringLoc = generalizeType(safeGetNodeType(index, this.ast.inference))[1];
-      assert(stringLoc !== undefined);
-      const call = this.createStringHashFunction(node, stringLoc, indexCairoType);
-      index = call;
+    ).fullStringRepresentation;
+    const key = indexKey + '-' + nodeKey;
+    const existing = this.indexAccesFunctions.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
-    const name = this.getOrCreate(indexCairoType, valueCairoType);
-
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcInfo = this.generateIndexAccess(indexType, nodeType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
-        ['name', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
+        ['name', typeNameFromTypeNode(indexType, this.ast), DataLocation.Storage],
         [
           'index',
-          typeNameFromTypeNode(baseType.to.keyType, this.ast),
-          locationIfComplexType(baseType.to.keyType, DataLocation.Memory),
+          typeNameFromTypeNode(indexType, this.ast),
+          locationIfComplexType(indexType, DataLocation.Memory),
         ],
       ],
       [
@@ -69,40 +90,56 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
           locationIfComplexType(nodeType, DataLocation.Storage),
         ],
       ],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
     );
-
-    return createCallToFunction(functionStub, [base, index], this.ast);
+    this.indexAccesFunctions.set(key, funcDef);
+    return funcDef;
   }
 
-  private getOrCreate(indexType: CairoType, valueType: CairoType): string {
-    const key = `${indexType.fullStringRepresentation}/${valueType.fullStringRepresentation}`;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
-    }
+  private generateIndexAccess(indexType: TypeNode, valueType: TypeNode): GeneratedFunctionInfo {
+    const indexCairoType = CairoType.fromSol(indexType, this.ast);
+    const valueCairoType = CairoType.fromSol(
+      valueType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
 
-    const funcName = `WS${this.generatedFunctions.size - this.generatedHashFunctionNumber}_INDEX_${
-      indexType.typeName
-    }_to_${valueType.typeName}`;
-    const mappingName = `WARP_MAPPING${
-      this.generatedFunctions.size - this.generatedHashFunctionNumber
-    }`;
-    const indexTypeString = indexType.toString();
-    this.generatedFunctions.set(key, {
-      name: funcName,
+    const identifier = this.indexAccesFunctions.size;
+    const funcName = `WS_INDEX_${indexCairoType.typeName}_to_${valueCairoType.typeName}${identifier}`;
+    const mappingName = `WARP_MAPPING${identifier}`;
+    const indexTypeString = indexCairoType.toString();
+
+    const mappingFuncInfo: GeneratedFunctionInfo = {
+      name: mappingName,
       code: [
         `@storage_var`,
         `func ${mappingName}(name: felt, index: ${indexTypeString}) -> (resLoc : felt){`,
         `}`,
+      ].join('\n'),
+      functionsCalled: [],
+    };
+    const mappingFunc = createCairoGeneratedFunction(
+      mappingFuncInfo,
+      [
+        ['name', createUintNTypeName(248, this.ast)],
+        ['index', typeNameFromTypeNode(indexType, this.ast)],
+      ],
+      [],
+      this.ast,
+      this.sourceUnit,
+      { stubKind: FunctionStubKind.StorageDefStub },
+    );
+
+    return {
+      name: funcName,
+      code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(name: felt, index: ${indexTypeString}) -> (res: felt){`,
         `    alloc_locals;`,
         `    let (existing) = ${mappingName}.read(name, index);`,
         `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(used + ${valueType.width});`,
+        `        WARP_USED_STORAGE.write(used + ${valueCairoType.width});`,
         `        ${mappingName}.write(name, index, used);`,
         `        return (used,);`,
         `    }else{`,
@@ -110,100 +147,112 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
       ].join('\n'),
-    });
-    return funcName;
+      functionsCalled: [mappingFunc],
+    };
   }
 
-  private createStringHashFunction(
-    node: IndexAccess,
-    loc: DataLocation,
-    indexCairoType: CairoType,
-  ): FunctionCall {
-    assert(node.vIndexExpression instanceof Expression);
-    const indexType = safeGetNodeType(node.vIndexExpression, this.ast.inference);
-    const indexTypeName = typeNameFromTypeNode(indexType, this.ast);
-    if (loc === DataLocation.CallData) {
-      const stub = createCairoFunctionStub(
-        'string_hash',
-        [['str', indexTypeName, DataLocation.CallData]],
-        [['hashedStr', createUint8TypeName(this.ast), DataLocation.Default]],
-        ['pedersen_ptr'],
-        this.ast,
-        node,
-      );
-      const call = createCallToFunction(stub, [node.vIndexExpression], this.ast);
-      this.ast.registerImport(call, 'warplib.string_hash', 'string_hash');
-      return call;
-    } else if (loc === DataLocation.Memory) {
-      const stub = createCairoFunctionStub(
-        'wm_string_hash',
-        [['str', indexTypeName, DataLocation.Memory]],
-        [['hashedStr', createUint8TypeName(this.ast), DataLocation.Default]],
-        ['pedersen_ptr', 'range_check_ptr', 'warp_memory'],
-        this.ast,
-        node,
-      );
-      const call = createCallToFunction(stub, [node.vIndexExpression], this.ast);
-      this.ast.registerImport(call, 'warplib.string_hash', 'wm_string_hash');
-      return call;
-    } else {
-      const [data, len] = this.dynArrayGen.gen(indexCairoType);
-      const key = `${data}/${len}_hash`;
-      let funcName = `ws_string_hash${this.generatedHashFunctionNumber}`;
-      const helperFuncName = `ws_to_felt_array${this.generatedHashFunctionNumber}`;
+  public getOrCreateStringHashFunction(
+    indexType: TypeNode,
+    dataLocation: DataLocation,
+  ): CairoFunctionDefinition {
+    assert(dataLocation !== DataLocation.Default);
 
-      const existing = this.generatedFunctions.get(key);
-      if (existing === undefined) {
-        this.generatedFunctions.set(key, {
-          name: funcName,
-          code: [
-            `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-            `    name : felt, ptr : felt*, len : felt`,
-            `){`,
-            `    alloc_locals;`,
-            `    if (len == 0){`,
-            `        return ();`,
-            `    }`,
-            `    let index = len - 1;`,
-            `    let (index256) = felt_to_uint256(index);`,
-            `    let (loc) = ${data}.read(name, index256);`,
-            `    let (value) = WARP_STORAGE.read(loc);`,
-            `    assert ptr[index] = value;`,
-            `    ${helperFuncName}(name, ptr, index);`,
-            `    return ();`,
-            `}`,
-            `func ${funcName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-            `    name : felt`,
-            `) -> (hashedValue : felt){`,
-            `    alloc_locals;`,
-            `    let (len256) = ${len}.read(name);`,
-            `    let (len) = narrow_safe(len256);`,
-            `    let (ptr) = alloc();`,
-            `    ${helperFuncName}(name, ptr, len);`,
-            `    let (hashValue) = string_hash(len, ptr);`,
-            `    return (hashValue,);`,
-            `}`,
-          ].join('\n'),
-        });
-        this.generatedHashFunctionNumber++;
-      } else {
-        funcName = existing.name;
-      }
-      const stub = createCairoFunctionStub(
-        funcName,
-        [['name', indexTypeName, DataLocation.Storage]],
-        [['hashedStr', createUint8TypeName(this.ast), DataLocation.Default]],
-        ['pedersen_ptr', 'range_check_ptr', 'syscall_ptr'],
-        this.ast,
-        node,
-      );
-
-      const call = createCallToFunction(stub, [node.vIndexExpression], this.ast);
-      this.ast.registerImport(call, 'warplib.maths.utils', 'narrow_safe');
-      this.ast.registerImport(call, 'warplib.maths.utils', 'felt_to_uint256');
-      this.ast.registerImport(call, 'starkware.cairo.common.alloc', 'alloc');
-      this.ast.registerImport(call, 'warplib.string_hash', 'string_hash');
-      return call;
+    const key = indexType.pp() + dataLocation;
+    const existing = this.stringHashFunctions.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
+
+    const indexTypeName = typeNameFromTypeNode(indexType, this.ast);
+
+    const inputInfo: ParameterInfo[] = [['str', indexTypeName, dataLocation]];
+    const outputInfo: ParameterInfo[] = [
+      ['hashed_str', createUint8TypeName(this.ast), DataLocation.Default],
+    ];
+
+    if (dataLocation === DataLocation.CallData) {
+      const importFunction = this.ast.registerImport(
+        this.sourceUnit,
+        'warplib.string_hash',
+        'string_hash',
+        inputInfo,
+        outputInfo,
+      );
+      return importFunction;
+    }
+
+    if (dataLocation === DataLocation.Memory) {
+      const importFunction = this.ast.registerImport(
+        this.sourceUnit,
+        'warplib.string_hash',
+        'wm_string_hash',
+        inputInfo,
+        outputInfo,
+      );
+      return importFunction;
+    }
+
+    // Datalocation is storage
+    const funcInfo = this.generateStringHashFunction(indexType);
+    const genFunc = createCairoGeneratedFunction(
+      funcInfo,
+      inputInfo,
+      outputInfo,
+      this.ast,
+      this.sourceUnit,
+    );
+    this.stringHashFunctions.set(key, genFunc);
+    return genFunc;
+  }
+
+  private generateStringHashFunction(indexType: TypeNode): GeneratedFunctionInfo {
+    assert(isDynamicArray(indexType));
+    const elemenT = getElementType(indexType);
+
+    const [dynArray, dynArrayLen] = this.dynArrayGen.getOrCreateFuncDef(elemenT);
+    const arrayName = dynArray.name;
+    const lenName = dynArrayLen.name;
+
+    const funcName = `WS_STRING_HASH${this.stringHashFunctions.size}`;
+    const helperFuncName = `WS_TO_FELT_ARRAY${this.stringHashFunctions.size}`;
+    return {
+      name: funcName,
+      code: [
+        `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
+        `    name : felt, ptr : felt*, len : felt`,
+        `){`,
+        `    alloc_locals;`,
+        `    if (len == 0){`,
+        `        return ();`,
+        `    }`,
+        `    let index = len - 1;`,
+        `    let (index256) = felt_to_uint256(index);`,
+        `    let (loc) = ${arrayName}.read(name, index256);`,
+        `    let (value) = WARP_STORAGE.read(loc);`,
+        `    assert ptr[index] = value;`,
+        `    ${helperFuncName}(name, ptr, index);`,
+        `    return ();`,
+        `}`,
+        `func ${funcName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
+        `    name : felt`,
+        `) -> (hashedValue : felt){`,
+        `    alloc_locals;`,
+        `    let (len256) = ${lenName}.read(name);`,
+        `    let (len) = narrow_safe(len256);`,
+        `    let (ptr) = alloc();`,
+        `    ${helperFuncName}(name, ptr, len);`,
+        `    let (hashValue) = string_hash(len, ptr);`,
+        `    return (hashValue,);`,
+        `}`,
+      ].join('\n'),
+      functionsCalled: [
+        this.requireImport('warplib.maths.utils', 'narrow_safe'),
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+        this.requireImport('warplib.string_hash', 'string_hash'),
+        dynArray,
+        dynArrayLen,
+      ],
+    };
   }
 }

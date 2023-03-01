@@ -32,9 +32,7 @@ export class ArgBoundChecker extends ASTMapper {
       node.vParameters.vParameters.forEach((decl) => {
         const type = safeGetNodeType(decl, ast.inference);
         if (checkableType(type)) {
-          const functionCall = ast
-            .getUtilFuncGen(node)
-            .boundChecks.inputCheck.gen(decl, type, node);
+          const functionCall = ast.getUtilFuncGen(node).boundChecks.inputCheck.gen(decl, type);
           this.insertFunctionCall(node, functionCall, ast);
         }
       });

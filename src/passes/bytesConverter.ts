@@ -21,7 +21,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
+import { createCallToFunction } from '../utils/functionGeneration';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { typeNameFromTypeNode } from '../utils/utils';
 import {
@@ -107,21 +107,15 @@ export class BytesConverter extends ASTMapper {
       callArgs.push(createNumberLiteral(width, ast, 'uint8'));
     }
 
-    const functionStub = createCairoFunctionStub(
+    const importedFunc = ast.registerImport(
+      node,
+      'warplib.maths.bytes_access',
       selectWarplibFunction(baseTypeName, indexTypeName),
       stubParams,
       [['res', createUint8TypeName(ast)]],
-      ['bitwise_ptr', 'range_check_ptr'],
-      ast,
-      node,
     );
-    const call = createCallToFunction(functionStub, callArgs, ast);
 
-    ast.registerImport(
-      call,
-      'warplib.maths.bytes_access',
-      selectWarplibFunction(baseTypeName, indexTypeName),
-    );
+    const call = createCallToFunction(importedFunc, callArgs, ast);
     ast.replaceNode(node, call, node.parent);
     const typeNode = replaceBytesType(safeGetNodeType(call, ast.inference));
     call.typeString = generateExpressionTypeString(typeNode);

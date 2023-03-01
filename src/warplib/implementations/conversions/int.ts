@@ -2,22 +2,29 @@ import assert from 'assert';
 import { FunctionCall, generalizeType, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
-import { Implicits } from '../../../utils/implicits';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
-import { bound, forAllWidths, generateFile, IntFunction, mask, msb, uint256 } from '../../utils';
+import {
+  bound,
+  forAllWidths,
+  IntFunction,
+  mask,
+  msb,
+  uint256,
+  WarplibFunctionInfo,
+} from '../../utils';
 
-export function int_conversions(): void {
-  generateFile(
-    'int_conversions',
-    [
+export function int_conversions(): WarplibFunctionInfo {
+  return {
+    fileName: 'int_conversions',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math import split_felt',
       'from starkware.cairo.common.uint256 import Uint256, uint256_add',
     ],
-    [
+    functions: [
       ...forAllWidths((from) => {
-        return forAllWidths((to) => {
+        const x = forAllWidths((to) => {
           if (from < to) {
             if (to === 256) {
               return [
@@ -76,14 +83,16 @@ export function int_conversions(): void {
             }
           }
         });
+        return x.map((f) => f.join('\n')).join('\n');
       }),
-      '',
-      'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256){',
-      '    let split = split_felt(op);',
-      '    return (Uint256(low=split.low, high=split.high),);',
-      '}',
+      [
+        'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256){',
+        '    let split = split_felt(op);',
+        '    return (Uint256(low=split.low, high=split.high),);',
+        '}',
+      ].join('\n'),
     ],
-  );
+  };
 }
 
 function sign_extend_value(from: number, to: number): bigint {
@@ -108,14 +117,7 @@ export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): 
   );
 
   if (fromType.nBits < 256 && toType.nBits === 256 && !fromType.signed && !toType.signed) {
-    IntFunction(
-      conversion,
-      conversion.vArguments[0],
-      'uint',
-      'int_conversions',
-      () => ['range_check_ptr'],
-      ast,
-    );
+    IntFunction(conversion, conversion.vArguments[0], 'uint', 'int_conversions', ast);
     return;
   } else if (
     fromType.nBits === toType.nBits ||
@@ -126,11 +128,7 @@ export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): 
     return;
   } else {
     const name = `${fromType.pp().startsWith('u') ? fromType.pp().slice(1) : fromType.pp()}_to_int`;
-    const implicitsFn = (wide: boolean): Implicits[] => {
-      if (wide) return ['range_check_ptr', 'bitwise_ptr'];
-      return ['bitwise_ptr'];
-    };
-    IntFunction(conversion, conversion.vArguments[0], name, 'int_conversions', implicitsFn, ast);
+    IntFunction(conversion, conversion.vArguments[0], name, 'int_conversions', ast);
     return;
   }
 }

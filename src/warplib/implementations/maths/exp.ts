@@ -8,32 +8,31 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
-import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
-import { forAllWidths, generateFile, getIntOrFixedByteBitWidth, mask } from '../../utils';
+import { forAllWidths, getIntOrFixedByteBitWidth, mask, WarplibFunctionInfo } from '../../utils';
 
 export function exp() {
-  createExp(false, false);
+  return createExp(false, false);
 }
 
 export function exp_signed() {
-  createExp(true, false);
+  return createExp(true, false);
 }
 
 export function exp_unsafe() {
-  createExp(false, true);
+  return createExp(false, true);
 }
 
 export function exp_signed_unsafe() {
-  createExp(true, true);
+  return createExp(true, true);
 }
 
-function createExp(signed: boolean, unsafe: boolean) {
+function createExp(signed: boolean, unsafe: boolean): WarplibFunctionInfo {
   const suffix = `${signed ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`;
-  generateFile(
-    `exp${suffix}`,
-    [
+  return {
+    fileName: `exp${suffix}`,
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_sub',
@@ -42,7 +41,7 @@ function createExp(signed: boolean, unsafe: boolean) {
         (n) => `warp_mul${suffix}${8 * n + 8}`,
       ).join(', ')}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func _repeated_multiplication${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : Uint256, count : felt) -> (res : Uint256){`,
@@ -86,7 +85,7 @@ function createExp(signed: boolean, unsafe: boolean) {
           `    let (res) = _repeated_multiplication_256_${width}(lhs, rhs);`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func _repeated_multiplication${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : felt, count : felt) -> (res : felt){`,
@@ -138,10 +137,10 @@ function createExp(signed: boolean, unsafe: boolean) {
           `    let (res) = _repeated_multiplication_256_${width}(lhs, rhs);`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 function getNegativeOneShortcutCode(signed: boolean, lhsWidth: number, rhsWide: boolean): string[] {
@@ -192,17 +191,17 @@ export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AS
     unsafe ? '_unsafe' : '',
   ].join('');
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    node,
+    importName,
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],
       ['rhs', typeNameFromTypeNode(rhsType, ast)],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    ['range_check_ptr', 'bitwise_ptr'],
-    ast,
-    node,
   );
+
   const call = new FunctionCall(
     ast.reserveId(),
     node.src,
@@ -213,11 +212,10 @@ export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AS
       '',
       `function (${node.typeString}, ${node.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, importName, fullName);
 }

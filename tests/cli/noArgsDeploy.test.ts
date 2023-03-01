@@ -80,7 +80,7 @@ describe('Manage starknet account', function () {
   });
 
   it('should deploy the starknet account', async () => {
-    let { stdout } = await sh(
+    const { stdout } = await sh(
       `${WARP_BIN} deploy_account --wallet ${WALLET} ${NETWORK_OPTIONS} ${ACCOUNT0}`,
     );
 

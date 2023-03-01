@@ -14,7 +14,6 @@ import {
   isReferenceType,
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
 export class StoredPointerDereference extends ReferenceSubPass {
@@ -33,9 +32,9 @@ export class StoredPointerDereference extends ReferenceSubPass {
     // Next, if the node is a type that requires an extra read, insert this first
     let readFunc: FunctionCall | null = null;
     if (actualLoc === DataLocation.Storage && (isDynamicArray(nodeType) || isMapping(nodeType))) {
-      readFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
+      readFunc = utilFuncGen.storage.read.gen(node);
     } else if (actualLoc === DataLocation.Memory && isReferenceType(nodeType)) {
-      readFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
+      readFunc = utilFuncGen.memory.read.gen(node);
     }
     if (readFunc !== null) {
       this.replace(node, readFunc, parent, actualLoc, expectedLoc, ast);

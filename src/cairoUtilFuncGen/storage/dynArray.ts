@@ -1,72 +1,100 @@
-import { CairoType } from '../../utils/cairoTypeSystem';
-import { StringIndexedFuncGen } from '../base';
-import { INCLUDE_CAIRO_DUMP_FUNCTIONS } from '../../cairoWriter/utils';
+import assert from 'assert';
+import {
+  ArrayType,
+  BytesType,
+  FunctionCall,
+  FunctionStateMutability,
+  MemberAccess,
+  StringType,
+  TypeNode,
+} from 'solc-typed-ast';
+import {
+  CairoFunctionDefinition,
+  createCairoGeneratedFunction,
+  createCallToFunction,
+  createUint256TypeName,
+  createUintNTypeName,
+  FunctionStubKind,
+  getElementType,
+} from '../../export';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class DynArrayGen extends StringIndexedFuncGen {
-  gen(valueCairoType: CairoType): [data: string, len: string] {
-    const key = valueCairoType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
+  public genLength(
+    node: MemberAccess,
+    arrayType: ArrayType | BytesType | StringType,
+  ): FunctionCall {
+    const [_dynArray, dynArrayLength] = this.getOrCreateFuncDef(getElementType(arrayType));
+    return createCallToFunction(dynArrayLength, [node.vExpression], this.ast);
+  }
+
+  public getOrCreateFuncDef(type: TypeNode): [CairoFunctionDefinition, CairoFunctionDefinition] {
+    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
+
+    const key = cairoType.fullStringRepresentation;
+    const lenghtKey = key + '_LENGTH';
+    const existing = this.generatedFunctionsDef.get(key);
     if (existing !== undefined) {
-      return [existing.name, `${existing.name}_LENGTH`];
+      const exsitingLength = this.generatedFunctionsDef.get(lenghtKey);
+      assert(exsitingLength !== undefined);
+      return [existing, exsitingLength];
     }
 
-    const mappingName = `WARP_DARRAY${this.generatedFunctions.size}_${valueCairoType.typeName}`;
-    this.generatedFunctions.set(key, {
+    const [arrayInfo, lengthInfo] = this.getOrCreate(cairoType);
+
+    const dynArray = createCairoGeneratedFunction(
+      arrayInfo,
+      [
+        ['name', createUintNTypeName(248, this.ast)],
+        ['index', createUint256TypeName(this.ast)],
+      ],
+      [['res_loc', createUintNTypeName(248, this.ast)]],
+      this.ast,
+      this.sourceUnit,
+      {
+        mutability: FunctionStateMutability.View,
+        stubKind: FunctionStubKind.StorageDefStub,
+      },
+    );
+    const dynArrayLength = createCairoGeneratedFunction(
+      lengthInfo,
+      [['name', createUintNTypeName(248, this.ast)]],
+      [['length', createUint256TypeName(this.ast)]],
+      this.ast,
+      this.sourceUnit,
+      {
+        mutability: FunctionStateMutability.View,
+        stubKind: FunctionStubKind.StorageDefStub,
+      },
+    );
+
+    this.generatedFunctionsDef.set(key, dynArray);
+    this.generatedFunctionsDef.set(lenghtKey, dynArrayLength);
+    return [dynArray, dynArrayLength];
+  }
+
+  private getOrCreate(valueCairoType: CairoType): [GeneratedFunctionInfo, GeneratedFunctionInfo] {
+    const mappingName = `WARP_DARRAY${this.generatedFunctionsDef.size}_${valueCairoType.typeName}`;
+    const funcInfo: GeneratedFunctionInfo = {
       name: mappingName,
       code: [
         `@storage_var`,
-        `func ${mappingName}(name: felt, index: Uint256) -> (resLoc : felt){`,
+        `func ${mappingName}(name: felt, index: Uint256) -> (res_loc : felt){`,
         `}`,
-        `@storage_var`,
-        `func ${mappingName}_LENGTH(name: felt) -> (index: Uint256){`,
-        `}`,
-        ...getDumpFunctions(mappingName),
       ].join('\n'),
-    });
-    return [mappingName, `${mappingName}_LENGTH`];
-  }
-}
+      functionsCalled: [],
+    };
 
-function getDumpFunctions(mappingName: string): string[] {
-  return INCLUDE_CAIRO_DUMP_FUNCTIONS
-    ? [
-        `func DUMP_${mappingName}_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name: felt, length : felt, ptr: felt*){`,
-        `    alloc_locals;`,
-        `    if (length == 0){`,
-        `        return ();`,
-        `    }`,
-        `    let index = length - 1;`,
-        `    let (read) = ${mappingName}.read(name, Uint256(index, 0));`,
-        `    assert ptr[index] = read;`,
-        `    DUMP_${mappingName}_ITER(name, index, ptr);`,
-        `    return ();`,
+    const lengthFuncInfo: GeneratedFunctionInfo = {
+      name: `${mappingName}_LENGTH`,
+      code: [
+        `@storage_var`,
+        `func ${mappingName}_LENGTH(name: felt) -> (length: Uint256){`,
         `}`,
-        `@external`,
-        `func DUMP_${mappingName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name: felt, length : felt) -> (data_len : felt, data: felt*){`,
-        `    alloc_locals;`,
-        `    let (p: felt*) = alloc();`,
-        `    DUMP_${mappingName}_ITER(name, length, p);`,
-        `    return (length, p);`,
-        `}`,
-        `func DUMP_${mappingName}_LENGTH_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){`,
-        `    alloc_locals;`,
-        `    if (length == 0){`,
-        `        return ();`,
-        `    }`,
-        `    let index = length - 1;`,
-        `    let (read) = ${mappingName}_LENGTH.read(index);`,
-        `    assert ptr[2*index] = read.low;`,
-        `    assert ptr[2*index+1] = read.high;`,
-        `    DUMP_${mappingName}_LENGTH_ITER(index, ptr);`,
-        `    return ();`,
-        `}`,
-        `@external`,
-        `func DUMP_${mappingName}_LENGTH{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){`,
-        `    alloc_locals;`,
-        `    let (p: felt*) = alloc();`,
-        `    DUMP_${mappingName}_LENGTH_ITER(length, p);`,
-        `    return (length*2, p);`,
-        `}`,
-      ]
-    : [];
+      ].join('\n'),
+      functionsCalled: [],
+    };
+    return [funcInfo, lengthFuncInfo];
+  }
 }
