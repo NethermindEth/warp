@@ -7,7 +7,7 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { isExternallyVisible, isReturnParamList } from '../../utils/utils';
+import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 
 export class ParameterListWriter extends CairoASTNodeWriter {
@@ -28,9 +28,11 @@ export class ParameterListWriter extends CairoASTNodeWriter {
         this.ast,
         varTypeConversionContext,
       );
+      const isReturnParamList =
+        node.parent instanceof FunctionDefinition && node.parent.vReturnParameters === node;
       // TODO: In the position of the type is written the typeString of the var. Needs to be checked the transformation
       // of that typestring into de Cairo 1 syntax for that type (Eg: dynamic arrays of some variable)
-      return isReturnParamList(node) ? `${tp}` : `${value.name} : ${tp}`;
+      return isReturnParamList ? `${tp}` : `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }
