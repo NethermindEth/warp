@@ -1,4 +1,4 @@
-import { assert, ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
+import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
 import { isExternallyVisible } from '../../utils/utils';
 import { CairoContract } from '../../ast/cairoNodes';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
@@ -12,6 +12,7 @@ import {
 } from '../utils';
 import { interfaceNameMappings } from './sourceUnitWriter';
 import { getStructs } from '../../freeStructWritter';
+import assert from 'assert';
 
 export class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
