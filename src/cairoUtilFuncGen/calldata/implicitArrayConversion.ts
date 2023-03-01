@@ -228,7 +228,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cario.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
         ...requiredFunctions,
         ...optionalImport,
       ],

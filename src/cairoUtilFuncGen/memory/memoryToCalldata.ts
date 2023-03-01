@@ -271,7 +271,11 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
           )});`,
           `let (member${index})= ${memberGetterFunc.name}(read_${index});`,
         ],
-        [this.requireImport('starkware.common.uint256', 'Uint256'), memberGetterFunc, readFunc],
+        [
+          this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+          memberGetterFunc,
+          readFunc,
+        ],
         offset + 1,
       ];
     }
