@@ -9,6 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { printNode } from '../../export';
 import { TranspileFailedError } from '../../utils/errors';
 import { createBoolLiteral, createNumberLiteral } from '../../utils/nodeTemplates';
 import { unitValue } from '../../utils/utils';
@@ -27,10 +28,10 @@ import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
   Hence all literal nodes are of type Literal | UnaryOperation | BinaryOperation
 */
 
-interface NodeEvaluationInfo {
+type NodeEvaluationInfo = {
   evaluation: RationalLiteral | boolean | null;
   node: ASTNode;
-}
+};
 
 export class LiteralExpressionEvaluator extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -373,5 +374,10 @@ function generateInfo(
   if (value === null) return { evaluation: value, node: node };
   else if (typeof value === 'boolean')
     return { evaluation: value, node: createBoolLiteral(value, ast) };
-  else return { evaluation: value, node: createNumberLiteralNode(value, ast) };
+  else if (value instanceof RationalLiteral)
+    return { evaluation: value, node: createNumberLiteralNode(value, ast) };
+  else
+    throw new TranspileFailedError(
+      `Unexpected value type after the evaluation of ${printNode(node)}`,
+    );
 }
