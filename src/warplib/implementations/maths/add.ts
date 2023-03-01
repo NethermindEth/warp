@@ -11,57 +11,42 @@ import {
 
 export function add(): WarplibFunctionInfo {
   const fileName = 'add';
-  const imports = [
-    'from starkware.cairo.common.math_cmp import is_le_felt',
-    'from starkware.cairo.common.uint256 import Uint256, uint256_add',
-  ];
   const functions = forAllWidths((width) => {
     if (width === 256) {
-      return [
-        `func warp_add256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-        `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs);`,
-        `    assert carry = 0;`,
-        `    return (res,);`,
-        `}`,
-      ].join('\n');
+      return '';
     } else {
       return [
-        `func warp_add${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
+        `fn warp_add${width}(lhs : felt, rhs : felt) -> felt{`,
         `    let res = lhs + rhs;`,
-        `    let inRange : felt = is_le_felt(res, ${mask(width)});`,
-        `    assert inRange = 1;`,
-        `    return (res,);`,
+        `    let max: felt = ${mask(width)};`,
+        `    assert (res <= max, 'Value out of bounds');`,
+        `    return res;`,
         `}`,
       ].join('\n');
     }
   });
 
-  return { fileName, imports, functions };
+  return { fileName, imports: [], functions };
 }
 
 export function add_unsafe(): WarplibFunctionInfo {
   return {
     fileName: 'add_unsafe',
-    imports: [
-      'from starkware.cairo.common.bitwise import bitwise_and',
-      'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
-    ],
+    imports: ['use integer::u256_overflowing_add'],
     functions: forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
-          `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
-          `    return (res,);`,
+          `fn warp_add_unsafe256(lhs : u256, rhs : u256) -> u256 {`,
+          `    let (value, _) = u256_overflowing_add(lhs, rhs);`,
+          `    return value;`,
           `}`,
         ].join('\n');
       } else {
+        // TODO: Use bitwise '&' to take just the width-bits
         return [
-          `func warp_add_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
-          `        res : felt){`,
-          `    let (res) = bitwise_and(lhs + rhs, ${mask(width)});`,
-          `    return (res,);`,
+          `fn warp_add_unsafe${width}(lhs : felt, rhs : felt) -> felt {`,
+          `    let res = lhs + rhs;`,
+          `    return res;`,
           `}`,
         ].join('\n');
       }

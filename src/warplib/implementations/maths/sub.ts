@@ -16,39 +16,20 @@ import {
 export function sub_unsafe(): WarplibFunctionInfo {
   return {
     fileName: 'sub_unsafe',
-    imports: [
-      'from starkware.cairo.common.bitwise import bitwise_and',
-      'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256',
-    ],
+    imports: ['use integer::u256_overflow_sub'],
     functions: forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_sub_unsafe256{bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (`,
-          `        result : Uint256){`,
-          '    //preemptively borrow from bit128',
-          `    let (low_safe) = bitwise_and(${bound(128)} + lhs.low - rhs.low, ${mask(128)});`,
-          `    let low_unsafe = lhs.low - rhs.low;`,
-          `    if (low_safe == low_unsafe){`,
-          '        //the borrow was not used',
-          `        let (high) = bitwise_and(${bound(128)} + lhs.high - rhs.high, ${mask(128)});`,
-          `        return (Uint256(low_safe, high),);`,
-          `    }else{`,
-          '        //the borrow was used',
-          `        let (high) = bitwise_and(${bound(128)} + lhs.high - rhs.high - 1, ${mask(
-            128,
-          )});`,
-          `        return (Uint256(low_safe, high),);`,
-          `    }`,
+          `fn warp_sub_unsafe256(lhs : u256, rhs : u256) -> u256 {`,
+          `    let (value, _) u256_overflow_sub(lhs, rhs);`,
+          `    return value;`,
           `}`,
         ].join('\n');
       } else {
         return [
-          `func warp_sub_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
-          `        res : felt){`,
-          `    let res : felt = ${bound(width)} + lhs - rhs;`,
-          `    let (res) = bitwise_and(res, ${mask(width)});`,
-          `    return (res,);`,
+          // TODO: Use bitwise '&' to take just the width-bits
+          `fn warp_sub_unsafe${width}(lhs : felt, rhs : felt) -> felt {`,
+          `    return lhs - rhs;`,
           `}`,
         ].join('\n');
       }
