@@ -1,8 +1,8 @@
 import assert = require('assert');
-import { ArrayType, ASTNode, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-ast';
+import { ArrayType, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
@@ -15,16 +15,18 @@ import { CairoUtilFuncGenBase } from '../base';
   as parameters to avoid bloating the code with separate functions for each case
 */
 export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
-  getGeneratedCode(): string {
-    return '';
-  }
-
-  gen(indexAccess: IndexAccess, arrayType: ArrayType, nodeInSourceUnit?: ASTNode): FunctionCall {
+  gen(indexAccess: IndexAccess, arrayType: ArrayType): FunctionCall {
     assert(
       arrayType.size !== undefined,
       `Attempted to use static indexing for dynamic index ${printNode(indexAccess)}`,
     );
-    const stub = createCairoFunctionStub(
+    assert(
+      indexAccess.vIndexExpression,
+      `Found index access without index expression at ${printNode(indexAccess)}`,
+    );
+
+    const importFunc = this.requireImport(
+      'warplib.memory',
       'wm_index_static',
       [
         ['arr', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Memory],
@@ -33,21 +35,10 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
         ['length', createUint256TypeName(this.ast)],
       ],
       [['child', typeNameFromTypeNode(arrayType.elementT, this.ast), DataLocation.Memory]],
-      ['range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? indexAccess,
     );
-
-    this.ast.registerImport(stub, 'warplib.memory', 'wm_index_static');
-
     const width = CairoType.fromSol(arrayType.elementT, this.ast).width;
-
-    assert(
-      indexAccess.vIndexExpression,
-      `Found index access without index expression at ${printNode(indexAccess)}`,
-    );
     return createCallToFunction(
-      stub,
+      importFunc,
       [
         indexAccess.vBaseExpression,
         indexAccess.vIndexExpression,

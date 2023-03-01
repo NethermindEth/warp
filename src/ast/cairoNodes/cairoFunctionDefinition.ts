@@ -13,17 +13,18 @@ import {
 import { Implicits } from '../../utils/implicits';
 
 /*
- An extension of FunctionDefinition to track which implicit arguments are used
+ An extension of FunctionDefinition to track which implicit arguments are used.
  Additionally we often use function stubs for instances where we want to be able
  to insert function during transpilation where it wouldn't make sense to include
  their body in the AST. For example, stubs are used for warplib functions, and
- those generated to handle memory and storage processing. Marking a CairoFunctionDefintion
- as a stub tells the CairoWriter not to print it
+ those generated to handle memory and storage processing. Marking a CairoFunctionDefinition
+ as a stub tells the CairoWriter not to print it.
 */
 
 export enum FunctionStubKind {
   None,
   FunctionDefStub,
+  StorageDefStub,
   StructDefStub,
 }
 

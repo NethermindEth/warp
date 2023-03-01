@@ -1,25 +1,24 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
-import { generateFile, forAllWidths, msb, Comparison } from '../../utils';
+import { forAllWidths, msb, Comparison, WarplibFunctionInfo } from '../../utils';
 
-export function le_signed() {
-  generateFile(
-    'le_signed',
-    [
+export function le_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'le_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_le',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_le_signed${width}{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){`,
           '    let (res) = uint256_signed_le(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_le_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
@@ -51,17 +50,12 @@ export function le_signed() {
           `        }`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 export function functionaliseLe(node: BinaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean, signed: boolean): Implicits[] => {
-    if (!wide && signed) return ['range_check_ptr', 'bitwise_ptr'];
-    else return ['range_check_ptr'];
-  };
-
-  Comparison(node, 'le', 'signedOrWide', true, implicitsFn, ast);
+  Comparison(node, 'le', 'signedOrWide', true, ast);
 }

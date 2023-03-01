@@ -27,7 +27,7 @@ import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { AST } from '../../ast/ast';
 import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import {
   createNumberLiteral,
   createUint256TypeName,
@@ -67,17 +67,16 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       return this.commonVisit(node, ast);
     }
 
-    const nodeType = safeGetNodeType(node, ast.inference);
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
 
     // Finally if a copy from actual to expected location is required, insert this last
-    let copyFunc: Expression | null = null;
+    let copyFunc: FunctionCall | null = null;
     if (actualLoc !== expectedLoc) {
       if (actualLoc === DataLocation.Storage) {
         switch (expectedLoc) {
           case DataLocation.Default: {
-            copyFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast));
+            copyFunc = utilFuncGen.storage.read.gen(node);
             break;
           }
           case DataLocation.Memory: {
@@ -92,7 +91,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       } else if (actualLoc === DataLocation.Memory) {
         switch (expectedLoc) {
           case DataLocation.Default: {
-            copyFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast));
+            copyFunc = utilFuncGen.memory.read.gen(node);
             break;
           }
           case DataLocation.Storage: {
@@ -243,7 +242,9 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       assert(
         (type instanceof UserDefinedType && type.definition instanceof ContractDefinition) ||
           type instanceof FixedBytesType,
-        `Unexpected unhandled non-pointer non-contract member access. Found at ${printNode(node)}`,
+        `Unexpected unhandled non-pointer non-contract member access. Found at ${printNode(
+          node,
+        )}: '${node.memberName}' with type ${printTypeNode(type)}`,
       );
       return this.visitExpression(node, ast);
     }
@@ -324,7 +325,9 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
       ? cloneASTNode(arrayTypeName.vBaseType, ast)
       : createUint8TypeName(ast);
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    indexAccess,
+    'warplib.memory',
     'wm_index_dyn',
     [
       ['arrayLoc', arrayTypeName, DataLocation.Memory],
@@ -332,9 +335,6 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
       ['width', createUint256TypeName(ast)],
     ],
     [['loc', returnTypeName, DataLocation.Memory]],
-    ['range_check_ptr', 'warp_memory'],
-    ast,
-    indexAccess,
   );
 
   assert(indexAccess.vIndexExpression);
@@ -350,7 +350,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
   ).width;
 
   const call = createCallToFunction(
-    stub,
+    importedFunc,
     [
       indexAccess.vBaseExpression,
       indexAccess.vIndexExpression,
@@ -358,8 +358,6 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
     ],
     ast,
   );
-
-  ast.registerImport(call, 'warplib.memory', 'wm_index_dyn');
 
   return call;
 }

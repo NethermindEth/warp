@@ -520,7 +520,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
 
   if (notNull(newNode) && sameType(newNode, node)) {
     ast.setContextRecursive(newNode);
-    ast.copyRegisteredImports(node, newNode);
     return newNode;
   } else {
     throw new NotSupportedYetError(`Unable to clone ${printNode(node)}`);

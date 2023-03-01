@@ -10,6 +10,7 @@ import {
   StructDefinition,
   UserDefinedType,
 } from 'solc-typed-ast';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes';
 import {
   CairoFunctionDefinition,
   isDynamicArray,
@@ -59,6 +60,14 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
               }${args})`,
             ];
           }
+        } else if (
+          node.vReferencedDeclaration instanceof CairoGeneratedFunctionDefinition &&
+          node.vReferencedDeclaration.rawStringDefinition.includes('@storage_var')
+        ) {
+          return node.vArguments.length ===
+            node.vReferencedDeclaration.vParameters.vParameters.length
+            ? [`${func}.read(${args})`]
+            : [`${func}.write(${args})`];
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
           (node.vReferencedDeclaration.acceptsRawDarray ||

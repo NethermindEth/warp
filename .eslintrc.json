@@ -16,7 +16,10 @@
     "eqeqeq": "error",
     "no-unused-vars": "off",
     "unicorn/filename-case": ["error", { "case": "camelCase" }],
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
     "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }]
   }
 }

@@ -1,5 +1,5 @@
 export * from './ast/export';
-export * from './cairoUtilFuncGen/export';
+export * from './cairoUtilFuncGen';
 export * from './cairoWriter';
 export * from './cli';
 export * from './freeStructWritter';

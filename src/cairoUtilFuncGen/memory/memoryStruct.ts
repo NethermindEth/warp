@@ -5,34 +5,44 @@ import {
   IdentifierPath,
   PointerType,
   StructDefinition,
+  TypeNode,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType, typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 /*
   Produces functions to allocate memory structs, assign their members, and return their location
   This replaces StructConstructorCalls referencing memory with normal FunctionCalls
 */
 export class MemoryStructGen extends StringIndexedFuncGen {
-  gen(node: FunctionCall): FunctionCall {
+  public gen(node: FunctionCall): FunctionCall {
     const structDef = node.vReferencedDeclaration;
     assert(structDef instanceof StructDefinition);
 
-    const cairoType = CairoType.fromSol(
-      safeGetNodeType(node, this.ast.inference),
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    );
-    assert(cairoType instanceof CairoStruct);
-    const name = this.getOrCreate(cairoType);
+    const nodeType = safeGetNodeType(node, this.ast.inference);
+    const funcDef = this.getOrCreateFuncDef(nodeType, structDef);
 
-    const stub = createCairoFunctionStub(
-      name,
+    structDef.vScope.acceptChildren();
+    return createCallToFunction(funcDef, node.vArguments, this.ast);
+  }
+
+  public getOrCreateFuncDef(nodeType: TypeNode, structDef: StructDefinition) {
+    const key = `memoryStruct(${nodeType.pp()},${structDef.name})`;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const cairoType = CairoType.fromSol(nodeType, this.ast, TypeConversionContext.MemoryAllocation);
+    assert(cairoType instanceof CairoStruct);
+    const funcInfo = this.getOrCreate(cairoType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       structDef.vMembers.map((decl) => {
         assert(decl.vType !== undefined);
         const type = typeNameToSpecializedTypeNode(
@@ -60,34 +70,24 @@ export class MemoryStructGen extends StringIndexedFuncGen {
           DataLocation.Memory,
         ],
       ],
-      ['range_check_ptr', 'warp_memory'],
       this.ast,
-      node,
+      this.sourceUnit,
     );
-
-    structDef.vScope.acceptChildren();
-
-    return createCallToFunction(stub, node.vArguments, this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
-  private getOrCreate(structType: CairoStruct): string {
-    const key = structType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
-    }
-
-    const funcName = `WM${this.generatedFunctions.size}_struct_${structType.name}`;
+  private getOrCreate(structType: CairoStruct): GeneratedFunctionInfo {
+    const funcName = `WM${this.generatedFunctionsDef.size}_struct_${structType.name}`;
 
     const mangledStructMembers: [string, CairoType][] = [...structType.members.entries()].map(
       ([name, type]) => [`member_${name}`, type],
     );
-
     const argString = mangledStructMembers
       .map(([name, type]) => `${name}: ${type.toString()}`)
       .join(', ');
 
-    this.generatedFunctions.set(key, {
+    return {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
@@ -100,14 +100,13 @@ export class MemoryStructGen extends StringIndexedFuncGen {
         `    return (start,);`,
         `}`,
       ].join('\n'),
-    });
-
-    this.requireImport('warplib.memory', 'wm_alloc');
-    this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('starkware.cairo.common.dict_access', 'DictAccess');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-
-    return funcName;
+      functionsCalled: [
+        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        this.requireImport('starkware.cairo.common.dict_access', 'DictAccess'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      ],
+    };
   }
 }
 

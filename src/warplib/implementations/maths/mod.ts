@@ -1,13 +1,12 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import { forAllWidths, generateFile, IntxIntFunction } from '../../utils';
+import { forAllWidths, IntxIntFunction, WarplibFunctionInfo } from '../../utils';
 
-export function mod_signed() {
-  generateFile(
-    'mod_signed',
-    [
+export function mod_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'mod_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_div_rem',
@@ -17,7 +16,7 @@ export function mod_signed() {
         (n) => `warp_int${8 * n + 8}_to_int256`,
       ).join(', ')}, ${mapRange(31, (n) => `warp_int256_to_int${8 * n + 8}`).join(', ')}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_mod_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
@@ -29,7 +28,7 @@ export function mod_signed() {
           '    let (_, res : Uint256) = uint256_signed_div_rem(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mod_signed${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -45,16 +44,12 @@ export function mod_signed() {
           `    let (truncated) = warp_int256_to_int${width}(res256);`,
           `    return (truncated,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 export function functionaliseMod(node: BinaryOperation, ast: AST): void {
-  const implicits = (width: number, signed: boolean): Implicits[] => {
-    if (width !== 256 && signed) return ['range_check_ptr', 'bitwise_ptr'];
-    return ['range_check_ptr'];
-  };
-  IntxIntFunction(node, 'mod', 'signedOrWide', true, false, implicits, ast);
+  IntxIntFunction(node, 'mod', 'signedOrWide', true, false, ast);
 }

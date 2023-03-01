@@ -1,5 +1,14 @@
-import { ArrayType, BytesType, SourceUnit, StringType, TypeNode } from 'solc-typed-ast';
+import {
+  ArrayType,
+  BytesType,
+  FunctionDefinition,
+  SourceUnit,
+  StringType,
+  TypeNode,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition } from '../../ast/cairoNodes';
+import { GeneratedFunctionInfo } from '../base';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
@@ -30,25 +39,29 @@ export class AbiEncodePacked extends AbiBase {
     this.memoryRead = memoryRead;
   }
 
-  public getOrCreate(types: TypeNode[]): string {
-    const key = types.map((t) => t.pp()).join(',');
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
-    }
-
-    const [params, encodings] = types.reduce(
-      ([params, encodings], type, index) => {
+  public getOrCreate(types: TypeNode[]): GeneratedFunctionInfo {
+    const [params, encodings, functionsCalled] = types.reduce(
+      ([params, encodings, functionsCalled], type, index) => {
         const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
         params.push({ name: `param${index}`, type: cairoType.toString() });
-        encodings.push(this.generateEncodingCode(type, 'bytes_index', `param${index}`));
-        return [params, encodings];
+        const [paramEncoding, paramFuncCalls] = this.generateEncodingCode(
+          type,
+          'bytes_index',
+          `param${index}`,
+        );
+        encodings.push(paramEncoding);
+
+        return [params, encodings, functionsCalled.concat(paramFuncCalls)];
       },
-      [new Array<{ name: string; type: string }>(), new Array<string>()],
+      [
+        new Array<{ name: string; type: string }>(),
+        new Array<string>(),
+        new Array<FunctionDefinition>(),
+      ],
     );
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
-    const funcName = `${this.functionName}${this.generatedFunctions.size}`;
+    const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
@@ -62,24 +75,27 @@ export class AbiEncodePacked extends AbiBase {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.alloc', 'alloc');
-    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
-    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-    this.requireImport('warplib.memory', 'wm_new');
-    this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
+    const importedFuncs = [
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+      this.requireImport('warplib.memory', 'wm_new'),
+      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
+    ];
 
-    const cairoFunc = { name: funcName, code: code };
-    this.generatedFunctions.set(key, cairoFunc);
-    return cairoFunc.name;
+    return {
+      name: funcName,
+      code: code,
+      functionsCalled: [...importedFuncs, ...functionsCalled],
+    };
   }
 
-  public override getOrCreateEncoding(type: TypeNode): string {
+  public override getOrCreateEncoding(type: TypeNode): CairoFunctionDefinition {
     const unexpectedType = () => {
       throw new TranspileFailedError(`Encoding ${printTypeNode(type)} is not supported`);
     };
 
-    return delegateBasedOnType<string>(
+    return delegateBasedOnType<CairoFunctionDefinition>(
       type,
       (type) => this.createArrayInlineEncoding(type),
       (type) => this.createArrayInlineEncoding(type),
@@ -89,34 +105,50 @@ export class AbiEncodePacked extends AbiBase {
     );
   }
 
-  private generateEncodingCode(type: TypeNode, newIndexVar: string, varToEncode: string): string {
+  private generateEncodingCode(
+    type: TypeNode,
+    newIndexVar: string,
+    varToEncode: string,
+  ): [string, CairoFunctionDefinition[]] {
     // Cairo address are 251 bits in size but solidity is 160.
     // It was decided to store them fully before just a part
     if (isAddressType(type)) {
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array');
       return [
-        `let (${varToEncode}256) = felt_to_uint256(${varToEncode});`,
-        `fixed_bytes256_to_felt_dynamic_array(bytes_index, bytes_array, 0, ${varToEncode}256);`,
-        `let ${newIndexVar} = bytes_index +  32;`,
-      ].join('\n');
+        [
+          `let (${varToEncode}256) = felt_to_uint256(${varToEncode});`,
+          `fixed_bytes256_to_felt_dynamic_array(bytes_index, bytes_array, 0, ${varToEncode}256);`,
+          `let ${newIndexVar} = bytes_index +  32;`,
+        ].join('\n'),
+        [
+          this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+          this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array'),
+        ],
+      ];
     }
 
-    const funcName = this.getOrCreateEncoding(type);
+    const func = this.getOrCreateEncoding(type);
 
     if (isDynamicArray(type)) {
-      this.requireImport('warplib.memory', 'wm_dyn_array_length');
-      this.requireImport('warplib.maths.utils', 'narrow_safe');
       return [
-        `let (length256) = wm_dyn_array_length(${varToEncode});`,
-        `let (length) = narrow_safe(length256);`,
-        `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
-      ].join('\n');
+        [
+          `let (length256) = wm_dyn_array_length(${varToEncode});`,
+          `let (length) = narrow_safe(length256);`,
+          `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
+        ].join('\n'),
+        [
+          this.requireImport('warplib.memory', 'wm_dyn_array_length'),
+          this.requireImport('warplib.maths.utils', 'narrow_safe'),
+          func,
+        ],
+      ];
     }
 
     // Type is a static array
     if (type instanceof ArrayType) {
-      return `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, ${type.size}, ${varToEncode});`;
+      return [
+        `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, ${type.size}, ${varToEncode});`,
+        [func],
+      ];
     }
 
     // Type is value type
@@ -125,19 +157,24 @@ export class AbiEncodePacked extends AbiBase {
     if (packedByteSize < 32) args.push(`${packedByteSize}`);
 
     return [
-      `${funcName}(${args.join(',')});`,
-      `let ${newIndexVar} = bytes_index +  ${packedByteSize};`,
-    ].join('\n');
+      [
+        `${func.name}(${args.join(',')});`,
+        `let ${newIndexVar} = bytes_index +  ${packedByteSize};`,
+      ].join('\n'),
+      [func],
+    ];
   }
 
   /*
    * Produce inline array encoding for static and dynamic array types
    */
-  private createArrayInlineEncoding(type: ArrayType | BytesType | StringType): string {
+  private createArrayInlineEncoding(
+    type: ArrayType | BytesType | StringType,
+  ): CairoFunctionDefinition {
     const key = type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
     const elementT = getElementType(type);
@@ -152,10 +189,14 @@ export class AbiEncodePacked extends AbiBase {
         ].join('\n')
       : `let elem_loc : felt = mem_ptr + ${mul('mem_index', cairoElementT.width)};`;
 
-    const readFunc = this.memoryRead.getOrCreate(cairoElementT);
-    const readCode = `let (elem) = ${readFunc}(elem_loc);`;
+    const readFunc = this.memoryRead.getOrCreateFuncDef(elementT);
+    const readCode = `let (elem) = ${readFunc.name}(elem_loc);`;
 
-    const encodingCode = this.generateEncodingCode(elementT, 'new_bytes_index', 'elem');
+    const [encodingCode, funcCalls] = this.generateEncodingCode(
+      elementT,
+      'new_bytes_index',
+      'elem',
+    );
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
@@ -183,19 +224,24 @@ export class AbiEncodePacked extends AbiBase {
       `}`,
     ].join('\n');
 
-    if (isDynamicArray(type)) {
-      this.requireImport('warplib.memory', 'wm_index_dyn');
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-    }
+    const importedFuncs = isDynamicArray(type)
+      ? [
+          this.requireImport('warplib.memory', 'wm_index_dyn'),
+          this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        ]
+      : [];
 
-    this.auxiliarGeneratedFunctions.set(key, { name, code });
-    return name;
+    const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...funcCalls, readFunc] };
+    const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
+
+    this.auxiliarGeneratedFunctions.set(key, auxFunc);
+    return auxFunc;
   }
 
-  private createValueTypeHeadEncoding(size: number | bigint): string {
+  private createValueTypeHeadEncoding(size: number | bigint): CairoFunctionDefinition {
     const funcName =
       size === 32 ? 'fixed_bytes256_to_felt_dynamic_array' : `fixed_bytes_to_felt_dynamic_array`;
-    this.requireImport('warplib.dynamic_arrays_util', funcName);
-    return funcName;
+
+    return this.requireImport('warplib.dynamic_arrays_util', funcName);
   }
 }

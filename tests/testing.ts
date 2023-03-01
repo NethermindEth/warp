@@ -55,7 +55,6 @@ const expectedResults = new Map<string, ResultType>(
     ['exampleContracts/boolOpSideEffects.sol', 'Success'],
     ['exampleContracts/bytesXAccess.sol', 'Success'],
     ['exampleContracts/c2c.sol', 'Success'],
-    // Uses conditionals explicitly
     ['exampleContracts/conditional.sol', 'Success'],
     ['exampleContracts/conditionalSimple.sol', 'Success'],
     ['exampleContracts/contractToContract.sol', 'Success'],
@@ -82,9 +81,7 @@ const expectedResults = new Map<string, ResultType>(
     ['exampleContracts/externalFunction.sol', 'Success'],
     ['exampleContracts/fallbackWithoutArgs.sol', 'Success'],
     ['exampleContracts/fallbackWithArgs.sol', 'WillNotSupport'],
-    // Cannot import with a - in the filename
     ['exampleContracts/fileWithMinusSignIncluded-.sol', 'Success'],
-    // Typestring for the internal function call doesn't contain a location so a read isn't generated
     ['exampleContracts/freeFunction.sol', 'Success'],
     ['exampleContracts/freeStruct.sol', 'Success'],
     ['exampleContracts/functionWithNestedReturn.sol', 'Success'],
@@ -135,9 +132,9 @@ const expectedResults = new Map<string, ResultType>(
     ['exampleContracts/inheritance/super/derived.sol', 'Success'],
     ['exampleContracts/inheritance/super/mid.sol', 'Success'],
     ['exampleContracts/inheritance/variables.sol', 'Success'],
-    // Requires struct imports
     ['exampleContracts/interfaces.sol', 'Success'],
     ['exampleContracts/interfaceFromBaseContract.sol', 'Success'],
+    ['exampleContracts/internalFunctions.sol', 'Success'],
     ['exampleContracts/invalidSolidity.sol', 'SolCompileFailed'],
     ['exampleContracts/lib.sol', 'Success'],
     ['exampleContracts/libraries/usingForStar.sol', 'Success'],
