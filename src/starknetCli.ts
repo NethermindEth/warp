@@ -16,8 +16,17 @@ import { runStarkNetClassHash } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
+import { getPlatform } from './nethersolc';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+const CAIRO1_COMPILE_BIN = path.resolve(
+  __dirname,
+  '..',
+  'cairo1',
+  getPlatform(),
+  'bin',
+  'starknet-compile',
+);
 
 interface CompileResult {
   success: boolean;
@@ -25,6 +34,39 @@ interface CompileResult {
   abiPath?: string;
   solAbiPath?: string;
   classHash?: string;
+}
+
+interface CompileCairo1Result {
+  success: boolean;
+  sierraResultPath?: string;
+  casmResultPath?: string;
+}
+
+export function compileCairo1(filePath: string): CompileCairo1Result {
+  assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
+  const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
+  const sierraResultPath = `${cairoPathRoot}.sierra`;
+  const casmResultPath = `${cairoPathRoot}.casm`;
+
+  try {
+    console.log(`Running cairo1 compile`);
+    execSync(
+      `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${filePath} ${sierraResultPath} --replace-ids`,
+      { stdio: 'inherit' },
+    );
+    return { success: true, sierraResultPath: sierraResultPath, casmResultPath: casmResultPath };
+  } catch (e) {
+    if (e instanceof Error) {
+      logError('Compile failed');
+      return {
+        success: false,
+        sierraResultPath: undefined,
+        casmResultPath: undefined,
+      };
+    } else {
+      throw e;
+    }
+  }
 }
 
 export function compileCairo(

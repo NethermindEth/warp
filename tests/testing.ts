@@ -2,7 +2,7 @@ import path from 'path';
 import { CompileFailedError } from 'solc-typed-ast';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from '../src/io';
 import { compileSolFiles } from '../src/solCompile';
-import { compileCairo } from '../src/starknetCli';
+import { compileCairo1 } from '../src/starknetCli';
 import { transpile } from '../src/transpiler';
 import {
   NotSupportedYetError,
@@ -250,7 +250,9 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
   const results = new Map<string, ResultType>();
   if (force) {
     postTestCleanup();
-  } else if (!preTestChecks()) return;
+  } else {
+    if (!preTestChecks()) return;
+  }
   const filter = process.env.FILTER;
   findSolSourceFilePaths('exampleContracts', true).forEach((file) => {
     if (filter === undefined || file.includes(filter)) {
@@ -327,13 +329,13 @@ function runCairoFileTest(
   throwError = false,
 ): void {
   if (!onlyResults) console.log(`Compiling ${file}`);
-  if (compileCairo(file).success) {
+  if (compileCairo1(file).success) {
     results.set(file, 'Success');
   } else {
     if (throwError) {
       throw new Error(error(`Compilation of ${file} failed`));
     }
-    results.set(removeExtension(file), 'CairoCompileFailed');
+    results.set(file, 'CairoCompileFailed');
   }
 }
 
@@ -410,10 +412,4 @@ function deleteJson(path: string): void {
   findAllFiles(path, true)
     .filter((file) => file.endsWith('.json'))
     .forEach((file) => fs.unlinkSync(file));
-}
-
-function removeExtension(file: string): string {
-  const index = file.lastIndexOf('.');
-  if (index === -1) return file;
-  return file.slice(0, index);
 }

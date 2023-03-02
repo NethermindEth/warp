@@ -6,7 +6,7 @@ import { NotSupportedYetError } from './utils/errors';
 type SupportedPlatforms = 'linux_x64' | 'darwin_x64' | 'darwin_arm64';
 export type SupportedSolcVersions = '7' | '8';
 
-function getPlatform(): SupportedPlatforms {
+export function getPlatform(): SupportedPlatforms {
   const platform = `${os.platform()}_${os.arch()}`;
 
   switch (platform) {
