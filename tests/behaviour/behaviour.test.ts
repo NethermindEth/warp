@@ -12,6 +12,7 @@ import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
 import { EventItem } from '../../src/utils/event';
+import { pathExists } from '../../src/utils/fs';
 
 chai.use(chaiAsPromised);
 
@@ -101,13 +102,7 @@ describe('Transpiled contracts are valid cairo', function () {
   before(async function () {
     processedExpectations = await Promise.all(
       expectations.map(async (test: AsyncTest): Promise<AsyncTestCluster | null> => {
-        try {
-          await fs.access(test.cairo);
-        } catch {
-          return null;
-        }
-
-        if (test.encodingError !== undefined) {
+        if (test.encodingError !== undefined || !(await pathExists(test.cairo))) {
           return null;
         }
 
@@ -324,9 +319,7 @@ type CompiledCairo = {
 };
 
 async function findMethod(functionName: string, fileName: string): Promise<string | null> {
-  try {
-    await fs.access(fileName);
-  } catch {
+  if (!(await pathExists(fileName))) {
     throw new Error(`Couldn't find compiled contract ${fileName}`);
   }
 

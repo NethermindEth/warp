@@ -7,6 +7,7 @@ import { expect } from 'chai';
 import { hashFilename } from '../src/utils/postCairoWrite';
 import { declare } from './testnetInterface';
 import { AsyncTest, OUTPUT_DIR } from './behaviour/expectations/types';
+import { pathExists } from '../src/utils/fs';
 
 interface AsyncTestCluster {
   asyncTest: AsyncTest;
@@ -41,9 +42,7 @@ export function starknetCompile(
 }
 
 export async function cleanup(path: string): Promise<void> {
-  try {
-    await fs.access(path);
-  } catch {
+  if (!(await pathExists(path))) {
     return;
   }
 

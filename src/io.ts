@@ -3,12 +3,10 @@ import * as fs from 'fs/promises';
 import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
 import { AST } from './ast/ast';
-import { outputFile } from './utils/fs';
+import { outputFile, pathExists } from './utils/fs';
 
 export async function isValidSolFile(path: string, printError = true): Promise<boolean> {
-  try {
-    await fs.access(path);
-  } catch {
+  if (!(await pathExists(path))) {
     if (printError) logError(`${path} doesn't exist`);
     return false;
   }
@@ -81,16 +79,14 @@ export async function outputResult(
   ast: AST,
 ): Promise<void> {
   if (options.outputDir !== undefined) {
-    try {
-      await fs.access(options.outputDir);
+    if (await pathExists(options.outputDir)) {
+      const targetInformation = await fs.lstat(options.outputDir);
 
-      if (!(await fs.lstat(options.outputDir)).isDirectory()) {
+      if (!targetInformation.isDirectory()) {
         throw new TranspileFailedError(
           `Cannot output to ${options.outputDir}. Output-dir must be a directory`,
         );
       }
-    } catch {
-      // directory does not exist
     }
 
     const fullCodeOutPath = path.join(options.outputDir, outputPath);

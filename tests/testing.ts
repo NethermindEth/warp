@@ -12,7 +12,7 @@ import {
 import { groupBy, printCompileErrors } from '../src/utils/utils';
 import * as fs from 'fs/promises';
 import Bottleneck from 'bottleneck';
-import { outputFile } from '../src/utils/fs';
+import { outputFile, pathExists } from '../src/utils/fs';
 import { error } from '../src/utils/formatting';
 
 const WARP_TEST = 'warpTest';
@@ -422,9 +422,7 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
 }
 
 async function checkNoCairo(path: string): Promise<boolean> {
-  try {
-    await fs.access(path);
-  } catch {
+  if (!(await pathExists(path))) {
     return true;
   }
 
@@ -432,9 +430,7 @@ async function checkNoCairo(path: string): Promise<boolean> {
 }
 
 async function checkNoJson(path: string): Promise<boolean> {
-  try {
-    await fs.access(path);
-  } catch {
+  if (!(await pathExists(path))) {
     return true;
   }
 

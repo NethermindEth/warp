@@ -1,8 +1,8 @@
-import fs from 'fs/promises';
 import path from 'path';
 import { SourceUnit } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { pathExists } from '../utils/fs';
 
 export class SourceUnitPathFixer extends ASTMapper {
   constructor(private includePaths: string[]) {
@@ -10,18 +10,13 @@ export class SourceUnitPathFixer extends ASTMapper {
   }
 
   async visitSourceUnit(node: SourceUnit, _ast: AST): Promise<void> {
-    try {
-      await fs.access(node.absolutePath);
-    } catch {
+    if (!(await pathExists(node.absolutePath))) {
       for (const prefix of this.includePaths) {
         const filePath = path.join(prefix, node.absolutePath);
 
-        try {
-          await fs.access(filePath);
+        if (await pathExists(filePath)) {
           node.absolutePath = filePath;
           break;
-        } catch {
-          // file does not exist
         }
       }
     }

@@ -18,6 +18,7 @@ import {
   WARP_BIN,
 } from './utils';
 import { execAsync } from '../util';
+import { pathExists } from '../../src/utils/fs';
 
 const contractCairoFile = path.resolve(
   __dirname,
@@ -37,11 +38,8 @@ describe('Manage starknet account', function () {
   this.timeout(TIME_LIMIT);
 
   it('should create a starknet account', async () => {
-    try {
-      await fs.access(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
+    if (await pathExists(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'))) {
       await fs.unlink(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
-    } catch {
-      // file does not exist
     }
 
     const { stdout, stderr } = await execAsync(
@@ -372,20 +370,15 @@ describe('Cleanup cli_test directory', function () {
 
   it('should remove the starknet account', async () => {
     await fs.unlink(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json'));
-    try {
-      await fs.access(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
+
+    if (await pathExists(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'))) {
       await fs.unlink(path.resolve(__dirname, 'starknet_open_zeppelin_accounts.json.backup'));
-    } catch {
-      // file does not exist
     }
   });
 
   it('remove contract generated files', async () => {
-    try {
-      await fs.access(path.resolve(__dirname, 'contract.json'));
+    if (await pathExists(path.resolve(__dirname, 'contract.json'))) {
       await fs.unlink(path.resolve(__dirname, 'contract.json'));
-    } catch {
-      // file does not exist
     }
   });
 });
