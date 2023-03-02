@@ -25,7 +25,6 @@ export class DynArrayGen extends StringIndexedFuncGen {
     node: MemberAccess,
     arrayType: ArrayType | BytesType | StringType,
   ): FunctionCall {
-    console.log('gen in ', 'DynArrayGen ');
     const [_dynArray, dynArrayLength] = this.getOrCreateFuncDef(getElementType(arrayType));
     return createCallToFunction(dynArrayLength, [node.vExpression], this.ast);
   }
