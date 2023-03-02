@@ -211,6 +211,3 @@ warplib/maths/external_input_check_ints.cairo
 tests/cli/starknet_open_zeppelin_accounts.json
 tests/cli/starknet_open_zeppelin_accounts.json.backup
 
-
-# cairo1 files
-cairo/

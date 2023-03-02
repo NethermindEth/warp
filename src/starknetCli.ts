@@ -16,8 +16,17 @@ import { runStarkNetClassHash } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
+import { getPlatform } from './nethersolc';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+const CAIRO1_COMPILE_BIN = path.resolve(
+  __dirname,
+  '..',
+  'cairo1',
+  getPlatform(),
+  'bin',
+  'cairo-compile',
+);
 
 interface CompileResult {
   success: boolean;
@@ -33,7 +42,7 @@ interface CompileCairo1Result {
   casmResultPath?: string;
 }
 
-export function compileCairo1(filePath: string, cairoTomlPath: string): CompileCairo1Result {
+export function compileCairo1(filePath: string): CompileCairo1Result {
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   const sierraResultPath = `${cairoPathRoot}.sierra`;
@@ -42,12 +51,7 @@ export function compileCairo1(filePath: string, cairoTomlPath: string): CompileC
   try {
     console.log(`Running cairo1 compile with cargo`);
     execSync(
-      `${warpVenvPrefix} cargo run --manifest-path ${cairoTomlPath} --bin cairo-compile -- ${filePath} ${sierraResultPath} --replace-ids`,
-      { stdio: 'inherit' },
-    );
-
-    execSync(
-      `${warpVenvPrefix} cargo run --manifest-path ${cairoTomlPath} --bin sierra-compile -- ${sierraResultPath} ${casmResultPath}`,
+      `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${filePath} ${sierraResultPath} --replace-ids`,
       { stdio: 'inherit' },
     );
     return { success: true, sierraResultPath: sierraResultPath, casmResultPath: casmResultPath };
