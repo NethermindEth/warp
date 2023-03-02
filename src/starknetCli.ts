@@ -25,7 +25,7 @@ const CAIRO1_COMPILE_BIN = path.resolve(
   'cairo1',
   getPlatform(),
   'bin',
-  'cairo-compile',
+  'starknet-compile',
 );
 
 interface CompileResult {
