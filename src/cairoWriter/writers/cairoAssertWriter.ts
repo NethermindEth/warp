@@ -5,11 +5,7 @@ import { CairoASTNodeWriter } from '../base';
 export class CairoAssertWriter extends CairoASTNodeWriter {
   writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
     const expression = writer.write(node.vExpression);
-
-    if (node.assertMessage === null) {
-      return [`assert( ${expression} == 1, "Assertion error" );`];
-    } else {
-      return [`assert( ${expression} == 1, "${node.assertMessage}" );`];
-    }
+    const message = node.assertMessage ?? 'Assertion error';
+    return [`assert( ${expression} == 1, "${message}" );`];
   }
 }
