@@ -49,7 +49,7 @@ export function compileCairo1(filePath: string): CompileCairo1Result {
   const casmResultPath = `${cairoPathRoot}.casm`;
 
   try {
-    console.log(`Running cairo1 compile with cargo`);
+    console.log(`Running cairo1 compile`);
     execSync(
       `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${filePath} ${sierraResultPath} --replace-ids`,
       { stdio: 'inherit' },
