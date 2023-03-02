@@ -249,7 +249,6 @@ export function checkableType(type: TypeNode): boolean {
     type instanceof UserDefinedType ||
     type instanceof AddressType ||
     type instanceof IntType ||
-    type instanceof BoolType ||
     type instanceof StringType
   );
 }

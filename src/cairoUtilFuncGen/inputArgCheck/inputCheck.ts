@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ArrayType,
-  BoolType,
   BytesType,
   DataLocation,
   EnumDefinition,
@@ -79,11 +78,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
       return this.requireImport(
         'warplib.maths.external_input_check_address',
         `warp_external_input_check_address`,
-      );
-    if (type instanceof BoolType)
-      return this.requireImport(
-        'warplib.maths.external_input_check_bool',
-        `warp_external_input_check_bool`,
       );
 
     const funcInfo = this.getOrCreate(type, takesUint256);
