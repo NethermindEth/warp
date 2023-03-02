@@ -20,6 +20,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { uint256AddImport, uint256Import } from '../../utils/importFuncs';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -219,7 +220,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...uint256Import()),
         this.requireImport('warplib.memory', 'wm_alloc'),
         sourceLocationFunc,
         ...calledFuncs,
@@ -299,8 +300,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        this.requireImport(...uint256Import()),
+        this.requireImport(...uint256AddImport()),
         this.requireImport('warplib.memory', 'wm_index_dyn'),
         this.requireImport('warplib.memory', 'wm_new'),
         memoryRead,
@@ -375,8 +376,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        this.requireImport(...uint256Import()),
+        this.requireImport(...uint256AddImport()),
         this.requireImport('warplib.memory', 'wm_index_dyn'),
         this.requireImport('warplib.memory', 'wm_new'),
         memoryRead,

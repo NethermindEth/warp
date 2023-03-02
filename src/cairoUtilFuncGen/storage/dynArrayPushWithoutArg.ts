@@ -13,6 +13,7 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { uint256AddImport, uint256Import } from '../../utils/importFuncs';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -89,8 +90,8 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        this.requireImport(...uint256Import()),
+        this.requireImport(...uint256AddImport()),
         dynArray,
         dynArrayLength,
       ],

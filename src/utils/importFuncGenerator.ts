@@ -24,7 +24,7 @@ const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
 
 export function createImport(
-  path: string,
+  path: string[],
   name: string,
   nodeInSourceUnit: ASTNode,
   ast: AST,

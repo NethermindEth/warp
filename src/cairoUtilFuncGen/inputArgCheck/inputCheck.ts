@@ -38,6 +38,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
+import { isLeFeltImport } from '../../utils/importFuncs';
 
 const IMPLICITS = '{range_check_ptr : felt}';
 
@@ -200,7 +201,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     // TODO: enum names are unique right?
     const funcName = `external_input_check_enum_${enumDef.name}`;
 
-    const importFuncs = [this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt')];
+    const importFuncs = [this.requireImport(...isLeFeltImport())];
     if (takesUint) {
       importFuncs.push(this.requireImport('warplib.maths.utils', 'narrow_safe'));
     }

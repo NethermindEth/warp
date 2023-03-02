@@ -21,6 +21,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
+import { uint256Import } from '../../utils/importFuncs';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
@@ -109,7 +110,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `}`,
         ].join('\n'),
         functionsCalled: [
-          this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+          this.requireImport(...uint256Import()),
           this.requireImport('warplib.memory', 'wm_new'),
         ],
       };
@@ -166,7 +167,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...uint256Import()),
         this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
         this.requireImport('warplib.memory', 'wm_new'),
         ...argSizesImports,

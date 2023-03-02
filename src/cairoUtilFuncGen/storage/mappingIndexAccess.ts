@@ -17,6 +17,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
+import { allocImport } from '../../utils/importFuncs';
 import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -248,7 +249,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       functionsCalled: [
         this.requireImport('warplib.maths.utils', 'narrow_safe'),
         this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+        this.requireImport(...allocImport()),
         this.requireImport('warplib.string_hash', 'string_hash'),
         dynArray,
         dynArrayLen,

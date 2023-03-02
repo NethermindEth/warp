@@ -17,6 +17,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { dictReadImport } from '../../utils/importFuncs';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
@@ -107,7 +108,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
         `    return (${pack},);`,
         '}',
       ].join('\n'),
-      functionsCalled: [this.requireImport('starkware.cairo.common.dict', 'dict_read')],
+      functionsCalled: [this.requireImport(...dictReadImport())],
     };
     return funcInfo;
   }

@@ -9,6 +9,13 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  splitFeltImport,
+  uint256AddImport,
+  uint256LeImport,
+  uint256LtImport,
+  uint256MulImport,
+} from '../../utils/importFuncs';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -89,11 +96,11 @@ export class StorageStaticArrayIndexAccessGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.math', 'split_felt'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_le'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_mul'),
+        this.requireImport(...splitFeltImport()),
+        this.requireImport(...uint256AddImport()),
+        this.requireImport(...uint256LeImport()),
+        this.requireImport(...uint256LtImport()),
+        this.requireImport(...uint256MulImport()),
       ],
     };
   }

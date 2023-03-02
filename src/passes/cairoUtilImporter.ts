@@ -11,7 +11,14 @@ import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
-import { uint256Import } from '../utils/importFuncs';
+import {
+  allocImport,
+  defaultDictFinalizeImport,
+  defaultDictNewImport,
+  dictWriteImport,
+  finalizeKeccakImport,
+  uint256Import,
+} from '../utils/importFuncs';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 
@@ -65,15 +72,15 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
     if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
-      createImport('starkware.cairo.common.default_dict', 'default_dict_new', node, ast);
-      createImport('starkware.cairo.common.default_dict', 'default_dict_finalize', node, ast);
-      createImport('starkware.cairo.common.dict', 'dict_write', node, ast);
+      createImport(...defaultDictNewImport(), node, ast);
+      createImport(...defaultDictFinalizeImport(), node, ast);
+      createImport(...dictWriteImport(), node, ast);
     }
 
     if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
-      createImport('starkware.cairo.common.cairo_keccak.keccak', 'finalize_keccak', node, ast);
+      createImport(...finalizeKeccakImport(), node, ast);
       // Required to create a keccak_ptr
-      createImport('starkware.cairo.common.alloc', 'alloc', node, ast);
+      createImport(...allocImport(), node, ast);
     }
 
     this.commonVisit(node, ast);

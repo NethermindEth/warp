@@ -6,6 +6,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
+import { dictWriteImport } from '../../utils/importFuncs';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -81,7 +82,7 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
         '    return (value,);',
         '}',
       ].join('\n'),
-      functionsCalled: [this.requireImport('starkware.cairo.common.dict', 'dict_write')],
+      functionsCalled: [this.requireImport(...dictWriteImport())],
     };
     return funcInfo;
   }

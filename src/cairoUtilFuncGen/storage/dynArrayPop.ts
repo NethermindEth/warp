@@ -14,6 +14,7 @@ import { AST } from '../../ast/ast';
 import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { uint256EqImport, uint256Import, uint256SubImport } from '../../utils/importFuncs';
 import {
   getElementType,
   isDynamicArray,
@@ -109,9 +110,9 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+        this.requireImport(...uint256Import()),
+        this.requireImport(...uint256EqImport()),
+        this.requireImport(...uint256SubImport()),
         deleteFunc,
         dynArray,
         dynArrayLength,

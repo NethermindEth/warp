@@ -20,6 +20,12 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
+  dictReadImport,
+  uint256Import,
+  uint256LtImport,
+  uint256SubImport,
+} from '../../utils/importFuncs';
+import {
   getElementType,
   isDynamicArray,
   isReferenceType,
@@ -194,7 +200,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
           `    WARP_STORAGE.write(${add('storage_loc', n)}, copy);`,
         ].join('\n'),
       ).join('\n');
-      calledFuncs = [this.requireImport('starkware.cairo.common.dict', 'dict_read')];
+      calledFuncs = [this.requireImport(...dictReadImport())];
     }
 
     const funcName = `wm_to_storage_static_array_${this.generatedFunctionsDef.size}`;
@@ -264,7 +270,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
           `    WARP_STORAGE.write(${add('storage_loc', n)}, copy);`,
         ].join('\n'),
       ).join('\n');
-      funcCalls = [this.requireImport('starkware.cairo.common.dict', 'dict_read')];
+      funcCalls = [this.requireImport(...dictReadImport())];
     }
 
     const deleteFunc = this.storageDeleteGen.getOrCreateFuncDef(type);
@@ -313,8 +319,8 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport('warplib.maths.utils', 'narrow_safe'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+        this.requireImport(...uint256LtImport()),
+        this.requireImport(...uint256SubImport()),
         this.requireImport('warplib.memory', 'wm_dyn_array_length'),
         ...funcCalls,
         dynArray,
@@ -346,12 +352,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               ];
           return [
             [...code, ...copyCode],
-            [
-              ...funcCalls,
-              this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-              readFunc,
-              auxFunc,
-            ],
+            [...funcCalls, this.requireImport(...uint256Import()), readFunc, auxFunc],
             storageOffset + typeFeltWidth,
             memOffset + 1,
           ];
@@ -369,7 +370,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               ].join('\n'),
             ),
           ],
-          [...funcCalls, this.requireImport('starkware.cairo.common.dict', 'dict_read')],
+          [...funcCalls, this.requireImport(...dictReadImport())],
           storageOffset + typeFeltWidth,
           memOffset + typeFeltWidth,
         ];

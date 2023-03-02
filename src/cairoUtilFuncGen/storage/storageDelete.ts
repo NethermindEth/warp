@@ -18,6 +18,12 @@ import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes';
 import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  uint256AddImport,
+  uint256EqImport,
+  uint256Import,
+  uint256SubImport,
+} from '../../utils/importFuncs';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -173,9 +179,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(...uint256EqImport()),
+      this.requireImport(...uint256AddImport()),
+      this.requireImport(...uint256Import()),
     ];
     return {
       name: funcName,
@@ -248,9 +254,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(...uint256EqImport()),
+      this.requireImport(...uint256SubImport()),
+      this.requireImport(...uint256Import()),
     ];
 
     return {

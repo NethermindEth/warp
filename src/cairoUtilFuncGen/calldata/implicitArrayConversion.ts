@@ -25,6 +25,7 @@ import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
+import { uint256Import } from '../../utils/importFuncs';
 
 const IMPLICITS =
   '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
@@ -228,7 +229,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...uint256Import()),
         ...requiredFunctions,
         ...optionalImport,
       ],

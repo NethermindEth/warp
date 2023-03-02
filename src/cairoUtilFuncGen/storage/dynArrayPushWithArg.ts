@@ -29,6 +29,7 @@ import {
   specializeType,
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
+import { uint256AddImport, uint256Import } from '../../utils/importFuncs';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   public constructor(
@@ -175,8 +176,8 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        this.requireImport(...uint256Import()),
+        this.requireImport(...uint256AddImport()),
         elementWriteDef,
         dynArray,
         dynArrayLength,

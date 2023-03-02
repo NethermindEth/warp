@@ -21,6 +21,13 @@ import { CairoType, TypeConversionContext, WarpLocation } from '../../utils/cair
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
+  isLeImport,
+  uint256AddImport,
+  uint256Import,
+  uint256LtImport,
+  uint256SubImport,
+} from '../../utils/importFuncs';
+import {
   getElementType,
   getSize,
   isReferenceType,
@@ -205,7 +212,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       stopRecursion = [`if (index == ${fromSize}){`, `return ();`, `}`];
     } else {
       const deleteFunc = this.storageDeleteGen.getOrCreateFuncDef(toType.elementT);
-      optionalCalls = [deleteFunc, this.requireImport('starkware.cairo.common.math_cmp', 'is_le')];
+      optionalCalls = [deleteFunc, this.requireImport(...isLeImport())];
       stopRecursion = [
         `if (index == ${toSize}){`,
         `    return ();`,
@@ -316,9 +323,9 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
+        this.requireImport(...uint256Import()),
+        this.requireImport(...uint256SubImport()),
+        this.requireImport(...uint256LtImport()),
         elementCopyFunc,
         fromElementMapping,
         fromLengthMapping,
@@ -404,9 +411,9 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
+        this.requireImport(...uint256Import()),
+        this.requireImport(...uint256AddImport()),
+        this.requireImport(...uint256LtImport()),
         elementCopyFunc,
         toElementMapping,
         toLengthMapping,
@@ -462,7 +469,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...uint256Import()),
         toType.signed
           ? this.requireImport(
               'warplib.maths.int_conversions',
@@ -518,7 +525,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport('warplib.maths.bytes_conversions', conversionFunc),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...uint256Import()),
       ],
     };
   }
