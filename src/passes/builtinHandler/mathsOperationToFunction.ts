@@ -36,6 +36,9 @@ export class MathsOperationToFunction extends ASTMapper {
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    // TODO: Let's disable for now this lint report in the file. The other functions should be reviewed when
+    // we do the bijection between Cairo1(uN) and Solidity(uintN). After that, the logic can be changed.
     const operatorMap: Map<string, () => void> = new Map([
       // Arith
       ['+', () => functionaliseAdd(node, this.inUncheckedBlock, ast)],
