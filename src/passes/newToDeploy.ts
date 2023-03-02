@@ -17,11 +17,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { UserDefinedTypeName } from 'solc-typed-ast';
 import assert from 'assert';
-import {
-  createCairoFunctionStub,
-  createCallToFunction,
-  createElementaryConversionCall,
-} from '../utils/functionGeneration';
+import { createCallToFunction, createElementaryConversionCall } from '../utils/functionGeneration';
 import {
   createAddressTypeName,
   createBoolLiteral,
@@ -144,7 +140,9 @@ export class NewToDeploy extends ASTMapper {
     salt: Expression,
     ast: AST,
   ): FunctionCall {
-    const deployStub = createCairoFunctionStub(
+    const deployFunc = ast.registerImport(
+      node,
+      'starkware.starknet.common.syscalls',
       'deploy',
       [
         ['class_hash', createAddressTypeName(false, ast)],
@@ -153,19 +151,15 @@ export class NewToDeploy extends ASTMapper {
         ['deploy_from_zero', createBoolTypeName(ast)],
       ],
       [['contract_address', cloneASTNode(typeName, ast)]],
-      ['syscall_ptr'],
-      ast,
-      node,
       { acceptsUnpackedStructArray: true },
     );
-    ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
 
     const encodedArguments = ast
       .getUtilFuncGen(node)
       .utils.encodeAsFelt.gen(node.vArguments, getParameterTypes(node, ast));
     const deployFromZero = createBoolLiteral(false, ast);
     return createCallToFunction(
-      deployStub,
+      deployFunc,
       [placeHolderIdentifier, salt, encodedArguments, deployFromZero],
       ast,
       node,

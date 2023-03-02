@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  ASTNode,
   DataLocation,
   FunctionCall,
   IndexAccess,
@@ -10,19 +9,19 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+  public constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
-  gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
+  public gen(node: IndexAccess): FunctionCall {
     const base = node.vBaseExpression;
     const index = node.vIndexExpression;
     assert(index !== undefined);
@@ -31,38 +30,45 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const baseType = safeGetNodeType(base, this.ast.inference);
 
     assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
-    const name = this.getOrCreate(nodeType);
 
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = this.getOrCreateFuncDef(nodeType, baseType);
+    return createCallToFunction(funcDef, [base, index], this.ast);
+  }
+
+  public getOrCreateFuncDef(nodeType: TypeNode, baseType: TypeNode) {
+    const nodeCairoType = CairoType.fromSol(
+      nodeType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+
+    const key = nodeCairoType.fullStringRepresentation;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(nodeType, nodeCairoType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [
         ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
         ['offset', createUint256TypeName(this.ast)],
       ],
-      [['resLoc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      [['res_loc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
       this.ast,
-      nodeInSourceUnit ?? node,
+      this.sourceUnit,
     );
-
-    return createCallToFunction(functionStub, [base, index], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
-  getOrCreate(valueType: TypeNode): string {
-    const valueCairoType = CairoType.fromSol(
-      valueType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
-    const key = valueCairoType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
-    }
-
-    const [arrayName, lengthName] = this.dynArrayGen.gen(valueCairoType);
+  private getOrCreate(valueType: TypeNode, valueCairoType: CairoType): GeneratedFunctionInfo {
+    const [arrayDef, arrayLength] = this.dynArrayGen.getOrCreateFuncDef(valueType);
+    const arrayName = arrayDef.name;
+    const lengthName = arrayLength.name;
     const funcName = `${arrayName}_IDX`;
-    this.generatedFunctions.set(key, {
+    return {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(ref: felt, index: Uint256) -> (res: felt){`,
@@ -81,9 +87,12 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
-    return funcName;
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_lt'),
+        arrayDef,
+        arrayLength,
+      ],
+    };
   }
 }

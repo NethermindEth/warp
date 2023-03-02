@@ -1,5 +1,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import util from 'util';
+import { exec } from 'child_process';
+import { parse } from 'path';
 import { Command } from 'commander';
 import { isValidSolFile, outputResult, replaceSuffix } from './io';
 import { compileSolFiles } from './solCompile';
@@ -21,7 +24,6 @@ import { runVenvSetup } from './utils/setupVenv';
 import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from './utils/utils';
-import { parse } from 'path';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -531,15 +533,9 @@ program
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pjson = require('../package.json');
 
-    const cairoInstallScript = (
-      await fs.readFile(path.join(__dirname, '..', 'warp_venv.sh'))
-    ).toString();
-
-    const starknetVersion: string = (cairoInstallScript.match(/cairo-lang==(.*)/) || [])[1];
+    const execAsync = util.promisify(exec);
+    const starknetVersion = (await execAsync('starknet --version')).stdout;
 
     console.log(blue(`Warp Version `) + green(pjson.version));
-
-    if (starknetVersion !== undefined) {
-      console.log(blue(`Starknet Version `) + green(starknetVersion));
-    }
+    console.log(blue(`StarkNet Version `) + green(starknetVersion.split(' ')[1]));
   });

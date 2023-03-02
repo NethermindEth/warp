@@ -16,7 +16,7 @@ import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
@@ -78,16 +78,15 @@ export class MemoryAllocations extends ReferenceSubPass {
       }`,
     );
 
-    const stub = createCairoFunctionStub(
+    const funcImport = ast.registerImport(
+      node,
+      'warplib.memory',
       'wm_new',
       [
         ['len', createUint256TypeName(ast)],
         ['elemWidth', createUint256TypeName(ast)],
       ],
       [['loc', node.vExpression.vTypeName, DataLocation.Memory]],
-      ['range_check_ptr', 'warp_memory'],
-      ast,
-      node,
     );
 
     const arrayType = generalizeType(safeGetNodeType(node, ast.inference))[0];
@@ -104,13 +103,12 @@ export class MemoryAllocations extends ReferenceSubPass {
     );
 
     const call = createCallToFunction(
-      stub,
+      funcImport,
       [node.vArguments[0], createNumberLiteral(elementCairoType.width, ast, 'uint256')],
       ast,
     );
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
     this.replace(node, call, undefined, actualLoc, expectedLoc, ast);
-    ast.registerImport(call, 'warplib.memory', 'wm_new');
   }
 }

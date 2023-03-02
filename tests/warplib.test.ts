@@ -1,13 +1,9 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import klawSync from 'klaw-sync';
+import glob from 'glob';
 import { cleanup, starknetCompile } from './util';
 
-const paths = klawSync('warplib', {
-  nodir: true,
-  filter: ({ path }) => path.endsWith('.cairo'),
-  traverseAll: true,
-}).map((item) => item.path);
+const paths = glob.sync('warplib/**/*.cairo');
 
 describe('Warplib files should compile', function () {
   this.timeout(1800000);

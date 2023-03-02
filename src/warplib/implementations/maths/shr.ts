@@ -9,29 +9,28 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
-import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import {
-  generateFile,
   forAllWidths,
   bound,
   msb,
   mask,
   getIntOrFixedByteBitWidth,
+  WarplibFunctionInfo,
 } from '../../utils';
 
-export async function shr(): Promise<void> {
-  await generateFile(
-    'shr',
-    [
+export function shr(): WarplibFunctionInfo {
+  return {
+    fileName: 'shr',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and, bitwise_not',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le, is_le_felt',
       'from starkware.cairo.common.uint256 import Uint256, uint256_and',
       'from warplib.maths.pow2 import pow2',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_shr256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : felt) -> (`,
@@ -95,7 +94,7 @@ export async function shr(): Promise<void> {
           `    }`,
           `    return (Uint256(0, 0),);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_shr${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -122,16 +121,16 @@ export async function shr(): Promise<void> {
           `        return (0,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
-export async function shr_signed(): Promise<void> {
-  await generateFile(
-    'shr_signed',
-    [
+export function shr_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'shr_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le, is_le_felt',
@@ -139,7 +138,7 @@ export async function shr_signed(): Promise<void> {
       'from warplib.maths.pow2 import pow2',
       `from warplib.maths.shr import ${mapRange(32, (n) => `warp_shr${8 * n + 8}`).join(', ')}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_shr_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : felt) -> (res : Uint256){`,
@@ -177,7 +176,7 @@ export async function shr_signed(): Promise<void> {
           `        return (res,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_shr_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -211,10 +210,10 @@ export async function shr_signed(): Promise<void> {
           `        return (res,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 export function functionaliseShr(node: BinaryOperation, ast: AST): void {
@@ -240,16 +239,15 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
 
   const importName = `warplib.maths.shr${signed ? '_signed' : ''}`;
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    node,
+    importName,
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],
       ['rhs', typeNameFromTypeNode(rhsType, ast)],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    ['range_check_ptr', 'bitwise_ptr'],
-    ast,
-    node,
   );
   const call = new FunctionCall(
     ast.reserveId(),
@@ -261,11 +259,10 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
       '',
       `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, importName, fullName);
 }

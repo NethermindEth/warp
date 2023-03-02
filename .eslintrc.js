@@ -26,7 +26,10 @@ module.exports = {
       },
       rules: {
         '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
-        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        ],
         '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': 'allow-with-description' }],
       },
     },

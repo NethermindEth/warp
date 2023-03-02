@@ -10,13 +10,16 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
-import { StringIndexedFuncGen } from './base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 
+// TODO: Does this enum input check overrides the input check from the general method?!
+// It looks like it does
 export class EnumInputCheck extends StringIndexedFuncGen {
-  gen(
+  // TODO: When is nodeInSourceUnit different thant the current sourceUnit??
+  public gen(
     node: Expression,
     nodeInput: Expression,
     enumDef: EnumDefinition,
@@ -26,36 +29,50 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     const inputType = safeGetNodeType(nodeInput, this.ast.inference);
 
     this.sourceUnit = this.ast.getContainingRoot(nodeInSourceUnit);
-    const name = this.getOrCreate(inputType, enumDef);
-    const functionStub = createCairoFunctionStub(
-      name,
+    const funcDef = this.getOrCreateFuncDef(inputType, nodeType, enumDef);
+    return createCallToFunction(funcDef, [nodeInput], this.ast);
+  }
+
+  public getOrCreateFuncDef(inputType: TypeNode, nodeType: TypeNode, enumDef: EnumDefinition) {
+    assert(inputType instanceof IntType);
+
+    const key = enumDef.name + (inputType.nBits === 256 ? '256' : '');
+    const exisiting = this.generatedFunctionsDef.get(key);
+    if (exisiting !== undefined) {
+      return exisiting;
+    }
+
+    const funcInfo = this.getOrCreate(inputType, enumDef);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['arg', typeNameFromTypeNode(inputType, this.ast), DataLocation.Default]],
       [['ret', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Default]],
-      ['range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? nodeInput,
+      this.sourceUnit,
       {
         mutability: FunctionStateMutability.Pure,
         stubKind: FunctionStubKind.FunctionDefStub,
       },
     );
-
-    return createCallToFunction(functionStub, [nodeInput], this.ast);
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
-  private getOrCreate(type: TypeNode, enumDef: EnumDefinition): string {
-    const key = `${enumDef.name}_${type.pp()}`;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
+  private getOrCreate(type: IntType, enumDef: EnumDefinition) {
+    const input256Bits = type.nBits === 256;
+    const funcName = `enum_bound_check_${enumDef.name}` + (input256Bits ? '_256' : '');
+
+    const imports = [this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt')];
+    if (input256Bits) {
+      imports.push(
+        this.requireImport('warplib.maths.utils', 'narrow_safe'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      );
     }
 
-    assert(type instanceof IntType);
-    const funcName = `enum_bound_check${this.generatedFunctions.size}`;
     const implicits = '{range_check_ptr : felt}';
     const nMembers = enumDef.vMembers.length;
-    const input256Bits = type.nBits === 256;
-    this.generatedFunctions.set(key, {
+    const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(${
@@ -72,12 +89,8 @@ export class EnumInputCheck extends StringIndexedFuncGen {
         `    return (arg,);`,
         `}`,
       ].join('\n'),
-    });
-    if (input256Bits) {
-      this.requireImport('warplib.maths.utils', 'narrow_safe');
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    }
-    this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
-    return funcName;
+      functionsCalled: imports,
+    };
+    return funcInfo;
   }
 }

@@ -40,6 +40,7 @@ import {
   SourceLocation,
   SourceUnit,
   StateVariableVisibility,
+  StringLiteralType,
   StringType,
   StructDefinition,
   TimeUnit,
@@ -253,7 +254,7 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
       node.definition.id,
       new IdentifierPath(ast.reserveId(), '', node.definition.name, node.definition.id),
     );
-  } else if (node instanceof StringType) {
+  } else if (node instanceof StringType || node instanceof StringLiteralType) {
     return new ElementaryTypeName(ast.reserveId(), '', 'string', 'string', 'nonpayable');
   }
 
@@ -263,17 +264,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
 
   ast.setContextRecursive(result);
   return result;
-}
-
-export function mergeImports(...maps: Map<string, Set<string>>[]): Map<string, Set<string>> {
-  return maps.reduce((acc, curr) => {
-    curr.forEach((importedSymbols, location) => {
-      const accSet = acc.get(location) ?? new Set<string>();
-      importedSymbols.forEach((s) => accSet.add(s));
-      acc.set(location, accSet);
-    });
-    return acc;
-  }, new Map<string, Set<string>>());
 }
 
 export function groupBy<V, K>(arr: V[], groupFunc: (arg: V) => K): Map<K, Set<V>> {
@@ -565,6 +555,10 @@ export function getContainingFunction(node: ASTNode): FunctionDefinition {
 }
 
 export function getContainingSourceUnit(node: ASTNode): SourceUnit {
+  if (node instanceof SourceUnit) {
+    return node;
+  }
+
   const root = node.getClosestParentByType(SourceUnit);
   assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
   return root;

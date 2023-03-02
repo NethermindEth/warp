@@ -1,9 +1,7 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import {
-  generateFile,
   forAllWidths,
   uint256,
   pow2,
@@ -11,18 +9,19 @@ import {
   mask,
   msb,
   IntxIntFunction,
+  WarplibFunctionInfo,
 } from '../../utils';
 
-export async function mul(): Promise<void> {
-  await generateFile(
-    'mul',
-    [
+export function mul(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul',
+    imports: [
       'from starkware.cairo.common.uint256 import Uint256, uint256_mul',
       'from starkware.cairo.common.math_cmp import is_le_felt',
       'from warplib.maths.ge import warp_ge256',
       'from warplib.maths.utils import felt_to_uint256',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_mul256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
@@ -31,7 +30,7 @@ export async function mul(): Promise<void> {
           '    assert overflow.high = 0;',
           '    return (result,);',
           '}',
-        ];
+        ].join('\n');
       } else if (width >= 128) {
         return [
           `func warp_mul${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -43,7 +42,7 @@ export async function mul(): Promise<void> {
           '    assert outOfRange = 0;',
           `    return (res.low + ${bound(128)} * res.high,);`,
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -52,29 +51,29 @@ export async function mul(): Promise<void> {
           '    assert inRange = 1;',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
-export async function mul_unsafe(): Promise<void> {
-  await generateFile(
-    'mul_unsafe',
-    [
+export function mul_unsafe(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul_unsafe',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_mul',
       'from warplib.maths.utils import felt_to_uint256',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_mul_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
           `    let (res : Uint256, _) = uint256_mul(lhs, rhs);`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else if (width >= 128) {
         return [
           `func warp_mul_unsafe${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
@@ -85,23 +84,23 @@ export async function mul_unsafe(): Promise<void> {
           `    let (high) = bitwise_and(res.high, ${mask(width - 128)});`,
           `    return (res.low + ${bound(128)} * high,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt){`,
           `    let (res) = bitwise_and(lhs * rhs, ${mask(width)});`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
-export async function mul_signed(): Promise<void> {
-  await generateFile(
-    'mul_signed',
-    [
+export function mul_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
@@ -113,7 +112,7 @@ export async function mul_signed(): Promise<void> {
         ', ',
       )}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_mul_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -142,7 +141,7 @@ export async function mul_signed(): Promise<void> {
           `        return (res_abs,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -183,16 +182,16 @@ export async function mul_signed(): Promise<void> {
           `        }`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
-export async function mul_signed_unsafe(): Promise<void> {
-  await generateFile(
-    'mul_signed_unsafe',
-    [
+export function mul_signed_unsafe(): WarplibFunctionInfo {
+  return {
+    fileName: 'mul_signed_unsafe',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math_cmp import is_le_felt',
@@ -206,7 +205,7 @@ export async function mul_signed_unsafe(): Promise<void> {
       )}`,
       'from warplib.maths.utils import felt_to_uint256',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `func warp_mul_signed_unsafe256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -220,7 +219,7 @@ export async function mul_signed_unsafe(): Promise<void> {
           `    let (res) = uint256_cond_neg(res_abs, (lhs_nn + rhs_nn) * (2 - lhs_nn - rhs_nn));`,
           `    return (res,);`,
           `}`,
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_mul_signed_unsafe${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -237,18 +236,12 @@ export async function mul_signed_unsafe(): Promise<void> {
           `        return (res,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 export function functionaliseMul(node: BinaryOperation, unsafe: boolean, ast: AST): void {
-  const implicitsFn = (width: number, signed: boolean): Implicits[] => {
-    if (signed || (unsafe && width >= 128 && width < 256))
-      return ['range_check_ptr', 'bitwise_ptr'];
-    else if (unsafe && width < 128) return ['bitwise_ptr'];
-    else return ['range_check_ptr'];
-  };
-  IntxIntFunction(node, 'mul', 'always', true, unsafe, implicitsFn, ast);
+  IntxIntFunction(node, 'mul', 'always', true, unsafe, ast);
 }
