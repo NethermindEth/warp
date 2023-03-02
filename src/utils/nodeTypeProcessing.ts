@@ -248,7 +248,7 @@ export function checkableType(type: TypeNode): boolean {
     type instanceof FixedBytesType ||
     type instanceof UserDefinedType ||
     type instanceof AddressType ||
-    type instanceof IntType ||
+    (type instanceof IntType && type.nBits < 256) ||
     type instanceof StringType
   );
 }
