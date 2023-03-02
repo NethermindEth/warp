@@ -3,10 +3,6 @@ import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
 import { div_signed, div_signed_unsafe } from './implementations/maths/div';
 import { exp, exp_signed, exp_signed_unsafe, exp_unsafe } from './implementations/maths/exp';
-import { ge_signed } from './implementations/maths/ge';
-import { gt_signed } from './implementations/maths/gt';
-import { le_signed } from './implementations/maths/le';
-import { lt_signed } from './implementations/maths/lt';
 import { mod_signed } from './implementations/maths/mod';
 import { mul, mul_unsafe, mul_signed, mul_signed_unsafe } from './implementations/maths/mul';
 import { negate } from './implementations/maths/negate';
@@ -43,15 +39,6 @@ export const warplibFunctions: WarplibFunctionInfo[] = [
   shl(),
   shr(),
   shr_signed(),
-  // ge - handwritten
-  ge_signed(),
-  // gt - handwritten
-  gt_signed(),
-  // le - handwritten
-  le_signed(),
-  // lt - handwritten
-  lt_signed(),
-  // and - handwritten
   // xor - handwritten
   // bitwise_and - handwritten
   // bitwise_or - handwritten

@@ -11,22 +11,14 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { functionaliseAdd } from '../../warplib/implementations/maths/add';
-import { functionaliseAnd } from '../../warplib/implementations/maths/and';
 import { functionaliseBitwiseAnd } from '../../warplib/implementations/maths/bitwiseAnd';
 import { functionaliseBitwiseNot } from '../../warplib/implementations/maths/bitwiseNot';
 import { functionaliseBitwiseOr } from '../../warplib/implementations/maths/bitwiseOr';
 import { functionaliseDiv } from '../../warplib/implementations/maths/div';
-import { functionaliseEq } from '../../warplib/implementations/maths/eq';
 import { functionaliseExp } from '../../warplib/implementations/maths/exp';
-import { functionaliseGe } from '../../warplib/implementations/maths/ge';
-import { functionaliseGt } from '../../warplib/implementations/maths/gt';
-import { functionaliseLe } from '../../warplib/implementations/maths/le';
-import { functionaliseLt } from '../../warplib/implementations/maths/lt';
 import { functionaliseMod } from '../../warplib/implementations/maths/mod';
 import { functionaliseMul } from '../../warplib/implementations/maths/mul';
 import { functionaliseNegate } from '../../warplib/implementations/maths/negate';
-import { functionaliseNeq } from '../../warplib/implementations/maths/neq';
-import { functionaliseOr } from '../../warplib/implementations/maths/or';
 import { functionaliseShl } from '../../warplib/implementations/maths/shl';
 import { functionaliseShr } from '../../warplib/implementations/maths/shr';
 import { functionaliseSub } from '../../warplib/implementations/maths/sub';
@@ -45,25 +37,29 @@ export class MathsOperationToFunction extends ASTMapper {
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
     const operatorMap: Map<string, () => void> = new Map([
+      // Arith
       ['+', () => functionaliseAdd(node, this.inUncheckedBlock, ast)],
       ['-', () => functionaliseSub(node, this.inUncheckedBlock, ast)],
       ['*', () => functionaliseMul(node, this.inUncheckedBlock, ast)],
       ['/', () => functionaliseDiv(node, this.inUncheckedBlock, ast)],
       ['%', () => functionaliseMod(node, ast)],
       ['**', () => functionaliseExp(node, this.inUncheckedBlock, ast)],
-      ['==', () => functionaliseEq(node, ast)],
-      ['!=', () => functionaliseNeq(node, ast)],
-      ['>=', () => functionaliseGe(node, ast)],
-      ['>', () => functionaliseGt(node, ast)],
-      ['<=', () => functionaliseLe(node, ast)],
-      ['<', () => functionaliseLt(node, ast)],
+      // Comparison
+      ['==', () => {}],
+      ['!=', () => {}],
+      ['>=', () => {}],
+      ['>', () => {}],
+      ['<=', () => {}],
+      ['<', () => {}],
+      // Bitwise
       ['&', () => functionaliseBitwiseAnd(node, ast)],
       ['|', () => functionaliseBitwiseOr(node, ast)],
       ['^', () => functionaliseXor(node, ast)],
       ['<<', () => functionaliseShl(node, ast)],
       ['>>', () => functionaliseShr(node, ast)],
-      ['&&', () => functionaliseAnd(node, ast)],
-      ['||', () => functionaliseOr(node, ast)],
+      // Logic
+      ['&&', () => {}],
+      ['||', () => {}],
     ]);
 
     const thunk = operatorMap.get(node.operator);
