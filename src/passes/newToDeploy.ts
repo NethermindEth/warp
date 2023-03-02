@@ -33,6 +33,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit } from '../utils/utils';
+import { deployImport } from '../utils/importFuncs';
 
 /** Pass that takes all expressions of the form:
  *
@@ -142,8 +143,7 @@ export class NewToDeploy extends ASTMapper {
   ): FunctionCall {
     const deployFunc = ast.registerImport(
       node,
-      'starkware.starknet.common.syscalls',
-      'deploy',
+      ...deployImport(),
       [
         ['class_hash', createAddressTypeName(false, ast)],
         ['contract_address_salt', createBytesNTypeName(31, ast)],

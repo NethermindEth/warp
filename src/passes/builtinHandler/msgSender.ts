@@ -2,6 +2,7 @@ import { MemberAccess, Identifier, ExternalReferenceType } from 'solc-typed-ast'
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { getCallerAddressImport } from '../../utils/importFuncs';
 import { createAddressTypeName } from '../../utils/nodeTemplates';
 
 export class MsgSender extends ASTMapper {
@@ -15,8 +16,7 @@ export class MsgSender extends ASTMapper {
       const replacementCall = createCallToFunction(
         ast.registerImport(
           node,
-          'starkware.starknet.common.syscalls',
-          'get_caller_address',
+          ...getCallerAddressImport(),
           [],
           [['address', createAddressTypeName(false, ast)]],
         ),

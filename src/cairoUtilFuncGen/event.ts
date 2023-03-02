@@ -24,6 +24,12 @@ import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AbiEncode } from './abi/abiEncode';
 import { IndexEncode } from './abi/indexEncode';
+import {
+  allocImport,
+  bitwiseBuiltinImport,
+  emitEventImport,
+  uint256Import,
+} from '../utils/importFuncs';
 
 export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
@@ -168,10 +174,10 @@ export class EventFunction extends StringIndexedFuncGen {
       name: `${EMIT_PREFIX}${suffix}`,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.starknet.common.syscalls', 'emit_event'),
-        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+        this.requireImport(...emitEventImport()),
+        this.requireImport(...allocImport()),
         this.requireImport('warplib.keccak', 'pack_bytes_felt'),
-        this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin'),
+        this.requireImport(...bitwiseBuiltinImport()),
         ...requiredFuncs,
         ...dataInsertionsCalls,
         ...anonymousCalls,
@@ -194,7 +200,7 @@ export class EventFunction extends StringIndexedFuncGen {
         `    let (keys_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(keys_len, keys, 0, topic256);`,
       ].join('\n'),
       [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...uint256Import()),
         this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
         this.requireImport(
           'warplib.dynamic_arrays_util',
@@ -242,7 +248,7 @@ export class EventFunction extends StringIndexedFuncGen {
         `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
       ].join('\n'),
       [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...uint256Import()),
         this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
         this.requireImport('warplib.keccak', 'warp_keccak'),
         this.requireImport(

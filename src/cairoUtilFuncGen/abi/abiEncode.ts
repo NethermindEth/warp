@@ -12,6 +12,7 @@ import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
+import { allocImport, uint256Import } from '../../utils/importFuncs';
 import {
   getByteSize,
   getElementType,
@@ -90,8 +91,8 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(...allocImport()),
+      this.requireImport(...uint256Import()),
       this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
       this.requireImport('warplib.memory', 'wm_new'),
       this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),

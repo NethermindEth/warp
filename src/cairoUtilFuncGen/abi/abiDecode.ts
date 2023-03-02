@@ -37,6 +37,7 @@ import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from '../base';
 import { MemoryWriteGen } from '../memory/memoryWrite';
 import { removeSizeInfo } from './base';
+import { uint256Import } from '../../utils/importFuncs';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -309,7 +310,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     if (byteSize === 32) {
       args.push('0');
-      importedFuncs.push(this.requireImport('starkware.cairo.common.uint256', 'Uint256'));
+      importedFuncs.push(this.requireImport(...uint256Import()));
     }
     const decodeType = byteSize === 32 ? 'Uint256' : 'felt';
 
@@ -431,7 +432,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(...uint256Import()),
       this.requireImport('warplib.memory', 'wm_index_dyn'),
       this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
       this.requireImport('warplib.maths.utils', 'narrow_safe'),

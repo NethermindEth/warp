@@ -11,6 +11,7 @@ import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
+import { uint256Import } from '../utils/importFuncs';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 
@@ -32,21 +33,21 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
+      createImport(...uint256Import(), this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
+      createImport(...uint256Import(), this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
+      createImport(...uint256Import(), this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining

@@ -12,6 +12,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { allocImport, uint256Import } from '../../utils/importFuncs';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -114,8 +115,8 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+      this.requireImport(...uint256Import()),
+      this.requireImport(...allocImport()),
       this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
       this.requireImport('warplib.memory', 'wm_new'),
       this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),

@@ -64,7 +64,7 @@ export function createImport(
     );
   const createStructImport = () => createCairoImportStructDefinition(name, path, ast, sourceUnit);
 
-  const warplibFunc = warplibImportInfo.get(path)?.get(name);
+  const warplibFunc = warplibImportInfo.get(path.join('.'))?.get(name);
   if (warplibFunc !== undefined) {
     return createFuncImport(...warplibFunc);
   }
