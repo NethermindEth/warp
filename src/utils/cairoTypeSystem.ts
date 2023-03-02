@@ -74,7 +74,7 @@ export abstract class CairoType {
         return new CairoStaticArray(elementType, narrowedLength);
       }
     } else if (tp instanceof BoolType) {
-      return new CairoFelt();
+      return new CairoBool();
     } else if (tp instanceof BuiltinType) {
       throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
     } else if (tp instanceof BuiltinStructType) {
@@ -160,6 +160,21 @@ export class CairoFelt extends CairoType {
   }
   toString(): string {
     return 'felt';
+  }
+  get width(): number {
+    return 1;
+  }
+  serialiseMembers(name: string): string[] {
+    return [name];
+  }
+}
+
+export class CairoBool extends CairoType {
+  get fullStringRepresentation(): string {
+    return '[Bool]';
+  }
+  toString(): string {
+    return 'bool';
   }
   get width(): number {
     return 1;
