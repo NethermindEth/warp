@@ -119,16 +119,3 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
     interfaceNameMappings.set(node, map);
   }
 }
-
-function getGroupedImports(imports: CairoImportFunctionDefinition[]): string[] {
-  const processedImports: string[] = [];
-  imports.reduce((functionNames: string[], importNode, index) => {
-    functionNames.push(importNode.name);
-    if (importNode.path !== imports[index + 1]?.path) {
-      processedImports.push(`from ${importNode.path} import ${functionNames.join(', ')}`);
-      functionNames = [];
-    }
-    return functionNames;
-  }, []);
-  return processedImports;
-}
