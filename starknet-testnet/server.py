@@ -36,7 +36,6 @@ async def pingpost():
 @app.route("/deploy", methods=["POST"])
 async def deploy():
     data = request.get_json()
-
     state = await starknet_wrapper.get_state()
     input = [int(x) for x in data["input"]]
 

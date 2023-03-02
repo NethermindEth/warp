@@ -13,7 +13,6 @@ export class TupleFixes extends ASTMapper {
   static map(ast: AST): AST {
     TupleFlattener.map(ast);
     TupleFiller.map(ast);
-
     return ast;
   }
 }
