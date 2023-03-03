@@ -25,7 +25,12 @@ import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
-import { uint256Import } from '../../utils/importFuncs';
+import {
+  bytesConversionsPath,
+  feltToUint256Import,
+  intConversionsPath,
+  uint256Import,
+} from '../../utils/importFuncs';
 
 const IMPLICITS =
   '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
@@ -304,7 +309,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       }
       if (targetElementT.signed) {
         const convertionFunc = this.requireImport(
-          'warplib.maths.int_conversions',
+          intConversionsPath(),
           `warp_int${sourceElementT.nBits}_to_int${targetElementT.nBits}`,
         );
         return [
@@ -316,7 +321,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           [writeToStorage, convertionFunc],
         ];
       }
-      const toUintFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+      const toUintFunc = this.requireImport(...feltToUint256Import());
       return [
         (index, offset) =>
           [
@@ -332,7 +337,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       const writeToStorage = this.storageWriteGen.getOrCreateFuncDef(targetElementT);
       if (targetElementT.size > sourceElementT.size) {
         const widenFunc = this.requireImport(
-          'warplib.maths.bytes_conversions',
+          bytesConversionsPath(),
           `warp_bytes_widen${targetElementT.size === 32 ? '_256' : ''}`,
         );
         return [
@@ -389,7 +394,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       }
       if (targetElmType.signed) {
         const conversionFunc = this.requireImport(
-          'warplib.maths.int_conversions',
+          intConversionsPath(),
           `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
         );
         return [
@@ -402,7 +407,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           [arrayDef, writeDef, conversionFunc],
         ];
       }
-      const toUintFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+      const toUintFunc = this.requireImport(...feltToUint256Import());
       return [
         (index) =>
           [
@@ -421,7 +426,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
       if (targetElmType.size > sourceElmType.size) {
         const widenFunc = this.requireImport(
-          'warplib.maths.bytes_conversions',
+          bytesConversionsPath(),
           `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
         );
         const bits = (targetElmType.size - sourceElmType.size) * 8;
@@ -490,10 +495,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       assert(sourceElmType instanceof IntType);
       const convertionFunc = targetElmType.signed
         ? this.requireImport(
-            'warplib.maths.int_conversions',
+            intConversionsPath(),
             `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
           )
-        : this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+        : this.requireImport(...feltToUint256Import());
       return [
         () =>
           [
@@ -509,7 +514,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (targetElmType instanceof FixedBytesType) {
       assert(sourceElmType instanceof FixedBytesType);
       const widenFunc = this.requireImport(
-        'warplib.maths.bytes_conversions',
+        bytesConversionsPath(),
         `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
       );
       const bits = (targetElmType.size - sourceElmType.size) * 8;

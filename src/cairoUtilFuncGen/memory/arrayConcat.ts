@@ -21,7 +21,14 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { uint256Import } from '../../utils/importFuncs';
+import {
+  dynArrayLengthImport,
+  dynArraysUtilsPath,
+  feltToUint256Import,
+  narrowSafeImport,
+  newImport,
+  uint256Import,
+} from '../../utils/importFuncs';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
@@ -111,7 +118,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
         ].join('\n'),
         functionsCalled: [
           this.requireImport(...uint256Import()),
-          this.requireImport('warplib.memory', 'wm_new'),
+          this.requireImport(...newImport()),
         ],
       };
     }
@@ -168,8 +175,8 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [
         this.requireImport(...uint256Import()),
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...feltToUint256Import()),
+        this.requireImport(...newImport()),
         ...argSizesImports,
         ...concatImports,
       ],
@@ -183,10 +190,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
           `let (size_${index}) = narrow_safe(size256_${index});`,
         ].join('\n'),
-        [
-          this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-          this.requireImport('warplib.maths.utils', 'narrow_safe'),
-        ],
+        [this.requireImport(...dynArrayLengthImport()), this.requireImport(...narrowSafeImport())],
       ];
     }
 
@@ -210,7 +214,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
         `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0);`,
-        this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt'),
+        this.requireImport(dynArraysUtilsPath(), 'dynamic_array_copy_felt'),
       ];
     }
 
@@ -218,13 +222,13 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type.size < 32) {
       return [
         `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index});`,
-        this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes_to_dynamic_array'),
+        this.requireImport(dynArraysUtilsPath(), 'fixed_bytes_to_dynamic_array'),
       ];
     }
 
     return [
       `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0);`,
-      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_dynamic_array'),
+      this.requireImport(dynArraysUtilsPath(), 'fixed_bytes256_to_dynamic_array'),
     ];
   }
 }

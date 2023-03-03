@@ -17,7 +17,12 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { dictWriteImport, uint256Import } from '../../utils/importFuncs';
+import {
+  dictWriteImport,
+  uint256Import,
+  warpAllocImport,
+  write256Import,
+} from '../../utils/importFuncs';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -139,8 +144,8 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('warplib.memory', 'wm_alloc'),
-        this.requireImport('warplib.memory', 'wm_write_256'),
+        this.requireImport(...warpAllocImport()),
+        this.requireImport(...write256Import()),
         this.requireImport(...uint256Import()),
         this.requireImport(...dictWriteImport()),
       ],

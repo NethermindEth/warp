@@ -94,16 +94,14 @@ export function IntxIntFunction(
     name,
     signed && separateSigned ? '_signed' : '',
     unsafe ? '_unsafe' : '',
-
     shouldAppendWidth ? `${width}` : '',
   ].join('');
 
   const importName = [
-    'warplib.maths.',
-    name,
-    signed && separateSigned ? '_signed' : '',
-    unsafe ? '_unsafe' : '',
-  ].join('');
+    'warplib',
+    'maths',
+    `${name}${signed && separateSigned ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`,
+  ];
 
   const importedFunc = ast.registerImport(
     node,

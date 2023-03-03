@@ -22,7 +22,7 @@ export function functionaliseBytesToFixedBytes(
         ['width', createUint8TypeName(ast)],
       ];
 
-  const importedFunc = ast.registerImport(node, 'warplib.memory', funcName, args, [
+  const importedFunc = ast.registerImport(node, ['warplib', 'memory'], funcName, args, [
     ['res', typeNameFromTypeNode(targetType, ast)],
   ]);
 

@@ -88,11 +88,9 @@ export function functionaliseShl(node: BinaryOperation, ast: AST): void {
 
   const fullName = `warp_shl${lhsWidth}${rhsType.nBits === 256 ? '_256' : ''}`;
 
-  const importName = 'warplib.maths.shl';
-
   const importedFunc = ast.registerImport(
     node,
-    importName,
+    ['warplib', 'maths', 'shl'],
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],

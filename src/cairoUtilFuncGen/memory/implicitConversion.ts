@@ -20,7 +20,17 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { uint256AddImport, uint256Import } from '../../utils/importFuncs';
+import {
+  bytesConversionsPath,
+  feltToUint256Import,
+  indexDynImport,
+  intConversionsPath,
+  newImport,
+  readIdImport,
+  uint256AddImport,
+  uint256Import,
+  warpAllocImport,
+} from '../../utils/importFuncs';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -178,7 +188,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     let sourceLocationCode: string;
     if (targetType.elementT instanceof PointerType) {
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
-      sourceLocationFunc = this.requireImport('warplib.memory', 'wm_read_id');
+      sourceLocationFunc = this.requireImport(...readIdImport());
       sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)});`;
     } else {
       sourceLocationFunc = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
@@ -221,7 +231,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [
         this.requireImport(...uint256Import()),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...warpAllocImport()),
         sourceLocationFunc,
         ...calledFuncs,
         memoryWriteDef,
@@ -302,8 +312,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...uint256Import()),
         this.requireImport(...uint256AddImport()),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...indexDynImport()),
+        this.requireImport(...newImport()),
         memoryRead,
         ...conversionFuncs,
         memoryWrite,
@@ -378,8 +388,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...uint256Import()),
         this.requireImport(...uint256AddImport()),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...indexDynImport()),
+        this.requireImport(...newImport()),
         memoryRead,
         ...conversionCalls,
         memoryWrite,
@@ -427,13 +437,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       const conversionFunc = `warp_int${sourceType.nBits}_to_int${targetType.nBits}`;
       return [
         `let (${targetVar}) = ${conversionFunc}(${sourceVar});`,
-        [this.requireImport('warplib.maths.int_conversions', conversionFunc)],
+        [this.requireImport(intConversionsPath(), conversionFunc)],
       ];
     } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
-      const conversionFunc = `felt_to_uint256`;
       return [
-        `let (${targetVar}) = ${conversionFunc}(${sourceVar});`,
-        [this.requireImport('warplib.maths.utils', conversionFunc)],
+        `let (${targetVar}) = felt_to_uint256(${sourceVar});`,
+        [this.requireImport(...feltToUint256Import())],
       ];
     } else {
       return [`let ${targetVar} = ${sourceVar};`, []];
@@ -455,7 +464,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     return [
       `let (${targetVar}) = ${conversionFunc}(${sourceVar}, ${widthDiff * 8});`,
-      [this.requireImport('warplib.maths.bytes_conversions', conversionFunc)],
+      [this.requireImport(bytesConversionsPath(), conversionFunc)],
     ];
   }
 }

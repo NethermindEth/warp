@@ -26,7 +26,13 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { CairoFunctionDefinition } from '../../export';
-import { dictWriteImport, uint256Import } from '../../utils/importFuncs';
+import {
+  dictWriteImport,
+  feltToUint256Import,
+  newImport,
+  uint256Import,
+  warpAllocImport,
+} from '../../utils/importFuncs';
 
 const IMPLICITS =
   '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -130,8 +136,8 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...uint256Import()),
-        this.requireImport('warplib.memory', 'wm_new'),
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport(...newImport()),
+        this.requireImport(...feltToUint256Import()),
         auxFunc,
       ],
     };
@@ -180,7 +186,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...warpAllocImport()),
         this.requireImport(...uint256Import()),
         this.requireImport(...dictWriteImport()),
         ...funcCalls,
@@ -241,7 +247,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...dictWriteImport()),
         this.requireImport(...uint256Import()),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...warpAllocImport()),
         ...funcCalls,
       ],
     };

@@ -38,7 +38,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
-import { isLeFeltImport } from '../../utils/importFuncs';
+import { isLeFeltImport, narrowSafeImport } from '../../utils/importFuncs';
 
 const IMPLICITS = '{range_check_ptr : felt}';
 
@@ -68,22 +68,22 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
     if (type instanceof FixedBytesType)
       return this.requireImport(
-        'warplib.maths.external_input_check_ints',
+        ['warplib', 'maths', 'external_input_check_ints'],
         `warp_external_input_check_int${type.size * 8}`,
       );
     if (type instanceof IntType)
       return this.requireImport(
-        'warplib.maths.external_input_check_ints',
+        ['warplib', 'maths', 'external_input_check_ints'],
         `warp_external_input_check_int${type.nBits}`,
       );
     if (isAddressType(type))
       return this.requireImport(
-        'warplib.maths.external_input_check_address',
+        ['warplib', 'maths', 'external_input_check_address'],
         `warp_external_input_check_address`,
       );
     if (type instanceof BoolType)
       return this.requireImport(
-        'warplib.maths.external_input_check_bool',
+        ['warplib', 'maths', 'external_input_check_bool'],
         `warp_external_input_check_bool`,
       );
 
@@ -203,7 +203,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
     const importFuncs = [this.requireImport(...isLeFeltImport())];
     if (takesUint) {
-      importFuncs.push(this.requireImport('warplib.maths.utils', 'narrow_safe'));
+      importFuncs.push(this.requireImport(...narrowSafeImport()));
     }
 
     const nMembers = enumDef.vMembers.length;

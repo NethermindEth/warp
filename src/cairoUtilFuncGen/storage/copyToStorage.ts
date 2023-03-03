@@ -21,6 +21,9 @@ import { CairoType, TypeConversionContext, WarpLocation } from '../../utils/cair
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
+  bytesConversionsPath,
+  feltToUint256Import,
+  intConversionsPath,
   isLeImport,
   uint256AddImport,
   uint256Import,
@@ -472,10 +475,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         this.requireImport(...uint256Import()),
         toType.signed
           ? this.requireImport(
-              'warplib.maths.int_conversions',
+              intConversionsPath(),
               `warp_int${fromType.nBits}_to_int${toType.nBits}`,
             )
-          : this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+          : this.requireImport(...feltToUint256Import()),
       ],
     };
   }
@@ -524,7 +527,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('warplib.maths.bytes_conversions', conversionFunc),
+        this.requireImport(bytesConversionsPath(), conversionFunc),
         this.requireImport(...uint256Import()),
       ],
     };

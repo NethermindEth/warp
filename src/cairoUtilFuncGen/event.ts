@@ -28,7 +28,13 @@ import {
   allocImport,
   bitwiseBuiltinImport,
   emitEventImport,
+  feltArrayConcatImport,
+  feltToUint256Import,
+  fixedBytes256ToFeltDynamicArraySplImport,
+  packBytesFeltImport,
+  toFeltArrayImport,
   uint256Import,
+  warpKeccakImport,
 } from '../utils/importFuncs';
 
 export const BYTES_IN_FELT_PACKING = 31;
@@ -176,7 +182,7 @@ export class EventFunction extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...emitEventImport()),
         this.requireImport(...allocImport()),
-        this.requireImport('warplib.keccak', 'pack_bytes_felt'),
+        this.requireImport(...packBytesFeltImport()),
         this.requireImport(...bitwiseBuiltinImport()),
         ...requiredFuncs,
         ...dataInsertionsCalls,
@@ -201,11 +207,8 @@ export class EventFunction extends StringIndexedFuncGen {
       ].join('\n'),
       [
         this.requireImport(...uint256Import()),
-        this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
-        this.requireImport(
-          'warplib.dynamic_arrays_util',
-          'fixed_bytes256_to_felt_dynamic_array_spl',
-        ),
+        this.requireImport(...feltToUint256Import()),
+        this.requireImport(...fixedBytes256ToFeltDynamicArraySplImport()),
       ],
     ];
   }
@@ -217,8 +220,8 @@ export class EventFunction extends StringIndexedFuncGen {
   ): [string, CairoFunctionDefinition[]] {
     const abiFunc = this.abiEncode.getOrCreateFuncDef(types);
 
-    this.requireImport('warplib.memory', 'wm_to_felt_array');
-    this.requireImport('warplib.keccak', 'felt_array_concat');
+    this.requireImport(...toFeltArrayImport());
+    this.requireImport(...feltArrayConcatImport());
 
     return [
       [
@@ -227,8 +230,8 @@ export class EventFunction extends StringIndexedFuncGen {
         `   let (${arrayName}_len: felt) = felt_array_concat(encode_bytes_len, 0, encode_bytes, ${arrayName}_len, ${arrayName});`,
       ].join('\n'),
       [
-        this.requireImport('warplib.memory', 'wm_to_felt_array'),
-        this.requireImport('warplib.keccak', 'felt_array_concat'),
+        this.requireImport(...toFeltArrayImport()),
+        this.requireImport(...feltArrayConcatImport()),
         abiFunc,
       ],
     ];
@@ -249,12 +252,9 @@ export class EventFunction extends StringIndexedFuncGen {
       ].join('\n'),
       [
         this.requireImport(...uint256Import()),
-        this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
-        this.requireImport('warplib.keccak', 'warp_keccak'),
-        this.requireImport(
-          'warplib.dynamic_arrays_util',
-          'fixed_bytes256_to_felt_dynamic_array_spl',
-        ),
+        this.requireImport(...feltToUint256Import()),
+        this.requireImport(...warpKeccakImport()),
+        this.requireImport(...fixedBytes256ToFeltDynamicArraySplImport()),
         abiFunc,
       ],
     ];

@@ -109,7 +109,7 @@ export class BytesConverter extends ASTMapper {
 
     const importedFunc = ast.registerImport(
       node,
-      'warplib.maths.bytes_access',
+      ['warplib', 'maths', 'bytes_access'],
       selectWarplibFunction(baseTypeName, indexTypeName),
       stubParams,
       [['res', createUint8TypeName(ast)]],

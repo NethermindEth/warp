@@ -185,11 +185,10 @@ export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AS
   ].join('');
 
   const importName = [
-    'warplib.maths.',
-    'exp',
-    retType.signed ? '_signed' : '',
-    unsafe ? '_unsafe' : '',
-  ].join('');
+    'warplib',
+    'maths',
+    `exp${retType.signed ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`,
+  ];
 
   const importedFunc = ast.registerImport(
     node,

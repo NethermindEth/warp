@@ -13,7 +13,18 @@ import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import { allocImport, bitwiseBuiltinImport, uint256Import } from '../../utils/importFuncs';
+import {
+  allocImport,
+  bitwiseBuiltinImport,
+  dynArrayLengthImport,
+  dynArraysUtilsPath,
+  feltArrayToWarpMemoryArrayImport,
+  feltToUint256Import,
+  indexDynImport,
+  narrowSafeImport,
+  newImport,
+  uint256Import,
+} from '../../utils/importFuncs';
 import {
   getElementType,
   getPackedByteSize,
@@ -85,9 +96,9 @@ export class IndexEncode extends AbiBase {
       this.requireImport(...allocImport()),
       this.requireImport(...bitwiseBuiltinImport()),
       this.requireImport(...uint256Import()),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
+      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...newImport()),
+      this.requireImport(...feltArrayToWarpMemoryArrayImport()),
     ];
 
     const cairoFunc = {
@@ -225,9 +236,9 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.maths.utils', 'narrow_safe'),
+      this.requireImport(...dynArrayLengthImport()),
+      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...narrowSafeImport()),
     ];
 
     const funcInfo = { name, code, functionsCalled: [...importedFuncs, tailEncoding] };
@@ -273,8 +284,8 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_index_dyn'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+      this.requireImport(...indexDynImport()),
+      this.requireImport(...feltToUint256Import()),
     ];
 
     const funcInfo = {
@@ -319,7 +330,7 @@ export class IndexEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const importedFunc = this.requireImport(...feltToUint256Import());
 
     const funcInfo = { name, code, functionsCalled: [importedFunc] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -405,7 +416,7 @@ export class IndexEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunction = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const importedFunction = this.requireImport(...feltToUint256Import());
 
     const funcInfo = { name, code, functionsCalled: [importedFunction, inlineEncoding] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -475,17 +486,17 @@ export class IndexEncode extends AbiBase {
 
   private createStringOrBytesHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(dynArraysUtilsPath(), funcName);
   }
 
   private createStringOrBytesHeadEncodingWithoutPadding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl_without_padding';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(dynArraysUtilsPath(), funcName);
   }
 
   private createValueTypeHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'fixed_bytes256_to_felt_dynamic_array_spl';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(dynArraysUtilsPath(), funcName);
   }
 
   protected readMemory(type: TypeNode, arg: string): [string, CairoFunctionDefinition] {

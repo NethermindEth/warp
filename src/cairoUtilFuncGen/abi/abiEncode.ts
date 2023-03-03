@@ -12,7 +12,15 @@ import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import { allocImport, uint256Import } from '../../utils/importFuncs';
+import {
+  allocImport,
+  dynArrayLengthImport,
+  feltArrayToWarpMemoryArrayImport,
+  feltToUint256Import,
+  narrowSafeImport,
+  newImport,
+  uint256Import,
+} from '../../utils/importFuncs';
 import {
   getByteSize,
   getElementType,
@@ -93,9 +101,9 @@ export class AbiEncode extends AbiBase {
     const importedFuncs = [
       this.requireImport(...allocImport()),
       this.requireImport(...uint256Import()),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
+      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...newImport()),
+      this.requireImport(...feltArrayToWarpMemoryArrayImport()),
     ];
 
     const funcInfo = {
@@ -261,9 +269,9 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.maths.utils', 'narrow_safe'),
+      this.requireImport(...dynArrayLengthImport()),
+      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...narrowSafeImport()),
     ];
 
     const genFuncInfo = {

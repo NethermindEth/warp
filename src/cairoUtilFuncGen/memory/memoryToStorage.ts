@@ -21,6 +21,8 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   dictReadImport,
+  dynArrayLengthImport,
+  narrowSafeImport,
   uint256Import,
   uint256LtImport,
   uint256SubImport,
@@ -318,10 +320,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('warplib.maths.utils', 'narrow_safe'),
+        this.requireImport(...narrowSafeImport()),
         this.requireImport(...uint256LtImport()),
         this.requireImport(...uint256SubImport()),
-        this.requireImport('warplib.memory', 'wm_dyn_array_length'),
+        this.requireImport(...dynArrayLengthImport()),
         ...funcCalls,
         dynArray,
         dynArrayLength,

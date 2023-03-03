@@ -19,7 +19,12 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { allocImport, uint256Import } from '../../utils/importFuncs';
+import {
+  allocImport,
+  narrowSafeImport,
+  read256Import,
+  uint256Import,
+} from '../../utils/importFuncs';
 import {
   getElementType,
   getSize,
@@ -197,8 +202,8 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...allocImport()),
-        this.requireImport('warplib.maths.utils', 'narrow_safe'),
-        this.requireImport('warplib.memory', 'wm_read_256'),
+        this.requireImport(...narrowSafeImport()),
+        this.requireImport(...read256Import()),
         calldataDynArrayStruct,
         ...dynArrayReaderInfo.functionsCalled,
       ],

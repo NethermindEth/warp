@@ -2,6 +2,7 @@ import { DataLocation, ExternalReferenceType, FunctionCall } from 'solc-typed-as
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { warpKeccakImport } from '../../utils/importFuncs';
 import {
   createArrayTypeName,
   createBytesNTypeName,
@@ -21,8 +22,7 @@ export class Keccak extends ASTMapper {
 
     const warpKeccak = ast.registerImport(
       node,
-      'warplib.keccak',
-      'warp_keccak',
+      ...warpKeccakImport(),
       [['input', createArrayTypeName(createUintNTypeName(8, ast), ast), DataLocation.Memory]],
       [['hash', createBytesNTypeName(32, ast)]],
     );

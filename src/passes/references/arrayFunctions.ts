@@ -20,6 +20,7 @@ import {
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
+import { feltToUint256Import } from '../../utils/importFuncs';
 
 /*
   Replaces array members (push, pop, length) with standalone functions that implement
@@ -108,8 +109,7 @@ export class ArrayFunctions extends ReferenceSubPass {
 
         const importedFunc = ast.registerImport(
           node,
-          'warplib.maths.utils',
-          'felt_to_uint256',
+          ...feltToUint256Import(),
           [['cd_dstruct_array_len', typeNameFromTypeNode(type, ast)]],
           [['len256', typeNameFromTypeNode(type, ast)]],
         );

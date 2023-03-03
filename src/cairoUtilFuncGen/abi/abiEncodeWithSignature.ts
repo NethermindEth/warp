@@ -12,7 +12,15 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { allocImport, uint256Import } from '../../utils/importFuncs';
+import {
+  allocImport,
+  byte256AtIndexImport,
+  feltArrayToWarpMemoryArrayImport,
+  feltToUint256Import,
+  newImport,
+  uint256Import,
+  warpKeccakImport,
+} from '../../utils/importFuncs';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -117,11 +125,11 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     const importedFuncs = [
       this.requireImport(...uint256Import()),
       this.requireImport(...allocImport()),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
-      this.requireImport('warplib.maths.bytes_access', 'byte256_at_index'),
-      this.requireImport('warplib.keccak', 'warp_keccak'),
+      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...newImport()),
+      this.requireImport(...feltArrayToWarpMemoryArrayImport()),
+      this.requireImport(...byte256AtIndexImport()),
+      this.requireImport(...warpKeccakImport()),
     ];
 
     const cairoFunc = {

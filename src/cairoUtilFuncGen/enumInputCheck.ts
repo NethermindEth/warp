@@ -11,7 +11,7 @@ import {
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
 import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
-import { isLeFeltImport, uint256Import } from '../utils/importFuncs';
+import { isLeFeltImport, narrowSafeImport, uint256Import } from '../utils/importFuncs';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
@@ -66,7 +66,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     const imports = [this.requireImport(...isLeFeltImport())];
     if (input256Bits) {
       imports.push(
-        this.requireImport('warplib.maths.utils', 'narrow_safe'),
+        this.requireImport(...narrowSafeImport()),
         this.requireImport(...uint256Import()),
       );
     }

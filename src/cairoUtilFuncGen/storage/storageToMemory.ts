@@ -20,7 +20,14 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { dictWriteImport, uint256Import, uint256SubImport } from '../../utils/importFuncs';
+import {
+  dictWriteImport,
+  indexDynImport,
+  newImport,
+  uint256Import,
+  uint256SubImport,
+  warpAllocImport,
+} from '../../utils/importFuncs';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -121,7 +128,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...dictWriteImport()),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...warpAllocImport()),
         ...copyCalls,
       ],
     };
@@ -167,7 +174,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...dictWriteImport()),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...warpAllocImport()),
         ...copyCalls,
       ],
     };
@@ -224,7 +231,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...dictWriteImport()),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...warpAllocImport()),
         this.requireImport(...uint256SubImport()),
         this.requireImport(...uint256Import()),
         ...copyCalls,
@@ -281,8 +288,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         this.requireImport(...dictWriteImport()),
         this.requireImport(...uint256SubImport()),
         this.requireImport(...uint256Import()),
-        this.requireImport('warplib.memory', 'wm_new'),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
+        this.requireImport(...newImport()),
+        this.requireImport(...indexDynImport()),
         ...copyCalls,
         dynArray,
         dynArrayLength,

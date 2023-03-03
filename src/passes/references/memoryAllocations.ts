@@ -19,6 +19,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { newImport } from '../../utils/importFuncs';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
@@ -80,8 +81,7 @@ export class MemoryAllocations extends ReferenceSubPass {
 
     const funcImport = ast.registerImport(
       node,
-      'warplib.memory',
-      'wm_new',
+      ...newImport(),
       [
         ['len', createUint256TypeName(ast)],
         ['elemWidth', createUint256TypeName(ast)],

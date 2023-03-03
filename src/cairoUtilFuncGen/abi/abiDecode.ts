@@ -37,7 +37,16 @@ import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from '../base';
 import { MemoryWriteGen } from '../memory/memoryWrite';
 import { removeSizeInfo } from './base';
-import { uint256Import } from '../../utils/importFuncs';
+import {
+  byteArrayToFeltValueImport,
+  dynArraysUtilsPath,
+  feltToUint256Import,
+  indexDynImport,
+  narrowSafeImport,
+  newImport,
+  uint256Import,
+  warpAllocImport,
+} from '../../utils/importFuncs';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -211,9 +220,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       let initInstructions: string[] = [];
       let typeIndex = 'mem_index';
       if (isDynamicallySized(type, this.ast.inference)) {
-        importedFuncs.push(
-          this.requireImport('warplib.dynamic_arrays_util', 'byte_array_to_felt_value'),
-        );
+        importedFuncs.push(this.requireImport(...byteArrayToFeltValueImport()));
         initInstructions = [
           `let (param_offset) = byte_array_to_felt_value(mem_index, mem_index + 32, mem_ptr, 0);`,
           `let mem_offset = ${calcOffset('mem_index', 'param_offset', relativeIndexVar)};`,
@@ -250,7 +257,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `);`,
         ];
         // Other relevant imports get added when the function is generated
-        importedFuncs.push(this.requireImport('warplib.memory', 'wm_new'));
+        importedFuncs.push(this.requireImport(...newImport()));
       } else if (type instanceof ArrayType) {
         // Handling static arrays
         assert(type.size !== undefined);
@@ -267,7 +274,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `  ${decodeResult}`,
           `);`,
         ];
-        importedFuncs.push(this.requireImport('warplib.memory', 'wm_alloc'));
+        importedFuncs.push(this.requireImport(...warpAllocImport()));
       } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
         const maxSize = CairoType.fromSol(
           type,
@@ -282,7 +289,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `  ${decodeResult}`,
           `);`,
         ];
-        importedFuncs.push(this.requireImport('warplib.memory', 'wm_alloc'));
+        importedFuncs.push(this.requireImport(...warpAllocImport()));
       } else {
         throw new TranspileFailedError(
           `Unexpected reference type to generate decoding code: ${printTypeNode(type)}`,
@@ -371,7 +378,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       name,
       code,
       functionsCalled: [
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport(...feltToUint256Import()),
         ...functionsCalled,
         writeToMemFunc,
       ],
@@ -433,9 +440,9 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const importedFuncs = [
       this.requireImport(...uint256Import()),
-      this.requireImport('warplib.memory', 'wm_index_dyn'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.maths.utils', 'narrow_safe'),
+      this.requireImport(...indexDynImport()),
+      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...narrowSafeImport()),
     ];
 
     const funcInfo = {
@@ -503,7 +510,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    const importedFuncs = [this.requireImport('warplib.maths.utils', 'felt_to_uint256')];
+    const importedFuncs = [this.requireImport(...feltToUint256Import())];
     const genFuncInfo = {
       name,
       code,
@@ -517,13 +524,13 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
   private createStringBytesDecoding(): CairoFunctionDefinition {
     const funcName = 'memory_dyn_array_copy';
-    const importedFunc = this.requireImport('warplib.dynamic_arrays_util', funcName);
+    const importedFunc = this.requireImport(dynArraysUtilsPath(), funcName);
     return importedFunc;
   }
 
   private createValueTypeDecoding(byteSize: number | bigint): CairoFunctionDefinition {
     const funcName = byteSize === 32 ? 'byte_array_to_uint256_value' : 'byte_array_to_felt_value';
-    const importedFunc = this.requireImport('warplib.dynamic_arrays_util', funcName);
+    const importedFunc = this.requireImport(dynArraysUtilsPath(), funcName);
     return importedFunc;
   }
 }
