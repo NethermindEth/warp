@@ -217,3 +217,17 @@ export class CairoContractWriter extends CairoASTNodeWriter {
     ];
   }
 }
+
+function getGroupedImports(imports: CairoImportFunctionDefinition[]): string[] {
+  const processedImports: string[] = [];
+  imports.reduce((functionNames: string[], importNode, index) => {
+    functionNames.push(importNode.name);
+    if (importNode.path !== imports[index + 1]?.path) {
+      // TODO: multiple imports are not avaible in cairo1
+      processedImports.push(`use ${importNode.path}::${functionNames.join(', ')}`);
+      functionNames = [];
+    }
+    return functionNames;
+  }, []);
+  return processedImports;
+}
