@@ -6,6 +6,6 @@ export class EventDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = writer.write(node.vParameters);
-    return [[documentation, `// @event`, `// func ${node.name}(${args}){`, `// }`].join('\n')];
+    return [[documentation, `// #[event]`, `// fn ${node.name}(${args}) {}`].join('\n')];
   }
 }
