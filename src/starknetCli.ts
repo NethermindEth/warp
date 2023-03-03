@@ -12,7 +12,7 @@ import {
   StarkNetNewAccountOptions,
 } from './cli';
 import { CLIError, logError } from './utils/errors';
-import { getPersonalizedStarknetError, runStarkNetClassHash } from './utils/utils';
+import { catchExecSyncError, runStarkNetClassHash } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
@@ -45,19 +45,20 @@ export function compileCairo(
     parameters.set('cairo_path', cairoPath);
   }
   const debug: string = debugInfo.debugInfo ? '--debug_info_with_source' : '--no_debug_info';
+  const command = 'starknet-compile';
+
   try {
     console.log(`Running starknet compile with cairoPath ${cairoPath}`);
     execSync(
-      `${warpVenvPrefix} starknet-compile --disable_hint_validation ${debug} ${filePath} ${[
+      `${warpVenvPrefix} ${command} --disable_hint_validation ${debug} ${filePath} ${[
         ...parameters.entries(),
       ]
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')}`,
     );
     return { success: true, resultPath, abiPath, solAbiPath, classHash: undefined };
-  } catch (e: any) {
-    const error = getPersonalizedStarknetError('starknet-compile', e.stderr.toString());
-    logError(error);
+  } catch (e) {
+    logError(catchExecSyncError(e, command));
     return {
       success: false,
       resultPath: undefined,
@@ -89,6 +90,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IG
   const feederGatewayUrlOption = option.feeder_gateway_url
     ? `--feeder_gateway_url ${option.feeder_gateway_url}`
     : '';
+  const command = 'starknet tx_status';
 
   try {
     const output = execSync(
@@ -98,9 +100,8 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IG
       },
     );
     console.log(output);
-  } catch (e: any) {
-    const error = getPersonalizedStarknetError('starknet tx_status', e.stderr.toString());
-    logError(error);
+  } catch (e) {
+    logError(catchExecSyncError(e, command));
   }
 }
 
@@ -141,6 +142,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     }
     throw e;
   }
+  const command = 'starknet deploy';
 
   try {
     let classHash;
@@ -157,7 +159,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
     const resultPath = compileResult.resultPath;
     const output = execSync(
-      `${warpVenvPrefix} starknet deploy --network ${options.network} ${
+      `${warpVenvPrefix} ${command} --network ${options.network} ${
         options.no_wallet
           ? `--no_wallet --contract ${resultPath} `
           : options.wallet === undefined
@@ -171,9 +173,8 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
       },
     );
     console.log(output);
-  } catch (e: any) {
-    const error = getPersonalizedStarknetError('starknet deploy', e.stderr.toString());
-    logError(error);
+  } catch (e) {
+    logError(catchExecSyncError(e, command));
   }
 }
 
@@ -192,10 +193,11 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   }
 
   const account = options.account ? `--account ${options.account}` : '';
+  const command = 'starknet deploy_account';
 
   try {
     const output = execSync(
-      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${
+      `${warpVenvPrefix} ${command} --wallet ${options.wallet} --network ${
         options.network
       } ${account} ${options.gateway_url ? `--gateway_url ${options.gateway_url}` : ''} ${
         options.feeder_gateway_url ? `--feeder_gateway_url ${options.feeder_gateway_url}` : ''
@@ -207,9 +209,8 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
       },
     );
     console.log(output);
-  } catch (e: any) {
-    const error = getPersonalizedStarknetError('starknet deploy_account', e.stderr.toString());
-    logError(error);
+  } catch (e) {
+    logError(catchExecSyncError(e, command));
   }
 }
 
@@ -259,9 +260,10 @@ export async function runStarknetCallOrInvoke(
     }
     throw e;
   }
+  const command = `starknet ${callOrInvoke}`;
   try {
     let warpOutput: string = execSync(
-      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`.trim(),
+      `${warpVenvPrefix} ${command} --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`.trim(),
     ).toString('utf-8');
 
     if (isCall && !options.use_cairo_abi) {
@@ -273,9 +275,8 @@ export async function runStarknetCallOrInvoke(
       warpOutput = decodedOutputsToString(decodedOutputs);
     }
     console.log(warpOutput);
-  } catch (e: any) {
-    const error = getPersonalizedStarknetError(`starknet ${callOrInvoke}`, e.stderr.toString());
-    logError(error);
+  } catch (e) {
+    logError(catchExecSyncError(e, command));
   }
 }
 
@@ -310,18 +311,18 @@ function declareContract(filePath: string, options: IDeclareOptions) {
     : '';
   const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
   const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
+  const command = 'starknet declare';
 
   try {
     const output = execSync(
-      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
+      `${warpVenvPrefix} ${command} --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
       {
         encoding: 'utf8',
       },
     );
     console.log(output);
-  } catch (e: any) {
-    const error = getPersonalizedStarknetError('starknet declare', e.stderr.toString());
-    logError(error);
+  } catch (e) {
+    logError(catchExecSyncError(e, command));
   }
 }
 
@@ -346,17 +347,17 @@ export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
     ? `--feeder_gateway_url ${options.feeder_gateway_url}`
     : '';
   const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
+  const command = 'starknet new_account';
   try {
     const output = execSync(
-      `${warpVenvPrefix} starknet new_account ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
+      `${warpVenvPrefix} ${command} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
       {
         encoding: 'utf8',
       },
     );
     console.log(output);
-  } catch (e: any) {
-    const error = getPersonalizedStarknetError('starknet new_account', e.stderr.toString());
-    logError(error);
+  } catch (e) {
+    logError(catchExecSyncError(e, command));
   }
 }
 
