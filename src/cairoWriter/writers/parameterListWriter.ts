@@ -32,7 +32,7 @@ export class ParameterListWriter extends CairoASTNodeWriter {
         node.parent instanceof FunctionDefinition && node.parent.vReturnParameters === node;
       // TODO: In the position of the type is written the typeString of the var. Needs to be checked the transformation
       // of that typestring into de Cairo 1 syntax for that type (Eg: dynamic arrays of some variable)
-      return isReturnParamList ? `${tp}` : `${value.name} : ${tp}`;
+      return isReturnParamList ? tp : `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }
