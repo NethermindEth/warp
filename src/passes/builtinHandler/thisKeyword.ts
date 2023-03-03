@@ -17,7 +17,7 @@ import {
 } from '../externalContractHandler/externalContractInterfaceInserter';
 import { assert } from 'console';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { starkwareSyscallPath } from '../../utils/importFuncGenerator';
+import { getContractAddressImport } from '../../utils/importFuncs';
 
 export class ThisKeyword extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -25,8 +25,7 @@ export class ThisKeyword extends ASTMapper {
       const replacementCall = createCallToFunction(
         ast.registerImport(
           node,
-          starkwareSyscallPath(),
-          'get_contract_address',
+          ...getContractAddressImport(),
           [],
           [['address', typeNameFromTypeNode(safeGetNodeType(node, ast.inference), ast)]],
         ),

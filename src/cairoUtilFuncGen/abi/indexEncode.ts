@@ -193,7 +193,7 @@ export class IndexEncode extends AbiBase {
     // so they should be converted to Uint256 accordingly
     if (size < 32 || isAddressType(type)) {
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
-      importedFunc.push(this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'));
+      importedFunc.push(this.requireImport(...feltToUint256Import()));
       varToEncode = `${varToEncode}256`;
     }
     instructions.push(

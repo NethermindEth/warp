@@ -15,8 +15,10 @@ import { TranspileFailedError } from '../../utils/errors';
 import {
   allocImport,
   dynArrayLengthImport,
+  dynArraysUtilsPath,
   feltArrayToWarpMemoryArrayImport,
   feltToUint256Import,
+  indexDynImport,
   narrowSafeImport,
   newImport,
   uint256Import,
@@ -203,7 +205,7 @@ export class AbiEncode extends AbiBase {
     // packed size of addresses is 32 bytes, but they are treated as felts,
     // so they should be converted to Uint256 accordingly
     if (size < 32 || isAddressType(type)) {
-      funcsCalled.push(this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'));
+      funcsCalled.push(this.requireImport(...feltToUint256Import()));
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;
     }
@@ -325,8 +327,8 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_index_dyn'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+      this.requireImport(...indexDynImport()),
+      this.requireImport(...feltToUint256Import()),
     ];
 
     const genFuncInfo = {
@@ -385,7 +387,7 @@ export class AbiEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const importedFunc = this.requireImport(...feltToUint256Import());
 
     const genFuncInfo = {
       name,
@@ -507,7 +509,7 @@ export class AbiEncode extends AbiBase {
       name,
       code,
       functionsCalled: [
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport(...feltToUint256Import()),
         inlineEncoding,
         valueEncoding,
       ],
@@ -577,12 +579,12 @@ export class AbiEncode extends AbiBase {
 
   private createStringOrBytesHeadEncoding(): CairoFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(dynArraysUtilsPath(), funcName);
   }
 
   private createValueTypeHeadEncoding(): CairoFunctionDefinition {
     const funcName = 'fixed_bytes256_to_felt_dynamic_array';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(dynArraysUtilsPath(), funcName);
   }
 
   protected readMemory(type: TypeNode, arg: string): [string, CairoFunctionDefinition] {

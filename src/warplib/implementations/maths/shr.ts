@@ -237,7 +237,7 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
     rhsType.nBits === 256 ? '_256' : ''
   }`;
 
-  const importName = `warplib.maths.shr${signed ? '_signed' : ''}`;
+  const importName = ['warplib', 'maths', `shr${signed ? '_signed' : ''}`];
 
   const importedFunc = ast.registerImport(
     node,

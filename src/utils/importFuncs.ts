@@ -74,6 +74,9 @@ export function emitEventImport(): [string[], string] {
 export function getCallerAddressImport(): [string[], string] {
   return [starkwareSyscallPath(), 'get_caller_address'];
 }
+export function getContractAddressImport(): [string[], string] {
+  return [starkwareSyscallPath(), 'get_contract_address'];
+}
 
 //------------------------------------------------------
 function warplibPath(path: string[]): string[] {
