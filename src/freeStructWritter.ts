@@ -18,16 +18,9 @@ import { makeStructTree, reorderStructs } from './passes/orderNestedStructs';
   function which do that.
 */
 
-export function getStructsAndRemappings(
-  node: SourceUnit,
-  ast: AST,
-): [StructDefinition[], Map<number, string>] {
-  // Stores old FunctionDefinition and cloned FunctionDefinition
-  const remappings = new Map<number, string>();
-
+export function getStructs(node: SourceUnit, ast: AST): StructDefinition[] {
   const externalStructs = getDefinitionsToInline(node, node, new Set());
-
-  return [reorderStructs(...makeStructTree(externalStructs, ast)), remappings];
+  return reorderStructs(...makeStructTree(externalStructs, ast));
 }
 
 // DFS a node for definitions in a free context.
