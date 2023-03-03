@@ -19,7 +19,7 @@ export class AssignmentWriter extends CairoASTNodeWriter {
       ) &&
       !(lhs instanceof TupleExpression)
     ) {
-      return [`let (${nodes[0]}) ${node.operator} ${nodes[1]};`];
+      return [`let ${nodes[0]} ${node.operator} ${nodes[1]};`];
     }
     return [`let ${nodes[0]} ${node.operator} ${nodes[1]};`];
   }
