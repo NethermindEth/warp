@@ -12,7 +12,7 @@ import {
   StarkNetNewAccountOptions,
 } from './cli';
 import { CLIError, logError } from './utils/errors';
-import { catchExecSyncError, runStarkNetClassHash } from './utils/utils';
+import { catchExecSyncError, execSyncAndLog, runStarkNetClassHash } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
@@ -92,17 +92,10 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork & IG
     : '';
   const command = 'starknet tx_status';
 
-  try {
-    const output = execSync(
-      `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network} ${gatewayUrlOption} ${feederGatewayUrlOption}`.trim(),
-      {
-        encoding: 'utf8',
-      },
-    );
-    console.log(output);
-  } catch (e) {
-    logError(catchExecSyncError(e, command));
-  }
+  execSyncAndLog(
+    `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network} ${gatewayUrlOption} ${feederGatewayUrlOption}`.trim(),
+    command,
+  );
 }
 
 export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
@@ -144,38 +137,32 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
   const command = 'starknet deploy';
 
-  try {
-    let classHash;
-    if (!options.no_wallet) {
-      assert(compileResult.resultPath !== undefined, 'resultPath should not be undefined');
-      classHash = runStarkNetClassHash(compileResult.resultPath);
-    }
-    const classHashOption = classHash ? `--class_hash ${classHash}` : '';
-    const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
-    const feederGatewayUrlOption = options.feeder_gateway_url
-      ? `--feeder_gateway_url ${options.feeder_gateway_url}`
-      : '';
-    const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
-    const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
-    const resultPath = compileResult.resultPath;
-    const output = execSync(
-      `${warpVenvPrefix} ${command} --network ${options.network} ${
-        options.no_wallet
-          ? `--no_wallet --contract ${resultPath} `
-          : options.wallet === undefined
-          ? `${classHashOption}`
-          : `${classHashOption} --wallet ${options.wallet}`
-      } ${inputs} ${
-        options.account !== undefined ? `--account ${options.account}` : ''
-      } ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
-      {
-        encoding: 'utf8',
-      },
-    );
-    console.log(output);
-  } catch (e) {
-    logError(catchExecSyncError(e, command));
+  let classHash;
+  if (!options.no_wallet) {
+    assert(compileResult.resultPath !== undefined, 'resultPath should not be undefined');
+    classHash = runStarkNetClassHash(compileResult.resultPath);
   }
+  const classHashOption = classHash ? `--class_hash ${classHash}` : '';
+  const gatewayUrlOption = options.gateway_url ? `--gateway_url ${options.gateway_url}` : '';
+  const feederGatewayUrlOption = options.feeder_gateway_url
+    ? `--feeder_gateway_url ${options.feeder_gateway_url}`
+    : '';
+  const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
+  const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
+  const resultPath = compileResult.resultPath;
+
+  execSyncAndLog(
+    `${warpVenvPrefix} ${command} --network ${options.network} ${
+      options.no_wallet
+        ? `--no_wallet --contract ${resultPath} `
+        : options.wallet === undefined
+        ? `${classHashOption}`
+        : `${classHashOption} --wallet ${options.wallet}`
+    } ${inputs} ${
+      options.account !== undefined ? `--account ${options.account}` : ''
+    } ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
+    command,
+  );
 }
 
 export function runStarknetDeployAccount(options: IDeployAccountProps) {
@@ -195,23 +182,16 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   const account = options.account ? `--account ${options.account}` : '';
   const command = 'starknet deploy_account';
 
-  try {
-    const output = execSync(
-      `${warpVenvPrefix} ${command} --wallet ${options.wallet} --network ${
-        options.network
-      } ${account} ${options.gateway_url ? `--gateway_url ${options.gateway_url}` : ''} ${
-        options.feeder_gateway_url ? `--feeder_gateway_url ${options.feeder_gateway_url}` : ''
-      } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
-        options.max_fee ? `--max_fee ${options.max_fee}` : ''
-      }`,
-      {
-        encoding: 'utf8',
-      },
-    );
-    console.log(output);
-  } catch (e) {
-    logError(catchExecSyncError(e, command));
-  }
+  execSyncAndLog(
+    `${warpVenvPrefix} ${command} --wallet ${options.wallet} --network ${
+      options.network
+    } ${account} ${options.gateway_url ? `--gateway_url ${options.gateway_url}` : ''} ${
+      options.feeder_gateway_url ? `--feeder_gateway_url ${options.feeder_gateway_url}` : ''
+    } ${options.account_dir ? `--account_dir ${options.account_dir}` : ''} ${
+      options.max_fee ? `--max_fee ${options.max_fee}` : ''
+    }`,
+    command,
+  );
 }
 
 export async function runStarknetCallOrInvoke(
@@ -313,17 +293,10 @@ function declareContract(filePath: string, options: IDeclareOptions) {
   const maxFeeOption = options.max_fee ? `--max_fee ${options.max_fee}` : '';
   const command = 'starknet declare';
 
-  try {
-    const output = execSync(
-      `${warpVenvPrefix} ${command} --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
-      {
-        encoding: 'utf8',
-      },
-    );
-    console.log(output);
-  } catch (e) {
-    logError(catchExecSyncError(e, command));
-  }
+  execSyncAndLog(
+    `${warpVenvPrefix} ${command} --contract ${filePath} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption} ${maxFeeOption}`,
+    command,
+  );
 }
 
 export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
@@ -348,17 +321,10 @@ export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
     : '';
   const accountDirOption = options.account_dir ? `--account_dir ${options.account_dir}` : '';
   const command = 'starknet new_account';
-  try {
-    const output = execSync(
-      `${warpVenvPrefix} ${command} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
-      {
-        encoding: 'utf8',
-      },
-    );
-    console.log(output);
-  } catch (e) {
-    logError(catchExecSyncError(e, command));
-  }
+  execSyncAndLog(
+    `${warpVenvPrefix} ${command} ${networkOption} ${walletOption} ${accountOption} ${gatewayUrlOption} ${feederGatewayUrlOption} ${accountDirOption}`,
+    command,
+  );
 }
 
 export function processDeclareCLI(result: string, filePath: string): string {

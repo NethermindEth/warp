@@ -632,6 +632,15 @@ export function defaultBasePathAndIncludePath() {
   return [null, null];
 }
 
+export function execSyncAndLog(command: string, commandName: string) {
+  try {
+    const output = execSync(command, { encoding: 'utf8' });
+    console.log(output);
+  } catch (e) {
+    logError(catchExecSyncError(e, commandName));
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function catchExecSyncError(e: any, commandExecuted: string) {
   if (!instanceOfExecSyncError(e)) {
