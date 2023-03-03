@@ -80,19 +80,49 @@ export function divmod(x: bigint, y: bigint): [bigint, bigint] {
   return [div, rem];
 }
 
-export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
-  switch (typeString) {
-    case 'uint':
-    case 'uint256':
-    case 'int':
-    case 'int256':
-      return 'Uint256';
-    case 'fixed':
-    case 'ufixed':
-      throw new NotSupportedYetError('Fixed types not implemented');
-    default:
-      return 'felt';
+export type CairoPrimitiveIntType =
+  | 'u8'
+  | 'u16'
+  | 'u24'
+  | 'u32'
+  | 'u40'
+  | 'u48'
+  | 'u56'
+  | 'u64'
+  | 'u72'
+  | 'u80'
+  | 'u88'
+  | 'u96'
+  | 'u104'
+  | 'u112'
+  | 'u120'
+  | 'u128'
+  | 'u256';
+
+export function primitiveTypeToCairo(typeString: string): CairoPrimitiveIntType | 'felt' {
+  if (typeString === 'uint' || typeString === 'int') return 'u256';
+
+  if (typeString === 'fixed' || typeString === 'ufixed') {
+    throw new NotSupportedYetError('Fixed types not implemented');
   }
+
+  if (typeString.startsWith('uint')) {
+    const bits = parseInt(typeString.slice(4));
+    if (bits > 256) {
+      throw new NotSupportedYetError('uint types larger than 256 bits not supported');
+    }
+    return `u${bits}` as CairoPrimitiveIntType;
+  }
+
+  if (typeString.startsWith('int')) {
+    const bits = parseInt(typeString.slice(3));
+    if (bits > 256) {
+      throw new NotSupportedYetError('int types larger than 256 bits not supported');
+    }
+    return `u${bits}` as CairoPrimitiveIntType;
+  }
+
+  return 'felt';
 }
 
 export function union<T>(setA: Set<T>, setB: Set<T>) {

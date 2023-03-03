@@ -96,7 +96,7 @@ export abstract class CairoType {
     } else if (tp instanceof FunctionType) {
       throw new NotSupportedYetError('Serialising FunctionType not supported yet');
     } else if (tp instanceof IntType) {
-      return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
+      return new CairoUint(tp.nBits);
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {
@@ -163,6 +163,24 @@ export class CairoFelt extends CairoType {
   }
   get width(): number {
     return 1;
+  }
+  serialiseMembers(name: string): string[] {
+    return [name];
+  }
+}
+
+export class CairoUint extends CairoType {
+  constructor(public nBits: number = 256) {
+    super();
+  }
+  get fullStringRepresentation(): string {
+    return `[u${this.nBits}]`;
+  }
+  toString(): string {
+    return `u${this.nBits}`;
+  }
+  get width(): number {
+    return 1; // not sure about this width, but for the moment consider it as a felt
   }
   serialiseMembers(name: string): string[] {
     return [name];

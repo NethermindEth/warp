@@ -1,5 +1,4 @@
 import {
-  ElementaryTypeName,
   IntType,
   Literal,
   SourceUnit,
@@ -12,7 +11,7 @@ import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
+import { getContainingSourceUnit, isExternallyVisible } from '../utils/utils';
 
 /*
   Analyses the tree after all processing has been done to find code the relies on
@@ -28,12 +27,6 @@ export class CairoUtilImporter extends ASTMapper {
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
-  }
-
-  visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
-    if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
-    }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
