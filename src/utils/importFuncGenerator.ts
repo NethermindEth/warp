@@ -69,7 +69,7 @@ export function createImport(
     return createFuncImport(...warplibFunc);
   }
 
-  switch (path + name) {
+  switch ([...path, name].join('.')) {
     case STARKWARE_CAIRO_COMMON_ALLOC + 'alloc':
       return createFuncImport();
     case STARKWARE_CAIRO_COMMON_BUILTINS + 'BitwiseBuiltin':
