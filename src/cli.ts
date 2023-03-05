@@ -480,7 +480,7 @@ program
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
   .action(runStarknetDeclare);
 
-export type StarkNetNewAccountOptions = IOptionalAccount &
+export type StarknetNewAccountOptions = IOptionalAccount &
   IOptionalAccount &
   IOptionalNetwork &
   IGatewayProps &
@@ -536,5 +536,5 @@ program
     const starknetVersion = await (await sh('starknet --version')).stdout;
 
     console.log(blue(`Warp Version `) + green(pjson.version));
-    console.log(blue(`StarkNet Version `) + green(starknetVersion.split(' ')[1]));
+    console.log(blue(`Starknet Version `) + green(starknetVersion.split(' ')[1]));
   });

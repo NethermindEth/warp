@@ -538,7 +538,7 @@ export function getSourceFromLocations(
   return filteredLines.join('');
 }
 
-export function runStarkNetClassHash(filePath: string): string {
+export function runStarknetClassHash(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
   const classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
