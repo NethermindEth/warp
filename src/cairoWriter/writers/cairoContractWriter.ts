@@ -85,7 +85,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       ...otherStorageVars.map((v) => '   ' + writer.write(v)),
       '}',
 
-      'fn readId(loc: felt) -> val {',
+      'fn readId(loc: felt) -> felt {',
       '    let id = WARP_STORAGE::read(loc);',
       '    if id == 0{',
       '        let id = WARP_NAMEGEN::read();',
