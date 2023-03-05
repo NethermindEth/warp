@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   DataLocation,
   FunctionCall,
@@ -129,19 +130,19 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
 
     return {
       name: funcName,
-      code: [
-        `fn ${funcName}(name: felt, index: ${indexTypeString}) -> felt {`,
-        `    let existing = ${mappingName}::read(name, index);`,
-        `    if existing == 0 {`,
-        `        let used = WARP_USED_STORAGE::read();`,
-        `        WARP_USED_STORAGE::write(used + ${valueCairoType.width});`,
-        `        ${mappingName}::write(name, index, used);`,
-        `        return used;`,
-        `    } else {`,
-        `        return existing;`,
-        `    }`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(name: felt, index: ${indexCairoType}) -> felt {
+          let existing = ${mappingName}::read(name, index);
+          if existing == 0 {
+            let used = WARP_USED_STORAGE::read();
+            ${mappingName}::write(name, index, used);
+            return used;
+          }
+          else {
+            return existing;
+          }
+        }
+      `,
       functionsCalled: [mappingFunc],
     };
   }
@@ -212,23 +213,23 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     const helperFuncName = `WS_TO_FELT_ARRAY${this.stringHashFunctions.size}`;
     return {
       name: funcName,
-      code: [
-        `fn ${helperFuncName}(name: felt, ref ptr: Array::<felt>, index: u256, len: u256){`,
-        `    if index == len{`,
-        `        return;`,
-        `    }`,
-        `    let loc = ${arrayName}::read(name, index);`,
-        `    let value = WARP_STORAGE::read(loc);`,
-        `    ptr.append(value);`,
-        `    return ${helperFuncName}(name, ref ptr, index + 1, len);`,
-        `}`,
-        `fn ${funcName}(name: felt) -> felt {`,
-        `    let len: u256 = ${lenName}::read(name);`,
-        `    let mut ptr = ArrayTrait::new();`,
-        `    ${helperFuncName}(name, ref ptr, 0, len);`,
-        `    return string_hash(len, ptr);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+          fn ${helperFuncName}(name: felt, ref ptr: Array::<felt>, index: u256, len: u256){
+            if index == len{
+              return;
+            }
+            let loc = ${arrayName}::read(name, index);
+            let value = WARP_STORAGE::read(loc);
+            ptr.append(value);
+            return ${helperFuncName}(name, ref ptr, index + 1, len);
+          }
+          fn ${funcName}(name: felt) => felt {
+            let len: u256 = ${lenName}::read(name);
+            let mut ptr = ArrayTrait::new();
+            ${helperFuncName}(name, ref ptr, 0, len);
+            return string_hash(len, ptr);
+          }
+      `,
       functionsCalled: [
         // this.requireImport(['array'], 'ArrayTrait'),
         // this.requireImport(['warplib', 'string_hash'], 'string_hash'),
