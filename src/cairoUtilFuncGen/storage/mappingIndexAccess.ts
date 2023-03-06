@@ -138,9 +138,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
             ${mappingName}::write(name, index, used);
             return used;
           }
-          else {
-            return existing;
-          }
+          return existing;
         }
       `,
       functionsCalled: [mappingFunc],
@@ -214,20 +212,20 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     return {
       name: funcName,
       code: endent`
-          fn ${helperFuncName}(name: felt, ref ptr: Array::<felt>, index: u256, len: u256){
-            if index == len{
+          fn ${helperFuncName}(name: felt, ref result_array: Array::<felt>, index: u256, len: u256){
+            if index == len {
               return;
             }
             let loc = ${arrayName}::read(name, index);
             let value = WARP_STORAGE::read(loc);
-            ptr.append(value);
-            return ${helperFuncName}(name, ref ptr, index + 1, len);
+            result_array.append(value);
+            return ${helperFuncName}(name, ref result_array, index + 1, len);
           }
-          fn ${funcName}(name: felt) => felt {
+          fn ${funcName}(name: felt) -> felt {
             let len: u256 = ${lenName}::read(name);
-            let mut ptr = ArrayTrait::new();
-            ${helperFuncName}(name, ref ptr, 0, len);
-            return string_hash(len, ptr);
+            let mut result_array = ArrayTrait::new();
+            ${helperFuncName}(name, ref result_array, 0, len);
+            return string_hash(len, result_array);
           }
       `,
       functionsCalled: [

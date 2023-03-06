@@ -88,14 +88,13 @@ export class CairoContractWriter extends CairoASTNodeWriter {
 
       fn readId(loc: felt) -> felt {
         let id = WARP_STORAGE::read(loc);
-        if id == 0{
+        if id == 0 {
           let id = WARP_NAMEGEN::read();
           WARP_NAMEGEN::write(id + 1);
           WARP_STORAGE::write(loc, id + 1);
           return id + 1;
-        } else {
-          return id;
-        }
+        } 
+        return id;
       }
     `;
 
