@@ -10,6 +10,7 @@ import { CairoASTNodeWriter } from '../base';
 import { getDocumentation, getInterfaceNameForContract, INDENT } from '../utils';
 import { interfaceNameMappings } from './sourceUnitWriter';
 import assert from 'assert';
+import endent from 'endent';
 
 export class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -77,26 +78,26 @@ export class CairoContractWriter extends CairoASTNodeWriter {
         v instanceof CairoGeneratedFunctionDefinition &&
         v.functionStubKind === FunctionStubKind.StorageDefStub,
     );
-    const storageCode = [
-      'struct Storage {',
-      '   WARP_STORAGE: LegacyMap::<felt, felt>,',
-      '   WARP_USED_STORAGE: felt,',
-      '   WARP_NAMEGEN: felt,',
-      ...otherStorageVars.map((v) => '   ' + writer.write(v)),
-      '}',
+    const storageCode = endent`
+      struct Storage {
+        WARP_STORAGE: LegacyMap::<felt, felt>,
+        WARP_USED_STORAGE: felt,
+        WARP_NAMEGEN: felt,
+        ${otherStorageVars.map((v) => `${writer.write(v)}`).join('\n')}
+      }
 
-      'fn readId(loc: felt) -> felt {',
-      '    let id = WARP_STORAGE::read(loc);',
-      '    if id == 0{',
-      '        let id = WARP_NAMEGEN::read();',
-      '        WARP_NAMEGEN::write(id + 1);',
-      '        WARP_STORAGE::write(loc, id + 1);',
-      '        return id + 1;',
-      '    } else {',
-      '        return id;',
-      '    }',
-      '}',
-    ].join('\n');
+      fn readId(loc: felt) -> felt {
+        let id = WARP_STORAGE::read(loc);
+        if id == 0{
+          let id = WARP_NAMEGEN::read();
+          WARP_NAMEGEN::write(id + 1);
+          WARP_STORAGE::write(loc, id + 1);
+          return id + 1;
+        } else {
+          return id;
+        }
+      }
+    `;
 
     return [
       [

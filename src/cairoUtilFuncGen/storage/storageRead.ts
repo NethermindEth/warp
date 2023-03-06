@@ -1,3 +1,4 @@
+import endent from 'endent';
 import {
   Expression,
   FunctionCall,
@@ -63,12 +64,12 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `fn ${funcName}(loc: felt) ->${resultCairoType}{`,
-        ...reads.map((s) => `    ${s}`),
-        `    ${pack}`,
-        '}',
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(loc: felt) -> ${resultCairoType}{
+          ${reads.map((s) => `  ${s}`).join('\n')}
+          ${pack}
+        }
+      `,
       functionsCalled: [],
     };
     return funcInfo;

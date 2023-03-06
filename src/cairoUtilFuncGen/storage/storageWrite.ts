@@ -1,3 +1,4 @@
+import endent from 'endent';
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -52,19 +53,21 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-
     const cairoTypeString = cairoTypeToWrite.toString();
+    const writeCode = cairoTypeToWrite
+      .serialiseMembers('value')
+      .map((name, index) => `  ${write(add('loc', index), name)}`)
+      .join('\n');
+
     const funcName = `WS_WRITE${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `fn ${funcName}(loc: felt, value: ${cairoTypeString}) -> ${cairoTypeString}{`,
-        ...cairoTypeToWrite
-          .serialiseMembers('value')
-          .map((name, index) => `    ${write(add('loc', index), name)}`),
-        '    value',
-        '}',
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(loc: felt, value: {cairoTypeString}) -> ${cairoTypeString}{
+          ${writeCode}
+          return value;
+        }
+      `,
       functionsCalled: [],
     };
     return funcInfo;
