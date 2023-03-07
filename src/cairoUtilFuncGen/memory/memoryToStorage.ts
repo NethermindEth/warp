@@ -21,7 +21,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   DICT_READ,
-  DYN_ARRAY_LENGTH,
+  WM_DYN_ARRAY_LENGTH,
   NARROW_SAFE,
   UINT256,
   UINT256_LT,
@@ -323,7 +323,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         this.requireImport(...NARROW_SAFE),
         this.requireImport(...UINT256_LT),
         this.requireImport(...UINT256_SUB),
-        this.requireImport(...DYN_ARRAY_LENGTH),
+        this.requireImport(...WM_DYN_ARRAY_LENGTH),
         ...funcCalls,
         dynArray,
         dynArrayLength,

@@ -17,7 +17,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { DICT_READ, READ256, READ_FELT, READ_ID } from '../../utils/importPaths';
+import { DICT_READ, WM_READ256, WM_READ_FELT, WM_READ_ID } from '../../utils/importPaths';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
@@ -80,11 +80,11 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
     let funcDef: CairoFunctionDefinition;
     if (resultCairoType instanceof MemoryLocation) {
-      funcDef = this.requireImport(...READ_ID, inputs, outputs);
+      funcDef = this.requireImport(...WM_READ_ID, inputs, outputs);
     } else if (resultCairoType instanceof CairoFelt) {
-      funcDef = this.requireImport(...READ_FELT, inputs, outputs);
+      funcDef = this.requireImport(...WM_READ_FELT, inputs, outputs);
     } else if (resultCairoType.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
-      funcDef = this.requireImport(...READ256, inputs, outputs);
+      funcDef = this.requireImport(...WM_READ256, inputs, outputs);
     } else {
       const funcInfo = this.getOrCreate(resultCairoType);
       funcDef = createCairoGeneratedFunction(funcInfo, inputs, outputs, this.ast, this.sourceUnit, {

@@ -32,9 +32,9 @@ import {
   FELT_TO_UINT256,
   FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL,
   PACK_BYTES_FELT,
-  TO_FELT_ARRAY,
   UINT256,
   WARP_KECCAK,
+  WM_TO_FELT_ARRAY,
 } from '../utils/importPaths';
 
 export const BYTES_IN_FELT_PACKING = 31;
@@ -220,7 +220,7 @@ export class EventFunction extends StringIndexedFuncGen {
   ): [string, CairoFunctionDefinition[]] {
     const abiFunc = this.abiEncode.getOrCreateFuncDef(types);
 
-    this.requireImport(...TO_FELT_ARRAY);
+    this.requireImport(...WM_TO_FELT_ARRAY);
     this.requireImport(...FELT_ARRAY_CONCAT);
 
     return [
@@ -229,7 +229,7 @@ export class EventFunction extends StringIndexedFuncGen {
         `   let (encode_bytes_len: felt, encode_bytes: felt*) = wm_to_felt_array(mem_encode);`,
         `   let (${arrayName}_len: felt) = felt_array_concat(encode_bytes_len, 0, encode_bytes, ${arrayName}_len, ${arrayName});`,
       ].join('\n'),
-      [this.requireImport(...TO_FELT_ARRAY), this.requireImport(...FELT_ARRAY_CONCAT), abiFunc],
+      [this.requireImport(...WM_TO_FELT_ARRAY), this.requireImport(...FELT_ARRAY_CONCAT), abiFunc],
     ];
   }
 

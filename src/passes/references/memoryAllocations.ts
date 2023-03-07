@@ -19,7 +19,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { NEW } from '../../utils/importPaths';
+import { WM_NEW } from '../../utils/importPaths';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
@@ -81,7 +81,7 @@ export class MemoryAllocations extends ReferenceSubPass {
 
     const funcImport = ast.registerImport(
       node,
-      ...NEW,
+      ...WM_NEW,
       [
         ['len', createUint256TypeName(ast)],
         ['elemWidth', createUint256TypeName(ast)],

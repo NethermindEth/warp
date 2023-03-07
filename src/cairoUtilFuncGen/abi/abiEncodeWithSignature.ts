@@ -17,9 +17,9 @@ import {
   BYTE256_AT_INDEX,
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
-  NEW,
   UINT256,
   WARP_KECCAK,
+  WM_NEW,
 } from '../../utils/importPaths';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -126,7 +126,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
       this.requireImport(...UINT256),
       this.requireImport(...ALLOC),
       this.requireImport(...FELT_TO_UINT256),
-      this.requireImport(...NEW),
+      this.requireImport(...WM_NEW),
       this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
       this.requireImport(...BYTE256_AT_INDEX),
       this.requireImport(...WARP_KECCAK),

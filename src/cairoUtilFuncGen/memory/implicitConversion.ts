@@ -23,13 +23,13 @@ import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/
 import {
   BYTES_CONVERSIONS,
   FELT_TO_UINT256,
-  INDEX_DYN,
   INT_CONVERSIONS,
-  NEW,
-  READ_ID,
   UINT256,
   UINT256_ADD,
-  WARP_ALLOC,
+  WM_ALLOC,
+  WM_INDEX_DYN,
+  WM_NEW,
+  WM_READ_ID,
 } from '../../utils/importPaths';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -188,7 +188,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     let sourceLocationCode: string;
     if (targetType.elementT instanceof PointerType) {
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
-      sourceLocationFunc = this.requireImport(...READ_ID);
+      sourceLocationFunc = this.requireImport(...WM_READ_ID);
       sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)});`;
     } else {
       sourceLocationFunc = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
@@ -231,7 +231,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [
         this.requireImport(...UINT256),
-        this.requireImport(...WARP_ALLOC),
+        this.requireImport(...WM_ALLOC),
         sourceLocationFunc,
         ...calledFuncs,
         memoryWriteDef,
@@ -312,8 +312,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...UINT256),
         this.requireImport(...UINT256_ADD),
-        this.requireImport(...INDEX_DYN),
-        this.requireImport(...NEW),
+        this.requireImport(...WM_INDEX_DYN),
+        this.requireImport(...WM_NEW),
         memoryRead,
         ...conversionFuncs,
         memoryWrite,
@@ -388,8 +388,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...UINT256),
         this.requireImport(...UINT256_ADD),
-        this.requireImport(...INDEX_DYN),
-        this.requireImport(...NEW),
+        this.requireImport(...WM_INDEX_DYN),
+        this.requireImport(...WM_NEW),
         memoryRead,
         ...conversionCalls,
         memoryWrite,

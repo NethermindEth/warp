@@ -15,13 +15,13 @@ import { TranspileFailedError } from '../../utils/errors';
 import {
   ALLOC,
   DYNAMIC_ARRAYS_UTIL,
-  DYN_ARRAY_LENGTH,
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
-  INDEX_DYN,
   NARROW_SAFE,
-  NEW,
   UINT256,
+  WM_DYN_ARRAY_LENGTH,
+  WM_INDEX_DYN,
+  WM_NEW,
 } from '../../utils/importPaths';
 import {
   getByteSize,
@@ -104,7 +104,7 @@ export class AbiEncode extends AbiBase {
       this.requireImport(...ALLOC),
       this.requireImport(...UINT256),
       this.requireImport(...FELT_TO_UINT256),
-      this.requireImport(...NEW),
+      this.requireImport(...WM_NEW),
       this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
@@ -271,7 +271,7 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...DYN_ARRAY_LENGTH),
+      this.requireImport(...WM_DYN_ARRAY_LENGTH),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...NARROW_SAFE),
     ];
@@ -327,7 +327,7 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...INDEX_DYN),
+      this.requireImport(...WM_INDEX_DYN),
       this.requireImport(...FELT_TO_UINT256),
     ];
 

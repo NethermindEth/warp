@@ -23,11 +23,11 @@ import {
 } from '../../utils/functionGeneration';
 import {
   DYNAMIC_ARRAYS_UTIL,
-  DYN_ARRAY_LENGTH,
   FELT_TO_UINT256,
   NARROW_SAFE,
-  NEW,
   UINT256,
+  WM_DYN_ARRAY_LENGTH,
+  WM_NEW,
 } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
@@ -116,7 +116,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `   return (res_loc,);`,
           `}`,
         ].join('\n'),
-        functionsCalled: [this.requireImport(...UINT256), this.requireImport(...NEW)],
+        functionsCalled: [this.requireImport(...UINT256), this.requireImport(...WM_NEW)],
       };
     }
 
@@ -173,7 +173,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...UINT256),
         this.requireImport(...FELT_TO_UINT256),
-        this.requireImport(...NEW),
+        this.requireImport(...WM_NEW),
         ...argSizesImports,
         ...concatImports,
       ],
@@ -187,7 +187,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
           `let (size_${index}) = narrow_safe(size256_${index});`,
         ].join('\n'),
-        [this.requireImport(...DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
+        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
       ];
     }
 

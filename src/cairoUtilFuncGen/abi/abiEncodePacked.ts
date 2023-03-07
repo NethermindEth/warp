@@ -25,14 +25,14 @@ import { AbiBase } from './base';
 import {
   ALLOC,
   DYNAMIC_ARRAYS_UTIL,
-  DYN_ARRAY_LENGTH,
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
   FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
-  INDEX_DYN,
   NARROW_SAFE,
-  NEW,
   UINT256,
+  WM_DYN_ARRAY_LENGTH,
+  WM_INDEX_DYN,
+  WM_NEW,
 } from '../../utils/importPaths';
 
 const IMPLICITS =
@@ -91,7 +91,7 @@ export class AbiEncodePacked extends AbiBase {
       this.requireImport(...UINT256),
       this.requireImport(...ALLOC),
       this.requireImport(...FELT_TO_UINT256),
-      this.requireImport(...NEW),
+      this.requireImport(...WM_NEW),
       this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
@@ -147,7 +147,7 @@ export class AbiEncodePacked extends AbiBase {
           `let (length) = narrow_safe(length256);`,
           `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
         ].join('\n'),
-        [this.requireImport(...DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE), func],
+        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE), func],
       ];
     }
 
@@ -233,7 +233,7 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
 
     const importedFuncs = isDynamicArray(type)
-      ? [this.requireImport(...INDEX_DYN), this.requireImport(...FELT_TO_UINT256)]
+      ? [this.requireImport(...WM_INDEX_DYN), this.requireImport(...FELT_TO_UINT256)]
       : [];
 
     const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...funcCalls, readFunc] };

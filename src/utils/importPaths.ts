@@ -71,7 +71,6 @@ export const BYTE_ARRAY_TO_FELT_VALUE: [string[], string] = [
   'byte256_at_index',
 ];
 export const BYTE_ARRAY_LENGTH: [string[], string] = [[...DYNAMIC_ARRAYS_UTIL], 'byte256_at_index'];
-export const DYN_ARRAY_LENGTH: [string[], string] = [[...WARPLIB_MEMORY], 'wm_dyn_array_length'];
 export const FELT_ARRAY_CONCAT: [string[], string] = [[...WARPLIB_KECCAK], 'felt_array_concat'];
 export const FELT_ARRAY_TO_WARP_MEMORY_ARRAY: [string[], string] = [
   [...DYNAMIC_ARRAYS_UTIL],
@@ -86,18 +85,19 @@ export const FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL: [string[], string] = [
   [...DYNAMIC_ARRAYS_UTIL],
   'fixed_bytes256_to_felt_dynamic_array_spl',
 ];
-export const INDEX_DYN: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_dyn'];
-export const INDEX_STATIC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_static'];
 export const NARROW_SAFE: [string[], string] = [[...WARPLIB_MATHS, 'utils'], 'narrow_safe'];
-export const NEW: [string[], string] = [[...WARPLIB_MEMORY], 'wm_new'];
 export const PACK_BYTES_FELT: [string[], string] = [[...WARPLIB_KECCAK], 'pack_bytes_felt'];
-export const READ256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_256'];
-export const READ_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_felt'];
-export const READ_ID: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_id'];
 export const STRING_HASH: [string[], string] = [['warplib', 'string_hash'], 'string_hash'];
-export const TO_FELT_ARRAY: [string[], string] = [[...WARPLIB_MEMORY], 'wm_to_felt_array'];
-export const WARP_ALLOC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_alloc'];
 export const WARP_KECCAK: [string[], string] = [[...WARPLIB_KECCAK], 'warp_keccak'];
 export const WARP_UINT256: [string[], string] = [[...INT_CONVERSIONS], 'warp_uint256'];
-export const WRITE256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_256'];
-export const WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_felt'];
+export const WM_DYN_ARRAY_LENGTH: [string[], string] = [[...WARPLIB_MEMORY], 'wm_dyn_array_length'];
+export const WM_INDEX_DYN: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_dyn'];
+export const WM_INDEX_STATIC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_static'];
+export const WM_NEW: [string[], string] = [[...WARPLIB_MEMORY], 'wm_new'];
+export const WM_READ256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_256'];
+export const WM_READ_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_felt'];
+export const WM_READ_ID: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_id'];
+export const WM_TO_FELT_ARRAY: [string[], string] = [[...WARPLIB_MEMORY], 'wm_to_felt_array'];
+export const WM_ALLOC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_alloc'];
+export const WM_WRITE256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_256'];
+export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_felt'];

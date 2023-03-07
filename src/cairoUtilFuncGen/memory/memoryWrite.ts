@@ -6,7 +6,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { DICT_WRITE, WRITE256, WRITE_FELT } from '../../utils/importPaths';
+import { DICT_WRITE, WM_WRITE256, WM_WRITE_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -48,11 +48,11 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
 
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
     if (cairoTypeToWrite instanceof CairoFelt) {
-      return this.requireImport(...WRITE_FELT, inputs, outputs);
+      return this.requireImport(...WM_WRITE_FELT, inputs, outputs);
     } else if (
       cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation
     ) {
-      return this.requireImport(...WRITE256, inputs, outputs);
+      return this.requireImport(...WM_WRITE256, inputs, outputs);
     }
 
     const funcInfo = this.getOrCreate(typeToWrite);

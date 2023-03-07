@@ -41,11 +41,11 @@ import {
   BYTE_ARRAY_TO_FELT_VALUE,
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
-  INDEX_DYN,
   NARROW_SAFE,
-  NEW,
   UINT256,
-  WARP_ALLOC,
+  WM_INDEX_DYN,
+  WM_NEW,
+  WM_ALLOC,
 } from '../../utils/importPaths';
 
 const IMPLICITS =
@@ -257,7 +257,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `);`,
         ];
         // Other relevant imports get added when the function is generated
-        importedFuncs.push(this.requireImport(...NEW));
+        importedFuncs.push(this.requireImport(...WM_NEW));
       } else if (type instanceof ArrayType) {
         // Handling static arrays
         assert(type.size !== undefined);
@@ -274,7 +274,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `  ${decodeResult}`,
           `);`,
         ];
-        importedFuncs.push(this.requireImport(...WARP_ALLOC));
+        importedFuncs.push(this.requireImport(...WM_ALLOC));
       } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
         const maxSize = CairoType.fromSol(
           type,
@@ -289,7 +289,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `  ${decodeResult}`,
           `);`,
         ];
-        importedFuncs.push(this.requireImport(...WARP_ALLOC));
+        importedFuncs.push(this.requireImport(...WM_ALLOC));
       } else {
         throw new TranspileFailedError(
           `Unexpected reference type to generate decoding code: ${printTypeNode(type)}`,
@@ -436,7 +436,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const importedFuncs = [
       this.requireImport(...UINT256),
-      this.requireImport(...INDEX_DYN),
+      this.requireImport(...WM_INDEX_DYN),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...NARROW_SAFE),
     ];

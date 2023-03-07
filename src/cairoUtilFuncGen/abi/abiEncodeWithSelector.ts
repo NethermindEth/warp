@@ -9,9 +9,9 @@ import {
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
   FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
-  NEW,
   UINT256,
   WARP_KECCAK,
+  WM_NEW,
 } from '../../utils/importPaths';
 import { getByteSize } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
@@ -94,7 +94,7 @@ export class AbiEncodeWithSelector extends AbiBase {
       this.requireImport(...UINT256),
       this.requireImport(...ALLOC),
       this.requireImport(...FELT_TO_UINT256),
-      this.requireImport(...NEW),
+      this.requireImport(...WM_NEW),
       this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
       this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY),
       this.requireImport(...WARP_KECCAK),

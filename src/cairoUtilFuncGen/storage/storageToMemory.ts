@@ -22,11 +22,11 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   DICT_WRITE,
-  INDEX_DYN,
-  NEW,
   UINT256,
   UINT256_SUB,
-  WARP_ALLOC,
+  WM_ALLOC,
+  WM_INDEX_DYN,
+  WM_NEW,
 } from '../../utils/importPaths';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -128,7 +128,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...DICT_WRITE),
-        this.requireImport(...WARP_ALLOC),
+        this.requireImport(...WM_ALLOC),
         ...copyCalls,
       ],
     };
@@ -174,7 +174,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...DICT_WRITE),
-        this.requireImport(...WARP_ALLOC),
+        this.requireImport(...WM_ALLOC),
         ...copyCalls,
       ],
     };
@@ -231,7 +231,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...DICT_WRITE),
-        this.requireImport(...WARP_ALLOC),
+        this.requireImport(...WM_ALLOC),
         this.requireImport(...UINT256_SUB),
         this.requireImport(...UINT256),
         ...copyCalls,
@@ -288,8 +288,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         this.requireImport(...DICT_WRITE),
         this.requireImport(...UINT256_SUB),
         this.requireImport(...UINT256),
-        this.requireImport(...NEW),
-        this.requireImport(...INDEX_DYN),
+        this.requireImport(...WM_NEW),
+        this.requireImport(...WM_INDEX_DYN),
         ...copyCalls,
         dynArray,
         dynArrayLength,
