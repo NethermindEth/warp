@@ -10,7 +10,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createExpressionStatement, createIdentifier } from '../../utils/nodeTemplates';
-import { checkableType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class ExternalReturnReceiver extends ASTMapper {
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
@@ -58,9 +58,9 @@ export class ExternalReturnReceiver extends ASTMapper {
 }
 
 function addOutputValidation(decl: VariableDeclaration, ast: AST) {
-  const type = safeGetNodeType(decl, ast.inference);
-  if (!checkableType(type)) return;
-  const validationFunctionCall = ast.getUtilFuncGen(decl).boundChecks.inputCheck.gen(decl, type);
+  const validationFunctionCall = ast
+    .getUtilFuncGen(decl)
+    .boundChecks.inputCheck.gen(decl, safeGetNodeType(decl, ast.inference));
   const validationStatement = createExpressionStatement(ast, validationFunctionCall);
   ast.insertStatementAfter(decl, validationStatement);
 }
