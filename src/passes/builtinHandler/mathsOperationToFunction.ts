@@ -107,7 +107,7 @@ export class MathsOperationToFunction extends ASTMapper {
         const name = `warp_${node.vExpression.name}`;
         const importedFunc = ast.registerImport(
           node,
-          ['warplib', 'maths', `${node.vExpression.name}`],
+          ['warplib', 'maths', node.vExpression.name],
           name,
           [
             ['x', createUint256TypeName(ast)],

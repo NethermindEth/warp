@@ -203,7 +203,7 @@ export function IntFunction(
 
   const importedFunc = ast.registerImport(
     node,
-    ['warplib', 'maths', `${fileName}`],
+    ['warplib', 'maths', fileName],
     fullName,
     [['op', typeNameFromTypeNode(opType, ast)]],
     [['res', typeNameFromTypeNode(retType, ast)]],
@@ -249,7 +249,7 @@ export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST)
 
   const importedFunc = ast.registerImport(
     node,
-    ['warplib', 'maths', `${name}`],
+    ['warplib', 'maths', name],
     fullName,
     [['lhs', typeNameFromTypeNode(lhsType, ast)]],
     [['rhs', typeNameFromTypeNode(rhsType, ast)]],
