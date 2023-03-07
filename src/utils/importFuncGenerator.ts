@@ -116,6 +116,9 @@ export function createImport(
       return createFuncImport('syscall_ptr');
     case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_contract_address':
       return createFuncImport('syscall_ptr');
+    // Import libraries from Cairo1
+    case 'integer' + 'u256_from_felt':
+      return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
