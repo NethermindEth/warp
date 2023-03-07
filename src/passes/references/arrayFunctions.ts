@@ -20,7 +20,7 @@ import {
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
-import { feltToUint256Import } from '../../utils/importPaths';
+import { FELT_TO_UINT256 } from '../../utils/importPaths';
 
 /*
   Replaces array members (push, pop, length) with standalone functions that implement
@@ -109,7 +109,7 @@ export class ArrayFunctions extends ReferenceSubPass {
 
         const importedFunc = ast.registerImport(
           node,
-          ...feltToUint256Import(),
+          ...FELT_TO_UINT256,
           [['cd_dstruct_array_len', typeNameFromTypeNode(type, ast)]],
           [['len256', typeNameFromTypeNode(type, ast)]],
         );

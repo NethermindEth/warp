@@ -21,14 +21,14 @@ import { CairoType, TypeConversionContext, WarpLocation } from '../../utils/cair
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
-  bytesConversionsPath,
-  feltToUint256Import,
-  intConversionsPath,
-  isLeImport,
-  uint256AddImport,
-  uint256Import,
-  uint256LtImport,
-  uint256SubImport,
+  BYTES_CONVERSIONS,
+  FELT_TO_UINT256,
+  INT_CONVERSIONS,
+  IS_LE,
+  UINT256,
+  UINT256_ADD,
+  UINT256_LT,
+  UINT256_SUB,
 } from '../../utils/importPaths';
 import {
   getElementType,
@@ -215,7 +215,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       stopRecursion = [`if (index == ${fromSize}){`, `return ();`, `}`];
     } else {
       const deleteFunc = this.storageDeleteGen.getOrCreateFuncDef(toType.elementT);
-      optionalCalls = [deleteFunc, this.requireImport(...isLeImport())];
+      optionalCalls = [deleteFunc, this.requireImport(...IS_LE)];
       stopRecursion = [
         `if (index == ${toSize}){`,
         `    return ();`,
@@ -326,9 +326,9 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...uint256Import()),
-        this.requireImport(...uint256SubImport()),
-        this.requireImport(...uint256LtImport()),
+        this.requireImport(...UINT256),
+        this.requireImport(...UINT256_SUB),
+        this.requireImport(...UINT256_LT),
         elementCopyFunc,
         fromElementMapping,
         fromLengthMapping,
@@ -414,9 +414,9 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...uint256Import()),
-        this.requireImport(...uint256AddImport()),
-        this.requireImport(...uint256LtImport()),
+        this.requireImport(...UINT256),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...UINT256_LT),
         elementCopyFunc,
         toElementMapping,
         toLengthMapping,
@@ -472,13 +472,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...uint256Import()),
+        this.requireImport(...UINT256),
         toType.signed
-          ? this.requireImport(
-              intConversionsPath(),
-              `warp_int${fromType.nBits}_to_int${toType.nBits}`,
-            )
-          : this.requireImport(...feltToUint256Import()),
+          ? this.requireImport(INT_CONVERSIONS, `warp_int${fromType.nBits}_to_int${toType.nBits}`)
+          : this.requireImport(...FELT_TO_UINT256),
       ],
     };
   }
@@ -527,8 +524,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(bytesConversionsPath(), conversionFunc),
-        this.requireImport(...uint256Import()),
+        this.requireImport(BYTES_CONVERSIONS, conversionFunc),
+        this.requireImport(...UINT256),
       ],
     };
   }

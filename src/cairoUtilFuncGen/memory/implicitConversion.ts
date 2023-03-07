@@ -21,15 +21,15 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
-  bytesConversionsPath,
-  feltToUint256Import,
-  indexDynImport,
-  intConversionsPath,
-  newImport,
-  readIdImport,
-  uint256AddImport,
-  uint256Import,
-  warpAllocImport,
+  BYTES_CONVERSIONS,
+  FELT_TO_UINT256,
+  INDEX_DYN,
+  INT_CONVERSIONS,
+  NEW,
+  READ_ID,
+  UINT256,
+  UINT256_ADD,
+  WARP_ALLOC,
 } from '../../utils/importPaths';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -188,7 +188,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     let sourceLocationCode: string;
     if (targetType.elementT instanceof PointerType) {
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
-      sourceLocationFunc = this.requireImport(...readIdImport());
+      sourceLocationFunc = this.requireImport(...READ_ID);
       sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)});`;
     } else {
       sourceLocationFunc = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
@@ -230,8 +230,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...uint256Import()),
-        this.requireImport(...warpAllocImport()),
+        this.requireImport(...UINT256),
+        this.requireImport(...WARP_ALLOC),
         sourceLocationFunc,
         ...calledFuncs,
         memoryWriteDef,
@@ -310,10 +310,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...uint256Import()),
-        this.requireImport(...uint256AddImport()),
-        this.requireImport(...indexDynImport()),
-        this.requireImport(...newImport()),
+        this.requireImport(...UINT256),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...INDEX_DYN),
+        this.requireImport(...NEW),
         memoryRead,
         ...conversionFuncs,
         memoryWrite,
@@ -386,10 +386,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...uint256Import()),
-        this.requireImport(...uint256AddImport()),
-        this.requireImport(...indexDynImport()),
-        this.requireImport(...newImport()),
+        this.requireImport(...UINT256),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...INDEX_DYN),
+        this.requireImport(...NEW),
         memoryRead,
         ...conversionCalls,
         memoryWrite,
@@ -437,12 +437,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       const conversionFunc = `warp_int${sourceType.nBits}_to_int${targetType.nBits}`;
       return [
         `let (${targetVar}) = ${conversionFunc}(${sourceVar});`,
-        [this.requireImport(intConversionsPath(), conversionFunc)],
+        [this.requireImport(INT_CONVERSIONS, conversionFunc)],
       ];
     } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
       return [
         `let (${targetVar}) = felt_to_uint256(${sourceVar});`,
-        [this.requireImport(...feltToUint256Import())],
+        [this.requireImport(...FELT_TO_UINT256)],
       ];
     } else {
       return [`let ${targetVar} = ${sourceVar};`, []];
@@ -464,7 +464,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     return [
       `let (${targetVar}) = ${conversionFunc}(${sourceVar}, ${widthDiff * 8});`,
-      [this.requireImport(bytesConversionsPath(), conversionFunc)],
+      [this.requireImport(BYTES_CONVERSIONS, conversionFunc)],
     ];
   }
 }

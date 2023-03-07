@@ -38,7 +38,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
-import { isLeFeltImport, narrowSafeImport } from '../../utils/importPaths';
+import { IS_LE_FELT, NARROW_SAFE } from '../../utils/importPaths';
 
 const IMPLICITS = '{range_check_ptr : felt}';
 
@@ -201,9 +201,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
     // TODO: enum names are unique right?
     const funcName = `external_input_check_enum_${enumDef.name}`;
 
-    const importFuncs = [this.requireImport(...isLeFeltImport())];
+    const importFuncs = [this.requireImport(...IS_LE_FELT)];
     if (takesUint) {
-      importFuncs.push(this.requireImport(...narrowSafeImport()));
+      importFuncs.push(this.requireImport(...NARROW_SAFE));
     }
 
     const nMembers = enumDef.vMembers.length;

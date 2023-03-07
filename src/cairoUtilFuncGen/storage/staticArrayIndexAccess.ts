@@ -10,11 +10,11 @@ import {
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
-  splitFeltImport,
-  uint256AddImport,
-  uint256LeImport,
-  uint256LtImport,
-  uint256MulImport,
+  SPLIT_FELT,
+  UINT256_ADD,
+  UINT256_LE,
+  UINT256_LT,
+  UINT256_MUL,
 } from '../../utils/importPaths';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -96,11 +96,11 @@ export class StorageStaticArrayIndexAccessGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...splitFeltImport()),
-        this.requireImport(...uint256AddImport()),
-        this.requireImport(...uint256LeImport()),
-        this.requireImport(...uint256LtImport()),
-        this.requireImport(...uint256MulImport()),
+        this.requireImport(...SPLIT_FELT),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...UINT256_LE),
+        this.requireImport(...UINT256_LT),
+        this.requireImport(...UINT256_MUL),
       ],
     };
   }

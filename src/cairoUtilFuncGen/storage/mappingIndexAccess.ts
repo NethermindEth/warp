@@ -17,12 +17,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import {
-  allocImport,
-  feltToUint256Import,
-  narrowSafeImport,
-  stringHashImport,
-} from '../../utils/importPaths';
+import { ALLOC, FELT_TO_UINT256, NARROW_SAFE, STRING_HASH } from '../../utils/importPaths';
 import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -179,7 +174,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     if (dataLocation === DataLocation.CallData) {
       const importFunction = this.ast.registerImport(
         this.sourceUnit,
-        ...stringHashImport(),
+        ...STRING_HASH,
         inputInfo,
         outputInfo,
       );
@@ -189,7 +184,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     if (dataLocation === DataLocation.Memory) {
       const importFunction = this.ast.registerImport(
         this.sourceUnit,
-        ...stringHashImport(),
+        ...STRING_HASH,
         inputInfo,
         outputInfo,
       );
@@ -250,10 +245,10 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...narrowSafeImport()),
-        this.requireImport(...feltToUint256Import()),
-        this.requireImport(...allocImport()),
-        this.requireImport(...stringHashImport()),
+        this.requireImport(...NARROW_SAFE),
+        this.requireImport(...FELT_TO_UINT256),
+        this.requireImport(...ALLOC),
+        this.requireImport(...STRING_HASH),
         dynArray,
         dynArrayLen,
       ],

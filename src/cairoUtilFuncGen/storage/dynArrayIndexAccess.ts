@@ -10,7 +10,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { uint256Import, uint256LtImport } from '../../utils/importPaths';
+import { UINT256, UINT256_LT } from '../../utils/importPaths';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -89,8 +89,8 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...uint256Import()),
-        this.requireImport(...uint256LtImport()),
+        this.requireImport(...UINT256),
+        this.requireImport(...UINT256_LT),
         arrayDef,
         arrayLength,
       ],

@@ -14,16 +14,16 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import {
-  allocImport,
-  bitwiseBuiltinImport,
-  dynArrayLengthImport,
-  dynArraysUtilsPath,
-  feltArrayToWarpMemoryArrayImport,
-  feltToUint256Import,
-  indexDynImport,
-  narrowSafeImport,
-  newImport,
-  uint256Import,
+  ALLOC,
+  BITWISE_BUILTIN,
+  DYNAMIC_ARRAYS_UTIL,
+  DYN_ARRAY_LENGTH,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  INDEX_DYN,
+  NARROW_SAFE,
+  NEW,
+  UINT256,
 } from '../../utils/importPaths';
 import {
   getElementType,
@@ -93,12 +93,12 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...allocImport()),
-      this.requireImport(...bitwiseBuiltinImport()),
-      this.requireImport(...uint256Import()),
-      this.requireImport(...feltToUint256Import()),
-      this.requireImport(...newImport()),
-      this.requireImport(...feltArrayToWarpMemoryArrayImport()),
+      this.requireImport(...ALLOC),
+      this.requireImport(...BITWISE_BUILTIN),
+      this.requireImport(...UINT256),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
     const cairoFunc = {
@@ -193,7 +193,7 @@ export class IndexEncode extends AbiBase {
     // so they should be converted to Uint256 accordingly
     if (size < 32 || isAddressType(type)) {
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
-      importedFunc.push(this.requireImport(...feltToUint256Import()));
+      importedFunc.push(this.requireImport(...FELT_TO_UINT256));
       varToEncode = `${varToEncode}256`;
     }
     instructions.push(
@@ -236,9 +236,9 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...dynArrayLengthImport()),
-      this.requireImport(...feltToUint256Import()),
-      this.requireImport(...narrowSafeImport()),
+      this.requireImport(...DYN_ARRAY_LENGTH),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NARROW_SAFE),
     ];
 
     const funcInfo = { name, code, functionsCalled: [...importedFuncs, tailEncoding] };
@@ -284,8 +284,8 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...indexDynImport()),
-      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...INDEX_DYN),
+      this.requireImport(...FELT_TO_UINT256),
     ];
 
     const funcInfo = {
@@ -330,7 +330,7 @@ export class IndexEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunc = this.requireImport(...feltToUint256Import());
+    const importedFunc = this.requireImport(...FELT_TO_UINT256);
 
     const funcInfo = { name, code, functionsCalled: [importedFunc] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -416,7 +416,7 @@ export class IndexEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunction = this.requireImport(...feltToUint256Import());
+    const importedFunction = this.requireImport(...FELT_TO_UINT256);
 
     const funcInfo = { name, code, functionsCalled: [importedFunction, inlineEncoding] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -486,17 +486,17 @@ export class IndexEncode extends AbiBase {
 
   private createStringOrBytesHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl';
-    return this.requireImport(dynArraysUtilsPath(), funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   private createStringOrBytesHeadEncodingWithoutPadding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl_without_padding';
-    return this.requireImport(dynArraysUtilsPath(), funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   private createValueTypeHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'fixed_bytes256_to_felt_dynamic_array_spl';
-    return this.requireImport(dynArraysUtilsPath(), funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   protected readMemory(type: TypeNode, arg: string): [string, CairoFunctionDefinition] {

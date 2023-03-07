@@ -23,16 +23,16 @@ import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase } from './base';
 import {
-  allocImport,
-  dynArrayLengthImport,
-  dynArraysUtilsPath,
-  feltArrayToWarpMemoryArrayImport,
-  feltToUint256Import,
-  fixedBytes256ToFeltDynamicArrayImport,
-  indexDynImport,
-  narrowSafeImport,
-  newImport,
-  uint256Import,
+  ALLOC,
+  DYNAMIC_ARRAYS_UTIL,
+  DYN_ARRAY_LENGTH,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
+  INDEX_DYN,
+  NARROW_SAFE,
+  NEW,
+  UINT256,
 } from '../../utils/importPaths';
 
 const IMPLICITS =
@@ -88,11 +88,11 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...uint256Import()),
-      this.requireImport(...allocImport()),
-      this.requireImport(...feltToUint256Import()),
-      this.requireImport(...newImport()),
-      this.requireImport(...feltArrayToWarpMemoryArrayImport()),
+      this.requireImport(...UINT256),
+      this.requireImport(...ALLOC),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
     return {
@@ -132,8 +132,8 @@ export class AbiEncodePacked extends AbiBase {
           `let ${newIndexVar} = bytes_index +  32;`,
         ].join('\n'),
         [
-          this.requireImport(...feltToUint256Import()),
-          this.requireImport(...fixedBytes256ToFeltDynamicArrayImport()),
+          this.requireImport(...FELT_TO_UINT256),
+          this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY),
         ],
       ];
     }
@@ -147,11 +147,7 @@ export class AbiEncodePacked extends AbiBase {
           `let (length) = narrow_safe(length256);`,
           `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
         ].join('\n'),
-        [
-          this.requireImport(...dynArrayLengthImport()),
-          this.requireImport(...narrowSafeImport()),
-          func,
-        ],
+        [this.requireImport(...DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE), func],
       ];
     }
 
@@ -237,7 +233,7 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
 
     const importedFuncs = isDynamicArray(type)
-      ? [this.requireImport(...indexDynImport()), this.requireImport(...feltToUint256Import())]
+      ? [this.requireImport(...INDEX_DYN), this.requireImport(...FELT_TO_UINT256)]
       : [];
 
     const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...funcCalls, readFunc] };
@@ -251,6 +247,6 @@ export class AbiEncodePacked extends AbiBase {
     const funcName =
       size === 32 ? 'fixed_bytes256_to_felt_dynamic_array' : `fixed_bytes_to_felt_dynamic_array`;
 
-    return this.requireImport(dynArraysUtilsPath(), funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 }

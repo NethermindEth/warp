@@ -21,12 +21,12 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
-  dictWriteImport,
-  indexDynImport,
-  newImport,
-  uint256Import,
-  uint256SubImport,
-  warpAllocImport,
+  DICT_WRITE,
+  INDEX_DYN,
+  NEW,
+  UINT256,
+  UINT256_SUB,
+  WARP_ALLOC,
 } from '../../utils/importPaths';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -127,8 +127,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...dictWriteImport()),
-        this.requireImport(...warpAllocImport()),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...WARP_ALLOC),
         ...copyCalls,
       ],
     };
@@ -173,8 +173,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...dictWriteImport()),
-        this.requireImport(...warpAllocImport()),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...WARP_ALLOC),
         ...copyCalls,
       ],
     };
@@ -230,10 +230,10 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...dictWriteImport()),
-        this.requireImport(...warpAllocImport()),
-        this.requireImport(...uint256SubImport()),
-        this.requireImport(...uint256Import()),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...WARP_ALLOC),
+        this.requireImport(...UINT256_SUB),
+        this.requireImport(...UINT256),
         ...copyCalls,
       ],
     };
@@ -285,11 +285,11 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...dictWriteImport()),
-        this.requireImport(...uint256SubImport()),
-        this.requireImport(...uint256Import()),
-        this.requireImport(...newImport()),
-        this.requireImport(...indexDynImport()),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...UINT256_SUB),
+        this.requireImport(...UINT256),
+        this.requireImport(...NEW),
+        this.requireImport(...INDEX_DYN),
         ...copyCalls,
         dynArray,
         dynArrayLength,

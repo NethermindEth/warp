@@ -13,13 +13,13 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
-  allocImport,
-  byte256AtIndexImport,
-  feltArrayToWarpMemoryArrayImport,
-  feltToUint256Import,
-  newImport,
-  uint256Import,
-  warpKeccakImport,
+  ALLOC,
+  BYTE256_AT_INDEX,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  NEW,
+  UINT256,
+  WARP_KECCAK,
 } from '../../utils/importPaths';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -123,13 +123,13 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...uint256Import()),
-      this.requireImport(...allocImport()),
-      this.requireImport(...feltToUint256Import()),
-      this.requireImport(...newImport()),
-      this.requireImport(...feltArrayToWarpMemoryArrayImport()),
-      this.requireImport(...byte256AtIndexImport()),
-      this.requireImport(...warpKeccakImport()),
+      this.requireImport(...UINT256),
+      this.requireImport(...ALLOC),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
+      this.requireImport(...BYTE256_AT_INDEX),
+      this.requireImport(...WARP_KECCAK),
     ];
 
     const cairoFunc = {

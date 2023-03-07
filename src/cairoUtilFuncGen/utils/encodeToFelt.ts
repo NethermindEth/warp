@@ -25,7 +25,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, WillNotSupportError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { allocImport } from '../../utils/importPaths';
+import { ALLOC } from '../../utils/importPaths';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -194,7 +194,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    const importFunc = this.requireImport(...allocImport());
+    const importFunc = this.requireImport(...ALLOC);
 
     const funcInfo = {
       name: funcName,

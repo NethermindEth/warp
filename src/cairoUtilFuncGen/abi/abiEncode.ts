@@ -13,15 +13,15 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import {
-  allocImport,
-  dynArrayLengthImport,
-  dynArraysUtilsPath,
-  feltArrayToWarpMemoryArrayImport,
-  feltToUint256Import,
-  indexDynImport,
-  narrowSafeImport,
-  newImport,
-  uint256Import,
+  ALLOC,
+  DYNAMIC_ARRAYS_UTIL,
+  DYN_ARRAY_LENGTH,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  INDEX_DYN,
+  NARROW_SAFE,
+  NEW,
+  UINT256,
 } from '../../utils/importPaths';
 import {
   getByteSize,
@@ -101,11 +101,11 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...allocImport()),
-      this.requireImport(...uint256Import()),
-      this.requireImport(...feltToUint256Import()),
-      this.requireImport(...newImport()),
-      this.requireImport(...feltArrayToWarpMemoryArrayImport()),
+      this.requireImport(...ALLOC),
+      this.requireImport(...UINT256),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
     const funcInfo = {
@@ -205,7 +205,7 @@ export class AbiEncode extends AbiBase {
     // packed size of addresses is 32 bytes, but they are treated as felts,
     // so they should be converted to Uint256 accordingly
     if (size < 32 || isAddressType(type)) {
-      funcsCalled.push(this.requireImport(...feltToUint256Import()));
+      funcsCalled.push(this.requireImport(...FELT_TO_UINT256));
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;
     }
@@ -271,9 +271,9 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...dynArrayLengthImport()),
-      this.requireImport(...feltToUint256Import()),
-      this.requireImport(...narrowSafeImport()),
+      this.requireImport(...DYN_ARRAY_LENGTH),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NARROW_SAFE),
     ];
 
     const genFuncInfo = {
@@ -327,8 +327,8 @@ export class AbiEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...indexDynImport()),
-      this.requireImport(...feltToUint256Import()),
+      this.requireImport(...INDEX_DYN),
+      this.requireImport(...FELT_TO_UINT256),
     ];
 
     const genFuncInfo = {
@@ -387,7 +387,7 @@ export class AbiEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunc = this.requireImport(...feltToUint256Import());
+    const importedFunc = this.requireImport(...FELT_TO_UINT256);
 
     const genFuncInfo = {
       name,
@@ -508,11 +508,7 @@ export class AbiEncode extends AbiBase {
     const genFuncInfo = {
       name,
       code,
-      functionsCalled: [
-        this.requireImport(...feltToUint256Import()),
-        inlineEncoding,
-        valueEncoding,
-      ],
+      functionsCalled: [this.requireImport(...FELT_TO_UINT256), inlineEncoding, valueEncoding],
     };
     const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
 
@@ -579,12 +575,12 @@ export class AbiEncode extends AbiBase {
 
   private createStringOrBytesHeadEncoding(): CairoFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array';
-    return this.requireImport(dynArraysUtilsPath(), funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   private createValueTypeHeadEncoding(): CairoFunctionDefinition {
     const funcName = 'fixed_bytes256_to_felt_dynamic_array';
-    return this.requireImport(dynArraysUtilsPath(), funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   protected readMemory(type: TypeNode, arg: string): [string, CairoFunctionDefinition] {

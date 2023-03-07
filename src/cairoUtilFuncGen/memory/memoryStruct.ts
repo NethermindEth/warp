@@ -11,12 +11,7 @@ import {
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  dictAccessImport,
-  dictWriteImport,
-  uint256Import,
-  warpAllocImport,
-} from '../../utils/importPaths';
+import { DICT_ACCESS, DICT_WRITE, UINT256, WARP_ALLOC } from '../../utils/importPaths';
 import { safeGetNodeType, typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -107,10 +102,10 @@ export class MemoryStructGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...warpAllocImport()),
-        this.requireImport(...dictWriteImport()),
-        this.requireImport(...dictAccessImport()),
-        this.requireImport(...uint256Import()),
+        this.requireImport(...WARP_ALLOC),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...DICT_ACCESS),
+        this.requireImport(...UINT256),
       ],
     };
   }

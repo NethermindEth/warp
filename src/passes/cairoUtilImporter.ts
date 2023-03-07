@@ -12,12 +12,12 @@ import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
 import {
-  allocImport,
-  defaultDictFinalizeImport,
-  defaultDictNewImport,
-  dictWriteImport,
-  finalizeKeccakImport,
-  uint256Import,
+  ALLOC,
+  DEFAULT_DICT_FINALIZE,
+  DEFAULT_DICT_NEW,
+  DICT_WRITE,
+  FINALIZE_KECCAK,
+  UINT256,
 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
@@ -40,21 +40,21 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImport(...uint256Import(), this.dummySourceUnit ?? node, ast);
+      createImport(...UINT256, this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(...uint256Import(), this.dummySourceUnit ?? node, ast);
+      createImport(...UINT256, this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(...uint256Import(), this.dummySourceUnit ?? node, ast);
+      createImport(...UINT256, this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining
@@ -72,15 +72,15 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
     if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
-      createImport(...defaultDictNewImport(), node, ast);
-      createImport(...defaultDictFinalizeImport(), node, ast);
-      createImport(...dictWriteImport(), node, ast);
+      createImport(...DEFAULT_DICT_NEW, node, ast);
+      createImport(...DEFAULT_DICT_FINALIZE, node, ast);
+      createImport(...DICT_WRITE, node, ast);
     }
 
     if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
-      createImport(...finalizeKeccakImport(), node, ast);
+      createImport(...FINALIZE_KECCAK, node, ast);
       // Required to create a keccak_ptr
-      createImport(...allocImport(), node, ast);
+      createImport(...ALLOC, node, ast);
     }
 
     this.commonVisit(node, ast);

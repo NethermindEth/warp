@@ -20,12 +20,12 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
-  dictReadImport,
-  dynArrayLengthImport,
-  narrowSafeImport,
-  uint256Import,
-  uint256LtImport,
-  uint256SubImport,
+  DICT_READ,
+  DYN_ARRAY_LENGTH,
+  NARROW_SAFE,
+  UINT256,
+  UINT256_LT,
+  UINT256_SUB,
 } from '../../utils/importPaths';
 import {
   getElementType,
@@ -202,7 +202,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
           `    WARP_STORAGE.write(${add('storage_loc', n)}, copy);`,
         ].join('\n'),
       ).join('\n');
-      calledFuncs = [this.requireImport(...dictReadImport())];
+      calledFuncs = [this.requireImport(...DICT_READ)];
     }
 
     const funcName = `wm_to_storage_static_array_${this.generatedFunctionsDef.size}`;
@@ -272,7 +272,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
           `    WARP_STORAGE.write(${add('storage_loc', n)}, copy);`,
         ].join('\n'),
       ).join('\n');
-      funcCalls = [this.requireImport(...dictReadImport())];
+      funcCalls = [this.requireImport(...DICT_READ)];
     }
 
     const deleteFunc = this.storageDeleteGen.getOrCreateFuncDef(type);
@@ -320,10 +320,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...narrowSafeImport()),
-        this.requireImport(...uint256LtImport()),
-        this.requireImport(...uint256SubImport()),
-        this.requireImport(...dynArrayLengthImport()),
+        this.requireImport(...NARROW_SAFE),
+        this.requireImport(...UINT256_LT),
+        this.requireImport(...UINT256_SUB),
+        this.requireImport(...DYN_ARRAY_LENGTH),
         ...funcCalls,
         dynArray,
         dynArrayLength,
@@ -354,7 +354,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               ];
           return [
             [...code, ...copyCode],
-            [...funcCalls, this.requireImport(...uint256Import()), readFunc, auxFunc],
+            [...funcCalls, this.requireImport(...UINT256), readFunc, auxFunc],
             storageOffset + typeFeltWidth,
             memOffset + 1,
           ];
@@ -372,7 +372,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               ].join('\n'),
             ),
           ],
-          [...funcCalls, this.requireImport(...dictReadImport())],
+          [...funcCalls, this.requireImport(...DICT_READ)],
           storageOffset + typeFeltWidth,
           memOffset + typeFeltWidth,
         ];

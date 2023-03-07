@@ -33,7 +33,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit } from '../utils/utils';
-import { deployImport } from '../utils/importPaths';
+import { DEPLOY } from '../utils/importPaths';
 
 /** Pass that takes all expressions of the form:
  *
@@ -143,7 +143,7 @@ export class NewToDeploy extends ASTMapper {
   ): FunctionCall {
     const deployFunc = ast.registerImport(
       node,
-      ...deployImport(),
+      ...DEPLOY,
       [
         ['class_hash', createAddressTypeName(false, ast)],
         ['contract_address_salt', createBytesNTypeName(31, ast)],

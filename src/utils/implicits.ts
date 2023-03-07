@@ -1,6 +1,6 @@
 import { ASTNode } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { bitwiseBuiltinImport, dictAccessImport, hashBuiltinImport } from './importPaths';
+import { BITWISE_BUILTIN, DICT_ACCESS, HASH_BUILTIN } from './importPaths';
 
 export type Implicits =
   | 'bitwise_ptr'
@@ -39,13 +39,13 @@ export const implicitTypes: { [key in Implicits]: string } = {
 export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Implicits) {
   switch (implicit) {
     case 'bitwise_ptr':
-      ast.registerImport(node, ...bitwiseBuiltinImport(), [], []);
+      ast.registerImport(node, ...BITWISE_BUILTIN, [], []);
       break;
     case 'pedersen_ptr':
-      ast.registerImport(node, ...hashBuiltinImport(), [], []);
+      ast.registerImport(node, ...HASH_BUILTIN, [], []);
       break;
     case 'warp_memory':
-      ast.registerImport(node, ...dictAccessImport(), [], []);
+      ast.registerImport(node, ...DICT_ACCESS, [], []);
       break;
   }
 }

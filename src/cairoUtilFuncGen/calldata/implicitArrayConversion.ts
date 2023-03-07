@@ -26,10 +26,10 @@ import { StorageWriteGen } from '../storage/storageWrite';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
 import {
-  bytesConversionsPath,
-  feltToUint256Import,
-  intConversionsPath,
-  uint256Import,
+  BYTES_CONVERSIONS,
+  FELT_TO_UINT256,
+  INT_CONVERSIONS,
+  UINT256,
 } from '../../utils/importPaths';
 
 const IMPLICITS =
@@ -233,11 +233,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: code,
-      functionsCalled: [
-        this.requireImport(...uint256Import()),
-        ...requiredFunctions,
-        ...optionalImport,
-      ],
+      functionsCalled: [this.requireImport(...UINT256), ...requiredFunctions, ...optionalImport],
     };
   }
 
@@ -309,7 +305,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       }
       if (targetElementT.signed) {
         const convertionFunc = this.requireImport(
-          intConversionsPath(),
+          INT_CONVERSIONS,
           `warp_int${sourceElementT.nBits}_to_int${targetElementT.nBits}`,
         );
         return [
@@ -321,7 +317,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           [writeToStorage, convertionFunc],
         ];
       }
-      const toUintFunc = this.requireImport(...feltToUint256Import());
+      const toUintFunc = this.requireImport(...FELT_TO_UINT256);
       return [
         (index, offset) =>
           [
@@ -337,7 +333,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       const writeToStorage = this.storageWriteGen.getOrCreateFuncDef(targetElementT);
       if (targetElementT.size > sourceElementT.size) {
         const widenFunc = this.requireImport(
-          bytesConversionsPath(),
+          BYTES_CONVERSIONS,
           `warp_bytes_widen${targetElementT.size === 32 ? '_256' : ''}`,
         );
         return [
@@ -394,7 +390,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       }
       if (targetElmType.signed) {
         const conversionFunc = this.requireImport(
-          intConversionsPath(),
+          INT_CONVERSIONS,
           `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
         );
         return [
@@ -407,7 +403,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           [arrayDef, writeDef, conversionFunc],
         ];
       }
-      const toUintFunc = this.requireImport(...feltToUint256Import());
+      const toUintFunc = this.requireImport(...FELT_TO_UINT256);
       return [
         (index) =>
           [
@@ -426,7 +422,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
       if (targetElmType.size > sourceElmType.size) {
         const widenFunc = this.requireImport(
-          bytesConversionsPath(),
+          BYTES_CONVERSIONS,
           `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
         );
         const bits = (targetElmType.size - sourceElmType.size) * 8;
@@ -495,10 +491,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       assert(sourceElmType instanceof IntType);
       const convertionFunc = targetElmType.signed
         ? this.requireImport(
-            intConversionsPath(),
+            INT_CONVERSIONS,
             `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
           )
-        : this.requireImport(...feltToUint256Import());
+        : this.requireImport(...FELT_TO_UINT256);
       return [
         () =>
           [
@@ -514,7 +510,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (targetElmType instanceof FixedBytesType) {
       assert(sourceElmType instanceof FixedBytesType);
       const widenFunc = this.requireImport(
-        bytesConversionsPath(),
+        BYTES_CONVERSIONS,
         `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
       );
       const bits = (targetElmType.size - sourceElmType.size) * 8;

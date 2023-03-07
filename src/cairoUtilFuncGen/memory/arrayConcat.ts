@@ -22,12 +22,12 @@ import {
   ParameterInfo,
 } from '../../utils/functionGeneration';
 import {
-  dynArrayLengthImport,
-  dynArraysUtilsPath,
-  feltToUint256Import,
-  narrowSafeImport,
-  newImport,
-  uint256Import,
+  DYNAMIC_ARRAYS_UTIL,
+  DYN_ARRAY_LENGTH,
+  FELT_TO_UINT256,
+  NARROW_SAFE,
+  NEW,
+  UINT256,
 } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
@@ -116,10 +116,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `   return (res_loc,);`,
           `}`,
         ].join('\n'),
-        functionsCalled: [
-          this.requireImport(...uint256Import()),
-          this.requireImport(...newImport()),
-        ],
+        functionsCalled: [this.requireImport(...UINT256), this.requireImport(...NEW)],
       };
     }
 
@@ -174,9 +171,9 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...uint256Import()),
-        this.requireImport(...feltToUint256Import()),
-        this.requireImport(...newImport()),
+        this.requireImport(...UINT256),
+        this.requireImport(...FELT_TO_UINT256),
+        this.requireImport(...NEW),
         ...argSizesImports,
         ...concatImports,
       ],
@@ -190,7 +187,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
           `let (size_${index}) = narrow_safe(size256_${index});`,
         ].join('\n'),
-        [this.requireImport(...dynArrayLengthImport()), this.requireImport(...narrowSafeImport())],
+        [this.requireImport(...DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
       ];
     }
 
@@ -214,7 +211,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
         `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0);`,
-        this.requireImport(dynArraysUtilsPath(), 'dynamic_array_copy_felt'),
+        this.requireImport(DYNAMIC_ARRAYS_UTIL, 'dynamic_array_copy_felt'),
       ];
     }
 
@@ -222,13 +219,13 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type.size < 32) {
       return [
         `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index});`,
-        this.requireImport(dynArraysUtilsPath(), 'fixed_bytes_to_dynamic_array'),
+        this.requireImport(DYNAMIC_ARRAYS_UTIL, 'fixed_bytes_to_dynamic_array'),
       ];
     }
 
     return [
       `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0);`,
-      this.requireImport(dynArraysUtilsPath(), 'fixed_bytes256_to_dynamic_array'),
+      this.requireImport(DYNAMIC_ARRAYS_UTIL, 'fixed_bytes256_to_dynamic_array'),
     ];
   }
 }

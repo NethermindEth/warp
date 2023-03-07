@@ -3,7 +3,7 @@ import { FixedBytesType, FunctionCall, generalizeType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode, printNode } from '../../../utils/astPrinter';
 import { createCallToFunction } from '../../../utils/functionGeneration';
-import { bytesConversionsPath } from '../../../utils/importPaths';
+import { BYTES_CONVERSIONS } from '../../../utils/importPaths';
 import { createNumberLiteral, createUint8TypeName } from '../../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../../utils/utils';
@@ -29,7 +29,7 @@ export function functionaliseFixedBytesConversion(conversion: FunctionCall, ast:
     const fullName = `warp_bytes_widen${toType.size === 32 ? '_256' : ''}`;
     const importedFunc = ast.registerImport(
       conversion,
-      bytesConversionsPath(),
+      BYTES_CONVERSIONS,
       fullName,
       [
         ['op', typeNameFromTypeNode(fromType, ast)],
@@ -53,7 +53,7 @@ export function functionaliseFixedBytesConversion(conversion: FunctionCall, ast:
     const fullName = `warp_bytes_narrow${fromType.size === 32 ? '_256' : ''}`;
     const importedFunc = ast.registerImport(
       conversion,
-      bytesConversionsPath(),
+      BYTES_CONVERSIONS,
       fullName,
       [
         ['op', typeNameFromTypeNode(fromType, ast)],
