@@ -10,18 +10,31 @@ import {
   ParameterInfo,
 } from './functionGeneration';
 import { getContainingSourceUnit } from './utils';
-
-// Paths
-const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
-const STARKWARE_CAIRO_COMMON_BUILTINS = 'starkware.cairo.common.cairo_builtins';
-const STARKWARE_CAIRO_COMMON_CAIRO_KECCAK = 'starkware.cairo.common.cairo_keccak.keccak';
-const STARKWARE_CAIRO_COMMON_DEFAULT_DICT = 'starkware.cairo.common.default_dict';
-const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
-const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
-const STARKWARE_CAIRO_COMMON_MATH = 'starkware.cairo.common.math';
-const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
-const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
-const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
+import {
+  ALLOC,
+  BITWISE_BUILTIN,
+  DEFAULT_DICT_FINALIZE,
+  DEFAULT_DICT_NEW,
+  DEPLOY,
+  DICT_ACCESS,
+  DICT_READ,
+  DICT_WRITE,
+  EMIT_EVENT,
+  FINALIZE_KECCAK,
+  GET_CALLER_ADDRESS,
+  GET_CONTRACT_ADDRESS,
+  HASH_BUILTIN,
+  IS_LE,
+  IS_LE_FELT,
+  SPLIT_FELT,
+  UINT256,
+  UINT256_ADD,
+  UINT256_EQ,
+  UINT256_LE,
+  UINT256_LT,
+  UINT256_MUL,
+  UINT256_SUB,
+} from './importPaths';
 
 export function createImport(
   path: string[],
@@ -69,52 +82,40 @@ export function createImport(
     return createFuncImport(...warplibFunc);
   }
 
-  switch ([...path, name].join('.')) {
-    case STARKWARE_CAIRO_COMMON_ALLOC + 'alloc':
+  switch ([path, name]) {
+    case ALLOC:
       return createFuncImport();
-    case STARKWARE_CAIRO_COMMON_BUILTINS + 'BitwiseBuiltin':
+    case BITWISE_BUILTIN:
       return createStructImport();
-    case STARKWARE_CAIRO_COMMON_BUILTINS + 'HashBuiltin':
+    case HASH_BUILTIN:
       return createStructImport();
-    case STARKWARE_CAIRO_COMMON_CAIRO_KECCAK + 'finalize_keccak':
+    case FINALIZE_KECCAK:
       return createFuncImport('range_check_ptr', 'bitwise_ptr');
-    case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_new':
+    case DEFAULT_DICT_NEW:
       return createFuncImport();
-    case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_finalize':
+    case DEFAULT_DICT_FINALIZE:
       return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_DICT + 'dict_read':
+    case DICT_READ:
+    case DICT_WRITE:
       return createFuncImport('dict_ptr');
-    case STARKWARE_CAIRO_COMMON_DICT + 'dict_write':
-      return createFuncImport('dict_ptr');
-    case STARKWARE_CAIRO_COMMON_DICT_ACCESS + 'DictAccess':
+    case DICT_ACCESS:
       return createStructImport();
-    case STARKWARE_CAIRO_COMMON_MATH + 'split_felt':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_MATH_CMP + 'is_le':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_MATH_CMP + 'is_le_felt':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'Uint256':
+    case UINT256:
       return createStructImport();
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_add':
+    case SPLIT_FELT:
+    case IS_LE:
+    case IS_LE_FELT:
+    case UINT256_ADD:
+    case UINT256_EQ:
+    case UINT256_LE:
+    case UINT256_LT:
+    case UINT256_MUL:
+    case UINT256_SUB:
       return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_eq':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_le':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_lt':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_mul':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_sub':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'deploy':
-      return createFuncImport('syscall_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'emit_event':
-      return createFuncImport('syscall_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_caller_address':
-      return createFuncImport('syscall_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_contract_address':
+    case DEPLOY:
+    case EMIT_EVENT:
+    case GET_CALLER_ADDRESS:
+    case GET_CONTRACT_ADDRESS:
       return createFuncImport('syscall_ptr');
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
