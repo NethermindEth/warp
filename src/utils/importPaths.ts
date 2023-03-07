@@ -39,6 +39,7 @@ export const UINT256_MUL: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'
 export const UINT256_SUB: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'uint256_sub'];
 
 //------------------------------------------------------
+
 const STARKWARE_SYSCALL_PATH = ['starkware', 'starknet', 'common', 'syscalls'];
 
 export const DEPLOY: [string[], string] = [[...STARKWARE_SYSCALL_PATH], 'deploy'];
@@ -101,3 +102,7 @@ export const WM_TO_FELT_ARRAY: [string[], string] = [[...WARPLIB_MEMORY], 'wm_to
 export const WM_ALLOC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_alloc'];
 export const WM_WRITE256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_256'];
 export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_felt'];
+
+//------------------------------------------------------
+
+export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
