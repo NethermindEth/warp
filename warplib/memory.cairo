@@ -1,17 +1,3 @@
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.dict import dict_read, dict_write
-from starkware.cairo.common.dict_access import DictAccess
-from starkware.cairo.common.math import split_felt
-from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.uint256 import (
-    Uint256,
-    uint256_add,
-    uint256_sub,
-    uint256_le,
-    uint256_lt,
-    uint256_mul,
-)
-from warplib.maths.utils import felt_to_uint256, narrow_safe
 
 // =================================THE PLAN=================================
 // Memory needs to be able to handle the following types:
@@ -35,367 +21,346 @@ from warplib.maths.utils import felt_to_uint256, narrow_safe
 
 // -----------------Scalars-----------------
 
-func wm_read_felt{warp_memory: DictAccess*}(loc: felt) -> (val: felt) {
-    let (res) = dict_read{dict_ptr=warp_memory}(loc);
-    return (res,);
+use core::dict::DictFeltToTrait;
+use core::integer;
+use core::integer::u128_from_felt;
+use core::integer::u128_to_felt;
+use core::integer::u256_from_felt;
+use core::array::ArrayTrait;
+
+extern fn narrow_safe(x: u256) -> felt nopanic; // can be replaced with import once available
+
+
+fn wm_read_felt(ref warp_memory: DictFeltTo::<felt> ,  loc: felt) -> felt {
+    warp_memory.get(loc)
 }
 
-func wm_read_256{warp_memory: DictAccess*}(loc: felt) -> (val: Uint256) {
-    let (low) = dict_read{dict_ptr=warp_memory}(loc);
-    let (high) = dict_read{dict_ptr=warp_memory}(loc + 1);
-    return (Uint256(low, high),);
+fn wm_read_256(ref warp_memory: DictFeltTo::<felt> ,  loc: felt) -> u256 {
+    let low = u128_from_felt(warp_memory.get(loc));
+    let high = u128_from_felt(warp_memory.get(loc + 1));
+    return u256{low, high};
 }
 
-func wm_write_felt{warp_memory: DictAccess*}(loc: felt, value: felt) -> (res: felt) {
-    dict_write{dict_ptr=warp_memory}(loc, value);
-    return (value,);
+fn wm_write_felt(ref warp_memory: DictFeltTo::<felt>, loc: felt, value: felt) -> felt {
+    warp_memory.insert(loc, value);
+    value
 }
 
-func wm_write_256{warp_memory: DictAccess*}(loc: felt, value: Uint256) -> (res: Uint256) {
-    dict_write{dict_ptr=warp_memory}(loc, value.low);
-    dict_write{dict_ptr=warp_memory}(loc + 1, value.high);
-    return (value,);
+fn wm_write_256(ref warp_memory: DictFeltTo::<felt> ,loc: felt, value: u256) -> u256 {
+    warp_memory.insert(loc, u128_to_felt(value.low));
+    warp_memory.insert(loc + 1, u128_to_felt(value.high));
+    value
 }
 
 // -----------------Arrays-----------------
 
-func wm_index_static{range_check_ptr}(
-    arrayLoc: felt, index: Uint256, width: Uint256, length: Uint256
-) -> (loc: felt) {
+fn wm_index_static(
+    arrayLoc: felt, index: u256, width: u256, length: u256
+) -> felt {
     // Check that the array index is valid
-    let (inRange) = uint256_lt(index, length);
-    assert inRange = 1;
+    assert(index < length, 'Index out of bounds');
 
-    // Multiply index by element width to calculate felt offset
-    let (offset: Uint256, overflow: Uint256) = uint256_mul(index, width);
-    assert overflow.low = 0;
-    assert overflow.high = 0;
+    let offset = index * width;
 
     // Add felt offset to address of array to get address of element
-    let (arrayLoc256: Uint256) = felt_to_uint256(arrayLoc);
-    let (res: Uint256, carry: felt) = uint256_add(arrayLoc256, offset);
-    assert carry = 0;
+    let arrayLoc256: u256 = u256_from_felt(arrayLoc);
+
+    let res = arrayLoc256 + offset;
 
     // Safely narrow back to felt
-    let (loc: felt) = narrow_safe(res);
-    return (loc,);
+    narrow_safe(res)
 }
 
-func wm_index_dyn{range_check_ptr, warp_memory: DictAccess*}(
-    arrayLoc: felt, index: Uint256, width: Uint256
-) -> (loc: felt) {
-    alloc_locals;
+fn wm_index_dyn(ref warp_memory: DictFeltTo::<felt> ,
+    arrayLoc: felt, index: u256, width: u256
+) -> felt {
+    
     // Get the length of the array and check that the index is within bounds
-    let (length: Uint256) = wm_read_256(arrayLoc);
-    let (inRange) = uint256_lt(index, length);
-    assert inRange = 1;
+    let length: u256 = wm_read_256(ref warp_memory, arrayLoc);
+
+    assert( index < length, 'Index out of bounds');
 
     // Calculate the location of the element
-    let (offset: Uint256, overflow: Uint256) = uint256_mul(index, width);
-    assert overflow.low = 0;
-    assert overflow.high = 0;
+    let offset = index * width;
 
-    let (elementZeroPtr) = felt_to_uint256(arrayLoc + 2);
-    let (res256: Uint256, carry) = uint256_add(elementZeroPtr, offset);
-    assert carry = 0;
-    let (res) = narrow_safe(res256);
-
-    return (res,);
+    let elementZeroPtr = u256_from_felt(arrayLoc + 2);
+    let res256= elementZeroPtr +  offset;
+    
+    narrow_safe(res256)
 }
 
-func wm_new{range_check_ptr, warp_memory: DictAccess*}(len: Uint256, elemWidth: Uint256) -> (
-    loc: felt
-) {
-    alloc_locals;
+fn wm_new(ref warp_memory: DictFeltTo::<felt> ,len: u256, elemWidth: u256) -> felt {
+    
     // Calculate space needed for array elements
-    let (feltLength: Uint256, overflow: Uint256) = uint256_mul(len, elemWidth);
-    assert overflow.low = 0;
-    assert overflow.high = 0;
+    let mut feltLength = len * elemWidth;
 
     // Add space required to include the length member
-    let (feltLength: Uint256, carry: felt) = uint256_add(feltLength, Uint256(2, 0));
-    assert carry = 0;
+    let feltLength = feltLength + u256_from_felt(2);
 
-    let (loc) = wm_alloc(feltLength);
-    dict_write{dict_ptr=warp_memory}(loc, len.low);
-    dict_write{dict_ptr=warp_memory}(loc + 1, len.high);
-    return (loc,);
+    let loc = wm_alloc(ref warp_memory, feltLength);
+    warp_memory.insert(loc, u128_to_felt(len.low));
+    warp_memory.insert(loc + 1, u128_to_felt(len.high));
+    return loc;
 }
 
-func wm_dyn_array_length{warp_memory: DictAccess*}(arrayLoc: felt) -> (len: Uint256) {
-    let (low) = dict_read{dict_ptr=warp_memory}(arrayLoc);
-    let (high) = dict_read{dict_ptr=warp_memory}(arrayLoc + 1);
-    return (Uint256(low, high),);
+fn wm_dyn_array_length(ref warp_memory: DictFeltTo::<felt> ,arrayLoc: felt) -> u256 {
+    let low = warp_memory.get(arrayLoc);
+    let high = warp_memory.get(arrayLoc + 1);
+    u256 { low: u128_from_felt(low), high: u128_from_felt(high) }
 }
 
 // The wm_bytes methods below are not currently in use since solidity dynamic
 // memory arrays do not support `push` and `pop` operations. They are kept with
 // the expectation that they will likely be added to solidity soon.
-func wm_bytes_new{range_check_ptr, warp_memory: DictAccess*}(len: Uint256) -> (loc: felt) {
-    alloc_locals;
+fn wm_bytes_new(ref warp_memory: DictFeltTo::<felt> ,len: u256) -> felt {
+    
     // Create an array to hold the bytes
-    let (arrayLoc) = wm_alloc(len);
+    let arrayLoc = wm_alloc(ref warp_memory, len);
 
     // Create a location with the metadata for the bytesLoc
-    // Size is five for (lenght: Uint256, capacity: Uint256, ptr: felt)
-    let (loc) = wm_alloc(Uint256(5, 0));
-    dict_write{dict_ptr=warp_memory}(loc, len.low);
-    dict_write{dict_ptr=warp_memory}(loc + 1, len.high);
-    dict_write{dict_ptr=warp_memory}(loc + 2, len.low);
-    dict_write{dict_ptr=warp_memory}(loc + 3, len.high);
-    dict_write{dict_ptr=warp_memory}(loc + 4, arrayLoc);
+    // Size is five for (lenght: u256, capacity: u256, ptr: felt)
+    let loc = wm_alloc(ref warp_memory, u256{low: u128_from_felt(5), high:u128_from_felt(0)});
+    warp_memory.insert(loc,  u128_to_felt(len.low));
+    warp_memory.insert(loc + 1, u128_to_felt(len.high));
+    warp_memory.insert(loc + 2, u128_to_felt(len.low));
+    warp_memory.insert(loc + 3, u128_to_felt(len.high));
+    warp_memory.insert(loc + 4, arrayLoc);
 
-    return (loc,);
+    return loc;
 }
 
-func wm_bytes_push{range_check_ptr, warp_memory: DictAccess*}(bytesLoc: felt, value: felt) -> (
-    len: Uint256
-) {
-    alloc_locals;
+fn wm_bytes_push(ref warp_memory: DictFeltTo::<felt> ,bytesLoc: felt, value: felt) -> u256 {
+    
 
     // Compute the new length
-    let (length) = wm_read_256(bytesLoc);
-    let (newLength, carry) = uint256_add(length, Uint256(1, 0));
-    assert carry = 0;
+    let length = wm_read_256(ref warp_memory, bytesLoc);
+    let newLength = length + u256{low: u128_from_felt(1), high: u128_from_felt(0)};
 
     // Update the length in memory
-    dict_write{dict_ptr=warp_memory}(bytesLoc, newLength.low);
-    dict_write{dict_ptr=warp_memory}(bytesLoc + 1, newLength.high);
+    warp_memory.insert(bytesLoc, u128_to_felt(newLength.low));
+    warp_memory.insert(bytesLoc + 1, u128_to_felt(newLength.high));
 
-    let (capacity) = wm_read_256(bytesLoc + 2);
-    let (arrayLoc) = wm_read_felt(bytesLoc + 4);
+    let capacity = wm_read_256(ref warp_memory, bytesLoc + 2);
+    let arrayLoc = wm_read_felt(ref warp_memory, bytesLoc + 4);
 
     // Check our memory array has enough capacity
-    let (le) = uint256_lt(length, capacity);
-    if (le == 1) {
+    if (length < capacity) {
         // Add length to address of array to get address of the new slot
-        let (arrayLoc256) = felt_to_uint256(arrayLoc);
-        let (res: Uint256, carry: felt) = uint256_add(arrayLoc256, length);
-        assert carry = 0;
+        let arrayLoc256 = u256_from_felt(arrayLoc);
+        let res: u256 = arrayLoc256 + length;
         // Safely narrow back to felt
-        let (loc: felt) = narrow_safe(res);
+        let loc: felt = narrow_safe(res);
         // Write the new value
-        dict_write{dict_ptr=warp_memory}(loc, value);
+        warp_memory.insert(loc, value);
     } else {
         // Double the capacity
-        let (newCapacity, mulCarry) = uint256_mul(capacity, Uint256(2, 0));
+        let newCapacity = capacity * u256{low:u128_from_felt(2), high: u128_from_felt(0)};
         // This assert isn't perfect, if the old capacity is >= 2^255 this will
         // fail while there may still be plenty of capacity left. However there
         // is no computer capable of hitting this bound so I'm happy to fail
         // early
-        assert mulCarry = Uint256(0, 0);
-        let (newArrayLoc) = wm_alloc(newCapacity);
+        let newArrayLoc = wm_alloc(ref warp_memory, newCapacity);
 
         // Copy the old array to the new one
-        let (len) = narrow_safe(length);
-        wm_copy(arrayLoc, newArrayLoc, len);
+        let len = narrow_safe(length);
+        wm_copy(ref warp_memory, arrayLoc, newArrayLoc, len);
 
         // Update the capacity in memory
-        dict_write{dict_ptr=warp_memory}(bytesLoc + 2, newCapacity.low);
-        dict_write{dict_ptr=warp_memory}(bytesLoc + 3, newCapacity.high);
+        warp_memory.insert(bytesLoc + 2, u128_to_felt(newCapacity.low));
+        warp_memory.insert(bytesLoc + 3, u128_to_felt(newCapacity.high));
         // Update the array pointer
-        dict_write{dict_ptr=warp_memory}(bytesLoc + 4, newArrayLoc);
+        warp_memory.insert(bytesLoc + 4, newArrayLoc);
 
         // Add length to address of array to get address of the new slot
-        let (arrayLoc256) = felt_to_uint256(newArrayLoc);
-        let (res: Uint256, carry: felt) = uint256_add(arrayLoc256, length);
-        assert carry = 0;
+        let arrayLoc256 = u256_from_felt(newArrayLoc);
+        let res = arrayLoc256 +  length;
+        
         // Safely narrow back to felt
-        let (loc: felt) = narrow_safe(res);
+        let loc = narrow_safe(res);
 
         // Write the new value
-        dict_write{dict_ptr=warp_memory}(loc, value);
+        warp_memory.insert(loc, value);
     }
-    return (newLength,);
+    return newLength;
 }
 
-func wm_bytes_pop{range_check_ptr, warp_memory: DictAccess*}(bytesLoc: felt) -> (
-    value: felt, len: Uint256
+fn wm_bytes_pop(ref warp_memory: DictFeltTo::<felt> ,bytesLoc: felt) -> (
+    felt, u256
 ) {
-    alloc_locals;
-    let (length) = wm_read_256(bytesLoc);
-    // Assert the pop operation is not on an empty array
-    if (length.low + length.high == 0) {
-        assert 1 = 0;
-    }
+    
+    let length = wm_read_256(ref warp_memory, bytesLoc);
+    
+    assert(length != u256_from_felt(0), 'Empty Array');
 
     // Compute the new length
-    let (newLength) = uint256_sub(length, Uint256(1, 0));
+    let newLength = length- u256{low:u128_from_felt(1), high:u128_from_felt(0)};
 
     // Read the popped value
 
     // Read the pointer to array
-    let (arrayLoc) = wm_read_felt(bytesLoc + 4);
+    let arrayLoc = wm_read_felt(ref warp_memory, bytesLoc + 4);
     // Add newLength to address of array to get address of the tail
-    let (arrayLoc256) = felt_to_uint256(arrayLoc);
-    let (res: Uint256, carry: felt) = uint256_add(arrayLoc256, newLength);
-    assert carry = 0;
+    let arrayLoc256 = u256_from_felt(arrayLoc);
+    let res: u256 = arrayLoc256 + newLength;
+
     // Safely narrow back to felt
-    let (loc: felt) = narrow_safe(res);
+    let loc = narrow_safe(res);
 
     // Read the value
-    let (value) = dict_read{dict_ptr=warp_memory}(loc);
+    let value = warp_memory.get(loc);
 
     // Write the new length
-    dict_write{dict_ptr=warp_memory}(bytesLoc, newLength.low);
-    dict_write{dict_ptr=warp_memory}(bytesLoc + 1, newLength.high);
+    warp_memory.insert(bytesLoc, u128_to_felt(newLength.low));
+    warp_memory.insert(bytesLoc + 1, u128_to_felt(newLength.high));
 
     return (value, newLength);
 }
 
-func wm_bytes_index{range_check_ptr, warp_memory: DictAccess*}(bytesLoc: felt, index: Uint256) -> (
-    res: felt
-) {
-    alloc_locals;
+fn wm_bytes_index(ref warp_memory: DictFeltTo::<felt> ,bytesLoc: felt, index: u256) -> felt {
+    
 
     // Get the arrayLoc
-    let (arrayLoc) = wm_read_felt(bytesLoc + 4);
+    let arrayLoc = wm_read_felt(ref warp_memory, bytesLoc + 4);
 
     // Get the length of the array and check that the index is within bounds
-    let (length: Uint256) = wm_read_256(bytesLoc);
-    let (inRange) = uint256_lt(index, length);
-    assert inRange = 1;
+    let length = wm_read_256(ref warp_memory, bytesLoc);
 
-    let (arrayLoc256) = felt_to_uint256(arrayLoc);
-    let (res256: Uint256, carry) = uint256_add(arrayLoc256, index);
-    assert carry = 0;
-    let (res) = narrow_safe(res256);
+    assert(index < length, 'Index out of bounds');
 
-    return (res,);
+    let arrayLoc256 = u256_from_felt(arrayLoc);
+    let res256: u256 = arrayLoc256 + index;
+    
+    narrow_safe(res256)
 }
 
-func wm_bytes_length{warp_memory: DictAccess*}(bytesLoc: felt) -> (len: Uint256) {
-    let (res: Uint256) = wm_read_256(bytesLoc);
-    return (res,);
+fn wm_bytes_length(ref warp_memory: DictFeltTo::<felt> ,bytesLoc: felt) -> u256 {
+     wm_read_256(ref warp_memory, bytesLoc)
 }
 
-func wm_bytes_to_fixed32{range_check_ptr, warp_memory: DictAccess*}(bytesLoc: felt) -> (
-    res: Uint256
-) {
-    alloc_locals;
-    let (dataLength) = wm_read_256(bytesLoc);
-    if (dataLength.high == 0) {
-        let (high) = wm_bytes_to_fixed_helper(bytesLoc + 2, 16, dataLength.low, 0);
-        let short = is_le(dataLength.low, 16);
-        if (short == 0) {
-            let (low) = wm_bytes_to_fixed_helper(bytesLoc + 18, 16, dataLength.low - 16, 0);
-            return (Uint256(low, high),);
+fn wm_bytes_to_fixed32(ref warp_memory: DictFeltTo::<felt> ,bytesLoc: felt) -> u256 {
+    
+    let dataLength = wm_read_256(ref warp_memory, bytesLoc);
+    if (dataLength.high == u128_from_felt(0)) {
+        let high = wm_bytes_to_fixed_helper(ref warp_memory, bytesLoc + 2, 16, u128_to_felt(dataLength.low), 0);
+
+        if (dataLength.low< u128_from_felt(16)) {
+            let low = wm_bytes_to_fixed_helper(ref warp_memory, bytesLoc + 18, 16, u128_to_felt(dataLength.low) - 16, 0);
+            return u256{low:u128_from_felt(low), high:u128_from_felt(high)};
         } else {
-            return (Uint256(0, high),);
+            return u256{low:u128_from_felt(0), high:u128_from_felt(high)};
         }
     } else {
-        let (high) = wm_bytes_to_fixed_helper(bytesLoc + 2, 16, 16, 0);
-        let (low) = wm_bytes_to_fixed_helper(bytesLoc + 18, 16, 16, 0);
-        return (Uint256(low, high),);
+        let high = wm_bytes_to_fixed_helper(ref warp_memory, bytesLoc + 2, 16, 16, 0);
+        let low = wm_bytes_to_fixed_helper(ref warp_memory, bytesLoc + 18, 16, 16, 0);
+        return u256{low:u128_from_felt(low), high:u128_from_felt(high)};
     }
 }
 
-func wm_bytes_to_fixed{warp_memory: DictAccess*}(bytesLoc: felt, width: felt) -> (res: felt) {
-    alloc_locals;
-    let (dataLength) = wm_read_256(bytesLoc);
-    if (dataLength.high == 0) {
-        return wm_bytes_to_fixed_helper(bytesLoc + 2, width, dataLength.low, 0);
+fn wm_bytes_to_fixed(ref warp_memory: DictFeltTo::<felt> ,bytesLoc: felt, width: felt) -> felt {
+    
+    let dataLength = wm_read_256(ref warp_memory, bytesLoc);
+    if (dataLength.high == u128_from_felt(0)) {
+        return wm_bytes_to_fixed_helper(ref warp_memory, bytesLoc + 2, width, u128_to_felt(dataLength.low), 0);
     } else {
-        return wm_bytes_to_fixed_helper(bytesLoc + 2, width, width, 0);
+        return wm_bytes_to_fixed_helper(ref warp_memory, bytesLoc + 2, width, width, 0);
     }
 }
 
 // -----------------Structs-----------------
 
-func index_struct(loc: felt, index: felt) -> (indexLoc: felt) {
+fn index_struct(loc: felt, index: felt) -> felt {
     // No need to range check here, that was already done when the struct was allocated
-    return (loc + index,);
+    return loc + index;
 }
 
 // -----------------Helper functions-----------------
 
 // Returns an exisiting pointer to a reference data type structure. If it does not exist, it will
 // create a new pointer
-func wm_read_id{range_check_ptr: felt, warp_memory: DictAccess*}(loc: felt, size: Uint256) -> (
-    val: felt
-) {
-    let (id) = dict_read{dict_ptr=warp_memory}(loc);
+fn wm_read_id(ref warp_memory: DictFeltTo::<felt> ,loc: felt, size: u256) -> felt{
+    let id = warp_memory.get(loc);
     if (id != 0) {
-        return (id,);
+        return id;
     }
-    let (id) = wm_alloc(size);
-    dict_write{dict_ptr=warp_memory}(loc, id);
-    return (id,);
+    let id = wm_alloc(ref warp_memory, size);
+    warp_memory.insert(loc, id);
+    return id;
 }
 
 // Moves the free-memory pointer to allocate the given number of cells, and returns the index
 // of the start of the allocated space
-func wm_alloc{range_check_ptr, warp_memory: DictAccess*}(space: Uint256) -> (start: felt) {
-    alloc_locals;
+fn wm_alloc(ref warp_memory: DictFeltTo::<felt> ,space: u256) -> felt {
+    
     // Get current end pointer
-    let (freeCell) = dict_read{dict_ptr=warp_memory}(0);
+    let freeCell = warp_memory.get(0);
 
-    // Widen to uint256 for safe calculation and because array lengths are uint256
-    let (freeCell256) = felt_to_uint256(freeCell);
-    let (newFreeCell256: Uint256, carry) = uint256_add(freeCell256, space);
-    assert carry = 0;
-    let (newFreeCell) = narrow_safe(newFreeCell256);
-    dict_write{dict_ptr=warp_memory}(0, newFreeCell);
-    return (freeCell,);
+    // Widen to u256 for safe calculation and because array lengths are u256
+    let freeCell256 = u256_from_felt(freeCell);
+    let newFreeCell256 = freeCell256 + space;
+    
+    let newFreeCell = narrow_safe(newFreeCell256);
+    warp_memory.insert(0, newFreeCell);
+    return freeCell;
 }
 
 // Copies length felts from src to dst
-func wm_copy{warp_memory: DictAccess*}(src: felt, dst: felt, length: felt) {
-    alloc_locals;
+fn wm_copy(ref warp_memory: DictFeltTo::<felt> ,src: felt, dst: felt, length: felt) {
+    
     if (length == 0) {
         return ();
     }
 
-    let (srcVal) = dict_read{dict_ptr=warp_memory}(src);
-    dict_write{dict_ptr=warp_memory}(dst, srcVal);
+    let srcVal = warp_memory.get(src);
+    warp_memory.insert(dst, srcVal);
 
-    wm_copy(src + 1, dst + 1, length - 1);
+    wm_copy(ref warp_memory, src + 1, dst + 1, length - 1);
     return ();
 }
 
 // Converts an array in memory to a felt array
-func wm_to_felt_array{range_check_ptr, warp_memory: DictAccess*}(loc: felt) -> (
-    length: felt, output: felt*
+fn wm_to_felt_array(ref warp_memory: DictFeltTo::<felt> ,loc: felt) -> (
+    felt , @Array::<felt>
 ) {
-    alloc_locals;
-    let (output: felt*) = alloc();
+    
+    let mut output= ArrayTrait::<felt>::new() ;
 
-    let (lengthUint256: Uint256) = wm_read_256(loc);
-    let (length_felt: felt) = narrow_safe(lengthUint256);
+    let lengthu256: u256 = wm_read_256(ref warp_memory, loc);
+    let length_felt: felt = narrow_safe(lengthu256);
 
-    wm_to_felt_array_helper(loc + 2, 0, length_felt, output);
+    wm_to_felt_array_helper(ref warp_memory, loc + 2, 0, length_felt, ref output);
 
-    return (length_felt, output);
+    return (length_felt, @output);
 }
 
-func wm_to_felt_array_helper{range_check_ptr, warp_memory: DictAccess*}(
-    loc: felt, index: felt, length: felt, output: felt*
+fn wm_to_felt_array_helper(ref warp_memory: DictFeltTo::<felt> ,
+    loc: felt, index: felt, length: felt, ref output: Array::<felt>
 ) {
-    alloc_locals;
+    
     if (index == length) {
         return ();
     }
 
-    let (value: felt) = dict_read{dict_ptr=warp_memory}(loc);
-    assert output[index] = value;
+    let value: felt = warp_memory.get(loc);
 
-    return wm_to_felt_array_helper(loc + 1, index + 1, length, output);
+    output.append(value);
+
+    return wm_to_felt_array_helper(ref warp_memory, loc + 1, index + 1, length, ref output);
 }
 
-func wm_bytes_to_fixed_helper{warp_memory: DictAccess*}(
+fn wm_bytes_to_fixed_helper(ref warp_memory: DictFeltTo::<felt> ,
     bytesDataLoc: felt, targetWidth: felt, dataLength: felt, acc: felt
-) -> (res: felt) {
-    alloc_locals;
+) -> felt {
+    
     if (targetWidth == 0) {
-        return (acc,);
+        return acc;
     }
     if (dataLength == 0) {
-        return wm_bytes_to_fixed_helper(
+        return wm_bytes_to_fixed_helper(ref warp_memory, 
             bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc
         );
     } else {
-        let (byte) = wm_read_felt(bytesDataLoc);
-        return wm_bytes_to_fixed_helper(
+        let byte = wm_read_felt(ref warp_memory, bytesDataLoc);
+        return wm_bytes_to_fixed_helper(ref warp_memory, 
             bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc + byte
         );
     }
