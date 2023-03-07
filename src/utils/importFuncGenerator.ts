@@ -77,45 +77,45 @@ export function createImport(
     );
   const createStructImport = () => createCairoImportStructDefinition(name, path, ast, sourceUnit);
 
-  const warplibFunc = warplibImportInfo.get(path.join('.'))?.get(name);
+  const warplibFunc = warplibImportInfo.get(encodePath(path))?.get(name);
   if (warplibFunc !== undefined) {
     return createFuncImport(...warplibFunc);
   }
 
-  switch ([path, name]) {
-    case ALLOC:
+  switch (encodePath([path, name])) {
+    case encodePath(ALLOC):
       return createFuncImport();
-    case BITWISE_BUILTIN:
+    case encodePath(BITWISE_BUILTIN):
       return createStructImport();
-    case HASH_BUILTIN:
+    case encodePath(HASH_BUILTIN):
       return createStructImport();
-    case FINALIZE_KECCAK:
+    case encodePath(FINALIZE_KECCAK):
       return createFuncImport('range_check_ptr', 'bitwise_ptr');
-    case DEFAULT_DICT_NEW:
+    case encodePath(DEFAULT_DICT_NEW):
       return createFuncImport();
-    case DEFAULT_DICT_FINALIZE:
+    case encodePath(DEFAULT_DICT_FINALIZE):
       return createFuncImport('range_check_ptr');
-    case DICT_READ:
-    case DICT_WRITE:
+    case encodePath(DICT_READ):
+    case encodePath(DICT_WRITE):
       return createFuncImport('dict_ptr');
-    case DICT_ACCESS:
+    case encodePath(DICT_ACCESS):
       return createStructImport();
-    case UINT256:
+    case encodePath(UINT256):
       return createStructImport();
-    case SPLIT_FELT:
-    case IS_LE:
-    case IS_LE_FELT:
-    case UINT256_ADD:
-    case UINT256_EQ:
-    case UINT256_LE:
-    case UINT256_LT:
-    case UINT256_MUL:
-    case UINT256_SUB:
+    case encodePath(SPLIT_FELT):
+    case encodePath(IS_LE):
+    case encodePath(IS_LE_FELT):
+    case encodePath(UINT256_ADD):
+    case encodePath(UINT256_EQ):
+    case encodePath(UINT256_LE):
+    case encodePath(UINT256_LT):
+    case encodePath(UINT256_MUL):
+    case encodePath(UINT256_SUB):
       return createFuncImport('range_check_ptr');
-    case DEPLOY:
-    case EMIT_EVENT:
-    case GET_CALLER_ADDRESS:
-    case GET_CONTRACT_ADDRESS:
+    case encodePath(DEPLOY):
+    case encodePath(EMIT_EVENT):
+    case encodePath(GET_CALLER_ADDRESS):
+    case encodePath(GET_CONTRACT_ADDRESS):
       return createFuncImport('syscall_ptr');
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
@@ -131,4 +131,8 @@ function findExistingImport(
       n instanceof CairoImportFunctionDefinition && n.name === name,
   );
   return found[0];
+}
+
+function encodePath(path: (string | string[])[]): string {
+  return path.flat().join('.');
 }
