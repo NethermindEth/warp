@@ -8,6 +8,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
+import { WARPLIB_MATHS } from '../../../utils/importPaths';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import { forAllWidths, getIntOrFixedByteBitWidth, mask, WarplibFunctionInfo } from '../../utils';
@@ -185,8 +186,7 @@ export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AS
   ].join('');
 
   const importName = [
-    'warplib',
-    'maths',
+    ...WARPLIB_MATHS,
     `exp${retType.signed ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`,
   ];
 

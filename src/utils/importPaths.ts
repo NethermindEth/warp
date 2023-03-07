@@ -54,9 +54,9 @@ export const GET_CONTRACT_ADDRESS: [string[], string] = [
 
 //------------------------------------------------------
 
-const WARPLIB_MEMORY = ['warplib', 'memory'];
-const WARPLIB_MATHS = ['warplib', 'maths'];
-const WARPLIB_KECCAK = ['warplib', 'keccak'];
+export const WARPLIB_MEMORY = ['warplib', 'memory'];
+export const WARPLIB_KECCAK = ['warplib', 'keccak'];
+export const WARPLIB_MATHS = ['warplib', 'maths'];
 
 export const DYNAMIC_ARRAYS_UTIL = ['warplib', 'dynamic_arrays_util'];
 export const BYTES_CONVERSIONS = [...WARPLIB_MATHS, 'bytes_conversions'];

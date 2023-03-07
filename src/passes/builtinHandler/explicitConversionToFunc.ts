@@ -29,7 +29,7 @@ import { createCallToFunction } from '../../utils/functionGeneration';
 import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
 import { functionaliseBytesToFixedBytes } from '../../warplib/implementations/conversions/dynBytesToFixed';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { FELT_TO_UINT256 } from '../../utils/importPaths';
+import { FELT_TO_UINT256, WARPLIB_MATHS } from '../../utils/importPaths';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -106,7 +106,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
         const replacementCall = createCallToFunction(
           ast.registerImport(
             node,
-            ['warplib', 'maths', 'utils'],
+            [...WARPLIB_MATHS, 'utils'],
             'uint256_to_address_felt',
             [['uint_arg', createUint256TypeName(ast)]],
             [['address_ret', createAddressTypeName(false, ast)]],
