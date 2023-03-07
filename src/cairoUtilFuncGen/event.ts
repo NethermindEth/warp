@@ -36,7 +36,6 @@ import {
   UINT256,
   WARP_KECCAK,
 } from '../utils/importPaths';
-import { ALL } from 'dns';
 
 export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
