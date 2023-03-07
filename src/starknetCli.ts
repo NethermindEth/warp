@@ -9,10 +9,10 @@ import {
   IDeployAccountProps,
   IOptionalDebugInfo,
   IDeclareOptions,
-  StarkNetNewAccountOptions,
+  StarknetNewAccountOptions,
 } from './cli';
 import { CLIError, logError } from './utils/errors';
-import { catchExecSyncError, execSyncAndLog, runStarkNetClassHash } from './utils/utils';
+import { catchExecSyncError, execSyncAndLog, runStarknetClassHash } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
@@ -147,8 +147,9 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   let classHash;
   if (!options.no_wallet) {
     assert(compileResult.resultPath !== undefined, 'resultPath should not be undefined');
-    classHash = runStarkNetClassHash(compileResult.resultPath);
+    classHash = runStarknetClassHash(compileResult.resultPath);
   }
+
   const classHashOption = classHash ? `--class_hash ${classHash}` : '';
   const gatewayUrlOption = optionalArg(GATEWAY_URL, options);
   const feederGatewayUrlOption = optionalArg(FEEDER_GATEWAY_URL, options);
@@ -303,7 +304,7 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
   }
 }
 
-export function runStarknetNewAccount(options: StarkNetNewAccountOptions) {
+export function runStarknetNewAccount(options: StarknetNewAccountOptions) {
   const networkOption = optionalArg(NETWORK, options);
   const walletOption = optionalArg(WALLET, options);
   const accountOption = optionalArg(ACCOUNT, options);
