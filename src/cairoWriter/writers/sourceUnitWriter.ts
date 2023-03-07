@@ -61,7 +61,7 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
       .map((n) => writer.write(n))
       .sort((importA, importB) => importA.localeCompare(importB))
       .filter((func, index, importFuncs) => func !== importFuncs[index - 1])
-      .reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`, '');
+      .join('\n');
 
     const writtenGeneratedFuncs = generatedFunctions
       .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
