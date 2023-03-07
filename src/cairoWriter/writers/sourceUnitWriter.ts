@@ -73,7 +73,11 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
         if (stubA === FunctionStubKind.StorageDefStub) return -1;
         return 1;
       })
-      .filter((func, index, genFuncs) => func.name !== genFuncs[index - 1]?.name)
+      .filter(
+        (func, index, genFuncs) =>
+          func.name !== genFuncs[index - 1]?.name &&
+          func.functionStubKind !== FunctionStubKind.StorageDefStub,
+      )
       .map((func) => writer.write(func));
 
     const writtenFuncs = functions.map((func) => writer.write(func));

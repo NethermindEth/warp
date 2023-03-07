@@ -122,7 +122,13 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
   private getReturns(node: CairoFunctionDefinition, writer: ASTWriter): string {
     if (node.kind === FunctionKind.Constructor) return '';
-    return `-> (${writer.write(node.vReturnParameters)})`;
+
+    const returnStr = writer.write(node.vReturnParameters);
+    const paramLen = node.vReturnParameters.vParameters.length;
+    // Cairo1 does not need to always return a tuple as former versions
+    if (paramLen > 1) return `-> (${returnStr})`;
+    else if (paramLen === 1) return `-> ${returnStr}`;
+    else return ''; // No return specified so nothing to print
   }
 
   private getImplicits(node: CairoFunctionDefinition): string {

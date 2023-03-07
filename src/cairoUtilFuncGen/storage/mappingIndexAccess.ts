@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   DataLocation,
   FunctionCall,
@@ -113,11 +114,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
 
     const mappingFuncInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: [
-        `@storage_var`,
-        `func ${mappingName}(name: felt, index: ${indexTypeString}) -> (resLoc : felt){`,
-        `}`,
-      ].join('\n'),
+      code: `${mappingName}: LegacyMap::<(felt, ${indexTypeString}), felt}>`,
       functionsCalled: [],
     };
     const mappingFunc = createCairoGeneratedFunction(
@@ -134,20 +131,17 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
 
     return {
       name: funcName,
-      code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(name: felt, index: ${indexTypeString}) -> (res: felt){`,
-        `    alloc_locals;`,
-        `    let (existing) = ${mappingName}.read(name, index);`,
-        `    if (existing == 0){`,
-        `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(used + ${valueCairoType.width});`,
-        `        ${mappingName}.write(name, index, used);`,
-        `        return (used,);`,
-        `    }else{`,
-        `        return (existing,);`,
-        `    }`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(name: felt, index: ${indexCairoType}) -> felt {
+          let existing = ${mappingName}::read(name, index);
+          if existing == 0 {
+            let used = WARP_USED_STORAGE::read();
+            ${mappingName}::write(name, index, used);
+            return used;
+          }
+          return existing;
+        }
+      `,
       functionsCalled: [mappingFunc],
     };
   }
@@ -216,39 +210,26 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     const helperFuncName = `WS_TO_FELT_ARRAY${this.stringHashFunctions.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-        `    name : felt, ptr : felt*, len : felt`,
-        `){`,
-        `    alloc_locals;`,
-        `    if (len == 0){`,
-        `        return ();`,
-        `    }`,
-        `    let index = len - 1;`,
-        `    let (index256) = felt_to_uint256(index);`,
-        `    let (loc) = ${arrayName}.read(name, index256);`,
-        `    let (value) = WARP_STORAGE.read(loc);`,
-        `    assert ptr[index] = value;`,
-        `    ${helperFuncName}(name, ptr, index);`,
-        `    return ();`,
-        `}`,
-        `func ${funcName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
-        `    name : felt`,
-        `) -> (hashedValue : felt){`,
-        `    alloc_locals;`,
-        `    let (len256) = ${lenName}.read(name);`,
-        `    let (len) = narrow_safe(len256);`,
-        `    let (ptr) = alloc();`,
-        `    ${helperFuncName}(name, ptr, len);`,
-        `    let (hashValue) = string_hash(len, ptr);`,
-        `    return (hashValue,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+          fn ${helperFuncName}(name: felt, ref result_array: Array::<felt>, index: u256, len: u256){
+            if index == len {
+              return;
+            }
+            let loc = ${arrayName}::read(name, index);
+            let value = WARP_STORAGE::read(loc);
+            result_array.append(value);
+            return ${helperFuncName}(name, ref result_array, index + 1, len);
+          }
+          fn ${funcName}(name: felt) -> felt {
+            let len: u256 = ${lenName}::read(name);
+            let mut result_array = ArrayTrait::new();
+            ${helperFuncName}(name, ref result_array, 0, len);
+            return string_hash(len, result_array);
+          }
+      `,
       functionsCalled: [
-        this.requireImport(...NARROW_SAFE),
-        this.requireImport(...FELT_TO_UINT256),
-        this.requireImport(...ALLOC),
-        this.requireImport(...STRING_HASH),
+        // this.requireImport(['array'], 'ArrayTrait'),
+        // this.requireImport(...STRING_HASH),
         dynArray,
         dynArrayLen,
       ],
