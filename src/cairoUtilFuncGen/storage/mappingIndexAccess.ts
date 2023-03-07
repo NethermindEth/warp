@@ -18,7 +18,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { ALLOC, FELT_TO_UINT256, NARROW_SAFE, STRING_HASH } from '../../utils/importPaths';
+import { STRING_HASH } from '../../utils/importPaths';
 import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -228,8 +228,8 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
           }
       `,
       functionsCalled: [
-        // this.requireImport(['array'], 'ArrayTrait'),
-        // this.requireImport(...STRING_HASH),
+        this.requireImport(['array'], 'ArrayTrait'),
+        this.requireImport(...STRING_HASH),
         dynArray,
         dynArrayLen,
       ],
