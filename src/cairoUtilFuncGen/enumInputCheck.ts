@@ -11,7 +11,7 @@ import {
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
 import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
-import { isLeFeltImport, narrowSafeImport, uint256Import } from '../utils/importFuncs';
+import { isLeFeltImport, narrowSafeImport, uint256Import } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';

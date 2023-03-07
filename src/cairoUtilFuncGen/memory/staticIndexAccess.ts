@@ -3,7 +3,7 @@ import { ArrayType, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-a
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { indexStaticImport } from '../../utils/importFuncs';
+import { indexStaticImport } from '../../utils/importPaths';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';

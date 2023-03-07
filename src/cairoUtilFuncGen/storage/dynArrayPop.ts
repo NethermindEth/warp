@@ -14,7 +14,7 @@ import { AST } from '../../ast/ast';
 import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { uint256EqImport, uint256Import, uint256SubImport } from '../../utils/importFuncs';
+import { uint256EqImport, uint256Import, uint256SubImport } from '../../utils/importPaths';
 import {
   getElementType,
   isDynamicArray,

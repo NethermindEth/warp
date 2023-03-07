@@ -22,7 +22,7 @@ import {
   feltToUint256Import,
   narrowSafeImport,
   stringHashImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,

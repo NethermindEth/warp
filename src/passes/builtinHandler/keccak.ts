@@ -2,7 +2,7 @@ import { DataLocation, ExternalReferenceType, FunctionCall } from 'solc-typed-as
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { warpKeccakImport } from '../../utils/importFuncs';
+import { warpKeccakImport } from '../../utils/importPaths';
 import {
   createArrayTypeName,
   createBytesNTypeName,

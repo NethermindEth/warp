@@ -33,7 +33,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit } from '../utils/utils';
-import { deployImport } from '../utils/importFuncs';
+import { deployImport } from '../utils/importPaths';
 
 /** Pass that takes all expressions of the form:
  *

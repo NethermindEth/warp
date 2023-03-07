@@ -12,7 +12,7 @@ import {
   newImport,
   uint256Import,
   warpKeccakImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { getByteSize } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { GeneratedFunctionInfo } from '../base';

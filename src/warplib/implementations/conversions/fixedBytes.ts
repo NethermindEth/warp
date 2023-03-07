@@ -3,7 +3,7 @@ import { FixedBytesType, FunctionCall, generalizeType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode, printNode } from '../../../utils/astPrinter';
 import { createCallToFunction } from '../../../utils/functionGeneration';
-import { bytesConversionsPath } from '../../../utils/importFuncs';
+import { bytesConversionsPath } from '../../../utils/importPaths';
 import { createNumberLiteral, createUint8TypeName } from '../../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../../utils/utils';

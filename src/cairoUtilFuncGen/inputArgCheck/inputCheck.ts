@@ -38,7 +38,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
-import { isLeFeltImport, narrowSafeImport } from '../../utils/importFuncs';
+import { isLeFeltImport, narrowSafeImport } from '../../utils/importPaths';
 
 const IMPLICITS = '{range_check_ptr : felt}';
 

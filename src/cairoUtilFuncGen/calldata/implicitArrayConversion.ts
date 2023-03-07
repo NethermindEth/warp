@@ -30,7 +30,7 @@ import {
   feltToUint256Import,
   intConversionsPath,
   uint256Import,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 
 const IMPLICITS =
   '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';

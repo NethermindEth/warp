@@ -22,7 +22,7 @@ import {
   narrowSafeImport,
   newImport,
   uint256Import,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import {
   getByteSize,
   getElementType,

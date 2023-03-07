@@ -15,7 +15,7 @@ import {
   uint256LeImport,
   uint256LtImport,
   uint256MulImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';

@@ -16,7 +16,7 @@ import {
   dictWriteImport,
   uint256Import,
   warpAllocImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { safeGetNodeType, typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';

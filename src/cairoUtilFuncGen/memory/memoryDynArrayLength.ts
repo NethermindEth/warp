@@ -5,7 +5,7 @@ import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { CairoUtilFuncGenBase } from '../base';
-import { dynArrayLengthImport } from '../../utils/importFuncs';
+import { dynArrayLengthImport } from '../../utils/importPaths';
 
 export class MemoryDynArrayLengthGen extends CairoUtilFuncGenBase {
   gen(node: MemberAccess, ast: AST): FunctionCall {

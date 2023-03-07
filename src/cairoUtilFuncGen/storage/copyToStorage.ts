@@ -29,7 +29,7 @@ import {
   uint256Import,
   uint256LtImport,
   uint256SubImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import {
   getElementType,
   getSize,

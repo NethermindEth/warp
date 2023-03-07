@@ -22,7 +22,7 @@ import {
   uint256Import,
   warpAllocImport,
   write256Import,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,

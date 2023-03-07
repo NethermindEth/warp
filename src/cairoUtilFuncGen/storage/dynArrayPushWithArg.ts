@@ -29,7 +29,7 @@ import {
   specializeType,
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
-import { uint256AddImport, uint256Import } from '../../utils/importFuncs';
+import { uint256AddImport, uint256Import } from '../../utils/importPaths';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   public constructor(

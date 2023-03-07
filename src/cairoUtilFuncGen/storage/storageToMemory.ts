@@ -27,7 +27,7 @@ import {
   uint256Import,
   uint256SubImport,
   warpAllocImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';

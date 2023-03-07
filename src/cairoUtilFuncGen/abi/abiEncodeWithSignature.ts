@@ -20,7 +20,7 @@ import {
   newImport,
   uint256Import,
   warpKeccakImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';

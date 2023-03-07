@@ -6,7 +6,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { dictWriteImport, write256Import, writeFeltImport } from '../../utils/importFuncs';
+import { dictWriteImport, write256Import, writeFeltImport } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';

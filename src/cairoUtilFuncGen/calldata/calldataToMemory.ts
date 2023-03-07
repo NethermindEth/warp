@@ -32,7 +32,7 @@ import {
   newImport,
   uint256Import,
   warpAllocImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 
 const IMPLICITS =
   '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';

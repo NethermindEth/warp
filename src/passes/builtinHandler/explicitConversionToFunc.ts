@@ -29,7 +29,7 @@ import { createCallToFunction } from '../../utils/functionGeneration';
 import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
 import { functionaliseBytesToFixedBytes } from '../../warplib/implementations/conversions/dynBytesToFixed';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { feltToUint256Import } from '../../utils/importFuncs';
+import { feltToUint256Import } from '../../utils/importPaths';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {

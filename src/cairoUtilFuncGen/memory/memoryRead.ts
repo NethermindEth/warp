@@ -22,7 +22,7 @@ import {
   read256Import,
   readFeltImport,
   readIdImport,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';

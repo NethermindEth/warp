@@ -18,7 +18,7 @@ import {
   dictWriteImport,
   finalizeKeccakImport,
   uint256Import,
-} from '../utils/importFuncs';
+} from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 

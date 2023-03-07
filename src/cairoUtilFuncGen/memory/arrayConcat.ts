@@ -28,7 +28,7 @@ import {
   narrowSafeImport,
   newImport,
   uint256Import,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';

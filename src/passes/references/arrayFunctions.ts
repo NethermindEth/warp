@@ -20,7 +20,7 @@ import {
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
-import { feltToUint256Import } from '../../utils/importFuncs';
+import { feltToUint256Import } from '../../utils/importPaths';
 
 /*
   Replaces array members (push, pop, length) with standalone functions that implement

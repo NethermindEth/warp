@@ -2,7 +2,7 @@ import { MemberAccess, Identifier, ExternalReferenceType } from 'solc-typed-ast'
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { getCallerAddressImport } from '../../utils/importFuncs';
+import { getCallerAddressImport } from '../../utils/importPaths';
 import { createAddressTypeName } from '../../utils/nodeTemplates';
 
 export class MsgSender extends ASTMapper {

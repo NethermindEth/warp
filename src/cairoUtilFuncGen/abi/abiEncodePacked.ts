@@ -33,7 +33,7 @@ import {
   narrowSafeImport,
   newImport,
   uint256Import,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';

@@ -42,7 +42,7 @@ import { CalldataToStorageGen } from '../../cairoUtilFuncGen/calldata/calldataTo
 import { StorageWriteGen } from '../../cairoUtilFuncGen/storage/storageWrite';
 import { MemoryToStorageGen } from '../../cairoUtilFuncGen/memory/memoryToStorage';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { indexDynImport } from '../../utils/importFuncs';
+import { indexDynImport } from '../../utils/importPaths';
 
 /*
   Uses the analyses of ActualLocationAnalyser and ExpectedLocationAnalyser to

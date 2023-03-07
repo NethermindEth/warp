@@ -24,7 +24,7 @@ import {
   narrowSafeImport,
   read256Import,
   uint256Import,
-} from '../../utils/importFuncs';
+} from '../../utils/importPaths';
 import {
   getElementType,
   getSize,
