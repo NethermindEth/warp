@@ -7,10 +7,9 @@ export class LiteralWriter extends CairoASTNodeWriter {
   writeInner(node: Literal, _: ASTWriter): SrcDesc {
     switch (node.kind) {
       case LiteralKind.Number:
-        if (
-          (primitiveTypeToCairo(node.typeString) as CairoPrimitiveIntType) ||
-          primitiveTypeToCairo(node.typeString) === 'felt'
-        ) {
+        if (primitiveTypeToCairo(node.typeString) as CairoPrimitiveIntType) {
+          return [`${node.typeString}_from_felt(${node.value})`];
+        } else if (primitiveTypeToCairo(node.typeString) === 'felt') {
           return [node.value];
         } else {
           throw new TranspileFailedError('Attempted to write unexpected cairo type');
@@ -30,10 +29,9 @@ export class LiteralWriter extends CairoASTNodeWriter {
         return [`0x${node.hexValue}`];
       }
       case LiteralKind.HexString:
-        if (
-          (primitiveTypeToCairo(node.typeString) as CairoPrimitiveIntType) ||
-          primitiveTypeToCairo(node.typeString) === 'felt'
-        ) {
+        if (primitiveTypeToCairo(node.typeString) as CairoPrimitiveIntType) {
+          return [`${node.typeString}_from_felt(0x${node.hexValue})`];
+        } else if (primitiveTypeToCairo(node.typeString) === 'felt') {
           return [`0x${node.hexValue}`];
         } else {
           throw new TranspileFailedError('Attempted to write unexpected cairo type');

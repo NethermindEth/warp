@@ -107,7 +107,7 @@ export function primitiveTypeToCairo(typeString: string): CairoPrimitiveIntType 
   }
 
   if (typeString.startsWith('uint')) {
-    const bits = parseInt(typeString.slice(4));
+    const bits = parseInt(typeString.slice('uint'.length));
     if (bits > 256) {
       throw new NotSupportedYetError('uint types larger than 256 bits not supported');
     }
@@ -115,7 +115,7 @@ export function primitiveTypeToCairo(typeString: string): CairoPrimitiveIntType 
   }
 
   if (typeString.startsWith('int')) {
-    const bits = parseInt(typeString.slice(3));
+    const bits = parseInt(typeString.slice('int'.length));
     if (bits > 256) {
       throw new NotSupportedYetError('int types larger than 256 bits not supported');
     }
