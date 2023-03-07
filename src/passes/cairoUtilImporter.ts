@@ -39,7 +39,7 @@ export class CairoUtilImporter extends ASTMapper {
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport('integer', 'u256_from_felt', this.dummySourceUnit ?? node, ast);
+      createImport('integer', 'u256_from_felts', this.dummySourceUnit ?? node, ast);
     }
   }
 

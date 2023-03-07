@@ -1,6 +1,6 @@
 import { ASTWriter, Literal, LiteralKind, SrcDesc } from 'solc-typed-ast';
 import { TranspileFailedError } from '../../utils/errors';
-import { primitiveTypeToCairo } from '../../utils/utils';
+import { divmod, primitiveTypeToCairo } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 
 export class LiteralWriter extends CairoASTNodeWriter {
@@ -9,7 +9,8 @@ export class LiteralWriter extends CairoASTNodeWriter {
       case LiteralKind.Number:
         switch (primitiveTypeToCairo(node.typeString)) {
           case 'Uint256': {
-            return [`u256_from_felt(${node.value})`];
+            const [high, low] = divmod(BigInt(node.value), BigInt(Math.pow(2, 128)));
+            return [`u256_from_felts( ${low}, ${high} )`];
           }
           case 'felt':
             return [node.value];
@@ -32,7 +33,9 @@ export class LiteralWriter extends CairoASTNodeWriter {
       case LiteralKind.HexString:
         switch (primitiveTypeToCairo(node.typeString)) {
           case 'Uint256': {
-            return [`u256_from_felt(0x${node.hexValue})`];
+            return [
+              `u256_from_felts( ${node.hexValue.slice(32, 64)}, ${node.hexValue.slice(0, 32)} )`,
+            ];
           }
           case 'felt':
             return [`0x${node.hexValue}`];
