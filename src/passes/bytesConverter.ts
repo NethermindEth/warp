@@ -31,6 +31,7 @@ import {
   createArrayTypeName,
 } from '../utils/nodeTemplates';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { WARPLIB_MATHS } from '../utils/importPaths';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
     This pass does not handle dynamically-sized bytes arrays (i.e. bytes).
@@ -109,7 +110,7 @@ export class BytesConverter extends ASTMapper {
 
     const importedFunc = ast.registerImport(
       node,
-      'warplib.maths.bytes_access',
+      [...WARPLIB_MATHS, 'bytes_access'],
       selectWarplibFunction(baseTypeName, indexTypeName),
       stubParams,
       [['res', createUint8TypeName(ast)]],

@@ -14,6 +14,18 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import {
+  ALLOC,
+  BITWISE_BUILTIN,
+  DYNAMIC_ARRAYS_UTIL,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  NARROW_SAFE,
+  UINT256,
+  WM_DYN_ARRAY_LENGTH,
+  WM_INDEX_DYN,
+  WM_NEW,
+} from '../../utils/importPaths';
+import {
   getElementType,
   getPackedByteSize,
   isAddressType,
@@ -81,12 +93,12 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-      this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
+      this.requireImport(...ALLOC),
+      this.requireImport(...BITWISE_BUILTIN),
+      this.requireImport(...UINT256),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...WM_NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
     const cairoFunc = {
@@ -181,7 +193,7 @@ export class IndexEncode extends AbiBase {
     // so they should be converted to Uint256 accordingly
     if (size < 32 || isAddressType(type)) {
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
-      importedFunc.push(this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'));
+      importedFunc.push(this.requireImport(...FELT_TO_UINT256));
       varToEncode = `${varToEncode}256`;
     }
     instructions.push(
@@ -224,9 +236,9 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.maths.utils', 'narrow_safe'),
+      this.requireImport(...WM_DYN_ARRAY_LENGTH),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NARROW_SAFE),
     ];
 
     const funcInfo = { name, code, functionsCalled: [...importedFuncs, tailEncoding] };
@@ -272,8 +284,8 @@ export class IndexEncode extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_index_dyn'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+      this.requireImport(...WM_INDEX_DYN),
+      this.requireImport(...FELT_TO_UINT256),
     ];
 
     const funcInfo = {
@@ -318,7 +330,7 @@ export class IndexEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const importedFunc = this.requireImport(...FELT_TO_UINT256);
 
     const funcInfo = { name, code, functionsCalled: [importedFunc] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -404,7 +416,7 @@ export class IndexEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    const importedFunction = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const importedFunction = this.requireImport(...FELT_TO_UINT256);
 
     const funcInfo = { name, code, functionsCalled: [importedFunction, inlineEncoding] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -474,17 +486,17 @@ export class IndexEncode extends AbiBase {
 
   private createStringOrBytesHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   private createStringOrBytesHeadEncodingWithoutPadding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl_without_padding';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   private createValueTypeHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'fixed_bytes256_to_felt_dynamic_array_spl';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   protected readMemory(type: TypeNode, arg: string): [string, CairoFunctionDefinition] {

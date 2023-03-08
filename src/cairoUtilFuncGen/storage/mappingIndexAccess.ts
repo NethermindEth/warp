@@ -18,6 +18,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
+import { ARRAY_TRAIT, STRING_HASH } from '../../utils/importPaths';
 import { createUint8TypeName, createUintNTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -167,8 +168,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     if (dataLocation === DataLocation.CallData) {
       const importFunction = this.ast.registerImport(
         this.sourceUnit,
-        'warplib.string_hash',
-        'string_hash',
+        ...STRING_HASH,
         inputInfo,
         outputInfo,
       );
@@ -178,8 +178,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     if (dataLocation === DataLocation.Memory) {
       const importFunction = this.ast.registerImport(
         this.sourceUnit,
-        'warplib.string_hash',
-        'wm_string_hash',
+        ...STRING_HASH,
         inputInfo,
         outputInfo,
       );
@@ -229,8 +228,8 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
           }
       `,
       functionsCalled: [
-        // this.requireImport(['array'], 'ArrayTrait'),
-        // this.requireImport(['warplib', 'string_hash'], 'string_hash'),
+        this.requireImport(...ARRAY_TRAIT),
+        this.requireImport(...STRING_HASH),
         dynArray,
         dynArrayLen,
       ],

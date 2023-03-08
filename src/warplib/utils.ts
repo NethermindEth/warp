@@ -16,6 +16,7 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import path from 'path';
+import { WARPLIB_MATHS } from '../utils/importPaths';
 
 export type WarplibFunctionInfo = {
   fileName: string;
@@ -94,16 +95,13 @@ export function IntxIntFunction(
     name,
     signed && separateSigned ? '_signed' : '',
     unsafe ? '_unsafe' : '',
-
     shouldAppendWidth ? `${width}` : '',
   ].join('');
 
   const importName = [
-    'warplib.maths.',
-    name,
-    signed && separateSigned ? '_signed' : '',
-    unsafe ? '_unsafe' : '',
-  ].join('');
+    ...WARPLIB_MATHS,
+    `${name}${signed && separateSigned ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`,
+  ];
 
   const importedFunc = ast.registerImport(
     node,
@@ -156,7 +154,7 @@ export function Comparison(
     shouldAppendWidth ? `${getIntOrFixedByteBitWidth(lhsType)}` : '',
   ].join('');
 
-  const importName = `warplib.maths.${name}${signed && separateSigned ? '_signed' : ''}`;
+  const importName = [...WARPLIB_MATHS, `${name}${signed && separateSigned ? '_signed' : ''}`];
 
   const importedFunc = ast.registerImport(
     node,
@@ -205,7 +203,7 @@ export function IntFunction(
 
   const importedFunc = ast.registerImport(
     node,
-    `warplib.maths.${fileName}`,
+    [...WARPLIB_MATHS, fileName],
     fullName,
     [['op', typeNameFromTypeNode(opType, ast)]],
     [['res', typeNameFromTypeNode(retType, ast)]],
@@ -251,7 +249,7 @@ export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST)
 
   const importedFunc = ast.registerImport(
     node,
-    `warplib.maths.${name}`,
+    [...WARPLIB_MATHS, name],
     fullName,
     [['lhs', typeNameFromTypeNode(lhsType, ast)]],
     [['rhs', typeNameFromTypeNode(rhsType, ast)]],

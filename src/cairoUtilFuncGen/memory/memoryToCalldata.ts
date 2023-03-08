@@ -19,6 +19,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { ALLOC, NARROW_SAFE, WM_READ256, UINT256 } from '../../utils/importPaths';
 import {
   getElementType,
   getSize,
@@ -195,9 +196,9 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-        this.requireImport('warplib.maths.utils', 'narrow_safe'),
-        this.requireImport('warplib.memory', 'wm_read_256'),
+        this.requireImport(...ALLOC),
+        this.requireImport(...NARROW_SAFE),
+        this.requireImport(...WM_READ256),
         calldataDynArrayStruct,
         ...dynArrayReaderInfo.functionsCalled,
       ],
@@ -226,11 +227,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `let (mem_read1) = ${auxFunc.name}(mem_read0);`,
         `assert ptr[0] = mem_read1;`,
       ];
-      funcCalls = [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        auxFunc,
-        readFunc,
-      ];
+      funcCalls = [this.requireImport(...UINT256), auxFunc, readFunc];
     } else {
       code = [`let (mem_read0) = ${readFunc.name}(mem_loc);`, 'assert ptr[0] = mem_read0;'];
       funcCalls = [readFunc];
@@ -271,11 +268,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
           )});`,
           `let (member${index})= ${memberGetterFunc.name}(read_${index});`,
         ],
-        [
-          this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-          memberGetterFunc,
-          readFunc,
-        ],
+        [this.requireImport(...UINT256), memberGetterFunc, readFunc],
         offset + 1,
       ];
     }
