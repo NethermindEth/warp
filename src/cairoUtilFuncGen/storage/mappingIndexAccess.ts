@@ -114,7 +114,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
 
     const mappingFuncInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: `${mappingName}: LegacyMap::<(felt, ${indexTypeString}), felt}>`,
+      code: `${mappingName}: LegacyMap::<(felt, ${indexTypeString}), felt>`,
       functionsCalled: [],
     };
     const mappingFunc = createCairoGeneratedFunction(
