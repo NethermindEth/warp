@@ -17,6 +17,7 @@ import {
   DEFAULT_DICT_NEW,
   DICT_WRITE,
   FINALIZE_KECCAK,
+  U256_FROM_FELTS,
   UINT256,
 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
@@ -47,7 +48,7 @@ export class CairoUtilImporter extends ASTMapper {
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(['integer'], 'u256_from_felts', this.dummySourceUnit ?? node, ast);
+      createImport(...U256_FROM_FELTS, this.dummySourceUnit ?? node, ast);
     }
   }
 
