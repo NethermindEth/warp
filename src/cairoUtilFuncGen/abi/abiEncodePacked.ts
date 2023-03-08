@@ -22,6 +22,18 @@ import { uint256 } from '../../warplib/utils';
 import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase } from './base';
+import {
+  ALLOC,
+  DYNAMIC_ARRAYS_UTIL,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
+  NARROW_SAFE,
+  UINT256,
+  WM_DYN_ARRAY_LENGTH,
+  WM_INDEX_DYN,
+  WM_NEW,
+} from '../../utils/importPaths';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -76,11 +88,11 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
+      this.requireImport(...UINT256),
+      this.requireImport(...ALLOC),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...WM_NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
     return {
@@ -120,8 +132,8 @@ export class AbiEncodePacked extends AbiBase {
           `let ${newIndexVar} = bytes_index +  32;`,
         ].join('\n'),
         [
-          this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-          this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array'),
+          this.requireImport(...FELT_TO_UINT256),
+          this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY),
         ],
       ];
     }
@@ -135,11 +147,7 @@ export class AbiEncodePacked extends AbiBase {
           `let (length) = narrow_safe(length256);`,
           `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
         ].join('\n'),
-        [
-          this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-          this.requireImport('warplib.maths.utils', 'narrow_safe'),
-          func,
-        ],
+        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE), func],
       ];
     }
 
@@ -225,10 +233,7 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
 
     const importedFuncs = isDynamicArray(type)
-      ? [
-          this.requireImport('warplib.memory', 'wm_index_dyn'),
-          this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-        ]
+      ? [this.requireImport(...WM_INDEX_DYN), this.requireImport(...FELT_TO_UINT256)]
       : [];
 
     const genFuncInfo = { name, code, functionsCalled: [...importedFuncs, ...funcCalls, readFunc] };
@@ -242,6 +247,6 @@ export class AbiEncodePacked extends AbiBase {
     const funcName =
       size === 32 ? 'fixed_bytes256_to_felt_dynamic_array' : `fixed_bytes_to_felt_dynamic_array`;
 
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 }

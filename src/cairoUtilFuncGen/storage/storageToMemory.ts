@@ -20,6 +20,14 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  DICT_WRITE,
+  UINT256,
+  UINT256_SUB,
+  WM_ALLOC,
+  WM_INDEX_DYN,
+  WM_NEW,
+} from '../../utils/importPaths';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -119,8 +127,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...WM_ALLOC),
         ...copyCalls,
       ],
     };
@@ -165,8 +173,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...WM_ALLOC),
         ...copyCalls,
       ],
     };
@@ -222,10 +230,10 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-        this.requireImport('warplib.memory', 'wm_alloc'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...WM_ALLOC),
+        this.requireImport(...UINT256_SUB),
+        this.requireImport(...UINT256),
         ...copyCalls,
       ],
     };
@@ -277,11 +285,11 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('warplib.memory', 'wm_new'),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...UINT256_SUB),
+        this.requireImport(...UINT256),
+        this.requireImport(...WM_NEW),
+        this.requireImport(...WM_INDEX_DYN),
         ...copyCalls,
         dynArray,
         dynArrayLength,

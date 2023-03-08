@@ -9,6 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
+import { WARPLIB_MATHS } from '../../../utils/importPaths';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../../utils/utils';
 import { forAllWidths, getIntOrFixedByteBitWidth, WarplibFunctionInfo } from '../../utils';
@@ -88,11 +89,9 @@ export function functionaliseShl(node: BinaryOperation, ast: AST): void {
 
   const fullName = `warp_shl${lhsWidth}${rhsType.nBits === 256 ? '_256' : ''}`;
 
-  const importName = 'warplib.maths.shl';
-
   const importedFunc = ast.registerImport(
     node,
-    importName,
+    [...WARPLIB_MATHS, 'shl'],
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],

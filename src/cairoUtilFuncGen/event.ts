@@ -24,6 +24,18 @@ import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AbiEncode } from './abi/abiEncode';
 import { IndexEncode } from './abi/indexEncode';
+import {
+  ALLOC,
+  BITWISE_BUILTIN,
+  EMIT_EVENT,
+  FELT_ARRAY_CONCAT,
+  FELT_TO_UINT256,
+  FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL,
+  PACK_BYTES_FELT,
+  UINT256,
+  WARP_KECCAK,
+  WM_TO_FELT_ARRAY,
+} from '../utils/importPaths';
 
 export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
@@ -168,10 +180,10 @@ export class EventFunction extends StringIndexedFuncGen {
       name: `${EMIT_PREFIX}${suffix}`,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.starknet.common.syscalls', 'emit_event'),
-        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-        this.requireImport('warplib.keccak', 'pack_bytes_felt'),
-        this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin'),
+        this.requireImport(...EMIT_EVENT),
+        this.requireImport(...ALLOC),
+        this.requireImport(...PACK_BYTES_FELT),
+        this.requireImport(...BITWISE_BUILTIN),
         ...requiredFuncs,
         ...dataInsertionsCalls,
         ...anonymousCalls,
@@ -194,12 +206,9 @@ export class EventFunction extends StringIndexedFuncGen {
         `    let (keys_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(keys_len, keys, 0, topic256);`,
       ].join('\n'),
       [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
-        this.requireImport(
-          'warplib.dynamic_arrays_util',
-          'fixed_bytes256_to_felt_dynamic_array_spl',
-        ),
+        this.requireImport(...UINT256),
+        this.requireImport(...FELT_TO_UINT256),
+        this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL),
       ],
     ];
   }
@@ -211,8 +220,8 @@ export class EventFunction extends StringIndexedFuncGen {
   ): [string, CairoFunctionDefinition[]] {
     const abiFunc = this.abiEncode.getOrCreateFuncDef(types);
 
-    this.requireImport('warplib.memory', 'wm_to_felt_array');
-    this.requireImport('warplib.keccak', 'felt_array_concat');
+    this.requireImport(...WM_TO_FELT_ARRAY);
+    this.requireImport(...FELT_ARRAY_CONCAT);
 
     return [
       [
@@ -220,11 +229,7 @@ export class EventFunction extends StringIndexedFuncGen {
         `   let (encode_bytes_len: felt, encode_bytes: felt*) = wm_to_felt_array(mem_encode);`,
         `   let (${arrayName}_len: felt) = felt_array_concat(encode_bytes_len, 0, encode_bytes, ${arrayName}_len, ${arrayName});`,
       ].join('\n'),
-      [
-        this.requireImport('warplib.memory', 'wm_to_felt_array'),
-        this.requireImport('warplib.keccak', 'felt_array_concat'),
-        abiFunc,
-      ],
+      [this.requireImport(...WM_TO_FELT_ARRAY), this.requireImport(...FELT_ARRAY_CONCAT), abiFunc],
     ];
   }
 
@@ -242,13 +247,10 @@ export class EventFunction extends StringIndexedFuncGen {
         `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
       ].join('\n'),
       [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'),
-        this.requireImport('warplib.keccak', 'warp_keccak'),
-        this.requireImport(
-          'warplib.dynamic_arrays_util',
-          'fixed_bytes256_to_felt_dynamic_array_spl',
-        ),
+        this.requireImport(...UINT256),
+        this.requireImport(...FELT_TO_UINT256),
+        this.requireImport(...WARP_KECCAK),
+        this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL),
         abiFunc,
       ],
     ];

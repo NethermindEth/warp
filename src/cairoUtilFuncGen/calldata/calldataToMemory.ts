@@ -26,6 +26,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { CairoFunctionDefinition } from '../../export';
+import { DICT_WRITE, FELT_TO_UINT256, UINT256, WM_ALLOC, WM_NEW } from '../../utils/importPaths';
 
 const IMPLICITS =
   '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -101,10 +102,10 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low);`,
         `dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high);`,
       ].join('\n');
-      auxFunc = this.requireImport('starkware.cairo.common.dict', 'dict_write');
+      auxFunc = this.requireImport(...DICT_WRITE);
     } else {
       copyCode = `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0]);`;
-      auxFunc = this.requireImport('starkware.cairo.common.dict', 'dict_write');
+      auxFunc = this.requireImport(...DICT_WRITE);
     }
 
     const funcName = `cd_to_memory_dynamic_array${this.generatedFunctionsDef.size}`;
@@ -128,9 +129,9 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('warplib.memory', 'wm_new'),
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport(...UINT256),
+        this.requireImport(...WM_NEW),
+        this.requireImport(...FELT_TO_UINT256),
         auxFunc,
       ],
     };
@@ -179,9 +180,9 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('warplib.memory', 'wm_alloc'),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+        this.requireImport(...WM_ALLOC),
+        this.requireImport(...UINT256),
+        this.requireImport(...DICT_WRITE),
         ...funcCalls,
       ],
     };
@@ -238,9 +239,9 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...DICT_WRITE),
+        this.requireImport(...UINT256),
+        this.requireImport(...WM_ALLOC),
         ...funcCalls,
       ],
     };
