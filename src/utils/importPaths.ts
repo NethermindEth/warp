@@ -58,6 +58,7 @@ export const GET_CONTRACT_ADDRESS: [string[], string] = [
 export const WARPLIB_MEMORY = ['warplib', 'memory'];
 export const WARPLIB_KECCAK = ['warplib', 'keccak'];
 export const WARPLIB_MATHS = ['warplib', 'maths'];
+export const WARPLIB_INTEGER = ['warplib', 'integer'];
 
 export const DYNAMIC_ARRAYS_UTIL = ['warplib', 'dynamic_arrays_util'];
 export const BYTES_CONVERSIONS = [...WARPLIB_MATHS, 'bytes_conversions'];
@@ -102,6 +103,7 @@ export const WM_TO_FELT_ARRAY: [string[], string] = [[...WARPLIB_MEMORY], 'wm_to
 export const WM_ALLOC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_alloc'];
 export const WM_WRITE256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_256'];
 export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_felt'];
+export const U256_FROM_FELTS: [string[], string] = [[...WARPLIB_INTEGER], 'u256_from_felts'];
 
 //------------------------------------------------------
 
