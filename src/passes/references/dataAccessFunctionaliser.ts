@@ -42,6 +42,7 @@ import { CalldataToStorageGen } from '../../cairoUtilFuncGen/calldata/calldataTo
 import { StorageWriteGen } from '../../cairoUtilFuncGen/storage/storageWrite';
 import { MemoryToStorageGen } from '../../cairoUtilFuncGen/memory/memoryToStorage';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { WM_INDEX_DYN } from '../../utils/importPaths';
 
 /*
   Uses the analyses of ActualLocationAnalyser and ExpectedLocationAnalyser to
@@ -327,8 +328,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
 
   const importedFunc = ast.registerImport(
     indexAccess,
-    'warplib.memory',
-    'wm_index_dyn',
+    ...WM_INDEX_DYN,
     [
       ['arrayLoc', arrayTypeName, DataLocation.Memory],
       ['index', createUint256TypeName(ast)],
