@@ -119,7 +119,6 @@ export function createImport(
     case encodePath(U256_FROM_FELTS):
       return createFuncImport();
     default:
-      // console.log("Removed some imports as unneeded in cairo 1: HashBuiltin");
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
 }
