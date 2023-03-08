@@ -23,7 +23,6 @@ import {
   FINALIZE_KECCAK,
   GET_CALLER_ADDRESS,
   GET_CONTRACT_ADDRESS,
-  HASH_BUILTIN,
   IS_LE,
   IS_LE_FELT,
   SPLIT_FELT,
@@ -88,8 +87,6 @@ export function createImport(
       return createFuncImport();
     case encodePath(BITWISE_BUILTIN):
       return createStructImport();
-    case encodePath(HASH_BUILTIN):
-      return createStructImport();
     case encodePath(FINALIZE_KECCAK):
       return createFuncImport('range_check_ptr', 'bitwise_ptr');
     case encodePath(DEFAULT_DICT_NEW):
@@ -122,6 +119,7 @@ export function createImport(
     case encodePath(U256_FROM_FELTS):
       return createFuncImport();
     default:
+      // console.log("Removed some imports as unneeded in cairo 1: HashBuiltin");
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
 }

@@ -23,10 +23,6 @@ export const FINALIZE_KECCAK: [string[], string] = [
   [...CAIRO_COMMON_PATH, 'cairo_keccak', 'keccak'],
   'finalize_keccak',
 ];
-export const HASH_BUILTIN: [string[], string] = [
-  [...CAIRO_COMMON_PATH, 'cairo_builtins'],
-  'HashBuiltin',
-];
 export const IS_LE: [string[], string] = [[...CAIRO_COMMON_PATH, 'math_cmp'], 'is_le'];
 export const IS_LE_FELT: [string[], string] = [[...CAIRO_COMMON_PATH, 'math_cmp'], 'is_le_felt'];
 export const SPLIT_FELT: [string[], string] = [[...CAIRO_COMMON_PATH, 'math'], 'split_felt'];
