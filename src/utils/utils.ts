@@ -57,6 +57,7 @@ import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printNode, printTypeNode } from './astPrinter';
 import {
+  instanceOfExecSyncError,
   logError,
   NotSupportedYetError,
   TranspileFailedError,
@@ -540,12 +541,13 @@ export function getSourceFromLocations(
 
 export function runStarknetClassHash(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+  const command = 'starknet-class-hash';
 
-  const classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
-  if (classHash === undefined) {
-    throw new Error(`starknet-class-hash failed`);
+  try {
+    return execSync(`${warpVenvPrefix} ${command} ${filePath}`).toString().trim();
+  } catch (e) {
+    throw new TranspileFailedError(catchExecSyncError(e, command));
   }
-  return classHash;
 }
 
 export function getContainingFunction(node: ASTNode): FunctionDefinition {
@@ -628,4 +630,33 @@ export function defaultBasePathAndIncludePath() {
   }
 
   return [null, null];
+}
+
+export function execSyncAndLog(command: string, commandName: string) {
+  try {
+    const output = execSync(command, { encoding: 'utf8' });
+    console.log(output);
+  } catch (e) {
+    logError(catchExecSyncError(e, commandName));
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function catchExecSyncError(e: any, commandExecuted: string) {
+  if (!instanceOfExecSyncError(e)) {
+    // If is not an error from the execSync instruction then it could be anything else, like call stack
+    // limit exceed. In those unpredicted cases we should stop and throw the error.
+    throw e;
+  }
+  const error = hintForCommandFailed(commandExecuted, e.stderr.toString());
+  return error;
+}
+
+function hintForCommandFailed(command: string, err: string) {
+  if (err.includes('command not found')) {
+    return `'${command}' command not found.
+  Please make sure you have the required version of Warp dependencies by executing 'warp install' command.
+  See more about it using 'warp install --help'.`;
+  }
+  return err;
 }
