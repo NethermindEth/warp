@@ -57,7 +57,7 @@ function producePackExpression(type: CairoType): (string | Read)[] {
           .flatMap(([memberName, memberType]) => [
             memberName,
             ':',
-            'get_u128_try_from_felt_result(', 
+            'get_u128_try_from_felt_result(',
             ...producePackExpression(memberType),
             ')',
             ',',
@@ -68,16 +68,16 @@ function producePackExpression(type: CairoType): (string | Read)[] {
     }
     return [
       type.name,
-      '(',
+      '{',
       ...[...type.members.entries()]
         .flatMap(([memberName, memberType]) => [
           memberName,
-          '=',
+          ':',
           ...producePackExpression(memberType),
           ',',
         ])
         .slice(0, -1),
-      ')',
+      '}',
     ];
   }
 
