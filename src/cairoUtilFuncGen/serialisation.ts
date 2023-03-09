@@ -49,7 +49,7 @@ function producePackExpression(type: CairoType): (string | Read)[] {
     ];
   }
   if (type instanceof CairoStruct) {
-    if (type.fullStringRepresentation === CairoUint256.fullStringRepresentation){
+    if (type.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
       return [
         type.name,
         '{',
