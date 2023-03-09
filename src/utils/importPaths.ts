@@ -26,7 +26,6 @@ export const FINALIZE_KECCAK: [string[], string] = [
 export const IS_LE: [string[], string] = [[...CAIRO_COMMON_PATH, 'math_cmp'], 'is_le'];
 export const IS_LE_FELT: [string[], string] = [[...CAIRO_COMMON_PATH, 'math_cmp'], 'is_le_felt'];
 export const SPLIT_FELT: [string[], string] = [[...CAIRO_COMMON_PATH, 'math'], 'split_felt'];
-export const UINT256: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'Uint256'];
 export const UINT256_ADD: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'uint256_add'];
 export const UINT256_EQ: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'uint256_eq'];
 export const UINT256_LE: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'uint256_le'];
@@ -103,3 +102,8 @@ export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write
 
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
 export const U256_FROM_FELTS: [string[], string] = [['warplib', 'integer'], 'u256_from_felts'];
+export const UINT256: [string[], string] = [
+  ['warplib', 'integer'],
+  'get_u128_try_from_felt_result',
+];
+export const U128_TO_FELT: [string[], string] = [['integer'], 'u128_to_felt'];
