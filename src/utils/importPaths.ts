@@ -39,10 +39,6 @@ const STARKWARE_SYSCALL_PATH = ['starkware', 'starknet', 'common', 'syscalls'];
 
 export const DEPLOY: [string[], string] = [[...STARKWARE_SYSCALL_PATH], 'deploy'];
 export const EMIT_EVENT: [string[], string] = [[...STARKWARE_SYSCALL_PATH], 'emit_event'];
-export const GET_CALLER_ADDRESS: [string[], string] = [
-  [...STARKWARE_SYSCALL_PATH],
-  'get_caller_address',
-];
 export const GET_CONTRACT_ADDRESS: [string[], string] = [
   [...STARKWARE_SYSCALL_PATH],
   'get_contract_address',
@@ -107,3 +103,5 @@ export const UINT256: [string[], string] = [
   'get_u128_try_from_felt_result',
 ];
 export const U128_TO_FELT: [string[], string] = [['integer'], 'u128_to_felt'];
+
+export const GET_CALLER_ADDRESS: [string[], string] = [['starknet'], 'get_caller_address'];
