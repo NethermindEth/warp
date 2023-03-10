@@ -97,15 +97,6 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
       extractImplicitFromStubs(node, result);
       return node === this.root ? result : union(result, this.commonVisit(node, ast));
     }
-    if (node.implemented && isExternallyVisible(node)) {
-      result.add('range_check_ptr');
-      result.add('syscall_ptr');
-    }
-    if (node.isConstructor) {
-      result.add('syscall_ptr');
-      result.add('pedersen_ptr');
-      result.add('range_check_ptr');
-    }
 
     if (node === this.root) return result;
     return union(result, this.commonVisit(node, ast));

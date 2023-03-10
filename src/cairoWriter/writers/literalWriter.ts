@@ -10,7 +10,7 @@ export class LiteralWriter extends CairoASTNodeWriter {
         switch (primitiveTypeToCairo(node.typeString)) {
           case 'Uint256': {
             const [high, low] = divmod(BigInt(node.value), BigInt(Math.pow(2, 128)));
-            return [`Uint256(low=${low}, high=${high})`];
+            return [`u256_from_felts( ${low}, ${high} )`];
           }
           case 'felt':
             return [node.value];
@@ -34,7 +34,7 @@ export class LiteralWriter extends CairoASTNodeWriter {
         switch (primitiveTypeToCairo(node.typeString)) {
           case 'Uint256': {
             return [
-              `Uint256(low=0x${node.hexValue.slice(32, 64)}, high=0x${node.hexValue.slice(0, 32)})`,
+              `u256_from_felts( ${node.hexValue.slice(32, 64)}, ${node.hexValue.slice(0, 32)} )`,
             ];
           }
           case 'felt':

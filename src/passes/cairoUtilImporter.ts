@@ -2,6 +2,7 @@ import {
   ElementaryTypeName,
   IntType,
   Literal,
+  MemberAccess,
   SourceUnit,
   StructDefinition,
   UserDefinedType,
@@ -17,6 +18,8 @@ import {
   DEFAULT_DICT_NEW,
   DICT_WRITE,
   FINALIZE_KECCAK,
+  INTO,
+  U256_FROM_FELTS,
   UINT256,
 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
@@ -47,7 +50,7 @@ export class CairoUtilImporter extends ASTMapper {
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(...UINT256, this.dummySourceUnit ?? node, ast);
+      createImport(...U256_FROM_FELTS, this.dummySourceUnit ?? node, ast);
     }
   }
 
@@ -84,5 +87,11 @@ export class CairoUtilImporter extends ASTMapper {
     }
 
     this.commonVisit(node, ast);
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    if (node.memberName === 'into') {
+      createImport(...INTO, node, ast);
+    }
   }
 }
