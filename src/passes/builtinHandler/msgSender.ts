@@ -10,10 +10,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { GET_CALLER_ADDRESS, ADDRESS_INTO_FELT } from '../../utils/importPaths';
-import {
-  createAddressTypeName,
-  createVariableDeclarationStatement,
-} from '../../utils/nodeTemplates';
+import { createAddressTypeName } from '../../utils/nodeTemplates';
 
 export class MsgSender extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
