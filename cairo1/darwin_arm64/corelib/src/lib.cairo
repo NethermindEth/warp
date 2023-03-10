@@ -416,3 +416,4 @@ mod starknet_testing;
 
 mod warplib;
 use warplib::warp_add;
+use warplib::integer;
