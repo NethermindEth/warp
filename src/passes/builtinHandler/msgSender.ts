@@ -1,9 +1,19 @@
-import { MemberAccess, Identifier, ExternalReferenceType } from 'solc-typed-ast';
+import {
+  MemberAccess,
+  Identifier,
+  ExternalReferenceType,
+  FunctionCall,
+  FunctionCallKind,
+  ElementaryTypeName,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { GET_CALLER_ADDRESS } from '../../utils/importPaths';
-import { createAddressTypeName } from '../../utils/nodeTemplates';
+import { GET_CALLER_ADDRESS, ADDRESS_INTO_FELT } from '../../utils/importPaths';
+import {
+  createAddressTypeName,
+  createVariableDeclarationStatement,
+} from '../../utils/nodeTemplates';
 
 export class MsgSender extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
@@ -23,7 +33,23 @@ export class MsgSender extends ASTMapper {
         [],
         ast,
       );
-      ast.replaceNode(node, replacementCall);
+
+      const IntoTrait = ast.registerImport(
+        node,
+        ...ADDRESS_INTO_FELT,
+        [],
+        [['uint256', new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256')]],
+      );
+      const asFelt = new FunctionCall(
+        ast.reserveId(),
+        '',
+        'uint256',
+        FunctionCallKind.FunctionCall,
+        new MemberAccess(ast.reserveId(), '', 'uint256', replacementCall, 'into', IntoTrait.id),
+        [],
+      );
+
+      ast.replaceNode(node, asFelt);
     }
     // Fine to recurse because there is a check that the member access is a Builtin. Therefor a.msg.sender should
     // not be picked up.

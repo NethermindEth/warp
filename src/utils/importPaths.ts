@@ -105,3 +105,5 @@ export const UINT256: [string[], string] = [
 export const U128_TO_FELT: [string[], string] = [['integer'], 'u128_to_felt'];
 
 export const GET_CALLER_ADDRESS: [string[], string] = [['starknet'], 'get_caller_address'];
+export const ADDRESS_INTO_FELT: [string[], string] = [['starknet'], 'ContractAddressIntoFelt'];
+export const INTO: [string[], string] = [['traits'], 'Into'];

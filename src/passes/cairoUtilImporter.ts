@@ -2,6 +2,7 @@ import {
   ElementaryTypeName,
   IntType,
   Literal,
+  MemberAccess,
   SourceUnit,
   StructDefinition,
   UserDefinedType,
@@ -17,6 +18,7 @@ import {
   DEFAULT_DICT_NEW,
   DICT_WRITE,
   FINALIZE_KECCAK,
+  INTO,
   U256_FROM_FELTS,
   UINT256,
 } from '../utils/importPaths';
@@ -85,5 +87,11 @@ export class CairoUtilImporter extends ASTMapper {
     }
 
     this.commonVisit(node, ast);
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    if (node.memberName === 'into') {
+      createImport(...INTO, node, ast);
+    }
   }
 }
