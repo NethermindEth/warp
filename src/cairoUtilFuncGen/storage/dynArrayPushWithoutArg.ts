@@ -80,7 +80,7 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `    ${lengthName}.write(loc, newLen);`,
         `    let (existing) = ${arrayName}.read(loc, len);`,
         `    if ((existing) == 0){`,
-        `        let (used) = WARP_USED_STORAGE::read();`,
+        `        let (used) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE::write(used + ${cairoElementType.width});`,
         `        ${arrayName}.write(loc, len, used);`,
         `        return (used,);`,
