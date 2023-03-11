@@ -12,7 +12,7 @@ import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
 import { Implicits, registerImportsForImplicit } from '../utils/implicits';
-import { isExternallyVisible, union } from '../utils/utils';
+import { union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
 import { EMIT_PREFIX } from '../export';
 import { parseImplicits } from '../utils/cairoParsing';
