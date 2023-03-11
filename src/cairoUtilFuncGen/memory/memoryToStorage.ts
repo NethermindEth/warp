@@ -293,7 +293,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `    let mem_loc = mem_loc - ${elementMemoryWidth};`,
         `    if (storage_loc == 0){`,
         `        let (storage_loc) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE::write(storage_loc + ${elementStorageWidth});`,
+        `        WARP_USED_STORAGE.write(storage_loc + ${elementStorageWidth});`,
         `        ${elemMappingName}.write(storage_name, index, storage_loc);`,
         `        ${copyCode}`,
         `    return ${funcName}_elem(storage_name, mem_loc, index);`,

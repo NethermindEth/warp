@@ -170,7 +170,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       `   let (elem_loc) = ${dynArray.name}.read(loc, index_uint256);`,
       `   if (elem_loc == 0){`,
       `       let (elem_loc) = WARP_USED_STORAGE.read();`,
-      `       WARP_USED_STORAGE::write(elem_loc + ${cairoElementType.width});`,
+      `       WARP_USED_STORAGE.write(elem_loc + ${cairoElementType.width});`,
       `       ${dynArray.name}.write(loc, index_uint256, elem_loc);`,
       `       ${copyCode}`,
       `       return ${funcName}_write(loc, index + 1, len, elem);`,

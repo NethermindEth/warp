@@ -80,7 +80,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
         `    let (existing) = ${arrayName}.read(ref, index);`,
         `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE::write(used + ${valueCairoType.width});`,
+        `        WARP_USED_STORAGE.write(used + ${valueCairoType.width});`,
         `        ${arrayName}.write(ref, index, used);`,
         `        return (used,);`,
         `    }else{`,
