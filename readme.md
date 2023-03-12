@@ -163,7 +163,7 @@ docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_co
 ```
 
 ## Contributing
-You can read about contributing, first steps, devlopment tips and testing for contributors on this [here](Contributing.md)
+You can read about contributing, first steps, devlopment tips and testing for contributors [here](Contributing.md)
 ## Contact Us :phone:
 [![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT) [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/)
 
