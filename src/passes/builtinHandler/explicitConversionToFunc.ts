@@ -163,7 +163,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
     }
 
     if (typeTo instanceof BytesType || typeTo instanceof StringType) {
-      if (argType instanceof BytesType || argType instanceof StringType) {
+      if (argType instanceof BytesType || argType instanceof StringType || argType instanceof StringLiteralType) {
         const operand = node.vArguments[0];
         operand.typeString = node.typeString;
         ast.replaceNode(node, operand);
