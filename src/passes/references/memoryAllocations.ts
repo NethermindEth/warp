@@ -37,7 +37,7 @@ export class MemoryAllocations extends ReferenceSubPass {
     ) {
       const replacement = ast.getUtilFuncGen(node).memory.struct.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
-    } else if (node.vExpression instanceof NewExpression) {
+    } else if (node.vExpression instanceof NewExpression && !(node.parent instanceof TupleExpression)) {
       if (actualLoc === DataLocation.Memory) {
         this.allocateMemoryDynArray(node, ast);
       } else {
@@ -58,7 +58,15 @@ export class MemoryAllocations extends ReferenceSubPass {
   }
 
   visitTupleExpression(node: TupleExpression, ast: AST): void {
-    this.visitExpression(node, ast);
+    const type = generalizeType(safeGetNodeType(node, ast.inference))[0];
+    // avoid creation of unused code in case of a matrix
+    if (node instanceof TupleExpression && node.parent instanceof TupleExpression) {
+      return;
+    }
+
+    if (!(type instanceof ArrayType && type.elementT instanceof StringType)) {
+      this.visitExpression(node, ast);
+    }
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
 
