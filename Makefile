@@ -9,7 +9,7 @@ compile:
 	yarn tsc
 
 test_compilation:
-	yarn test:examples
+	yarn test:contracts
 
 test_execution:
 	yarn test
