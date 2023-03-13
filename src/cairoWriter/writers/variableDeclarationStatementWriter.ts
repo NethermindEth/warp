@@ -43,6 +43,368 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       return declaration;
     };
 
+    let isStaticArray = false;
+    let staticArrayCall = '';
+
+    const nodeType = generalizeType(getValueN(0))[0];
+
+    const funcName = (node.vInitialValue as FunctionCall).vFunctionName;
+
+    let valuesAreDefault = true;
+
+    const getArguments = (): string => {
+      const elementT =
+        (nodeType as ArrayType).elementT instanceof ArrayType
+          ? ((nodeType as ArrayType).elementT as ArrayType).elementT
+          : (nodeType as ArrayType).elementT;
+      let argumentList: string[] = [];
+      // in case of matrix
+      if (
+        (nodeType as ArrayType).elementT instanceof ArrayType &&
+        node.vInitialValue instanceof FunctionCall &&
+        !(node.vInitialValue instanceof Identifier)
+      ) {
+        if ((node.vInitialValue as FunctionCall)?.vArguments[0] instanceof TupleExpression) {
+          let argRound: string[] = [];
+            (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
+              let single = (node.vInitialValue as FunctionCall).vArguments.length === 1;
+              if (elementT instanceof UserDefinedType) {
+                valuesAreDefault = false;
+                let structRound: string[] = [];
+                (element as TupleExpression).vOriginalComponents.forEach((ele) => {
+                  (ele as FunctionCall).vArguments.forEach((e, index) => {
+                    let value: string = '';
+                    if (e instanceof FunctionCall) {
+                      value = ((e as FunctionCall).vArguments[0] as Literal).value;
+                    } else if (e instanceof Literal) {
+                      value = (e as Literal).value;
+                    }
+
+                    let eleType = safeGetNodeType(
+                      ((elementT as UserDefinedType).definition as StructDefinition).vMembers[
+                        index
+                      ],
+                      this.ast.inference,
+                    );
+                    if (value === '') {
+                      structRound.push(`0x0${single ? ',' : ''}`);
+                    } else if (value === '0') {
+                      structRound.push(
+                        `${(eleType as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
+                          single ? ',' : ''
+                        }`,
+                      );
+                    } else if (value === '0x0') {
+                      structRound.push(`0x0${single ? ',' : ''}`);
+                    } else if (value === 'false') {
+                      structRound.push(`0${single ? ',' : ''}`);
+                    } else {
+                      try {
+                        let type = typeof JSON.parse(value);
+                        if (type === 'number') {
+                          structRound.push(
+                            `${
+                              (eleType as IntType).nBits === 256 ? uint256(BigInt(value)) : value
+                            }${single ? ',' : ''}`,
+                          );
+                        } else if (type === 'boolean') {
+                          structRound.push(`1${single ? ',' : ''}`);
+                        }
+                      } catch (error) {
+                        if (value.includes('0x')) {
+                          structRound.push(`${value}${single ? ',' : ''}`);
+                        } else {
+                          structRound.push(
+                            `${((element as FunctionCall)?.vArguments[0] as Literal).hexValue}${
+                              single ? ',' : ''
+                            }`,
+                          );
+                        }
+                      }
+                    }
+                  });
+                  argRound.push(`(${structRound.join(', ')})`);
+                  structRound = [];
+                });
+                argumentList.push(argRound.join(', '));
+                argRound = [];
+              }
+              // bool type
+              if (elementT instanceof BoolType) {
+                (element as TupleExpression).vComponents?.forEach((ele) => {
+                  if (ele instanceof Identifier) {
+                    argRound.push((element as Identifier).name + `${single ? ',' : ''}`);
+                    valuesAreDefault = false;
+                  } else {
+                    if ((ele as Literal).value !== 'false') {
+                      valuesAreDefault = false;
+                    }
+                    argRound.push(
+                      (ele as Literal).value == 'false'
+                        ? `0${single ? ',' : ''}`
+                        : `1${single ? ',' : ''}`,
+                    );
+                  }
+                });
+                argumentList.push(argRound.join(', '));
+                argRound = [];
+              }
+              // string type
+              else if (
+                (elementT as ArrayType).elementT instanceof IntType &&
+                ((element as TupleExpression)?.vComponents[0] as Literal)?.kind === 'string'
+              ) {
+                (element as TupleExpression).vComponents?.forEach((ele) => {
+                  if (ele instanceof Identifier) {
+                    argRound.push((element as Identifier).name + `${single ? ',' : ''}`);
+                    valuesAreDefault = false;
+                  } else {
+                    if ((ele as Literal).value !== '') {
+                      valuesAreDefault = false;
+                    }
+                    argRound.push(
+                      (ele as Literal).value !== ''
+                        ? '0x' + (ele as Literal).hexValue + `${single ? ',' : ''}`
+                        : `0x0${single ? ',' : ''}`,
+                    );
+                  }
+                });
+                argumentList.push(argRound.join(', '));
+                argRound = [];
+              }
+              // bytes type
+              else if (
+                (elementT as ArrayType).elementT instanceof IntType &&
+                (element as TupleExpression)?.vComponents[0] instanceof FunctionCall
+              ) {
+                (element as TupleExpression).vComponents?.forEach((ele) => {
+                  if (ele instanceof Identifier) {
+                    argRound.push((element as Identifier).name + `${single ? ',' : ''}`);
+                    valuesAreDefault = false;
+                  } else {
+                    if (((ele as FunctionCall).vArguments[0] as Literal).value !== '0') {
+                      valuesAreDefault = false;
+                    }
+                    argRound.push(
+                      ((ele as FunctionCall).vArguments[0] as Literal).value !== '0'
+                        ? ((ele as FunctionCall).vArguments[0] as Literal).value +
+                            `${single ? ',' : ''}`
+                        : `0x0${single ? ',' : ''}`,
+                    );
+                  }
+                });
+                argumentList.push(argRound.join(', '));
+                argRound = [];
+              } else if (elementT instanceof IntType) {
+                (element as TupleExpression).vComponents?.forEach((ele) => {
+                  if (ele instanceof Identifier) {
+                    argRound.push((element as Identifier).name + `${single ? ',' : ''}`);
+                    valuesAreDefault = false;
+                  } else {
+                    if ((ele as Literal).value !== '0') {
+                      valuesAreDefault = false;
+                    }
+                    argRound.push(
+                      (elementT as IntType).nBits === 256
+                        ? uint256(BigInt((ele as Literal).value)) + `${single ? ',' : ''}`
+                        : (ele as Literal).value + `${single ? ',' : ''}`,
+                    );
+                  }
+                });
+                argumentList.push(argRound.join(', '));
+                argRound = [];
+              }
+            });
+          
+        } else {
+          let argRound: string[] = [];
+          (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
+            if (element instanceof Identifier) {
+              argRound.push(
+                (element as Identifier).name +
+                  `${(node.vInitialValue as FunctionCall).vArguments.length === 1 ? ',' : ''}`,
+              );
+              valuesAreDefault = false;
+            } else {
+              let single = (element as FunctionCall)?.vArguments.length === 1;
+              (element as FunctionCall)?.vArguments?.forEach((ele) => {
+                let value = (ele as Literal).value;
+                if (value === '') {
+                  argRound.push(`0x0${single ? ',' : ''}`);
+                } else if (value === '0') {
+                  argRound.push(
+                    `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
+                      single ? ',' : ''
+                    }`,
+                  );
+                } else if (value === '0x0') {
+                  argRound.push(`0x0${single ? ',' : ''}`);
+                } else if (value === 'false') {
+                  argRound.push(`0${single ? ',' : ''}`);
+                } else {
+                  valuesAreDefault = false;
+
+                  try {
+                    let type = typeof JSON.parse(value);
+                    if (type === 'number') {
+                      argRound.push(
+                        `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
+                          single ? ',' : ''
+                        }`,
+                      );
+                    } else if (type === 'boolean') {
+                      argRound.push(`1${single ? ',' : ''}`);
+                    }
+                  } catch (error) {
+                    if (value.includes('0x')) {
+                      argRound.push(`${value}${single ? ',' : ''}`);
+                    } else {
+                      argRound.push(
+                        `${((element as FunctionCall)?.vArguments[0] as Literal).hexValue}${
+                          single ? ',' : ''
+                        }`,
+                      );
+                    }
+                  }
+                }
+              });
+            }
+
+            argumentList.push(argRound.join(', '));
+            argRound = [];
+          });
+        }
+
+        return valuesAreDefault ? '' : `, ((${argumentList.join('), (')}))`;
+      } else {
+        // in case of array
+        // bool type
+
+        if (!(node.vInitialValue instanceof Identifier)) {
+          let single = (node.vInitialValue as FunctionCall).vArguments.length === 1;
+          if (elementT instanceof UserDefinedType) {
+            valuesAreDefault = false;
+            (node.vInitialValue as FunctionCall).vArguments.forEach((element) => {
+              argumentList.push((element as Identifier).name + `${single ? ',' : ''}`);
+            });
+          }
+          if (elementT instanceof BoolType) {
+            (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
+              if (element instanceof Identifier) {
+                argumentList.push((element as Identifier).name + `${single ? ',' : ''}`);
+                valuesAreDefault = false;
+              } else {
+                if ((element as Literal).value !== 'false') {
+                  valuesAreDefault = false;
+                }
+                argumentList.push(
+                  (element as Literal).value == 'false'
+                    ? `0${single ? ',' : ''}`
+                    : `1${single ? ',' : ''}`,
+                );
+              }
+            });
+          }
+          // string type
+          else if (
+            elementT instanceof IntType &&
+            ((node.vInitialValue as FunctionCall)?.vArguments[0] as Literal)?.kind === 'string'
+          ) {
+            (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
+              if (element instanceof Identifier) {
+                argumentList.push((element as Identifier).name + `${single ? ',' : ''}`);
+                valuesAreDefault = false;
+              } else {
+                if ((element as Literal).value !== '') {
+                  valuesAreDefault = false;
+                }
+                argumentList.push('0x' + (element as Literal).hexValue + `${single ? ',' : ''}`);
+              }
+            });
+          }
+          // bytes type
+          else if (
+            elementT instanceof IntType &&
+            (node.vInitialValue as FunctionCall)?.vArguments[0] instanceof FunctionCall
+          ) {
+            (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
+              if (element instanceof Identifier) {
+                argumentList.push((element as Identifier).name + `${single ? ',' : ''}`);
+                valuesAreDefault = false;
+              } else {
+                if (((element as FunctionCall).vArguments[0] as Literal).value !== '0') {
+                  valuesAreDefault = false;
+                }
+                argumentList.push(
+                  ((element as FunctionCall).vArguments[0] as Literal).value !== '0'
+                    ? ((element as FunctionCall).vArguments[0] as Literal).value +
+                        `${single ? ',' : ''}`
+                    : `0x0${single ? ',' : ''}`,
+                );
+              }
+            });
+          }
+          // bytesX/int/uint types
+          else if (elementT instanceof IntType) {
+            (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
+              if (element instanceof Identifier) {
+                argumentList.push((element as Identifier).name + `${single ? ',' : ''}`);
+                valuesAreDefault = false;
+              } else {
+                if ((element as Literal).value !== '0') {
+                  if ((element as Literal).value !== '0x0') {
+                    valuesAreDefault = false;
+                  }
+                }
+                argumentList.push(
+                  (elementT as IntType).nBits === 256
+                    ? uint256(BigInt((element as Literal).value)) + `${single ? ',' : ''}`
+                    : (element as Literal).value + `${single ? ',' : ''}`,
+                );
+              }
+            });
+          }
+        }
+        return valuesAreDefault ? '' : `, (${argumentList.join(', ')})`;
+      }
+    };
+
+    if (
+      nodeType instanceof ArrayType &&
+      (nodeType as ArrayType).size !== undefined &&
+      funcName?.indexOf('s_arr') !== -1
+    ) {
+      isStaticArray = true;
+      let isBytes =
+        node.vInitialValue instanceof Identifier
+          ? false
+          : (node.vInitialValue as FunctionCall)?.vArguments[0] instanceof FunctionCall
+          ? (nodeType.elementT as ArrayType).elementT instanceof ArrayType
+            ? true
+            : false
+          : false;
+      let isString =
+        node.vInitialValue instanceof Identifier
+          ? false
+          : ((node.vInitialValue as FunctionCall)?.vArguments[0] as Literal).kind === 'string'
+          ? true
+          : false;
+      if ((nodeType as ArrayType).elementT instanceof ArrayType && !isString && !isBytes) {
+        if (((nodeType as ArrayType).elementT as ArrayType).size !== undefined) {
+          staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${Number(
+            ((nodeType as ArrayType).elementT as ArrayType).size,
+          )}${getArguments()})`;
+        } else {
+          staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${Number(
+            (nodeType as ArrayType).size,
+          )}${getArguments()})`;
+        }
+      } else {
+        staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}${getArguments()})`;
+      }
+    }
+
+
     const declarations = node.assignments.flatMap((id, index) => {
       const type = generalizeType(getValueN(index))[0];
       if (
@@ -87,7 +449,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       return [
         [
           documentation,
-          `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)};`,
+          `let (${declarations.join(', ')}) = ${isStaticArray ? staticArrayCall : writer.write(node.vInitialValue)};`,
         ].join('\n'),
       ];
     }
