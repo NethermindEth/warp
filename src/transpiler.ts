@@ -42,7 +42,6 @@ import {
   References,
   RejectPrefix,
   RejectUnsupportedFeatures,
-  ReplaceIdentifierContractMemberAccess,
   Require,
   ReturnInserter,
   ReturnVariableInitializer,
