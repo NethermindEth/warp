@@ -415,5 +415,5 @@ mod testing;
 mod starknet_testing;
 
 mod warplib;
-use warplib::warp_add;
-use warplib::integer;
+use warplib::get_u128_try_from_felt_result;
+use warplib::u256_from_felts;
