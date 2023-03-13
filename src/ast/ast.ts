@@ -25,9 +25,11 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
 import { createBlock } from '../utils/nodeTemplates';
+import { createImport } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { getContainingSourceUnit, isExternalCall, mergeImports } from '../utils/utils';
-import { CairoFunctionDefinition } from './cairoNodes';
+import { getContainingSourceUnit, isExternalCall } from '../utils/utils';
+import { CairoFunctionDefinition, CairoImportFunctionDefinition } from './cairoNodes';
+import { ParameterInfo } from '../export';
 
 /*
  A centralised store of information required for transpilation, a reference
@@ -54,8 +56,6 @@ export class AST {
   private cairoUtilFuncGen: Map<number, CairoUtilFuncGen> = new Map();
 
   context: ASTContext;
-  // node requiring cairo import -> file to import from -> symbols to import
-  imports: Map<ASTNode, Map<string, Set<string>>> = new Map();
   public inference: InferType;
 
   readonly tempId = -1;
@@ -78,16 +78,6 @@ export class AST {
     assert(
       this.context.locate(this.tempId) === undefined,
       `Attempted to create an AST with a context that already has ${this.tempId} registered`,
-    );
-  }
-
-  copyRegisteredImports(oldNode: ASTNode, newNode: ASTNode): void {
-    this.imports.set(
-      newNode,
-      mergeImports(
-        this.imports.get(oldNode) ?? new Map<string, Set<string>>(),
-        this.imports.get(newNode) ?? new Map<string, Set<string>>(),
-      ),
     );
   }
 
@@ -173,20 +163,6 @@ export class AST {
     if (containingFunction === undefined) return new Set();
 
     return containingFunction.implicits;
-  }
-
-  getImports(sourceUnit: SourceUnit): Map<string, Set<string>> {
-    assert(
-      this.roots.includes(sourceUnit),
-      `Tried to get imports associated with ${printNode(
-        sourceUnit,
-      )}, which is not one of the roots of the AST`,
-    );
-    const reachableNodeImports = sourceUnit
-      .getChildren(true)
-      .map((node) => this.imports.get(node) ?? new Map<string, Set<string>>());
-    const utilFunctionImports = this.getUtilFuncGen(sourceUnit)?.getImports();
-    return mergeImports(utilFunctionImports, ...reachableNodeImports);
   }
 
   getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {
@@ -298,12 +274,15 @@ export class AST {
     return child.id;
   }
 
-  registerImport(node: ASTNode, location: string, name: string): void {
-    const nodeImports = this.imports.get(node) ?? new Map<string, Set<string>>();
-    const fileImports = nodeImports.get(location) ?? new Set<string>();
-    fileImports.add(name);
-    nodeImports.set(location, fileImports);
-    this.imports.set(node, nodeImports);
+  registerImport(
+    node: ASTNode,
+    location: string,
+    name: string,
+    inputs: ParameterInfo[],
+    outputs: ParameterInfo[],
+    options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean },
+  ): CairoImportFunctionDefinition {
+    return createImport(location, name, node, this, inputs, outputs, options);
   }
 
   removeStatement(statement: Statement): void {
@@ -317,19 +296,9 @@ export class AST {
   }
 
   // Reference notes/astnodetypes.ts for exact restrictions on what can safely be replaced with what
-  replaceNode(
-    oldNode: Expression,
-    newNode: Expression,
-    parent?: ASTNode,
-    copyImports?: boolean,
-  ): number;
-  replaceNode(
-    oldNode: Statement,
-    newNode: Statement,
-    parent?: ASTNode,
-    copyImports?: boolean,
-  ): number;
-  replaceNode(oldNode: ASTNode, newNode: ASTNode, parent?: ASTNode, copyImports = true): number {
+  replaceNode(oldNode: Expression, newNode: Expression, parent?: ASTNode): number;
+  replaceNode(oldNode: Statement, newNode: Statement, parent?: ASTNode): number;
+  replaceNode(oldNode: ASTNode, newNode: ASTNode, parent?: ASTNode): number {
     if (oldNode === newNode) {
       console.log(`WARNING: Attempted to replace node ${printNode(oldNode)} with itself`);
       return oldNode.id;
@@ -355,9 +324,6 @@ export class AST {
     replaceNode(oldNode, newNode, parent);
     this.context.unregister(oldNode);
     this.setContextRecursive(newNode);
-    if (copyImports) {
-      this.copyRegisteredImports(oldNode, newNode);
-    }
     return newNode.id;
   }
 

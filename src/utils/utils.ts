@@ -40,6 +40,7 @@ import {
   SourceLocation,
   SourceUnit,
   StateVariableVisibility,
+  StringLiteralType,
   StringType,
   StructDefinition,
   TimeUnit,
@@ -56,6 +57,7 @@ import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printNode, printTypeNode } from './astPrinter';
 import {
+  instanceOfExecSyncError,
   logError,
   NotSupportedYetError,
   TranspileFailedError,
@@ -253,7 +255,7 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
       node.definition.id,
       new IdentifierPath(ast.reserveId(), '', node.definition.name, node.definition.id),
     );
-  } else if (node instanceof StringType) {
+  } else if (node instanceof StringType || node instanceof StringLiteralType) {
     return new ElementaryTypeName(ast.reserveId(), '', 'string', 'string', 'nonpayable');
   }
 
@@ -263,17 +265,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
 
   ast.setContextRecursive(result);
   return result;
-}
-
-export function mergeImports(...maps: Map<string, Set<string>>[]): Map<string, Set<string>> {
-  return maps.reduce((acc, curr) => {
-    curr.forEach((importedSymbols, location) => {
-      const accSet = acc.get(location) ?? new Set<string>();
-      importedSymbols.forEach((s) => accSet.add(s));
-      acc.set(location, accSet);
-    });
-    return acc;
-  }, new Map<string, Set<string>>());
 }
 
 export function groupBy<V, K>(arr: V[], groupFunc: (arg: V) => K): Map<K, Set<V>> {
@@ -548,14 +539,15 @@ export function getSourceFromLocations(
   return filteredLines.join('');
 }
 
-export function runStarkNetClassHash(filePath: string): string {
+export function runStarknetClassHash(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+  const command = 'starknet-class-hash';
 
-  const classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
-  if (classHash === undefined) {
-    throw new Error(`starknet-class-hash failed`);
+  try {
+    return execSync(`${warpVenvPrefix} ${command} ${filePath}`).toString().trim();
+  } catch (e) {
+    throw new TranspileFailedError(catchExecSyncError(e, command));
   }
-  return classHash;
 }
 
 export function getContainingFunction(node: ASTNode): FunctionDefinition {
@@ -565,6 +557,10 @@ export function getContainingFunction(node: ASTNode): FunctionDefinition {
 }
 
 export function getContainingSourceUnit(node: ASTNode): SourceUnit {
+  if (node instanceof SourceUnit) {
+    return node;
+  }
+
   const root = node.getClosestParentByType(SourceUnit);
   assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
   return root;
@@ -634,4 +630,33 @@ export function defaultBasePathAndIncludePath() {
   }
 
   return [null, null];
+}
+
+export function execSyncAndLog(command: string, commandName: string) {
+  try {
+    const output = execSync(command, { encoding: 'utf8' });
+    console.log(output);
+  } catch (e) {
+    logError(catchExecSyncError(e, commandName));
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function catchExecSyncError(e: any, commandExecuted: string) {
+  if (!instanceOfExecSyncError(e)) {
+    // If is not an error from the execSync instruction then it could be anything else, like call stack
+    // limit exceed. In those unpredicted cases we should stop and throw the error.
+    throw e;
+  }
+  const error = hintForCommandFailed(commandExecuted, e.stderr.toString());
+  return error;
+}
+
+function hintForCommandFailed(command: string, err: string) {
+  if (err.includes('command not found')) {
+    return `'${command}' command not found.
+  Please make sure you have the required version of Warp dependencies by executing 'warp install' command.
+  See more about it using 'warp install --help'.`;
+  }
+  return err;
 }

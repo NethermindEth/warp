@@ -9,7 +9,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { createIdentifier } from '../../utils/nodeTemplates';
+import { createExpressionStatement, createIdentifier } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class ExternalReturnReceiver extends ASTMapper {
@@ -52,7 +52,17 @@ export class ExternalReturnReceiver extends ASTMapper {
         ast.insertStatementAfter(node, statement);
         node.assignments = node.assignments.map((value) => (value === decl.id ? newId : value));
       });
+
+    node.vDeclarations.forEach((decl) => addOutputValidation(decl, ast));
   }
+}
+
+function addOutputValidation(decl: VariableDeclaration, ast: AST) {
+  const validationFunctionCall = ast
+    .getUtilFuncGen(decl)
+    .boundChecks.inputCheck.gen(decl, safeGetNodeType(decl, ast.inference));
+  const validationStatement = createExpressionStatement(ast, validationFunctionCall);
+  ast.insertStatementAfter(decl, validationStatement);
 }
 
 function generateCopyStatement(

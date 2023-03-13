@@ -161,7 +161,7 @@ _Italic/Emphasize_
 
 Define a section using ` ``` `. Anything between two lines that contain these 3 back quotes will be in a code block.
 
-To get syntax highlighting and formatting for a certain language succh as Javascript:
+To get syntax highlighting and formatting for a certain language such as Javascript:
 
 ```js
 const threeCats = ['cat', 'cat', 'cat'];
@@ -232,7 +232,7 @@ The content and title _can_ include markdown.
 
 :::tip You can specify an optional title
 
-Heads up! Here's a pro-tip.
+Heads up! Here's a pro tip.
 
 :::
 
@@ -324,7 +324,7 @@ Logo: ![Alt](/img/logo.png 'Warp logo')
 Logo: ![Alt](/img/logo.png 'Warp logo')
 ```
 
-You can create a image with a hyperlink to another page or a hash link on the page by adding the link in the brackets next to it.
+You can create an image with a hyperlink to another page or a hash link on the page by adding the link in the brackets next to it.
 
 Linked logo: [![alt text](//img/logo.png)](https://nethermindeth.github.io/warp/ 'Off to the docs')
 
@@ -334,13 +334,13 @@ Linked logo: [![alt text](//img/logo.png)](https://nethermindeth.github.io/warp/
 
 ## MDX features
 
-A quick note on using what's called `.mdx` features, `mdx` means markdown extended, to used these features, you need to name your file to have the extention `.mdx`
+A quick note on using what's called `.mdx` features, `mdx` means markdown extended, to use these features, you need to name your file to have the extension `.mdx`
 
 For example `cheatsheet.mdx`
 
 This lets you use react components that are a bit more intricate that the standard markdown features.
 
-To make use of an `mdx` component like `Tabs`, you need to add any `import ... from ...` lines to the top of the page, but below the meta data section. Heres an example:
+To make use of an `mdx` component like `Tabs`, you need to add any `import ... from ...` lines to the top of the page, but below the metadata section. Here's an example:
 
 ```
 ---
@@ -354,7 +354,7 @@ import TabItem from '@theme/TabItem';
 
 This is an example of the `tabs` component.
 
-For extend usage, please refer to the [Docusaurus documentation.](https://docusaurus.io/docs/next/markdown-features/tabs)
+For extended usage, please refer to the [Docusaurus documentation.](https://docusaurus.io/docs/next/markdown-features/tabs)
 
 <Tabs
   defaultValue="apple"
@@ -391,7 +391,7 @@ import TabItem from '@theme/TabItem';
 
 If you need a table contents literally anywhere, you can make use of the `<TOCInline>` component.
 
-For extend usage, please refer to the [Docusaurus documentation.](https://docusaurus.io/docs/next/markdown-features/inline-toc)
+For extended usage, please refer to the [Docusaurus documentation.](https://docusaurus.io/docs/next/markdown-features/inline-toc)
 
 <TOCInline toc={toc} />
 
@@ -403,16 +403,16 @@ import TOCInline from '@theme/TOCInline';
 
 ## Footnotes & references
 
-This is how we make a reference to a foot note or reference that's found at the bottoms of the page.[^1]
+This is how we make a reference to a footnote or reference that's found at the bottoms of the page.[^1]
 
 ```md
 This is how we make a reference to a footnote [^1] that's found at the bottoms of the page
 ```
 
-To create list of foot notes, you just add list like this somewhere, preferably at the bottom of the file
+To create lists of footnotes, you just add lists like this somewhere, preferably at the bottom of the file
 
 ```md
-[^1]: an amazing foot note, you can add links n things here as usual
+[^1]: an amazing footnote, you can add links n things here as usual
 ```
 
-[^1]: an amazing foot note, you can add links n things here as usual
+[^1]: an amazing footnote, you can add links n things here as usual
