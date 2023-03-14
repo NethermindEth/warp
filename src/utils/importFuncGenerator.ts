@@ -22,6 +22,7 @@ const STARKWARE_CAIRO_COMMON_MATH = 'starkware.cairo.common.math';
 const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
+const STARKWARE_CAIRO_COMMON_REGISTERS = 'starkware.cairo.common.registers';
 
 export function createImport(
   path: string,
@@ -116,6 +117,8 @@ export function createImport(
       return createFuncImport('syscall_ptr');
     case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_contract_address':
       return createFuncImport('syscall_ptr');
+    case STARKWARE_CAIRO_COMMON_REGISTERS + 'get_fp_and_pc':
+      return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }

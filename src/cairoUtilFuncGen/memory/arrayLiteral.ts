@@ -4,13 +4,16 @@ import {
   BytesType,
   DataLocation,
   Expression,
+  FixedBytesType,
   FunctionCall,
   generalizeType,
   Identifier,
+  IntType,
   Literal,
   LiteralKind,
   StringLiteralType,
   StringType,
+  StructDefinition,
   TupleExpression,
   TupleType,
   TypeNode,
@@ -49,7 +52,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const size = node.hexValue.length / 2;
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
-    const funcDef = this.getOrCreateFuncDef(type, size);
+    const funcDef = this.getOrCreateFuncDef(type, size, null);
     return createCallToFunction(
       funcDef,
       mapRange(size, (n) =>
@@ -59,12 +62,10 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     );
   }
 
-  
-
   public tupleGen(node: TupleExpression): FunctionCall {
     const elements = node.vOriginalComponents.filter(notNull);
     assert(elements.length === node.vOriginalComponents.length);
-    
+
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
     const elementsInfo = this.isUserElements(elements, type);
     assert(
@@ -84,8 +85,12 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return createCallToFunction(funcDef, elements, this.ast);
   }
 
-  private isUserElements(elements: Expression[], type: TypeNode): {userDefined: boolean, matrixSize: number} {
-    const isMatrix = type instanceof ArrayType? (type as ArrayType).elementT instanceof ArrayType: false;
+  private isUserElements(
+    elements: Expression[],
+    type: TypeNode,
+  ): { userDefined: boolean; matrixSize: number } {
+    const isMatrix =
+      type instanceof ArrayType ? (type as ArrayType).elementT instanceof ArrayType : false;
     let userDefined = false;
     let matrixSize = 0;
     elements.forEach((ele) => {
@@ -161,16 +166,22 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         }
       }
     });
-    return {userDefined, matrixSize};
+    return { userDefined, matrixSize };
   }
 
-  public getOrCreateFuncDef(type: ArrayType | StringType, size: number, elementsInfo: {userDefined: boolean, matrixSize: number}) {
+  public getOrCreateFuncDef(
+    type: ArrayType | StringType,
+    size: number,
+    elementsInfo: { userDefined: boolean; matrixSize: number } | null,
+  ) {
     const baseType = getElementType(type);
-    const isMatrix = type instanceof ArrayType && baseType instanceof ArrayType
-    const isStruct = isMatrix
-      ? baseType.elementT instanceof UserDefinedType
-      : baseType instanceof UserDefinedType;
-    const key = baseType.pp() + size;
+    const isMatrix = type instanceof ArrayType && baseType instanceof ArrayType;
+
+    const key = !isDynamicArray(type)
+      ? `${baseType.pp()}${isMatrix ? 'matrix' : ''}${
+          this.isUint(baseType, isMatrix) ? 'uint' : ''
+        }`
+      : baseType.pp() + size;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
@@ -179,12 +190,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
     const funcInfo = this.getOrCreate(
       baseType,
-      isMatrix? elementsInfo.matrixSize:size,
+      isMatrix ? elementsInfo!.matrixSize : size,
       isDynamicArray(type) || type instanceof StringLiteralType,
-      elementsInfo.userDefined,
+      type instanceof ArrayType ? elementsInfo!.userDefined : false,
       isMatrix,
-      isMatrix? Number(type.size) : 0,
-      isStruct
+      isMatrix ? Number(type.size) : 0,
     );
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -201,33 +211,49 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private structToFeltTuple(funcName: string, members: string[]): string{
-    let feltMembers: string[] = []; 
-    let memberIndex:number = 0;
+  private struct_initializer(funcName: string, members: string[]): string {
+    let feltMembers: string[] = [];
+    let memberIndex: number = 0;
     let arrayIndex: number = 0;
     let args: string[] = [];
     members.forEach((member) => {
       if (member === 'Uint256') {
-        feltMembers.push(`    dict_write{dict_ptr=warp_memory}(start${arrayIndex > 0?`+${arrayIndex}`:''}, member_${memberIndex}.low);`);
-        feltMembers.push(`    dict_write{dict_ptr=warp_memory}(start${`+${arrayIndex+1}`}, member_${memberIndex}.high);`);
+        feltMembers.push(
+          `    dict_write{dict_ptr=warp_memory}(start${
+            arrayIndex > 0 ? `+${arrayIndex}` : ''
+          }, member_${memberIndex}.low);`,
+        );
+        feltMembers.push(
+          `    dict_write{dict_ptr=warp_memory}(start${`+${
+            arrayIndex + 1
+          }`}, member_${memberIndex}.high);`,
+        );
         arrayIndex = arrayIndex + 2;
         memberIndex = memberIndex + 1;
       } else {
-        feltMembers.push(`    dict_write{dict_ptr=warp_memory}(start${arrayIndex > 0?`+${arrayIndex}`:''}, member_${memberIndex});`);
+        feltMembers.push(
+          `    dict_write{dict_ptr=warp_memory}(start${
+            arrayIndex > 0 ? `+${arrayIndex}` : ''
+          }, member_${memberIndex});`,
+        );
         arrayIndex = arrayIndex + 1;
         memberIndex = memberIndex + 1;
       }
-      args.push(`member_${memberIndex-1}: ${member === 'Uint256'? `Uint256`:`felt`}`);
-    })
-    
+      args.push(`member_${memberIndex - 1}: ${member === 'Uint256' ? `Uint256` : `felt`}`);
+    });
+
     return [
-      `func ${funcName}_struct_to_array{range_check_ptr, warp_memory: DictAccess*}(${args.join(', ')}) -> (start: felt){`,
+      `func ${funcName}_struct_init{range_check_ptr, warp_memory: DictAccess*}(${args.join(
+        ', ',
+      )}) -> (start: felt){`,
       `    alloc_locals;`,
       `    let (start) = wm_alloc(${uint256(arrayIndex)});`,
       ...feltMembers,
       `    return (start,);`,
       `}`,
-    ].flat().join('\n');
+    ]
+      .flat()
+      .join('\n');
   }
 
   private recursiveStaticfunction(
@@ -235,13 +261,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     type: TypeNode,
     isUint: boolean,
     isUserDefined: boolean,
-    isStruct: boolean,
-    isMatrix: boolean
   ): string[] {
     const isBytesOrString = type instanceof BytesType || type instanceof StringType;
     return [
       `func ${funcName}_recursive{range_check_ptr, warp_memory: DictAccess*}(index, size_arr${
-        isUserDefined || isStruct ? `, definedArr: felt*` : ''
+        isUserDefined ? `, definedArr: felt*` : ''
       }) {`,
       `    alloc_locals;`,
       `    if (index == size_arr) {`,
@@ -252,26 +276,16 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           ? []
           : ['    let (arr) = wm_new(Uint256(low=0, high=0), Uint256(low=1, high=0));']
         : [],
-      isStruct && isMatrix ? [
-        `    let (struct_start) = ${funcName}_struct_to_array(definedArr[0]);`
-      ] : [],      
-      isUint && isUserDefined ? '    let (uint256) = felt_to_uint256(definedArr[0]);' : [],
       `    dict_write{dict_ptr=warp_memory}(index, ${
-        isBytesOrString ? 'arr' : isUserDefined ? (isUint ? `uint256.low` : 'definedArr[0]') : isStruct? 'struct_start': '0'
+        isBytesOrString ? 'arr' : isUserDefined ? 'definedArr[0]' : '0'
       });`,
-      isUint
-        ? [
-            `    dict_write{dict_ptr=warp_memory}(index + 1, ${
-              isUserDefined ? 'uint256.high' : '0'
-            });`,
-          ]
-        : [],
+      isUint && !isUserDefined ? [`    dict_write{dict_ptr=warp_memory}(index + 1, 0);`] : [],
       `    return ${funcName}_recursive(index + ${
         isUint ? (isUserDefined ? '1' : '2') : '1'
       }, size_arr${isUserDefined ? ', definedArr+1' : ''});`,
       `}`,
     ].flat();
-  };
+  }
 
   private matrixExtraFunctions(
     funcName: string,
@@ -308,12 +322,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     ];
   }
 
-  private getOrCreate(type: TypeNode, size: number, dynamic: boolean, isUserDefined: boolean, isMatrix: boolean, matrixDimension: number, isStruct: boolean): GeneratedFunctionInfo {
-    const elementCairoType = CairoType.fromSol(type, this.ast);
-    const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
-
+  private isUint(type: TypeNode, isMatrix: boolean): boolean {
     let isUint = false;
-    if (isMatrix && !isStruct) {
+    if (isMatrix) {
       if (
         ((type as ArrayType).elementT instanceof FixedBytesType &&
           ((type as ArrayType).elementT as FixedBytesType).size === 32) ||
@@ -330,11 +341,24 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         isUint = true;
       }
     }
+    return isUint;
+  }
 
-    let structMembers: string = '';
+  private getOrCreate(
+    type: TypeNode,
+    size: number,
+    dynamic: boolean,
+    isUserDefined: boolean,
+    isMatrix: boolean,
+    matrixDimension: number,
+  ): GeneratedFunctionInfo {
+    const elementCairoType = CairoType.fromSol(type, this.ast);
+    const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
+    const isStruct = isMatrix
+      ? (type as ArrayType).elementT instanceof UserDefinedType
+      : type instanceof UserDefinedType;
     let members: string[] = [];
     if (isStruct) {
-      
       if (isMatrix) {
         (
           ((type as ArrayType).elementT as UserDefinedType).definition as StructDefinition
@@ -348,34 +372,69 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
             members.push('felt');
           }
         });
-        structMembers = `(${size === 1? `(${members.join(', ')})`:`(${members.join(', ')}), `.repeat(size-1)+`(${members.join(', ')})`}), `.repeat(matrixDimension-1)+`(${size === 1? `(${members.join(', ')})`:`(${members.join(', ')}), `.repeat(size-1)+`(${members.join(', ')})`})`;
-      } else {
-        ((type as UserDefinedType).definition as StructDefinition).vMembers.forEach((member) => {
-          let memberType = safeGetNodeType(member, this.ast.inference);
-          if (memberType instanceof IntType) {
-            if ((memberType as IntType).nBits === 256) {
-              members.push('Uint256');
-            }
-          } else {
-            members.push('felt');
-          }
-          structMembers = `${`(${members.join(', ')})`.repeat(size)} `;
-        });
       }
     }
 
     const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
 
+    const arrArg = (): string => {
+      let arg = this.isUint(type, isMatrix) ? 'Uint256' : 'felt';
+      if (isMatrix) {
+        return `matrix: (${
+          matrixDimension === 1
+            ? `(${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg})`
+            : `(${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg}), `.repeat(
+                matrixDimension - 1,
+              ) + `(${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg})`
+        })`;
+      } else {
+        return `arr: (${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg})`;
+      }
+    };
+    const argStatic = isUserDefined ? `size_arr, ${arrArg()}` : 'size_arr';
+    const argStaticMatrix = isUserDefined ? `row, column, ${arrArg()}` : 'row, column';
+
+    const initializationlist = mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
+      .flat()
+      .map(
+        (name, index) =>
+          `    dict_write{dict_ptr=warp_memory}(${add('start', index + 2)}, ${name});`,
+      );
+
+    const imports = () => {
+      let importList = [
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport('warplib.memory', 'wm_write_256'),
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
+      ];
+      if (isUserDefined) {
+        importList.push(this.requireImport('starkware.cairo.common.registers', 'get_fp_and_pc'));
+      }
+      return importList;
+    };
+
     // If it's dynamic we need to include the length at the start
     const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
+    const isStaticDynamic = isMatrix && (type as ArrayType).size === undefined;
     return {
       name: funcName,
       code: [
-        isStruct && isMatrix? this.structToFeltTuple(funcName, members) : [],
+        isStruct && isMatrix ? this.struct_initializer(funcName, members) : [],
         ...(dynamic
           ? []
-          : this.recursiveStaticfunction(funcName, type, isUint, userDefinedArgs, isStruct, isMatrix)),
-        isMatrix ? this.matrixExtraFunctions(funcName, isUint, userDefinedArgs).join('\n') : [],
+          : this.recursiveStaticfunction(
+              funcName,
+              type,
+              this.isUint(type, isMatrix),
+              isUserDefined,
+            )),
+        isMatrix
+          ? this.matrixExtraFunctions(funcName, this.isUint(type, isMatrix), isUserDefined).join(
+              '\n',
+            )
+          : [],
         ` `,
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${
           dynamic ? argString : isMatrix ? argStaticMatrix : argStatic
@@ -387,18 +446,20 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
               `    let (start) = wm_alloc(${
                 isStaticDynamic ? uint256(size * elementCairoType.width + 2) : 'size256'
               });`,
-              userDefinedArgs ? '    let (__fp__, _) = get_fp_and_pc();' : '',
+              isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : '',
               isStaticDynamic
                 ? `    wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`
                 : '',
               `    ${funcName}_iterator(start + row, column, start${
-                userDefinedArgs ? ', cast(&matrix, felt*)' : ''
+                isUserDefined ? ', cast(&matrix, felt*)' : ''
               });`,
             ].join('\n')
           : [
               dynamic
                 ? ``
-                : `    let (size256) = felt_to_uint256(size_arr${isUint ? ` * 2` : ''});`,
+                : `    let (size256) = felt_to_uint256(size_arr${
+                    this.isUint(type, isMatrix) ? ` * 2` : ''
+                  });`,
               `    let (start) = wm_alloc(${dynamic ? uint256(alloc_len) : 'size256'});`,
               [
                 dynamic
@@ -407,23 +468,17 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
                 dynamic
                   ? initializationlist.join('\n')
                   : [
-                      userDefinedArgs ? '    let (__fp__, _) = get_fp_and_pc();' : [],
+                      isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : [],
                       `    ${funcName}_recursive(start,  start + size_arr${
-                        isUint ? (userDefinedArgs ? '' : ' * 2') : ''
-                      }${userDefinedArgs ? ', cast(&arr, felt*)' : ''});`,
+                        this.isUint(type, isMatrix) ? (isUserDefined ? '' : ' * 2') : ''
+                      }${isUserDefined ? ', cast(&arr, felt*)' : ''});`,
                     ].join('\n'),
               ].join('\n'),
             ].join('\n'),
         `    return (start,);`,
         `}`,
       ].join('\n'),
-      functionsCalled: [
-        isUserDefined? this.requireImport('starkware.cairo.common.registers', 'get_fp_and_pc'): _,
-        this.requireImport('warplib.memory', 'wm_alloc'),
-        this.requireImport('warplib.memory', 'wm_write_256'),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.dict', 'dict_write'),
-      ],
+      functionsCalled: imports(),
     };
   }
 }
