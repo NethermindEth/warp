@@ -204,7 +204,7 @@ export function getNodeVariables(node: Conditional) {
 // - they are the expression of a return statement
 // - they are the expression of an expressionStatement
 // There might be nested conditionals as well, but the pass goes through
-// the outtermost first and transform it, so it falls in the previous cases
+// the outermost first and transform it, so it falls in the previous cases
 export function getStatementsForVoidConditionals(
   node: Conditional,
   variables: VariableDeclaration[],

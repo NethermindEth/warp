@@ -32,7 +32,7 @@ export class DeleteHandler extends ASTMapper {
     }
 
     const nodeType = safeGetNodeType(node.vSubExpression, ast.inference);
-    // Deletetion from storage is handled in References
+    // Deletion from storage is handled in References
     if (
       (nodeType instanceof PointerType && nodeType.location === DataLocation.Storage) ||
       (node instanceof Identifier &&

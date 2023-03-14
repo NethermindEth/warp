@@ -52,9 +52,9 @@ export function getErrorMessage(
 ): string {
   let errorNum = 0;
   const errorMsg = [...unsupportedPerSource.entries()].reduce(
-    (fullMsg, [filePath, unsopported]) => {
+    (fullMsg, [filePath, unsupported]) => {
       const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-      const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
+      const newMessage = unsupported.reduce((newMessage, [errorMsg, node]) => {
         const errorCode = getSourceFromLocations(
           content,
           [parseSourceLocation(node.src)],

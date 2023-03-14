@@ -71,7 +71,7 @@ export class AST {
     );
     assert(
       roots.every((sourceUnit) => sourceUnit.requiredContext === roots[0].requiredContext),
-      'All contexts should be the same, otherwise they are from seperate solc-typed-ast compiles and they will have no relationship to each other.',
+      'All contexts should be the same, otherwise they are from separate solc-typed-ast compiles and they will have no relationship to each other.',
     );
     this.context = roots[0].requiredContext;
     this.inference = new InferType(compilerVersion);
@@ -119,7 +119,7 @@ export class AST {
       [replacementVariable],
     );
     this.insertStatementBefore(node, declaration);
-    const replacementIdentifer = new Identifier(
+    const replacementIdentifier = new Identifier(
       this.tempId,
       node.src,
       node.typeString,
@@ -127,10 +127,10 @@ export class AST {
       replacementVariable.id,
       node.raw,
     );
-    this.replaceNode(node, replacementIdentifer);
+    this.replaceNode(node, replacementIdentifier);
     declaration.vInitialValue = node;
     this.registerChild(node, declaration);
-    return [replacementIdentifer, declaration];
+    return [replacementIdentifier, declaration];
   }
 
   getContainingRoot(node: ASTNode): SourceUnit {
@@ -215,7 +215,7 @@ export class AST {
     }
 
     const parent = existingStatement.parent;
-    // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
+    // Blocks are not instances of Statements, but they satisfy typescript shaped typing rules to be classed as Statements
     const replacementBlock = createBlock([existingStatement, newStatement], this);
     this.replaceNode(existingStatement, replacementBlock, parent);
   }
@@ -259,7 +259,7 @@ export class AST {
     }
 
     const parent = existingStatement.parent;
-    // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
+    // Blocks are not instances of Statements, but they satisfy typescript shaped typing rules to be classed as Statements
     const replacementBlock = createBlock([newStatement, existingStatement], this);
     this.replaceNode(existingStatement, replacementBlock, parent);
   }

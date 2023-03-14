@@ -15,7 +15,7 @@ This is supported in Warp's `deploy`, `invoke` and `call` commands.
 Warp takes these inputs and transcodes them into Cairo to forward them onto the desired network.
 
 ```
-warp invoke <Cario Contract> --inputs \"ExampleString\",\[1,2,3,4\],-1,100.
+warp invoke <Cairo Contract> --inputs \"ExampleString\",\[1,2,3,4\],-1,100.
 ```
 
 ### Using Cairo ABI
@@ -34,7 +34,7 @@ Note that there are some nuances that come with using the Cairo ABI:
   upper 128 bits e.g `0x10000000000000000000000000000000f` as a `uint256` -> `15,1`.
 
 ```
-warp invoke <Cario Contract> --use_cairo_abi --inputs 13,0x45,0x78,0x61,0x6d,0x70,0x6c,0x65,0x53,0x74,0x72,0x69,0x6e,0x67,4,1,2,3,4,255,100.
+warp invoke <Cairo Contract> --use_cairo_abi --inputs 13,0x45,0x78,0x61,0x6d,0x70,0x6c,0x65,0x53,0x74,0x72,0x69,0x6e,0x67,4,1,2,3,4,255,100.
 ```
 
 ### Passing values of different types in both ABIs

@@ -37,9 +37,9 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     assert(inputType instanceof IntType);
 
     const key = enumDef.name + (inputType.nBits === 256 ? '256' : '');
-    const exisiting = this.generatedFunctionsDef.get(key);
-    if (exisiting !== undefined) {
-      return exisiting;
+    const existing = this.generatedFunctionsDef.get(key);
+    if (existing !== undefined) {
+      return existing;
     }
 
     const funcInfo = this.getOrCreate(inputType, enumDef);

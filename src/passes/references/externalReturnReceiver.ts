@@ -25,8 +25,8 @@ export class ExternalReturnReceiver extends ASTMapper {
       return this.commonVisit(node, ast);
     }
 
-    // For each variable that recieves an external call and is neither a value type nor a
-    // reference type with calldata location, create a temporal variable which recieves the
+    // For each variable that receives an external call and is neither a value type nor a
+    // reference type with calldata location, create a temporal variable which receives the
     // calldata output and then copy it to the current node expected location
     node.vDeclarations
       .filter(

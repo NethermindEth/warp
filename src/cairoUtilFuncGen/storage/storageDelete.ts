@@ -36,7 +36,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   // }
   private creatingFunctions: Map<string, string>;
 
-  // Map to store unsolved function dependecies
+  // Map to store unsolved function dependencies
   // of generated functions
   private functionDependencies: Map<string, string[]>;
 
@@ -216,7 +216,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     this.creatingFunctions.set(generateKey(type), funcName);
 
     const elementT = generalizeType(type.elementT)[0];
-    const elementTWidht = CairoType.fromSol(
+    const elementTWidth = CairoType.fromSol(
       elementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
@@ -229,7 +229,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       ? [`   let (elem_id) = ${storageReadFunc.name}(loc);`, `   ${auxDeleteFuncName}(elem_id);`]
       : [`    ${auxDeleteFuncName}(loc);`];
     const length = narrowBigIntSafe(type.size);
-    const nextLoc = add('loc', elementTWidht);
+    const nextLoc = add('loc', elementTWidth);
 
     const deleteFunc = [
       `func ${funcName}_elem${IMPLICITS}(loc : felt, index : felt){`,

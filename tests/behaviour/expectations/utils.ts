@@ -41,7 +41,7 @@ export function stringFlatten(val: Value[]): string[] {
 }
 
 /**
- * Given a series of numbers it produces an array of it's bytes32 represenation
+ * Given a series of numbers it produces an array of it's bytes32 representation
  * where the first value is the total amount of bytes
  * e.g. (3, 2) -> [64, 0 ..., 3, 0 ..., 2]
  * @param val number(s) to get it's byte32 representation

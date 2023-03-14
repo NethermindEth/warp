@@ -50,7 +50,7 @@ const binaryOps: { [name: string]: string } = {
   mod: '%',
   exp: '**',
 };
-// Consider grouping functions by number of arguments. They probbably all use uint256 with the only difference being number of args.
+// Consider grouping functions by number of arguments. They probably all use uint256 with the only difference being number of args.
 const solidityEquivalents: { [name: string]: string } = {
   addmod: 'function (uint256,uint256,uint256) pure returns (uint256)',
   mulmod: 'function (uint256,uint256,uint256) pure returns (uint256)',

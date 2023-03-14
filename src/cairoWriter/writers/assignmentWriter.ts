@@ -8,7 +8,7 @@ export class AssignmentWriter extends CairoASTNodeWriter {
     assert(node.operator === '=', `Unexpected operator ${node.operator}`);
     const [lhs, rhs] = [node.vLeftHandSide, node.vRightHandSide];
     const nodes = [lhs, rhs].map((v) => writer.write(v));
-    // This is specifically needed because of the construtions involved with writing
+    // This is specifically needed because of the constructions involved with writing
     // conditionals (derived from short circuit expressions). Other tuple assignments
     // and function call assignments will have been split
     if (

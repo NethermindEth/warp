@@ -2,7 +2,7 @@ import { AbiItemType, StructAbiItemType } from '../abiTypes';
 import keccak from 'keccak';
 import { INDENT } from '../genCairo';
 
-export function stringfyStructs(structs: StructAbiItemType[]): string[] {
+export function stringifyStructs(structs: StructAbiItemType[]): string[] {
   return structs
     .filter((item: AbiItemType) => item.name !== 'Uint256')
     .map((item: StructAbiItemType) => {
