@@ -19,10 +19,11 @@ import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 
 import { generateSolInterface } from './icf/interfaceCallForwarder';
+import { outputFileSync } from './utils/fs';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from './utils/utils';
 import { exec } from 'child_process';
-import { parse } from 'path';
+import endent from 'endent';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -87,7 +88,7 @@ program
   .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTranspile);
 
-export function runTranspile(files: string[], options: CliOptions) {
+function runTranspile(files: string[], options: CliOptions) {
   // We do the extra work here to make sure all the errors are printed out
   // for all files which are invalid.
   if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
@@ -111,13 +112,14 @@ export function runTranspile(files: string[], options: CliOptions) {
   try {
     transpile(ast, options)
       .map(([fname, cairo]) => {
-        outputResult(parse(fname).name, fname, cairo, options, ast);
+        outputResult(path.parse(fname).name, fname, cairo, options, ast);
         return fname;
       })
       .map((file) =>
         postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
       )
       .forEach((file: string) => {
+        createCairoProject(path.join(options.outputDir, file));
         if (options.compileCairo) {
           const { success, resultPath, abiPath } = compileCairo(
             path.join(options.outputDir, file),
@@ -125,10 +127,10 @@ export function runTranspile(files: string[], options: CliOptions) {
             options,
           );
           if (!success) {
-            if (resultPath) {
+            if (resultPath !== undefined) {
               fs.unlinkSync(resultPath);
             }
-            if (abiPath) {
+            if (abiPath !== undefined) {
               fs.unlinkSync(abiPath);
             }
           }
@@ -137,6 +139,25 @@ export function runTranspile(files: string[], options: CliOptions) {
   } catch (e) {
     handleTranspilationError(e);
   }
+}
+
+function createCairoProject(filePath: string): void {
+  // create cairo_project.toml
+  const projectRoot = path.dirname(__dirname);
+  const cairoProjectPath = path.join(path.dirname(filePath), '/cairo_project.toml');
+  outputFileSync(
+    cairoProjectPath,
+    endent`
+      [crate_roots]
+      root = "."
+      warplib = "${projectRoot}/warplib"
+      maths = "${projectRoot}/warplib/maths"
+    `,
+  );
+  // create lib.cairo
+  const libPath = path.join(path.dirname(filePath), '/lib.cairo');
+  const contractName = path.parse(filePath).name;
+  outputFileSync(libPath, `mod ${contractName};`);
 }
 
 program
@@ -160,7 +181,7 @@ program
   .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTransform);
 
-export function runTransform(file: string, options: CliOptions) {
+function runTransform(file: string, options: CliOptions) {
   if (!isValidSolFile(file)) return;
 
   const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
@@ -177,7 +198,13 @@ export function runTransform(file: string, options: CliOptions) {
     const mFile = path.relative(process.cwd(), file);
     const ast = compileSolFiles([mFile], options);
     transform(ast, options).map(([fname, solidity]) => {
-      outputResult(parse(fname).name, replaceSuffix(fname, '_warp.cairo'), solidity, options, ast);
+      outputResult(
+        path.parse(fname).name,
+        replaceSuffix(fname, '_warp.cairo'),
+        solidity,
+        options,
+        ast,
+      );
     });
   } catch (e) {
     handleTranspilationError(e);

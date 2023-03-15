@@ -79,6 +79,7 @@ export function compileCairo(
   const resultPath = `${cairoPathRoot}_compiled.json`;
   const abiPath = `${cairoPathRoot}_abi.json`;
   const solAbiPath = `${cairoPathRoot}_sol_abi.json`;
+
   const parameters = new Map([
     ['output', resultPath],
     ['abi', abiPath],
@@ -88,7 +89,7 @@ export function compileCairo(
   }
   const debug: string = debugInfo.debugInfo ? '--debug_info_with_source' : '--no_debug_info';
   try {
-    console.log(`Running starknet compile with cairoPath ${cairoPath}`);
+    console.log(`Running starknet compile on ${filePath}`);
     execSync(
       `${warpVenvPrefix} starknet-compile --disable_hint_validation ${debug} ${filePath} ${[
         ...parameters.entries(),
@@ -98,7 +99,13 @@ export function compileCairo(
       { stdio: 'inherit' },
     );
 
-    return { success: true, resultPath, abiPath, solAbiPath, classHash: undefined };
+    return {
+      success: true,
+      resultPath,
+      abiPath,
+      solAbiPath,
+      classHash: undefined,
+    };
   } catch (e) {
     if (e instanceof Error) {
       logError('Compile failed');

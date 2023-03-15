@@ -15,6 +15,9 @@ import { shr, shr_signed } from './implementations/maths/shr';
 import { sub_unsafe, sub_signed, sub_signed_unsafe } from './implementations/maths/sub';
 import { bitwise_not } from './implementations/maths/bitwiseNot';
 import { external_input_check_ints } from './implementations/external_input_checks/externalInputChecksInts';
+import path from 'path';
+import * as fs from 'fs';
+import endent from 'endent';
 
 export const warplibFunctions: WarplibFunctionInfo[] = [
   add(),
@@ -64,3 +67,20 @@ export const warplibFunctions: WarplibFunctionInfo[] = [
 ];
 
 warplibFunctions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc));
+
+// generate warplib lib
+fs.writeFileSync(
+  path.join('.', 'warplib', 'lib.cairo'),
+  endent`
+    // Add here warplib modules in cairo1
+    mod integer;
+  `,
+);
+
+// generate warplib/maths lib
+fs.writeFileSync(
+  path.join('.', 'warplib', 'maths', 'lib.cairo'),
+  endent`
+    // Add here maths modules in cairo1
+  `,
+);
