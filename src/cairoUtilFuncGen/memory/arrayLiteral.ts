@@ -163,6 +163,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
                   );
                   userDefined = true;
                 }
+              } else if (e instanceof Identifier) {
+                userDefined = true;
+                argsRound.push(
+                  this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+                );
               }
             });
             args.push(`(${argsRound.join(', ')})`);

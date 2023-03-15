@@ -219,7 +219,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
             } else if (elementT instanceof IntType) {
               (element as TupleExpression).vComponents?.forEach((ele) => {
                 if (ele instanceof Identifier) {
-                  argRound.push((element as Identifier).name + `${single ? ',' : ''}`);
+                  argRound.push((ele as Identifier).name + `${single ? ',' : ''}`);
                   valuesAreDefault = false;
                 } else {
                   if ((ele as Literal).value !== '0') {
