@@ -8,15 +8,10 @@
 
 use array::Array;
 use array::ArrayTrait;
-use array::array_len;
-use integer::u32_to_felt;
-use integer::u32_try_from_felt;
-use debug::print_felt;
-use option::OptionTrait;
 
 
 fn hash_chain(arr: @Array::<felt>, pos: u32) -> felt {
-    let next = pos + u32_try_from_felt(1).unwrap();
+    let next = pos + 1_u32;
     if (next == arr.len()) {
         return *arr.at(pos);
     }
@@ -25,7 +20,7 @@ fn hash_chain(arr: @Array::<felt>, pos: u32) -> felt {
 
 
 fn string_hash(arr: @Array::<felt>) -> felt {
-    return hash_chain(arr, u32_try_from_felt(1).unwrap());
+    return hash_chain(arr, 1_u32);
 }
 
 // func wm_string_hash{pedersen_ptr: HashBuiltin*, range_check_ptr, warp_memory: DictAccess*}(
