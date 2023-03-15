@@ -250,10 +250,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           let argRound: string[] = [];
           (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
             if (element instanceof Identifier) {
-              argRound.push(
-                (element as Identifier).name +
-                  `${(node.vInitialValue as FunctionCall).vArguments.length === 1 ? ',' : ''}`,
-              );
+              argRound.push((element as Identifier).name + ',');
               valuesAreDefault = false;
             } else {
               let single = (element as FunctionCall)?.vArguments.length === 1;

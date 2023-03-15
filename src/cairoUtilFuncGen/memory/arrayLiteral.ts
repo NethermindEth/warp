@@ -52,7 +52,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const size = node.hexValue.length / 2;
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
-    const funcDef = this.getOrCreateFuncDef(type, size, null);
+    const funcDef = this.getOrCreateFuncDef(type, size, null, false);
     return createCallToFunction(
       funcDef,
       mapRange(size, (n) =>
@@ -75,80 +75,112 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         type instanceof StringType,
     );
 
+    const isMatrix =
+      type instanceof ArrayType ? (type as ArrayType).elementT instanceof ArrayType : false;
     const wideSize = getSize(type);
     const size =
       wideSize !== undefined
         ? narrowBigIntSafe(wideSize, `${printNode(node)} too long to process`)
         : elements.length;
 
-    const funcDef = this.getOrCreateFuncDef(type, size, elementsInfo);
+    const funcDef = this.getOrCreateFuncDef(type, size, elementsInfo, isMatrix);
     return createCallToFunction(funcDef, elements, this.ast);
   }
 
   private isUserElements(
     elements: Expression[],
     type: TypeNode,
-  ): { userDefined: boolean; matrixSize: number } {
+  ): { userDefined: boolean; matrixSize: number; args: string[] } {
     const isMatrix =
       type instanceof ArrayType ? (type as ArrayType).elementT instanceof ArrayType : false;
     let userDefined = false;
     let matrixSize = 0;
+    let args: string[] = [];
     elements.forEach((ele) => {
-      if (userDefined) {
-        return userDefined;
-      }
       if (ele instanceof Identifier) {
         userDefined = true;
+        if (isMatrix) {
+          args.push(`(felt)`);
+        } else {
+          args.push(`felt`);
+        }
       }
       if (isMatrix) {
         if (ele instanceof FunctionCall) {
+          let argsRound: string[] = [];
           matrixSize = (ele as FunctionCall).vArguments.length;
           (ele as FunctionCall).vArguments.forEach((e) => {
             let value = (e as Literal).value;
 
             if (value === '0' || value === 'false' || value === '0x0') {
-              userDefined = false;
+              argsRound.push(
+                this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+              );
             } else {
+              argsRound.push(
+                this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+              );
               userDefined = true;
-              return userDefined;
             }
           });
+          args.push(`(${argsRound.join(', ')})`);
+          argsRound = [];
         } else {
+          let argsRound: string[] = [];
           if (ele instanceof TupleExpression) {
             matrixSize = (ele as TupleExpression).vOriginalComponents.length;
             (ele as TupleExpression).vOriginalComponents.forEach((e) => {
-              if (userDefined) {
-                return userDefined;
-              }
               if (e instanceof FunctionCall) {
                 (e as FunctionCall).vArguments.forEach((e) => {
-                  if ((e as Literal).value !== '') {
+                  if (
+                    (e as Literal).value === '' ||
+                    (e as Literal).value === '0' ||
+                    (e as Literal).value === 'false' ||
+                    (e as Literal).value === '0x0'
+                  ) {
+                    argsRound.push(
+                      this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+                    );
+                  } else {
+                    argsRound.push(
+                      this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+                    );
                     userDefined = true;
                   }
                 });
-              }
-              if (e instanceof Literal) {
+              } else if (e instanceof Literal) {
                 if (
                   (e as Literal).value === '0' ||
                   (e as Literal).value === 'false' ||
                   (e as Literal).value === '0x0'
                 ) {
-                  userDefined = false;
+                  argsRound.push(
+                    this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+                  );
                 } else {
+                  argsRound.push(
+                    this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+                  );
                   userDefined = true;
-                  return userDefined;
                 }
               }
             });
+            args.push(`(${argsRound.join(', ')})`);
+            argsRound = [];
           }
         }
       } else {
-        if (userDefined) {
-          return userDefined;
-        }
         if (ele instanceof FunctionCall) {
           (ele as FunctionCall).vArguments.forEach((e) => {
-            if ((e as Literal).value !== '') {
+            if (
+              (e as Literal).value === '' ||
+              (e as Literal).value === '0' ||
+              (e as Literal).value === 'false' ||
+              (e as Literal).value === '0x0'
+            ) {
+              args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
+            } else {
+              args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
               userDefined = true;
             }
           });
@@ -158,29 +190,31 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
             (ele as Literal).value === 'false' ||
             (ele as Literal).value === '0x0'
           ) {
-            userDefined = false;
+            args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
           } else {
             userDefined = true;
-            return userDefined;
+            args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
           }
         }
       }
     });
-    return { userDefined, matrixSize };
+    return { userDefined, matrixSize, args };
   }
 
   public getOrCreateFuncDef(
     type: ArrayType | StringType,
     size: number,
-    elementsInfo: { userDefined: boolean; matrixSize: number } | null,
+    elementsInfo: { userDefined: boolean; matrixSize: number; args: string[] } | null,
+    isMatrix: boolean,
   ) {
     const baseType = getElementType(type);
-    const isMatrix = type instanceof ArrayType && baseType instanceof ArrayType;
 
     const key = !isDynamicArray(type)
-      ? `${baseType.pp()}${isMatrix ? 'matrix' : ''}${
-          this.isUint(baseType, isMatrix) ? 'uint' : ''
-        }`
+      ? type instanceof ArrayType
+        ? `${baseType.pp()}${isMatrix ? 'matrix' : ''}${
+            this.isUint(baseType, isMatrix) ? 'uint' : ''
+          }${elementsInfo!.userDefined ? size : ''}`
+        : baseType.pp() + size
       : baseType.pp() + size;
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
@@ -190,11 +224,19 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
     const funcInfo = this.getOrCreate(
       baseType,
-      isMatrix ? elementsInfo!.matrixSize : size,
+      isMatrix
+        ? (baseType as ArrayType).size === undefined
+          ? Number((type as ArrayType).size)
+          : elementsInfo!.matrixSize
+        : size,
       isDynamicArray(type) || type instanceof StringLiteralType,
       type instanceof ArrayType ? elementsInfo!.userDefined : false,
       isMatrix,
-      isMatrix ? Number(type.size) : 0,
+      !isDynamicArray(type) && type instanceof ArrayType
+        ? elementsInfo!.userDefined
+          ? elementsInfo!.args
+          : []
+        : [],
     );
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -350,7 +392,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     dynamic: boolean,
     isUserDefined: boolean,
     isMatrix: boolean,
-    matrixDimension: number,
+    args: string[],
   ): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(type, this.ast);
     const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
@@ -377,22 +419,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
 
-    const arrArg = (): string => {
-      let arg = this.isUint(type, isMatrix) ? 'Uint256' : 'felt';
-      if (isMatrix) {
-        return `matrix: (${
-          matrixDimension === 1
-            ? `(${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg})`
-            : `(${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg}), `.repeat(
-                matrixDimension - 1,
-              ) + `(${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg})`
-        })`;
-      } else {
-        return `arr: (${size === 1 ? arg : `${arg}, `.repeat(size - 1) + arg})`;
-      }
-    };
-    const argStatic = isUserDefined ? `size_arr, ${arrArg()}` : 'size_arr';
-    const argStaticMatrix = isUserDefined ? `row, column, ${arrArg()}` : 'row, column';
+    const argStatic = isUserDefined && !dynamic ? `size_arr, arr: (${args.join(',')})` : 'size_arr';
+    const argStaticMatrix =
+      isUserDefined && !dynamic ? `row, column, matrix: (${args.join(', ')})` : 'row, column';
 
     const initializationlist = mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
       .flat()
