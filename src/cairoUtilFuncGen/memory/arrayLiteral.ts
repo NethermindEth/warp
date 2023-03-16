@@ -93,19 +93,37 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   ): { userDefined: boolean; matrixSize: number; args: string[] } {
     const isMatrix =
       type instanceof ArrayType ? (type as ArrayType).elementT instanceof ArrayType : false;
+    const elementT = isMatrix
+      ? ((type as ArrayType).elementT as ArrayType).elementT
+      : (type as ArrayType).elementT;
     let userDefined = false;
     let matrixSize = 0;
     let args: string[] = [];
     elements.forEach((ele) => {
-      if (ele instanceof Identifier) {
+      if (elementT instanceof UserDefinedType) {
+        userDefined = true;
+        if (ele instanceof TupleExpression) {
+          let argsRound: string[] = [];
+          (ele as TupleExpression).vOriginalComponents.forEach((e) => {
+            argsRound.push('felt');
+          });
+          args.push(`(${argsRound.join(', ')})`);
+          argsRound = [];
+        } else {
+          if (isMatrix) {
+            args.push('(felt)');
+          } else {
+            args.push('felt');
+          }
+        }
+      } else if (ele instanceof Identifier) {
         userDefined = true;
         if (isMatrix) {
-          args.push(`(felt)`);
+          args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? '(Uint256)' : '(felt)');
         } else {
-          args.push(`felt`);
+          args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
         }
-      }
-      if (isMatrix) {
+      } else if (isMatrix) {
         if (ele instanceof FunctionCall) {
           let argsRound: string[] = [];
           matrixSize = (ele as FunctionCall).vArguments.length;
@@ -131,6 +149,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
             matrixSize = (ele as TupleExpression).vOriginalComponents.length;
             (ele as TupleExpression).vOriginalComponents.forEach((e) => {
               if (e instanceof FunctionCall) {
+                args.push('(felt)');
                 (e as FunctionCall).vArguments.forEach((e) => {
                   if (
                     (e as Literal).value === '' ||
