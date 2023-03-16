@@ -106,3 +106,4 @@ export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write
 //------------------------------------------------------
 
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
+export const U256_FROM_FELTS: [string[], string] = [['warplib', 'integer'], 'u256_from_felts'];

@@ -27,6 +27,7 @@ import {
   IS_LE,
   IS_LE_FELT,
   SPLIT_FELT,
+  U256_FROM_FELTS,
   UINT256,
   UINT256_ADD,
   UINT256_EQ,
@@ -117,6 +118,9 @@ export function createImport(
     case encodePath(GET_CALLER_ADDRESS):
     case encodePath(GET_CONTRACT_ADDRESS):
       return createFuncImport('syscall_ptr');
+    // Import libraries from Cairo1
+    case encodePath(U256_FROM_FELTS):
+      return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
