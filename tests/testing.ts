@@ -15,8 +15,8 @@ import { outputFileSync } from '../src/utils/fs';
 import { error } from '../src/utils/formatting';
 
 const WARP_TEST = 'warpTest';
-const WARP_TEST_FOLDER = 'testsContracts';
-const WARP_TEST_FOLDER_PATH = path.join(WARP_TEST, WARP_TEST_FOLDER);
+const WARP_COMPILATION_FOLDER = 'tests/compilation';
+const WARP_TEST_FOLDER_PATH = path.join(WARP_TEST, WARP_COMPILATION_FOLDER);
 const WARP_EXAMPLES_FOLDER = 'exampleContracts';
 const WARP_EXAMPLES_FOLDER_PATH = path.join(WARP_TEST, WARP_EXAMPLES_FOLDER);
 
@@ -52,7 +52,6 @@ const expectedResults = new Map<string, ResultType>(
     ['address/7/padding.sol', 'Success'],
     ['address/7/primeField.sol', 'Success'],
     ['arrayLength.sol', 'Success'],
-    ['ERC20Storage.sol', 'Success'],
     ['boolOpNoSideEffects.sol', 'Success'],
     ['boolOpSideEffects.sol', 'Success'],
     ['bytesXAccess.sol', 'Success'],
@@ -254,7 +253,7 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
 
   // Run tests contracts
   const testsResults = new Map<string, ResultType>();
-  findSolSourceFilePaths(WARP_TEST_FOLDER, true).forEach((file) => {
+  findSolSourceFilePaths(WARP_COMPILATION_FOLDER, true).forEach((file) => {
     if (filter === undefined || file.includes(filter)) {
       runSolFileTest(file, testsResults, onlyResults, unsafe);
     }

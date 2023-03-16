@@ -34,7 +34,7 @@
     "test:lib": "npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",
     "test:behaviour": "npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
     "test:semantic": "tests/behaviour/setup.sh && node build/semanticTestRunner.js",
-    "test:contracts": "npx mocha testsContracts/testsContracts.test.ts --extension ts --require ts-node/register --exit",
+    "test:compilation": "npx mocha tests/compilation/compilation.test.ts --extension ts --require ts-node/register --exit",
     "testnet": "python3 starknet-testnet/server.py",
     "testnet:benchmark": "python3 starknet-testnet/server.py benchmark",
     "testnet:benchmark_semantic": "python3 starknet-testnet/server.py benchmark > /dev/null 2>&1",

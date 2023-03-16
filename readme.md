@@ -322,10 +322,10 @@ docker-compose exec warp npx ts-node src transpile exampleContracts/ERC20.sol
 
 ### Testing for contributors :stethoscope:
 
-To test that your contribution doesn't break any features you can test that all example and tests contracts transpile and then cairo compile by running the following:
+To test that your contribution doesn't break any features you can test that all example and tests contracts compile correctly by running the following:
 
 ```bash
-yarn test:contracts
+yarn test:compilation
 ```
 
 For this to work, you must have the cairo-lang package installed.
