@@ -1,7 +1,7 @@
 import * as path from 'path';
 import fs from 'fs/promises';
 import { describe, it } from 'mocha';
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
 import {
   STARKNET_ACCOUNT_DIR,
   CONTRACT_ADDRESS_REGEX,
@@ -19,6 +19,8 @@ import {
 } from './utils';
 import { execAsync } from '../util';
 import { pathExists } from '../../src/utils/fs';
+
+chai.config.truncateThreshold = 300;
 
 const contractCairoFile = path.resolve(
   __dirname,
