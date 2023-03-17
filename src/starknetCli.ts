@@ -19,7 +19,7 @@ import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
 
-const compilationBottleneck = new Bottleneck({ maxConcurrent: os.cpus().length });
+const compilationBottleneck = new Bottleneck({ maxConcurrent: Math.max(os.cpus().length - 1, 1) });
 const warpVenvExtendedPath = `${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:${
   process.env.PATH
 }`;
