@@ -200,7 +200,7 @@ program
   .command('analyse <file>')
   .description('Debug tool to analyse the AST')
   .option('--highlight <ids...>', 'Highlight selected ids in the AST')
-  .action((file: string, options: PrintOptions) => analyseSol(file, options));
+  .action(analyseSol);
 
 export interface IOptionalNetwork {
   network?: string;
@@ -220,9 +220,7 @@ program
     'Starknet feeder gateway URL',
     process.env.STARKNET_FEEDER_GATEWAY_URL,
   )
-  .action(async (tx_hash: string, options: IOptionalNetwork) => {
-    await runStarknetStatus(tx_hash, options);
-  });
+  .action(runStarknetStatus);
 
 export interface IOptionalDebugInfo {
   debugInfo: boolean;
