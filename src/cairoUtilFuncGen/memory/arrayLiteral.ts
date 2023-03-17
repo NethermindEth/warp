@@ -149,7 +149,6 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
             matrixSize = (ele as TupleExpression).vOriginalComponents.length;
             (ele as TupleExpression).vOriginalComponents.forEach((e) => {
               if (e instanceof FunctionCall) {
-                args.push('(felt)');
                 (e as FunctionCall).vArguments.forEach((e) => {
                   if (
                     (e as Literal).value === '' ||
@@ -337,18 +336,25 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       `    if (index == size_arr) {`,
       `        return ();`,
       `    }`,
+      isUint && isUserDefined ? [`let (uint256) = felt_to_uint256(definedArr[0]);`] : [],
       isBytesOrString
         ? isUserDefined
           ? []
           : ['    let (arr) = wm_new(Uint256(low=0, high=0), Uint256(low=1, high=0));']
         : [],
       `    dict_write{dict_ptr=warp_memory}(index, ${
-        isBytesOrString ? 'arr' : isUserDefined ? 'definedArr[0]' : '0'
+        isBytesOrString ? 'arr' : isUserDefined ? (isUint ? 'uint256.low' : 'definedArr[0]') : '0'
       });`,
-      isUint && !isUserDefined ? [`    dict_write{dict_ptr=warp_memory}(index + 1, 0);`] : [],
-      `    return ${funcName}_recursive(index + ${
-        isUint ? (isUserDefined ? '1' : '2') : '1'
-      }, size_arr${isUserDefined ? ', definedArr+1' : ''});`,
+      isUint
+        ? [
+            `    dict_write{dict_ptr=warp_memory}(index + 1, ${
+              isUserDefined ? 'uint256.high' : '0'
+            });`,
+          ]
+        : [],
+      `    return ${funcName}_recursive(index + ${isUint ? '2' : '1'}, size_arr${
+        isUserDefined ? ', definedArr+1' : ''
+      });`,
       `}`,
     ].flat();
   }
@@ -523,7 +529,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
                   : [
                       isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : [],
                       `    ${funcName}_recursive(start,  start + size_arr${
-                        this.isUint(type, isMatrix) ? (isUserDefined ? '' : ' * 2') : ''
+                        this.isUint(type, isMatrix) ? ' * 2' : ''
                       }${isUserDefined ? ', cast(&arr, felt*)' : ''});`,
                     ].join('\n'),
               ].join('\n'),
