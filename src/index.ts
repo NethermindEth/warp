@@ -1,3 +1,3 @@
 import { program } from './cli';
 
-program.parseAsync(process.argv);
+void program.parseAsync(process.argv);
