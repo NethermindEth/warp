@@ -29,7 +29,7 @@ import {
   SPLIT_FELT,
   U128_TO_FELT,
   U256_FROM_FELTS,
-  UINT256,
+  GET_U128,
   UINT256_ADD,
   UINT256_EQ,
   UINT256_LE,
@@ -101,7 +101,7 @@ export function createImport(
       return createFuncImport('dict_ptr');
     case encodePath(DICT_ACCESS):
       return createStructImport();
-    case encodePath(UINT256):
+    case encodePath(GET_U128):
       return createStructImport();
     case encodePath(SPLIT_FELT):
     case encodePath(IS_LE):

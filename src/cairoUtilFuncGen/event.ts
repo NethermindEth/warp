@@ -32,7 +32,7 @@ import {
   FELT_TO_UINT256,
   FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL,
   PACK_BYTES_FELT,
-  UINT256,
+  GET_U128,
   WARP_KECCAK,
   WM_TO_FELT_ARRAY,
 } from '../utils/importPaths';
@@ -206,7 +206,7 @@ export class EventFunction extends StringIndexedFuncGen {
         `    let (keys_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(keys_len, keys, 0, topic256);`,
       ].join('\n'),
       [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...FELT_TO_UINT256),
         this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL),
       ],
@@ -247,7 +247,7 @@ export class EventFunction extends StringIndexedFuncGen {
         `   let (${arrayName}_len: felt) = fixed_bytes256_to_felt_dynamic_array_spl(${arrayName}_len, ${arrayName}, 0, keccak_hash256);`,
       ].join('\n'),
       [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...FELT_TO_UINT256),
         this.requireImport(...WARP_KECCAK),
         this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL),

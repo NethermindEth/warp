@@ -22,7 +22,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   DICT_WRITE,
-  UINT256,
+  GET_U128,
   UINT256_SUB,
   WM_ALLOC,
   WM_INDEX_DYN,
@@ -233,7 +233,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         this.requireImport(...DICT_WRITE),
         this.requireImport(...WM_ALLOC),
         this.requireImport(...UINT256_SUB),
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         ...copyCalls,
       ],
     };
@@ -287,7 +287,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...DICT_WRITE),
         this.requireImport(...UINT256_SUB),
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...WM_NEW),
         this.requireImport(...WM_INDEX_DYN),
         ...copyCalls,

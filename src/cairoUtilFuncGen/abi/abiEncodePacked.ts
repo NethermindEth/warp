@@ -29,7 +29,7 @@ import {
   FELT_TO_UINT256,
   FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
   NARROW_SAFE,
-  UINT256,
+  GET_U128,
   WM_DYN_ARRAY_LENGTH,
   WM_INDEX_DYN,
   WM_NEW,
@@ -88,7 +88,7 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...UINT256),
+      this.requireImport(...GET_U128),
       this.requireImport(...ALLOC),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...WM_NEW),
