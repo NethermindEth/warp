@@ -9,6 +9,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { createImport } from '../../utils/importFuncGenerator';
 import { GET_CALLER_ADDRESS, ADDRESS_INTO_FELT } from '../../utils/importPaths';
 import { createAddressTypeName } from '../../utils/nodeTemplates';
 
@@ -31,9 +32,10 @@ export class MsgSender extends ASTMapper {
         ast,
       );
 
-      const IntoTrait = ast.registerImport(
-        node,
+      const IntoTrait = createImport(
         ...ADDRESS_INTO_FELT,
+        node,
+        ast,
         [],
         [['uint256', new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256')]],
       );
