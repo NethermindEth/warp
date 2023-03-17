@@ -336,24 +336,23 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       `    if (index == size_arr) {`,
       `        return ();`,
       `    }`,
-      isUint && isUserDefined ? [`let (uint256) = felt_to_uint256(definedArr[0]);`] : [],
       isBytesOrString
         ? isUserDefined
           ? []
           : ['    let (arr) = wm_new(Uint256(low=0, high=0), Uint256(low=1, high=0));']
         : [],
       `    dict_write{dict_ptr=warp_memory}(index, ${
-        isBytesOrString ? 'arr' : isUserDefined ? (isUint ? 'uint256.low' : 'definedArr[0]') : '0'
+        isBytesOrString ? 'arr' : isUserDefined ? 'definedArr[0]' : '0'
       });`,
       isUint
         ? [
             `    dict_write{dict_ptr=warp_memory}(index + 1, ${
-              isUserDefined ? 'uint256.high' : '0'
+              isUserDefined ? 'definedArr[1]' : '0'
             });`,
           ]
         : [],
       `    return ${funcName}_recursive(index + ${isUint ? '2' : '1'}, size_arr${
-        isUserDefined ? ', definedArr+1' : ''
+        isUserDefined ? `, definedArr+${isUint ? '2' : '1'}` : ''
       });`,
       `}`,
     ].flat();
