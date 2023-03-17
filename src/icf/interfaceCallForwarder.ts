@@ -52,7 +52,7 @@ import {
   tupleParser,
   typeToStructMapping,
 } from './utils';
-import { runStarkNetClassHash, safeCanonicalHash } from '../export';
+import { runStarknetClassHash, safeCanonicalHash } from '../export';
 
 const defaultSolcVersion = '0.8.14';
 
@@ -143,7 +143,7 @@ export async function generateSolInterface(filePath: string, options: SolcInterf
   );
 
   contract.documentation = `WARP-GENERATED\nclass_hash: ${
-    compileForwarder.resultPath ? runStarkNetClassHash(compileForwarder.resultPath) : '0x0'
+    compileForwarder.resultPath ? await runStarknetClassHash(compileForwarder.resultPath) : '0x0'
   }`;
 
   if (compileForwarder.success) {

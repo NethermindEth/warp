@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import * as path from 'path';
 import { enqueueCompileCairo } from '../starknetCli';
 import { CLIError } from './errors';
-import { runStarkNetClassHash } from './utils';
+import { runStarknetClassHash } from './utils';
 
 export const HASH_SIZE = 8;
 export const HASH_OPTION = 'sha256';
@@ -109,7 +109,7 @@ async function computeClassHash(contractPath: string, debugInfo: boolean): Promi
     throw new CLIError(`Compilation of cairo file ${contractPath} failed`);
   } else {
     assert(resultPath !== undefined && success);
-    const classHash = runStarkNetClassHash(resultPath);
+    const classHash = await runStarknetClassHash(resultPath);
     return classHash;
   }
 }

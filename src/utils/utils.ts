@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import assert from 'assert';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import execa from 'execa';
 import {
   AddressType,
   ArrayType,
@@ -57,6 +57,7 @@ import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printNode, printTypeNode } from './astPrinter';
 import {
+  instanceOfExecaError,
   logError,
   NotSupportedYetError,
   TranspileFailedError,
@@ -538,14 +539,14 @@ export function getSourceFromLocations(
   return filteredLines.join('');
 }
 
-export function runStarkNetClassHash(filePath: string): string {
-  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+export async function runStarknetClassHash(filePath: string): Promise<string> {
+  const command = 'starknet-class-hash';
 
-  const classHash = execSync(`${warpVenvPrefix} starknet-class-hash ${filePath}`).toString().trim();
-  if (classHash === undefined) {
-    throw new Error(`starknet-class-hash failed`);
+  try {
+    return (await execFileAsync(command, [filePath])).stdout.toString().trim();
+  } catch (e) {
+    throw new TranspileFailedError(catchExecaError(e, command));
   }
-  return classHash;
 }
 
 export function getContainingFunction(node: ASTNode): FunctionDefinition {
@@ -628,4 +629,46 @@ export async function defaultBasePathAndIncludePath() {
   }
 
   return [null, null];
+}
+
+export async function execFileAsync(
+  file: string,
+  args?: string[],
+): Promise<execa.ExecaChildProcess> {
+  return await execa(file, args, {
+    cleanup: true,
+    stripFinalNewline: false,
+    env: { PATH: `${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:${process.env.PATH}` },
+  });
+}
+
+export async function execFileAsyncAndLog(file: string, args?: string[]) {
+  try {
+    const result = await execFileAsync(file, args);
+
+    process.stdout.write(result.stdout);
+    process.stderr.write(result.stderr);
+  } catch (e) {
+    logError(catchExecaError(e, file));
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function catchExecaError(e: any, commandExecuted: string) {
+  if (!instanceOfExecaError(e)) {
+    // If is not an error from the execSync instruction then it could be anything else, like call stack
+    // limit exceed. In those unpredicted cases we should stop and throw the error.
+    throw e;
+  }
+  const error = hintForCommandFailed(commandExecuted, e.stderr.toString());
+  return error;
+}
+
+function hintForCommandFailed(command: string, err: string) {
+  if (err.includes('command not found')) {
+    return `'${command}' command not found.
+  Please make sure you have the required version of Warp dependencies by executing 'warp install' command.
+  See more about it using 'warp install --help'.`;
+  }
+  return err;
 }

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 import { ASTNode, parseSourceLocation, SourceUnit } from 'solc-typed-ast';
+import execa from 'execa';
 import { error } from './formatting';
 import { getSourceFromLocations } from './utils';
 
@@ -73,4 +74,9 @@ export function getErrorMessage(
       ...source.errors.map((err) => `${error(`${++errorId}. ${err.message}`)}:\n\n${err.code}`),
     ]),
   ].join('\n');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function instanceOfExecaError(object: any): object is execa.ExecaError {
+  return 'stderr' in object;
 }
