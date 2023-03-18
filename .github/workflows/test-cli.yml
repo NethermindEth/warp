@@ -38,6 +38,7 @@ jobs:
           pip3 install cairo-lang=="$CAIRO_LANG_VERSION"
           pip3 install starknet-devnet==0.4.4
           pip3 install web3==5.*
+          pip3 install typeguard==2.*
 
       - name: Build warplib
         run: yarn warplib

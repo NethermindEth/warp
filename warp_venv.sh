@@ -8,5 +8,6 @@ $PYTHON_BIN -m venv "$SCRIPT_DIR"/warp_venv
 
 pip install cairo-lang==0.10.3
 pip install web3==5.*
+pip install typeguard==2.*
 
 deactivate
