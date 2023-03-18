@@ -284,7 +284,6 @@ export async function runStarknetCallOrInvoke(
     }
     throw e;
   }
-  const command = `starknet ${callOrInvoke}`;
   try {
     let warpOutput: string = (
       await execFileAsync('starknet', [
@@ -317,7 +316,7 @@ export async function runStarknetCallOrInvoke(
     }
     console.log(warpOutput);
   } catch (e) {
-    logError(catchExecaError(e, command));
+    logError(catchExecaError(e, `starknet ${callOrInvoke}`));
   }
 }
 
