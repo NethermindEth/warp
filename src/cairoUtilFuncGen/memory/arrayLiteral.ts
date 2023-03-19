@@ -352,7 +352,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           ]
         : [],
       `    return ${funcName}_recursive(index + ${isUint ? '2' : '1'}, size_arr${
-        isUserDefined ? `, definedArr+${isUint ? '2' : '1'}` : ''
+        isUserDefined ? `, definedArr${isUint ? '+ 2' : '+ 1'}` : ''
       });`,
       `}`,
     ].flat();
@@ -366,15 +366,14 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return [
       '  ',
       `func ${funcName}_matrix{range_check_ptr, warp_memory: DictAccess*}(size_arr${
-        isUserDefined ? ', arr' : ''
+        isUserDefined ? ', arr: felt*' : ''
       }) -> (loc: felt){`,
       '    alloc_locals;',
       '    let (size256) = felt_to_uint256(size_arr);',
       '    let (start) = wm_alloc(size256);',
-      isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : '',
       `    ${funcName}_recursive(start,  start + size_arr${
         isUint ? (isUserDefined ? '' : '* 2') : ''
-      }${isUserDefined ? ', cast(&arr, felt*)' : ''});`,
+      }${isUserDefined ? ', arr' : ''});`,
       '    return (start,);',
       '}',
       ' ',
@@ -385,9 +384,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       '    if(index == size){',
       '        return ();',
       '    }',
-      `    let (element) = ${funcName}_matrix(column${isUserDefined ? ', matrix[0]' : ''});`,
+      `    let (element) = ${funcName}_matrix(column${isUserDefined ? ', matrix' : ''});`,
       `    dict_write{dict_ptr=warp_memory}(index, element);`,
-      `    return ${funcName}_iterator(size, column, index+1${isUserDefined ? ', matrix+1' : ''});`,
+      `    return ${funcName}_iterator(size, column, index+1${
+        isUserDefined ? ', matrix+column' : ''
+      });`,
       '}',
       '  ',
     ];
