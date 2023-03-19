@@ -106,9 +106,7 @@ export async function runTranspile(files: string[], options: CliOptions) {
 
   // map file location relative to current working directory
   const mFiles = files.map((file) => path.relative(process.cwd(), file));
-
   const ast = await compileSolFiles(mFiles, options);
-  const contractToHashMap = new Map<string, string>();
 
   try {
     const transpiledContracts = await transpile(ast, options);
@@ -118,6 +116,8 @@ export async function runTranspile(files: string[], options: CliOptions) {
         await outputResult(parse(fname).name, fname, cairo, options, ast);
       }),
     );
+
+    const contractToHashMap = new Map<string, Promise<string>>();
 
     await Promise.all(
       transpiledContracts.map(async ([fname]) => {

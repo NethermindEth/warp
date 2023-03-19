@@ -2,12 +2,17 @@ import assert from 'assert';
 import { createHash } from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
+import { Mutex } from 'async-mutex';
 import { enqueueCompileCairo } from '../starknetCli';
 import { CLIError } from './errors';
 import { runStarknetClassHash } from './utils';
 
 export const HASH_SIZE = 8;
 export const HASH_OPTION = 'sha256';
+
+// Async mutex to restrict access to the class hash map, ensuring there's no duplicate class hash
+// computation
+const classHashMutex = new Mutex();
 
 /**
   Is used post transpilation to insert the class hash for any contract that can deploy another.
@@ -26,7 +31,7 @@ export async function postProcessCairoFile(
   contractPath: string,
   outputDir: string,
   debugInfo: boolean,
-  contractHashToClassHash: Map<string, string>,
+  contractHashToClassHash: Map<string, Promise<string>>,
 ): Promise<string> {
   // Creates a dependency graph for the file
   const dependencyGraph = await getDependencyGraph(contractPath, outputDir);
@@ -54,12 +59,13 @@ async function hashDependacies(
   outputDir: string,
   debugInfo: boolean,
   dependencyGraph: Map<string, string[]>,
-  contractHashToClassHash: Map<string, string>,
+  contractHashToClassHash: Map<string, Promise<string>>,
 ): Promise<void> {
   const filesToHash = dependencyGraph.get(contractPath);
   // Base case: If the file has no dependencies to hash then we hash the compiled file
   // and add it to the contractHashToClassHash map
   if (filesToHash === undefined || filesToHash.length === 0) {
+    // chain dependency compiles
     await addClassHash(contractPath, outputDir, debugInfo, contractHashToClassHash);
     return;
   }
@@ -81,14 +87,23 @@ async function addClassHash(
   contractPath: string,
   outputDir: string,
   debugInfo: boolean,
-  contractHashToClassHash: Map<string, string>,
+  contractHashToClassHash: Map<string, Promise<string>>,
 ): Promise<void> {
   const fileUniqueId = hashFilename(path.resolve(contractPath));
-  let classHash = contractHashToClassHash.get(fileUniqueId);
-  if (classHash === undefined) {
-    classHash = await computeClassHash(path.join(outputDir, contractPath), debugInfo);
-    contractHashToClassHash.set(fileUniqueId, classHash);
+  let classHash: Promise<string> | undefined;
+
+  const release = await classHashMutex.acquire();
+  try {
+    classHash = contractHashToClassHash.get(fileUniqueId);
+    if (classHash === undefined) {
+      classHash = computeClassHash(path.join(outputDir, contractPath), debugInfo);
+      contractHashToClassHash.set(fileUniqueId, classHash);
+    }
+  } finally {
+    release();
   }
+
+  await classHash;
 }
 
 /**
@@ -118,37 +133,39 @@ async function computeClassHash(contractPath: string, debugInfo: boolean): Promi
  *  if `name` is of the form   `<contractName>_<contractId>` then it corresponds
  *  to a placeholder waiting to be filled with the corresponding contract class hash
  *  @param contractPath location of cairo file
- *  @param declarationAddresses mapping of: (placeholder hash) => (starknet class hash)
+ *  @param declarationAddresses mapping of: (placeholder hash) => (promise of starknet class hash)
  */
 export async function setDeclaredAddresses(
   contractPath: string,
-  declarationAddresses: Map<string, string>,
+  declarationAddresses: Map<string, Promise<string>>,
 ) {
   const plainCairoCode = await fs.readFile(contractPath, 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 
   let update = false;
-  const newCairoCode = cairoCode.map((codeLine) => {
-    const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
-    // if (constant === '//' && fullName === '@declare') return '';
-    if (constant !== 'const') return codeLine;
+  const newCairoCode = await Promise.all(
+    cairoCode.map(async (codeLine) => {
+      const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
+      // if (constant === '//' && fullName === '@declare') return '';
+      if (constant !== 'const') return codeLine;
 
-    assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
+      assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
-    const name = fullName.slice(0, -HASH_SIZE - 1);
-    const uniqueId = fullName.slice(-HASH_SIZE);
+      const name = fullName.slice(0, -HASH_SIZE - 1);
+      const uniqueId = fullName.slice(-HASH_SIZE);
 
-    const declaredAddress = declarationAddresses.get(uniqueId);
-    assert(
-      declaredAddress !== undefined,
-      `Cannot find declared address for ${name} with hash ${uniqueId}`,
-    );
+      const declaredAddress = await declarationAddresses.get(uniqueId);
+      assert(
+        declaredAddress !== undefined,
+        `Cannot find declared address for ${name} with hash ${uniqueId}`,
+      );
 
-    // Flag that there are changes that need to be rewritten
-    update = true;
-    const newLine = [constant, fullName, equal, declaredAddress, ';'].join(' ');
-    return newLine;
-  });
+      // Flag that there are changes that need to be rewritten
+      update = true;
+      const newLine = [constant, fullName, equal, declaredAddress, ';'].join(' ');
+      return newLine;
+    }),
+  );
 
   if (!update) return;
 
