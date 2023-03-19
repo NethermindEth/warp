@@ -111,11 +111,16 @@ export async function runTranspile(files: string[], options: CliOptions) {
   const contractToHashMap = new Map<string, string>();
 
   try {
+    const transpiledContracts = await transpile(ast, options);
+
     await Promise.all(
-      (
-        await transpile(ast, options)
-      ).map(async ([fname, cairo]) => {
+      transpiledContracts.map(async ([fname, cairo]) => {
         await outputResult(parse(fname).name, fname, cairo, options, ast);
+      }),
+    );
+
+    await Promise.all(
+      transpiledContracts.map(async ([fname]) => {
         await postProcessCairoFile(fname, options.outputDir, options.debugInfo, contractToHashMap);
 
         if (options.compileCairo) {
