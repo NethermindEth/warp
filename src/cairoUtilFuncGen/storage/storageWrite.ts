@@ -1,8 +1,9 @@
 import endent from 'endent';
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType, CairoUint256, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { U128_TO_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -56,7 +57,12 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     const cairoTypeString = cairoTypeToWrite.toString();
     const writeCode = cairoTypeToWrite
       .serialiseMembers('value')
-      .map((name, index) => `  ${write(add('loc', index), name)}`)
+      .map((name, index) => {
+        if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
+          name = `u128_to_felt(${name})`;
+        }
+        return `  ${write(add('loc', index), name)}`;
+      })
       .join('\n');
 
     const funcName = `WS_WRITE${this.generatedFunctionsDef.size}`;
@@ -68,7 +74,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           return value;
         }
       `,
-      functionsCalled: [],
+      functionsCalled: [this.requireImport(...U128_TO_FELT)],
     };
     return funcInfo;
   }

@@ -25,7 +25,7 @@ import {
   FELT_TO_UINT256,
   INT_CONVERSIONS,
   IS_LE,
-  UINT256,
+  GET_U128,
   UINT256_ADD,
   UINT256_LT,
   UINT256_SUB,
@@ -326,7 +326,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...UINT256_SUB),
         this.requireImport(...UINT256_LT),
         elementCopyFunc,
@@ -414,7 +414,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...UINT256_ADD),
         this.requireImport(...UINT256_LT),
         elementCopyFunc,
@@ -472,7 +472,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         toType.signed
           ? this.requireImport(INT_CONVERSIONS, `warp_int${fromType.nBits}_to_int${toType.nBits}`)
           : this.requireImport(...FELT_TO_UINT256),
@@ -525,7 +525,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(BYTES_CONVERSIONS, conversionFunc),
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
       ],
     };
   }

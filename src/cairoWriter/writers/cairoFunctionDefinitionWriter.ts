@@ -155,8 +155,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         return null;
       }
       return [
-        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE.write(${contract.usedStorage});`,
-        contract.usedIds === 0 ? '' : `WARP_NAMEGEN.write(${contract.usedIds});`,
+        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE::write(${contract.usedStorage});`,
+        contract.usedIds === 0 ? '' : `WARP_NAMEGEN::write(${contract.usedIds});`,
       ].join(`\n`);
     }
     return null;

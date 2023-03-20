@@ -25,10 +25,10 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       ];
 
     const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
-      ([decl, loc]) => `const ${decl.name} = ${loc};`,
+      ([decl, loc]) => `const ${decl.name}: felt = ${loc};`,
     );
     const staticVariables = [...node.staticStorageAllocations.entries()].map(
-      ([decl, loc]) => `const ${decl.name} = ${loc};`,
+      ([decl, loc]) => `const ${decl.name}: felt = ${loc};`,
     );
     const variables = [
       `// Dynamic variables - Arrays and Maps`,
