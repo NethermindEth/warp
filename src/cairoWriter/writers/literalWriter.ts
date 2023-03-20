@@ -18,7 +18,7 @@ export class LiteralWriter extends CairoASTNodeWriter {
             throw new TranspileFailedError('Attempted to write unexpected cairo type');
         }
       case LiteralKind.Bool:
-        return [node.value === 'true' ? '1' : '0'];
+        return [node.value];
       case LiteralKind.String:
       case LiteralKind.UnicodeString: {
         if (
