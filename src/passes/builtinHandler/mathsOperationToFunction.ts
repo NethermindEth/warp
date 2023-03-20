@@ -17,6 +17,10 @@ import { functionaliseBitwiseNot } from '../../warplib/implementations/maths/bit
 import { functionaliseBitwiseOr } from '../../warplib/implementations/maths/bitwiseOr';
 import { functionaliseDiv } from '../../warplib/implementations/maths/div';
 import { functionaliseExp } from '../../warplib/implementations/maths/exp';
+import { functionaliseGe } from '../../warplib/implementations/maths/ge';
+import { functionaliseGt } from '../../warplib/implementations/maths/gt';
+import { functionaliseLe } from '../../warplib/implementations/maths/le';
+import { functionaliseLt } from '../../warplib/implementations/maths/lt';
 import { functionaliseMod } from '../../warplib/implementations/maths/mod';
 import { functionaliseMul } from '../../warplib/implementations/maths/mul';
 import { functionaliseNegate } from '../../warplib/implementations/maths/negate';
@@ -51,10 +55,10 @@ export class MathsOperationToFunction extends ASTMapper {
       // Comparison
       ['==', () => {}],
       ['!=', () => {}],
-      ['>=', () => {}],
-      ['>', () => {}],
-      ['<=', () => {}],
-      ['<', () => {}],
+      ['>=', () => functionaliseGe(node, ast)],
+      ['>', () => functionaliseGt(node, ast)],
+      ['<=', () => functionaliseLe(node, ast)],
+      ['<', () => functionaliseLt(node, ast)],
       // Bitwise
       ['&', () => functionaliseBitwiseAnd(node, ast)],
       ['|', () => functionaliseBitwiseOr(node, ast)],
