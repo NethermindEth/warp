@@ -24,7 +24,7 @@ import {
   BYTES_CONVERSIONS,
   FELT_TO_UINT256,
   INT_CONVERSIONS,
-  UINT256,
+  GET_U128,
   UINT256_ADD,
   WM_ALLOC,
   WM_INDEX_DYN,
@@ -230,7 +230,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...WM_ALLOC),
         sourceLocationFunc,
         ...calledFuncs,
@@ -310,7 +310,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...UINT256_ADD),
         this.requireImport(...WM_INDEX_DYN),
         this.requireImport(...WM_NEW),
@@ -386,7 +386,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...UINT256_ADD),
         this.requireImport(...WM_INDEX_DYN),
         this.requireImport(...WM_NEW),

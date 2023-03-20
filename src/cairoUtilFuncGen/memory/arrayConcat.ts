@@ -25,7 +25,7 @@ import {
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
   NARROW_SAFE,
-  UINT256,
+  GET_U128,
   WM_DYN_ARRAY_LENGTH,
   WM_NEW,
 } from '../../utils/importPaths';
@@ -116,7 +116,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
           `   return (res_loc,);`,
           `}`,
         ].join('\n'),
-        functionsCalled: [this.requireImport(...UINT256), this.requireImport(...WM_NEW)],
+        functionsCalled: [this.requireImport(...GET_U128), this.requireImport(...WM_NEW)],
       };
     }
 
@@ -171,7 +171,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...FELT_TO_UINT256),
         this.requireImport(...WM_NEW),
         ...argSizesImports,

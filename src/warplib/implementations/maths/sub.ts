@@ -16,12 +16,12 @@ import {
 export function sub_unsafe(): WarplibFunctionInfo {
   return {
     fileName: 'sub_unsafe',
-    imports: ['use integer::u256_overflow_sub'],
+    imports: ['use integer::u256_overflow_sub;'],
     functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           `fn warp_sub_unsafe256(lhs : u256, rhs : u256) -> u256 {`,
-          `    let (value, _) u256_overflow_sub(lhs, rhs);`,
+          `    let (value, _) = u256_overflow_sub(lhs, rhs);`,
           `    return value;`,
           `}`,
         ].join('\n');

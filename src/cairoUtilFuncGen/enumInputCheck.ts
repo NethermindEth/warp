@@ -11,7 +11,7 @@ import {
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
 import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
-import { IS_LE_FELT, NARROW_SAFE, UINT256 } from '../utils/importPaths';
+import { IS_LE_FELT, NARROW_SAFE, GET_U128 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
@@ -65,7 +65,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
 
     const imports = [this.requireImport(...IS_LE_FELT)];
     if (input256Bits) {
-      imports.push(this.requireImport(...NARROW_SAFE), this.requireImport(...UINT256));
+      imports.push(this.requireImport(...NARROW_SAFE), this.requireImport(...GET_U128));
     }
 
     const implicits = '{range_check_ptr : felt}';

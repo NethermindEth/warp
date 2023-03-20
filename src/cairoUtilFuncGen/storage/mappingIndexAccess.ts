@@ -133,10 +133,10 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       name: funcName,
       code: endent`
         fn ${funcName}(name: felt, index: ${indexCairoType}) -> felt {
-          let existing = ${mappingName}::read(name, index);
+          let existing = ${mappingName}::read((name, index));
           if existing == 0 {
             let used = WARP_USED_STORAGE::read();
-            ${mappingName}::write(name, index, used);
+            ${mappingName}::write((name, index), used);
             return used;
           }
           return existing;

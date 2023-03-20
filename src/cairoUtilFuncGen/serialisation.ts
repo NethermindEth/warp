@@ -3,6 +3,7 @@ import {
   CairoStaticArray,
   CairoStruct,
   CairoType,
+  CairoUint256,
   WarpLocation,
 } from '../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../utils/errors';
@@ -48,18 +49,35 @@ function producePackExpression(type: CairoType): (string | Read)[] {
     ];
   }
   if (type instanceof CairoStruct) {
+    if (type.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
+      return [
+        type.name,
+        '{',
+        ...[...type.members.entries()]
+          .flatMap(([memberName, memberType]) => [
+            memberName,
+            ':',
+            'u128_from_felt(',
+            ...producePackExpression(memberType),
+            ')',
+            ',',
+          ])
+          .slice(0, -1),
+        '}',
+      ];
+    }
     return [
       type.name,
-      '(',
+      '{',
       ...[...type.members.entries()]
         .flatMap(([memberName, memberType]) => [
           memberName,
-          '=',
+          ':',
           ...producePackExpression(memberType),
           ',',
         ])
         .slice(0, -1),
-      ')',
+      '}',
     ];
   }
 
