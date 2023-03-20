@@ -103,6 +103,8 @@ jobs:
         run: |
           pip install -r requirements.txt 
           pip install cairo-lang=="$CAIRO_LANG_VERSION"
+          pip install web3==5.*
+          pip install typeguard==2.*
 
       - name: Setup source hash (push)
         if: ${{ github.event_name == 'push' }}
