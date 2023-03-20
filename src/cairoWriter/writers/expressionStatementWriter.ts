@@ -15,12 +15,12 @@ export class ExpressionStatementWriter extends CairoASTNodeWriter {
   writeInner(node: ExpressionStatement, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     if (
-      node.vExpression instanceof FunctionCall &&
-      node.vExpression.kind !== FunctionCallKind.StructConstructorCall
+      (node.vExpression instanceof FunctionCall &&
+        node.vExpression.kind !== FunctionCallKind.StructConstructorCall) ||
+      node.vExpression instanceof Assignment ||
+      node.vExpression instanceof CairoAssert
     ) {
       return [[documentation, `${writer.write(node.vExpression)};`].join('\n')];
-    } else if (node.vExpression instanceof Assignment || node.vExpression instanceof CairoAssert) {
-      return [[documentation, `${writer.write(node.vExpression)}`].join('\n')];
     } else {
       return [
         [

@@ -23,14 +23,9 @@ export const FINALIZE_KECCAK: [string[], string] = [
   [...CAIRO_COMMON_PATH, 'cairo_keccak', 'keccak'],
   'finalize_keccak',
 ];
-export const HASH_BUILTIN: [string[], string] = [
-  [...CAIRO_COMMON_PATH, 'cairo_builtins'],
-  'HashBuiltin',
-];
 export const IS_LE: [string[], string] = [[...CAIRO_COMMON_PATH, 'math_cmp'], 'is_le'];
 export const IS_LE_FELT: [string[], string] = [[...CAIRO_COMMON_PATH, 'math_cmp'], 'is_le_felt'];
 export const SPLIT_FELT: [string[], string] = [[...CAIRO_COMMON_PATH, 'math'], 'split_felt'];
-export const UINT256: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'Uint256'];
 export const UINT256_ADD: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'uint256_add'];
 export const UINT256_EQ: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'uint256_eq'];
 export const UINT256_LE: [string[], string] = [[...CAIRO_COMMON_PATH, 'uint256'], 'uint256_le'];
@@ -44,10 +39,6 @@ const STARKWARE_SYSCALL_PATH = ['starkware', 'starknet', 'common', 'syscalls'];
 
 export const DEPLOY: [string[], string] = [[...STARKWARE_SYSCALL_PATH], 'deploy'];
 export const EMIT_EVENT: [string[], string] = [[...STARKWARE_SYSCALL_PATH], 'emit_event'];
-export const GET_CALLER_ADDRESS: [string[], string] = [
-  [...STARKWARE_SYSCALL_PATH],
-  'get_caller_address',
-];
 export const GET_CONTRACT_ADDRESS: [string[], string] = [
   [...STARKWARE_SYSCALL_PATH],
   'get_contract_address',
@@ -106,3 +97,10 @@ export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write
 //------------------------------------------------------
 
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
+export const U256_FROM_FELTS: [string[], string] = [['warplib', 'integer'], 'u256_from_felts'];
+export const GET_U128: [string[], string] = [['integer'], 'u128_from_felt'];
+export const U128_TO_FELT: [string[], string] = [['integer'], 'u128_to_felt'];
+
+export const GET_CALLER_ADDRESS: [string[], string] = [['starknet'], 'get_caller_address'];
+export const ADDRESS_INTO_FELT: [string[], string] = [['starknet'], 'ContractAddressIntoFelt'];
+export const INTO: [string[], string] = [['traits'], 'Into'];

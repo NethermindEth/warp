@@ -2,6 +2,7 @@ import {
   ElementaryTypeName,
   IntType,
   Literal,
+  MemberAccess,
   SourceUnit,
   StructDefinition,
   UserDefinedType,
@@ -17,7 +18,9 @@ import {
   DEFAULT_DICT_NEW,
   DICT_WRITE,
   FINALIZE_KECCAK,
-  UINT256,
+  INTO,
+  U256_FROM_FELTS,
+  GET_U128,
 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
@@ -40,21 +43,21 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImport(...UINT256, this.dummySourceUnit ?? node, ast);
+      createImport(...GET_U128, this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(...UINT256, this.dummySourceUnit ?? node, ast);
+      createImport(...U256_FROM_FELTS, this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(...UINT256, this.dummySourceUnit ?? node, ast);
+      createImport(...GET_U128, this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining
@@ -84,5 +87,11 @@ export class CairoUtilImporter extends ASTMapper {
     }
 
     this.commonVisit(node, ast);
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    if (node.memberName === 'into') {
+      createImport(...INTO, node, ast);
+    }
   }
 }

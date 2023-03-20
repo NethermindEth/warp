@@ -42,7 +42,6 @@ import {
   References,
   RejectPrefix,
   RejectUnsupportedFeatures,
-  ReplaceIdentifierContractMemberAccess,
   Require,
   ReturnInserter,
   ReturnVariableInitializer,
@@ -151,7 +150,6 @@ function applyPasses(
     ['An', AnnotateImplicits],
     ['Lv', IfStatementTempVarPostpender],
     ['Ci', CairoUtilImporter],
-    ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
   ]);

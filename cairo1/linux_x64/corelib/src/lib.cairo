@@ -410,3 +410,13 @@ use zeroable::Zeroable;
 
 #[cfg(test)]
 mod test;
+
+mod warplib;
+use warplib::get_u128_try_from_felt_result;
+use warplib::u256_from_felts;
+
+use warplib::maths::warp_add256;
+use warplib::maths::warp_external_input_check_address;
+use warplib::maths::warp_external_input_check_int256;
+use warplib::maths::warp_ge256;
+use warplib::maths::warp_sub_unsafe256;

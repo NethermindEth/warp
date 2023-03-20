@@ -42,7 +42,7 @@ import {
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
   NARROW_SAFE,
-  UINT256,
+  GET_U128,
   WM_INDEX_DYN,
   WM_NEW,
   WM_ALLOC,
@@ -317,7 +317,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     if (byteSize === 32) {
       args.push('0');
-      importedFuncs.push(this.requireImport(...UINT256));
+      importedFuncs.push(this.requireImport(...GET_U128));
     }
     const decodeType = byteSize === 32 ? 'Uint256' : 'felt';
 
@@ -435,7 +435,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...UINT256),
+      this.requireImport(...GET_U128),
       this.requireImport(...WM_INDEX_DYN),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...NARROW_SAFE),

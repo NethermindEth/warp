@@ -26,7 +26,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { CairoFunctionDefinition } from '../../export';
-import { DICT_WRITE, FELT_TO_UINT256, UINT256, WM_ALLOC, WM_NEW } from '../../utils/importPaths';
+import { DICT_WRITE, FELT_TO_UINT256, GET_U128, WM_ALLOC, WM_NEW } from '../../utils/importPaths';
 
 const IMPLICITS =
   '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -129,7 +129,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...WM_NEW),
         this.requireImport(...FELT_TO_UINT256),
         auxFunc,
@@ -181,7 +181,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...WM_ALLOC),
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...DICT_WRITE),
         ...funcCalls,
       ],
@@ -240,7 +240,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       ].join('\n'),
       functionsCalled: [
         this.requireImport(...DICT_WRITE),
-        this.requireImport(...UINT256),
+        this.requireImport(...GET_U128),
         this.requireImport(...WM_ALLOC),
         ...funcCalls,
       ],

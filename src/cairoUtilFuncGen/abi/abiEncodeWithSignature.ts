@@ -17,7 +17,7 @@ import {
   BYTE256_AT_INDEX,
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
-  UINT256,
+  GET_U128,
   WARP_KECCAK,
   WM_NEW,
 } from '../../utils/importPaths';
@@ -123,7 +123,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...UINT256),
+      this.requireImport(...GET_U128),
       this.requireImport(...ALLOC),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...WM_NEW),
