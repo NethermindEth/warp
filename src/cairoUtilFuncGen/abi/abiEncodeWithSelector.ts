@@ -9,7 +9,7 @@ import {
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
   FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
-  UINT256,
+  GET_U128,
   WARP_KECCAK,
   WM_NEW,
 } from '../../utils/importPaths';
@@ -91,7 +91,7 @@ export class AbiEncodeWithSelector extends AbiBase {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport(...UINT256),
+      this.requireImport(...GET_U128),
       this.requireImport(...ALLOC),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...WM_NEW),

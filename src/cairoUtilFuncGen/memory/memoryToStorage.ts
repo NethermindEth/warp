@@ -23,7 +23,7 @@ import {
   DICT_READ,
   WM_DYN_ARRAY_LENGTH,
   NARROW_SAFE,
-  UINT256,
+  GET_U128,
   UINT256_LT,
   UINT256_SUB,
 } from '../../utils/importPaths';
@@ -354,7 +354,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               ];
           return [
             [...code, ...copyCode],
-            [...funcCalls, this.requireImport(...UINT256), readFunc, auxFunc],
+            [...funcCalls, this.requireImport(...GET_U128), readFunc, auxFunc],
             storageOffset + typeFeltWidth,
             memOffset + 1,
           ];

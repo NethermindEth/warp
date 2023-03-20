@@ -13,10 +13,12 @@ export function add(): WarplibFunctionInfo {
   const fileName = 'add';
   const functions = forAllWidths((width) => {
     if (width === 256) {
-      return '';
+      return [`fn warp_add256(lhs: u256, rhs: u256) -> u256{`, `    return lhs + rhs;`, `}`].join(
+        '\n',
+      );
     } else {
       return [
-        `fn warp_add${width}(lhs : felt, rhs : felt) -> felt{`,
+        `fn warp_add${width}(lhs: felt, rhs: felt) -> felt{`,
         `    let res = lhs + rhs;`,
         `    let max: felt = ${mask(width)};`,
         `    assert (res <= max, 'Value out of bounds');`,

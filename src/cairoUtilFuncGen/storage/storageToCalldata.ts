@@ -17,7 +17,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { ALLOC, UINT256, WARP_UINT256 } from '../../utils/importPaths';
+import { ALLOC, GET_U128, WARP_UINT256 } from '../../utils/importPaths';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -193,7 +193,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const importedFuncs = [
       this.requireImport(...WARP_UINT256),
-      this.requireImport(...UINT256),
+      this.requireImport(...GET_U128),
       this.requireImport(...ALLOC),
     ];
 

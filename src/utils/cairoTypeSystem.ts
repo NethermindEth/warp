@@ -278,7 +278,7 @@ export class WarpLocation extends CairoFelt {
 export class MemoryLocation extends CairoFelt {}
 
 export const CairoUint256 = new CairoStruct(
-  'Uint256',
+  'u256',
   new Map([
     ['low', new CairoFelt()],
     ['high', new CairoFelt()],
