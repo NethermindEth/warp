@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  BoolType,
   BytesType,
   DataLocation,
   EnumDefinition,
