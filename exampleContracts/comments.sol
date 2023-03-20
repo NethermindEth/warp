@@ -5,7 +5,7 @@ pragma solidity >=0.8.2 <0.9.0;
 /// @author Larry A. Gardner
 /// @notice You can use this contract for only the most basic simulation
 /// @dev All function calls are currently implemented without side effects
-/// @custom:experimental This is an experimental contract.
+/// @custom:experimental This is an experimental con tract.
 contract Tree {
   /// @notice Calculate tree age in years, rounded up, for live trees
   /// @dev The Alexandr N. Tetearing algorithm could increase precision
