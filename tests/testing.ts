@@ -276,11 +276,11 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
 
 function preTestChecks(): boolean {
   if (!checkNoCairo(WARP_TEST_FOLDER) || !checkNoJson(WARP_TEST_FOLDER)) {
-    console.log('Please remove warpTest/exampleContracts, or run with -f to delete it');
+    console.log('Please remove warpTest/exampleContracts, or run with --force to delete it');
     return false;
   }
   if (!checkNoJson('warplib')) {
-    console.log('Please remove all json files from warplib, or run with -f to delete them');
+    console.log('Please remove all json files from warplib, or run with --force to delete them');
     return false;
   }
   return true;
