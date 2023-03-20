@@ -15,6 +15,7 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import path from 'path';
+import { WARPLIB_MATHS } from '../utils/importPaths';
 
 export type WarplibFunctionInfo = {
   fileName: string;
@@ -93,16 +94,13 @@ export function IntxIntFunction(
     name,
     signed && separateSigned ? '_signed' : '',
     unsafe ? '_unsafe' : '',
-
     shouldAppendWidth ? `${width}` : '',
   ].join('');
 
   const importName = [
-    'warplib.maths.',
-    name,
-    signed && separateSigned ? '_signed' : '',
-    unsafe ? '_unsafe' : '',
-  ].join('');
+    ...WARPLIB_MATHS,
+    `${name}${signed && separateSigned ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`,
+  ];
 
   const importedFunc = ast.registerImport(
     node,
@@ -133,6 +131,59 @@ export function IntxIntFunction(
   ast.replaceNode(node, call);
 }
 
+export function Comparison(
+  node: BinaryOperation,
+  name: string,
+  appendWidth: 'only256' | 'signedOrWide',
+  separateSigned: boolean,
+  ast: AST,
+): void {
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const rhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const retType = safeGetNodeType(node, ast.inference);
+  const wide =
+    (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
+    getIntOrFixedByteBitWidth(lhsType) === 256;
+  const signed = lhsType instanceof IntType && lhsType.signed;
+  const shouldAppendWidth = wide || (appendWidth === 'signedOrWide' && signed);
+  const fullName = [
+    'warp_',
+    name,
+    separateSigned && signed ? '_signed' : '',
+    shouldAppendWidth ? `${getIntOrFixedByteBitWidth(lhsType)}` : '',
+  ].join('');
+
+  const importName = [...WARPLIB_MATHS, `${name}${signed && separateSigned ? '_signed' : ''}`];
+
+  const importedFunc = ast.registerImport(
+    node,
+    importName,
+    fullName,
+    [
+      ['lhs', typeNameFromTypeNode(lhsType, ast)],
+      ['rhs', typeNameFromTypeNode(rhsType, ast)],
+    ],
+    [['res', typeNameFromTypeNode(retType, ast)]],
+  );
+
+  const call = new FunctionCall(
+    ast.reserveId(),
+    node.src,
+    node.typeString,
+    FunctionCallKind.FunctionCall,
+    new Identifier(
+      ast.reserveId(),
+      '',
+      `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
+      fullName,
+      importedFunc.id,
+    ),
+    [node.vLeftExpression, node.vRightExpression],
+  );
+
+  ast.replaceNode(node, call);
+}
+
 export function IntFunction(
   node: Expression,
   argument: Expression,
@@ -151,7 +202,7 @@ export function IntFunction(
 
   const importedFunc = ast.registerImport(
     node,
-    `warplib.maths.${fileName}`,
+    [...WARPLIB_MATHS, fileName],
     fullName,
     [['op', typeNameFromTypeNode(opType, ast)]],
     [['res', typeNameFromTypeNode(retType, ast)]],
@@ -170,6 +221,52 @@ export function IntFunction(
       importedFunc.id,
     ),
     [argument],
+  );
+
+  ast.replaceNode(node, call);
+}
+
+export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST): void {
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
+  const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
+  const retType = safeGetNodeType(node, ast.inference);
+
+  assert(
+    lhsType instanceof BoolType,
+    `Expected BoolType for ${name} left argument, got ${printTypeNode(lhsType)}`,
+  );
+  assert(
+    rhsType instanceof BoolType,
+    `Expected BoolType for ${name} right argument, got ${printTypeNode(rhsType)}`,
+  );
+  assert(
+    retType instanceof BoolType,
+    `Expected BoolType for ${name} return type, got ${printTypeNode(retType)}`,
+  );
+
+  const fullName = `warp_${name}`;
+
+  const importedFunc = ast.registerImport(
+    node,
+    [...WARPLIB_MATHS, name],
+    fullName,
+    [['lhs', typeNameFromTypeNode(lhsType, ast)]],
+    [['rhs', typeNameFromTypeNode(rhsType, ast)]],
+  );
+
+  const call = new FunctionCall(
+    ast.reserveId(),
+    node.src,
+    node.typeString,
+    FunctionCallKind.FunctionCall,
+    new Identifier(
+      ast.reserveId(),
+      '',
+      `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
+      fullName,
+      importedFunc.id,
+    ),
+    [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);

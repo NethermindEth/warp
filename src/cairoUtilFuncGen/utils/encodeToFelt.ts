@@ -25,6 +25,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, WillNotSupportError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { ALLOC } from '../../utils/importPaths';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -193,7 +194,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
       `}`,
     ].join('\n');
 
-    const importFunc = this.requireImport('starkware.cairo.common.alloc', 'alloc');
+    const importFunc = this.requireImport(...ALLOC);
 
     const funcInfo = {
       name: funcName,

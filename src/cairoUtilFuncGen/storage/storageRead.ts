@@ -1,3 +1,4 @@
+import endent from 'endent';
 import {
   Expression,
   FunctionCall,
@@ -63,13 +64,12 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}){`,
-        `    alloc_locals;`,
-        ...reads.map((s) => `    ${s}`),
-        `    return (${pack},);`,
-        '}',
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(loc: felt) -> ${resultCairoType}{
+          ${reads.map((s) => `  ${s}`).join('\n')}
+          ${pack}
+        }
+      `,
       functionsCalled: [],
     };
     return funcInfo;
@@ -77,9 +77,9 @@ export class StorageReadGen extends StringIndexedFuncGen {
 }
 
 function readFelt(offset: number): string {
-  return `let (read${offset}) = WARP_STORAGE.read(${add('loc', offset)});`;
+  return `let read${offset} = WARP_STORAGE::read(${add('loc', offset)});`;
 }
 
 function readId(offset: number): string {
-  return `let (read${offset}) = readId(${add('loc', offset)});`;
+  return `let read${offset} = readId(${add('loc', offset)});`;
 }

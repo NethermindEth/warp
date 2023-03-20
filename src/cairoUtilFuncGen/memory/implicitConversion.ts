@@ -20,6 +20,17 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  BYTES_CONVERSIONS,
+  FELT_TO_UINT256,
+  INT_CONVERSIONS,
+  UINT256,
+  UINT256_ADD,
+  WM_ALLOC,
+  WM_INDEX_DYN,
+  WM_NEW,
+  WM_READ_ID,
+} from '../../utils/importPaths';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -177,7 +188,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     let sourceLocationCode: string;
     if (targetType.elementT instanceof PointerType) {
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
-      sourceLocationFunc = this.requireImport('warplib.memory', 'wm_read_id');
+      sourceLocationFunc = this.requireImport(...WM_READ_ID);
       sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)});`;
     } else {
       sourceLocationFunc = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
@@ -219,8 +230,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...UINT256),
+        this.requireImport(...WM_ALLOC),
         sourceLocationFunc,
         ...calledFuncs,
         memoryWriteDef,
@@ -299,10 +310,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...UINT256),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...WM_INDEX_DYN),
+        this.requireImport(...WM_NEW),
         memoryRead,
         ...conversionFuncs,
         memoryWrite,
@@ -375,10 +386,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...UINT256),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...WM_INDEX_DYN),
+        this.requireImport(...WM_NEW),
         memoryRead,
         ...conversionCalls,
         memoryWrite,
@@ -426,13 +437,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       const conversionFunc = `warp_int${sourceType.nBits}_to_int${targetType.nBits}`;
       return [
         `let (${targetVar}) = ${conversionFunc}(${sourceVar});`,
-        [this.requireImport('warplib.maths.int_conversions', conversionFunc)],
+        [this.requireImport(INT_CONVERSIONS, conversionFunc)],
       ];
     } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
-      const conversionFunc = `felt_to_uint256`;
       return [
-        `let (${targetVar}) = ${conversionFunc}(${sourceVar});`,
-        [this.requireImport('warplib.maths.utils', conversionFunc)],
+        `let (${targetVar}) = felt_to_uint256(${sourceVar});`,
+        [this.requireImport(...FELT_TO_UINT256)],
       ];
     } else {
       return [`let ${targetVar} = ${sourceVar};`, []];
@@ -454,7 +464,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     return [
       `let (${targetVar}) = ${conversionFunc}(${sourceVar}, ${widthDiff * 8});`,
-      [this.requireImport('warplib.maths.bytes_conversions', conversionFunc)],
+      [this.requireImport(BYTES_CONVERSIONS, conversionFunc)],
     ];
   }
 }

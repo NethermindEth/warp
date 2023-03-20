@@ -1,15 +1,16 @@
-import { ASTWriter, ContractKind, SrcDesc } from 'solc-typed-ast';
+import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
 import { isExternallyVisible } from '../../utils/utils';
-import { CairoContract } from '../../ast/cairoNodes';
+import {
+  CairoContract,
+  CairoGeneratedFunctionDefinition,
+  FunctionStubKind,
+} from '../../ast/cairoNodes';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
 import { CairoASTNodeWriter } from '../base';
-import {
-  getDocumentation,
-  getInterfaceNameForContract,
-  INCLUDE_CAIRO_DUMP_FUNCTIONS,
-  INDENT,
-} from '../utils';
+import { getDocumentation, getInterfaceNameForContract, INDENT } from '../utils';
 import { interfaceNameMappings } from './sourceUnitWriter';
+import assert from 'assert';
+import endent from 'endent';
 
 export class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -70,51 +71,32 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       .map((l) => (l.length > 0 ? INDENT + l : l))
       .join('\n');
 
-    const storageCode = [
-      '@storage_var',
-      'func WARP_STORAGE(index: felt) -> (val: felt){',
-      '}',
-      '@storage_var',
-      'func WARP_USED_STORAGE() -> (val: felt){',
-      '}',
-      '@storage_var',
-      'func WARP_NAMEGEN() -> (name: felt){',
-      '}',
-      'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt){',
-      '    alloc_locals;',
-      '    let (id) = WARP_STORAGE.read(loc);',
-      '    if (id == 0){',
-      '        let (id) = WARP_NAMEGEN.read();',
-      '        WARP_NAMEGEN.write(id + 1);',
-      '        WARP_STORAGE.write(loc, id + 1);',
-      '        return (id + 1,);',
-      '    }else{',
-      '        return (id,);',
-      '    }',
-      '}',
-      ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
-        ? [
-            'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){',
-            '    alloc_locals;',
-            '    if (length == 0){',
-            '        return ();',
-            '    }',
-            '    let index = length - 1;',
-            '    let (read) = WARP_STORAGE.read(index);',
-            '    assert ptr[index] = read;',
-            '    DUMP_WARP_STORAGE_ITER(index, ptr);',
-            '    return ();',
-            '}',
-            '@external',
-            'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){',
-            '    alloc_locals;',
-            '    let (p: felt*) = alloc();',
-            '    DUMP_WARP_STORAGE_ITER(length, p);',
-            '    return (length, p);',
-            '}',
-          ]
-        : []),
-    ].join('\n');
+    const parentSourceUnit = node.parent;
+    assert(parentSourceUnit instanceof SourceUnit);
+    const otherStorageVars = parentSourceUnit.vFunctions.filter(
+      (v) =>
+        v instanceof CairoGeneratedFunctionDefinition &&
+        v.functionStubKind === FunctionStubKind.StorageDefStub,
+    );
+    const storageCode = endent`
+      struct Storage {
+        WARP_STORAGE: LegacyMap::<felt, felt>,
+        WARP_USED_STORAGE: felt,
+        WARP_NAMEGEN: felt,
+        ${otherStorageVars.map((v) => `${writer.write(v)}`).join('\n')}
+      }
+
+      fn readId(loc: felt) -> felt {
+        let id = WARP_STORAGE::read(loc);
+        if id == 0 {
+          let id = WARP_NAMEGEN::read();
+          WARP_NAMEGEN::write(id + 1);
+          WARP_STORAGE::write(loc, id + 1);
+          return id + 1;
+        } 
+        return id;
+      }
+    `;
 
     return [
       [

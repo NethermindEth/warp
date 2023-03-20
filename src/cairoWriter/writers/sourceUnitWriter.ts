@@ -57,13 +57,11 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
         !(f instanceof CairoImportFunctionDefinition),
     );
 
-    const writtenImportFuncs = getGroupedImports(
-      importFunctions
-        .sort((funcA, funcB) =>
-          `${funcA.path}.${funcA.name}`.localeCompare(`${funcB.path}.${funcB.name}`),
-        )
-        .filter((func, index, importFuncs) => func.name !== importFuncs[index - 1]?.name),
-    ).reduce((writtenImports, importFunc) => `${writtenImports}\n${importFunc}`, '');
+    const writtenImportFuncs = importFunctions
+      .map((n) => writer.write(n))
+      .sort((importA, importB) => importA.localeCompare(importB))
+      .filter((func, index, importFuncs) => func !== importFuncs[index - 1])
+      .join('\n');
 
     const writtenGeneratedFuncs = generatedFunctions
       .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
@@ -75,7 +73,11 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
         if (stubA === FunctionStubKind.StorageDefStub) return -1;
         return 1;
       })
-      .filter((func, index, genFuncs) => func.name !== genFuncs[index - 1]?.name)
+      .filter(
+        (func, index, genFuncs) =>
+          func.name !== genFuncs[index - 1]?.name &&
+          func.functionStubKind !== FunctionStubKind.StorageDefStub,
+      )
       .map((func) => writer.write(func));
 
     const writtenFuncs = functions.map((func) => writer.write(func));
@@ -120,17 +122,4 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
 
     interfaceNameMappings.set(node, map);
   }
-}
-
-function getGroupedImports(imports: CairoImportFunctionDefinition[]): string[] {
-  const processedImports: string[] = [];
-  imports.reduce((functionNames: string[], importNode, index) => {
-    functionNames.push(importNode.name);
-    if (importNode.path !== imports[index + 1]?.path) {
-      processedImports.push(`from ${importNode.path} import ${functionNames.join(', ')}`);
-      functionNames = [];
-    }
-    return functionNames;
-  }, []);
-  return processedImports;
 }

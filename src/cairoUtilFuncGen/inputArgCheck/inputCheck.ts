@@ -37,6 +37,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
+import { IS_LE_FELT, NARROW_SAFE, WARPLIB_MATHS } from '../../utils/importPaths';
 
 const IMPLICITS = '{range_check_ptr : felt}';
 
@@ -66,18 +67,23 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
     if (type instanceof FixedBytesType)
       return this.requireImport(
-        'warplib.maths.external_input_check_ints',
+        [...WARPLIB_MATHS, 'external_input_check_ints'],
         `warp_external_input_check_int${type.size * 8}`,
       );
     if (type instanceof IntType)
       return this.requireImport(
-        'warplib.maths.external_input_check_ints',
+        [...WARPLIB_MATHS, 'external_input_check_ints'],
         `warp_external_input_check_int${type.nBits}`,
       );
     if (isAddressType(type))
       return this.requireImport(
-        'warplib.maths.external_input_check_address',
+        [...WARPLIB_MATHS, 'external_input_check_address'],
         `warp_external_input_check_address`,
+      );
+    if (type instanceof BoolType)
+      return this.requireImport(
+        [...WARPLIB_MATHS, 'external_input_check_bool'],
+        `warp_external_input_check_bool`,
       );
 
     const funcInfo = this.getOrCreate(type, takesUint256);
@@ -194,9 +200,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
     // TODO: enum names are unique right?
     const funcName = `external_input_check_enum_${enumDef.name}`;
 
-    const importFuncs = [this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt')];
+    const importFuncs = [this.requireImport(...IS_LE_FELT)];
     if (takesUint) {
-      importFuncs.push(this.requireImport('warplib.maths.utils', 'narrow_safe'));
+      importFuncs.push(this.requireImport(...NARROW_SAFE));
     }
 
     const nMembers = enumDef.vMembers.length;

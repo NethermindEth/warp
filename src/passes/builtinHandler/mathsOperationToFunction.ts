@@ -9,6 +9,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { WARPLIB_MATHS } from '../../utils/importPaths';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { functionaliseAdd } from '../../warplib/implementations/maths/add';
 import { functionaliseBitwiseAnd } from '../../warplib/implementations/maths/bitwiseAnd';
@@ -106,7 +107,7 @@ export class MathsOperationToFunction extends ASTMapper {
         const name = `warp_${node.vExpression.name}`;
         const importedFunc = ast.registerImport(
           node,
-          `warplib.maths.${node.vExpression.name}`,
+          [...WARPLIB_MATHS, node.vExpression.name],
           name,
           [
             ['x', createUint256TypeName(ast)],
