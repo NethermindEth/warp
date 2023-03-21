@@ -6,7 +6,7 @@ import { ModifierRemover } from './modifierRemover';
 /*  This pass takes all functions that are being modified and transform 
     them into a sequence of functions, which are called in the same order 
     the modifier invocations were declared. Each of these functions will 
-    contain the code of the correponding modifier.
+    contain the code of the corresponding modifier.
     
     Once this is done, ModifierDefinition nodes are removed from the ast 
     since they are no longer needed.

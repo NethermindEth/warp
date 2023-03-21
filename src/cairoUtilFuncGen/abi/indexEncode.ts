@@ -242,7 +242,7 @@ export class IndexEncode extends AbiBase {
     if (existing !== undefined) return existing;
 
     const elementT = getElementType(type);
-    const elemntTSize = CairoType.fromSol(elementT, this.ast).width;
+    const elementTSize = CairoType.fromSol(elementT, this.ast).width;
 
     const [readElement, readFunc] = this.readMemory(elementT, 'elem_loc');
     const [headEncodingCode, functionsCalled] = this.generateEncodingCode(
@@ -264,7 +264,7 @@ export class IndexEncode extends AbiBase {
       `     return (final_index=bytes_index);`,
       `  }`,
       `  let (index256) = felt_to_uint256(index);`,
-      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elemntTSize)});`,
+      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});`,
       `  let (elem) = ${readElement};`,
       `  ${headEncodingCode}`,
       `  return ${name}(bytes_index, bytes_array, index + 1, length, mem_ptr);`,

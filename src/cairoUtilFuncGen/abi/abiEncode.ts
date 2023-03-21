@@ -31,7 +31,7 @@ const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
 /**
- * Given any data type produces the same output of solidty abi.encode
+ * Given any data type produces the same output of solidity abi.encode
  * in the form of an array of felts where each element represents a byte
  */
 export class AbiEncode extends AbiBase {
@@ -282,7 +282,7 @@ export class AbiEncode extends AbiBase {
     if (existing !== undefined) return existing;
 
     const elementT = getElementType(type);
-    const elemntTSize = CairoType.fromSol(elementT, this.ast).width;
+    const elementTSize = CairoType.fromSol(elementT, this.ast).width;
 
     const [readElement, readFunc] = this.readMemory(elementT, 'elem_loc');
     const [headEncodingCode, functionsCalled] = this.generateEncodingCode(
@@ -308,7 +308,7 @@ export class AbiEncode extends AbiBase {
       `     return (final_offset=bytes_offset);`,
       `  }`,
       `  let (index256) = felt_to_uint256(index);`,
-      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elemntTSize)});`,
+      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});`,
       `  let (elem) = ${readElement};`,
       `  ${headEncodingCode}`,
       `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, element_offset, index + 1, length, mem_ptr);`,

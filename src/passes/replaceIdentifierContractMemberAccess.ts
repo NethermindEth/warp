@@ -7,8 +7,8 @@ import { isExternallyVisible } from '../utils/utils';
 import { getContractTypeString } from '../utils/getTypeString';
 
 /**
- * This pass replaces all identifier whose refrenced declaration defined outside of the function body,
- * by a member access with the expression as an identifier refrenced to it's parent contract.
+ * This pass replaces all identifier whose referenced declaration defined outside of the function body,
+ * by a member access with the expression as an identifier referenced to it's parent contract.
  * For e.g.
  *        contract A {
  *           uint public a;
@@ -18,7 +18,7 @@ import { getContractTypeString } from '../utils/getTypeString';
  *           }
  *        }
  *     -- function f to be written outside of namespace A (see `cairoWriter.ts: 519`) --
- * This is done to separate the external functions outside of the namspace
+ * This is done to separate the external functions outside of the namespace
  * so that there would be abi's generated for them. see `cairoWriter.ts: 519`.
  * from cairo v0.10.0, for the functions lying inside the cairo namespace , there would be
  * no abi generated for them.
@@ -28,7 +28,7 @@ export class ReplaceIdentifierContractMemberAccess extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
-      'Sa', // Pass uses CairoFunctionDefintion and CairoContract
+      'Sa', // Pass uses CairoFunctionDefinition and CairoContract
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }

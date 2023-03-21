@@ -201,7 +201,7 @@ namespace Forwarder_a_warped_interface {
     }
 }
 
-// Original soldity abi: ["constructor()","useAdd(uint256,uint256)","itr()"]
+// Original solidity abi: ["constructor()","useAdd(uint256,uint256)","itr()"]
 ```
 
 ### Step 5.

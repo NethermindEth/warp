@@ -341,7 +341,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         ];
       }
       throw new TranspileFailedError(
-        `Trying to create recursive code for unsupported referency type: ${printTypeNode(
+        `Trying to create recursive code for unsupported reference type: ${printTypeNode(
           elementT,
         )}`,
       );

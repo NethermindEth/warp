@@ -7,7 +7,7 @@ import { ExternalContractInterfaceInserter } from './externalContractInterfaceIn
 
 /*
   This is a compound pass which internally calls ExternalContractInterfaceInserter pass 
-  to insert interfaces for the external contracts that has been refrenced into the AST
+  to insert interfaces for the external contracts that has been referenced into the AST
   for every SourceUnit.
   
   Simple importing contracts (namespaces in cairo) would not work because the constructors
@@ -22,7 +22,7 @@ export class ExternalContractHandler extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
-      'Ii', // Inheritance Inline pass inherit all functions from the base contracts, so that external contracts refrerences in the base contracts are handled
+      'Ii', // Inheritance Inline pass inherit all functions from the base contracts, so that external contracts references in the base contracts are handled
       'Sa', // All contracts are changed to Cairo Contracts, and this passes uses the CairoContract class
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));

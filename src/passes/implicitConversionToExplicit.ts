@@ -153,7 +153,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     assert(
       node.vInitialValue !== undefined,
-      `Implicit conversion to explicit expects variables to be initialised (did you run variable declaration initialiser?). Found at ${printNode(
+      `Implicit conversion to explicit expects variables to be initialized (did you run variable declaration initializer?). Found at ${printNode(
         node,
       )}`,
     );
@@ -211,7 +211,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       }
 
       if (node.vFunctionName === 'decode') {
-        assert(node.vArguments.length === 2, 'decode recieves two arguments');
+        assert(node.vArguments.length === 2, 'decode receives two arguments');
         insertConversionIfNecessary(node.vArguments[0], new BytesType(), node, ast);
         return;
       }
@@ -318,7 +318,7 @@ export function insertConversionIfNecessary(
       const parent = expression.parent;
       const [replacement, shouldReplace] = ast
         .getUtilFuncGen(expression)
-        .memory.convert.genIfNecesary(expression, targetType);
+        .memory.convert.genIfNecessary(expression, targetType);
       if (shouldReplace) {
         ast.replaceNode(expression, replacement, parent);
       }

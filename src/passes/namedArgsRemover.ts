@@ -69,7 +69,7 @@ export class NamedArgsRemover extends ASTMapper {
       fieldNames.length !== orderedFieldNames.length
     ) {
       throw new TranspileFailedError(
-        'Number of arguments must less or euqal to number of function field names',
+        'Number of arguments must less or equal to number of function field names',
       );
     }
 

@@ -10,17 +10,17 @@ import { isExternallyVisible } from '../../utils/utils';
 
 export class RefTypeModifier extends ASTMapper {
   /*
-  This pass filters the inputParameters of FunctionDefintions for reference types sitting in 
+  This pass filters the inputParameters of FunctionDefinitions for reference types sitting in 
   memory that are not DynArrays. 
   
   The original dataLocation of each of the filtered VariableDeclarations is then set to CallData.
   
-  A VariableDeclarationStatement is then inserted into the beginning of the fuction body with a 
+  A VariableDeclarationStatement is then inserted into the beginning of the function body with a 
   cloned VariableDeclaration with the DataLocation set to Memory and the initialValue being an 
   Identifier referencing the original VariableDeclaration in the Parameter list, 
   with the DataLocation as CallData. 
 
-  This will trigger the dataAccessFunctionalizer to insert the necccessary write UtilGens from 
+  This will trigger the dataAccessFunctionalizer to insert the necessary write UtilGens from 
   CallDataToMemory.
 
   Before pass:
@@ -38,7 +38,7 @@ export class RefTypeModifier extends ASTMapper {
 
   function testReturnMember(structDef calldata structA) external pure returns (uint8) {
       structDef memory __warp_usrid_2_structA_mem = structA;
-      return __warp_usirid1_structA.__warp_usrid_0_member1;
+      return __warp_usrid1_structA.__warp_usrid_0_member1;
   }
   */
 
