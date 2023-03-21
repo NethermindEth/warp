@@ -326,6 +326,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     type: TypeNode,
     isUint: boolean,
     isUserDefined: boolean,
+    isStaticDynamic: boolean,
   ): string[] {
     const isBytesOrString = type instanceof BytesType || type instanceof StringType;
     return [
@@ -336,14 +337,21 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       `    if (index == size_arr) {`,
       `        return ();`,
       `    }`,
-      isBytesOrString
+      isBytesOrString || isStaticDynamic
         ? isUserDefined
-          ? []
+          ? isStaticDynamic
+            ? [
+                `    let (arr) = wm_new(Uint256(low=definedArr[0], high=${
+                  isUint ? 'definedArr[1]' : '0'
+                }), Uint256(low=1, high=0));`,
+              ]
+            : []
           : ['    let (arr) = wm_new(Uint256(low=0, high=0), Uint256(low=1, high=0));']
         : [],
       `    dict_write{dict_ptr=warp_memory}(index, ${
-        isBytesOrString ? 'arr' : isUserDefined ? 'definedArr[0]' : '0'
+        isBytesOrString || isStaticDynamic ? 'arr' : isUserDefined ? 'definedArr[0]' : '0'
       });`,
+
       isUint
         ? [
             `    dict_write{dict_ptr=warp_memory}(index + 1, ${
@@ -480,7 +488,6 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        isStruct && isMatrix ? this.struct_initializer(funcName, members) : [],
         ...(dynamic
           ? []
           : this.recursiveStaticfunction(
@@ -488,8 +495,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
               type,
               this.isUint(type, isMatrix),
               isUserDefined,
+              isStaticDynamic,
             )),
-        isMatrix
+        isMatrix && !isStaticDynamic
           ? this.matrixExtraFunctions(funcName, this.isUint(type, isMatrix), isUserDefined).join(
               '\n',
             )
@@ -501,17 +509,18 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         `    alloc_locals;`,
         isMatrix
           ? [
-              '    let (size256) = felt_to_uint256(row);',
-              `    let (start) = wm_alloc(${
-                isStaticDynamic ? uint256(size * elementCairoType.width + 2) : 'size256'
+              `    let (size256) = felt_to_uint256(${
+                isStaticDynamic ? `row*column${this.isUint(type, isMatrix) ? ` * 2` : ''}` : 'row'
               });`,
+              `    let (start) = wm_alloc(size256);`,
               isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : '',
-              isStaticDynamic
-                ? `    wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`
-                : '',
-              `    ${funcName}_iterator(start + row, column, start${
-                isUserDefined ? ', cast(&matrix, felt*)' : ''
-              });`,
+              isUserDefined && isStaticDynamic
+                ? `    ${funcName}_recursive(start,  start + row*column${
+                    this.isUint(type, isMatrix) ? ` * 2` : ''
+                  }, cast(&matrix, felt*));`
+                : `    ${funcName}_iterator(start + row, column, start${
+                    isUserDefined ? ', cast(&matrix, felt*)' : ''
+                  });`,
             ].join('\n')
           : [
               dynamic
@@ -529,7 +538,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
                   : [
                       isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : [],
                       `    ${funcName}_recursive(start,  start + size_arr${
-                        this.isUint(type, isMatrix) ? ' * 2' : ''
+                        this.isUint(type, isMatrix) ? (isUserDefined ? '' : ' * 2') : ''
                       }${isUserDefined ? ', cast(&arr, felt*)' : ''});`,
                     ].join('\n'),
               ].join('\n'),
