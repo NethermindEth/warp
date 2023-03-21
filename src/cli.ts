@@ -154,7 +154,7 @@ function createCairoProject(filePath: string): void {
     `,
   );
   // create lib.cairo
-  const libPath = path.join(path.dirname(filePath), '/lib.cairo');
+  const libPath = path.join(path.dirname(filePath), 'lib.cairo');
   const contractName = path.parse(filePath).name;
   outputFileSync(libPath, `mod ${contractName};`);
 }
