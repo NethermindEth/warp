@@ -79,12 +79,13 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `Copying ${printTypeNode(type)} from memory to calldata not implemented yet`,
       );
     };
+    const generalizedType = generalizeType(type)[0];
 
     return delegateBasedOnType<GeneratedFunctionInfo>(
-      type,
-      (type) => this.createDynamicArrayCopyFunction(type),
-      (type) => this.createStaticArrayCopyFunction(type),
-      (type) => this.createStructCopyFunction(type),
+      generalizedType,
+      (generalizedType) => this.createDynamicArrayCopyFunction(generalizedType),
+      (generalizedType) => this.createStaticArrayCopyFunction(generalizedType),
+      (generalizedType) => this.createStructCopyFunction(generalizedType),
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
