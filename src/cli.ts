@@ -143,15 +143,14 @@ function runTranspile(files: string[], options: CliOptions) {
 
 function createCairoProject(filePath: string): void {
   // create cairo_project.toml
-  const projectRoot = path.dirname(__dirname);
-  const cairoProjectPath = path.join(path.dirname(filePath), '/cairo_project.toml');
+  const cairoProjectPath = path.join(path.dirname(filePath), 'cairo_project.toml');
+  const warplibRoot = path.join(path.dirname(__dirname), 'warplib');
   outputFileSync(
     cairoProjectPath,
     endent`
       [crate_roots]
       root = "."
-      warplib = "${projectRoot}/warplib"
-      maths = "${projectRoot}/warplib/maths"
+      warplib = "${warplibRoot}"
     `,
   );
   // create lib.cairo

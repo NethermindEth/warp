@@ -18,8 +18,11 @@ import { external_input_check_ints } from './implementations/external_input_chec
 import path from 'path';
 import * as fs from 'fs';
 import endent from 'endent';
+import { warplibImportInfo } from './gatherWarplibImports';
+import { glob } from 'glob';
+import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 
-export const warplibFunctions: WarplibFunctionInfo[] = [
+const warplibFunctions: WarplibFunctionInfo[] = [
   add(),
   add_unsafe(),
   add_signed(),
@@ -65,22 +68,25 @@ export const warplibFunctions: WarplibFunctionInfo[] = [
   external_input_check_ints(),
   // external_inputt_check_address - handwritten
 ];
-
 warplibFunctions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc));
 
-// generate warplib lib
-fs.writeFileSync(
-  path.join('.', 'warplib', 'lib.cairo'),
-  endent`
-    // Add here warplib modules in cairo1
-    mod integer;
-  `,
-);
+const mathsContent: string = glob
+  .sync('warplib/maths/*.cairo')
+  .map((pathToFile) => {
+    const fileName = path.basename(pathToFile, '.cairo');
+    const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
+    const useFuncNames = parseMultipleRawCairoFunctions(rawCairoCode)
+      .map(({ name }) => `use ${fileName}::${name};`)
+      .join('\n');
 
-// generate warplib/maths lib
+    return `mod ${fileName}\n${useFuncNames};`;
+  })
+  .join('\n\n');
+
 fs.writeFileSync(
-  path.join('.', 'warplib', 'maths', 'lib.cairo'),
+  path.join('.', 'warplib', 'maths.cairo'),
   endent`
-    // Add here maths modules in cairo1
+    // AUTO-GENERATED
+    ${mathsContent}
   `,
 );
