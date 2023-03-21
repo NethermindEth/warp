@@ -9,16 +9,16 @@ import { CairoContract } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructors } from './constructorInheritance';
-import { addEventDefintion } from './eventInheritance';
+import { addEventDefinition } from './eventInheritance';
 import { addPrivateSuperFunctions } from './functionInheritance';
 import { solveLibraryInheritance } from './libraryInheritance';
-import { addNonOverridenModifiers } from './modifiersInheritance';
+import { addNonOverriddenModifiers as addNonOverriddenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
 import {
   getBaseContracts,
   removeBaseContractDependence,
   updateReferencedDeclarations,
-  updateReferenceEmitStatemets,
+  updateReferenceEmitStatements,
 } from './utils';
 
 export class InheritanceInliner extends ASTMapper {
@@ -61,11 +61,11 @@ export class InheritanceInliner extends ASTMapper {
     // (<old_member_id>, <cloned_member>) is stored in the map for each one of them.
     //
     // When there is an overriding function (or modifier) all references to the function
-    // should point to this particular function and not the overriden implementation of it.
+    // should point to this particular function and not the overridden implementation of it.
     // That is what the overriders maps are used for, they keep the reference to the
     // overriding member.
     // Nevertheless, the references to all the cloned members must also be kept, since they
-    // can be called specifying the contract, even if they are being overriden somewhere
+    // can be called specifying the contract, even if they are being overridden somewhere
     // else down the line of inheritance.
     //
     // Example:
@@ -103,13 +103,13 @@ export class InheritanceInliner extends ASTMapper {
 
     addPrivateSuperFunctions(node, functionRemapping, functionRemappingOverriders, ast);
     addStorageVariables(node, variableRemapping, ast);
-    addNonOverridenModifiers(node, modifierRemapping, modifierRemappingOverriders, ast);
-    addEventDefintion(node, eventRemapping, ast);
+    addNonOverriddenModifiers(node, modifierRemapping, modifierRemappingOverriders, ast);
+    addEventDefinition(node, eventRemapping, ast);
 
     updateReferencedDeclarations(node, functionRemapping, functionRemappingOverriders, ast);
     updateReferencedDeclarations(node, variableRemapping, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, modifierRemappingOverriders, ast);
-    updateReferenceEmitStatemets(node, eventRemapping, ast);
+    updateReferenceEmitStatements(node, eventRemapping, ast);
 
     removeBaseContractDependence(node);
 

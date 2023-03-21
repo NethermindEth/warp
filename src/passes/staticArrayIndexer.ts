@@ -44,8 +44,8 @@ export class StaticArrayIndexer extends ASTMapper {
       inside another structure, then the whole structure is copied to memory
     */
 
-  // Tracks calldata structures which already have a memory counterpart initalized
-  private staticArrayAccesed = new Map<number, VariableDeclaration>();
+  // Tracks calldata structures which already have a memory counterpart initialized
+  private staticArrayAccessed = new Map<number, VariableDeclaration>();
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
@@ -73,10 +73,10 @@ export class StaticArrayIndexer extends ASTMapper {
 
     const refId = identifier.referencedDeclaration;
 
-    let refVarDecl = this.staticArrayAccesed.get(refId);
+    let refVarDecl = this.staticArrayAccessed.get(refId);
     if (refVarDecl === undefined) {
       refVarDecl = this.initMemoryArray(identifier, parentFunction, ast);
-      this.staticArrayAccesed.set(refId, refVarDecl);
+      this.staticArrayAccessed.set(refId, refVarDecl);
     }
 
     const indexReplacement = this.setExpressionToMemory(node, refVarDecl, ast);
@@ -153,20 +153,20 @@ export class StaticArrayIndexer extends ASTMapper {
       DataLocation.CallData,
     );
 
-    const varDeclStmnt = new VariableDeclarationStatement(
+    const varDeclStatement = new VariableDeclarationStatement(
       ast.reserveId(),
       '',
       [varDecl.id],
       [varDecl],
       assignation,
     );
-    ast.setContextRecursive(varDeclStmnt);
+    ast.setContextRecursive(varDeclStatement);
     ast.setContextRecursive(varDecl);
 
     if (parentFunction.vParameters.vParameters.some((vd) => vd.id === refId)) {
-      parentFunction.vBody?.insertAtBeginning(varDeclStmnt);
+      parentFunction.vBody?.insertAtBeginning(varDeclStatement);
     } else {
-      ast.insertStatementAfter(identifier.vReferencedDeclaration, varDeclStmnt);
+      ast.insertStatementAfter(identifier.vReferencedDeclaration, varDeclStatement);
     }
     return varDecl;
   }

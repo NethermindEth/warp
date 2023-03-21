@@ -50,7 +50,7 @@ export class OrderNestedStructs extends ASTMapper {
 
     const newStructOrder = reorderStructs(roots, tree);
 
-    // remove old struct definiton
+    // remove old struct definition
     structs.forEach((child) => {
       if (child instanceof StructDefinition) {
         node.removeChild(child);
@@ -75,7 +75,7 @@ export function reorderStructs(
 }
 
 // dfs through the tree
-// root is alawys added to orderedStructs after all it's children
+// root is always added to orderedStructs after all it's children
 function visitTree(
   root: StructDefinition,
   tree: Map<StructDefinition, StructDefinition[]>,
@@ -102,7 +102,7 @@ export function makeStructTree(
   structs.forEach((struct) => {
     struct.vMembers.forEach((varDecl) => {
       const nestedStruct = findStruct(safeGetNodeType(varDecl, ast.inference));
-      // second check to avoid adding imported structs to contract defintion
+      // second check to avoid adding imported structs to contract definition
       if (nestedStruct !== null && structs.has(nestedStruct)) {
         roots.delete(nestedStruct);
         tree.has(struct) ? tree.get(struct)?.push(nestedStruct) : tree.set(struct, [nestedStruct]);
@@ -110,7 +110,7 @@ export function makeStructTree(
     });
   });
 
-  // roots are struct definition from which none other struct defintion
+  // roots are struct definition from which none other struct definition
   // depends on
   return [roots, tree];
 }

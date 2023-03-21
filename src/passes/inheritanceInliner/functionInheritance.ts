@@ -46,7 +46,7 @@ export function addPrivateSuperFunctions(
         }
         return clonedFunction;
       })
-      // filter the nulls returned when trying to inheritr overriden fallback functions
+      // filter the nulls returned when trying to inherit overridden fallback functions
       .filter((f): f is FunctionDefinition => f !== null)
       .forEach((func) => {
         node.appendChild(func);

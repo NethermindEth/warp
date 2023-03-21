@@ -47,7 +47,7 @@ export class ExternalFunctionCreator extends ASTMapper {
 
     if (FunctionVisibility.Public === node.visibility && node.kind !== FunctionKind.Constructor) {
       if (this.internalFunctionCallSet.has(node)) {
-        const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
+        const newExternalFunction = this.createExternalFunctionDefinition(node, ast);
         this.insertReturnStatement(node, newExternalFunction, ast);
         this.modifyPublicFunction(node);
         this.internalToExternalFunctionMap.set(node, newExternalFunction);
@@ -63,7 +63,7 @@ export class ExternalFunctionCreator extends ASTMapper {
     node.name = `${node.name}${INTERNAL_FUNCTION_SUFFIX}`;
   }
 
-  private createExternalFunctionDefintion(node: FunctionDefinition, ast: AST): FunctionDefinition {
+  private createExternalFunctionDefinition(node: FunctionDefinition, ast: AST): FunctionDefinition {
     const newBlock = createBlock([], ast);
     const internalFunctionBody = node.vBody;
     node.vBody = undefined;

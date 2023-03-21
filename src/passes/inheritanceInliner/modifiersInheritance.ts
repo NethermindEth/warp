@@ -4,7 +4,7 @@ import { CairoContract } from '../../ast/cairoNodes';
 import { cloneASTNode } from '../../utils/cloning';
 import { fixSuperReference, getBaseContracts } from './utils';
 
-export function addNonOverridenModifiers(
+export function addNonOverriddenModifiers(
   node: CairoContract,
   idRemapping: Map<number, ModifierDefinition>,
   idRemappingOverriders: Map<number, ModifierDefinition>,
@@ -18,15 +18,15 @@ export function addNonOverridenModifiers(
     .filter((node) => node.kind !== ContractKind.Library)
     .forEach((contract) => {
       contract.vModifiers.forEach((modifier, depth) => {
-        const exisitingModifier = currentModifiers.get(modifier.name);
+        const existingModifier = currentModifiers.get(modifier.name);
         const clonedModifier = cloneASTNode(modifier, ast);
         idRemapping.set(modifier.id, clonedModifier);
-        if (exisitingModifier === undefined) {
+        if (existingModifier === undefined) {
           currentModifiers.set(modifier.name, clonedModifier);
           idRemappingOverriders.set(modifier.id, clonedModifier);
         } else {
           clonedModifier.name = `m${depth + 1}_${clonedModifier.name}`;
-          idRemappingOverriders.set(modifier.id, exisitingModifier);
+          idRemappingOverriders.set(modifier.id, existingModifier);
         }
         node.appendChild(clonedModifier);
         fixSuperReference(clonedModifier, contract, node);

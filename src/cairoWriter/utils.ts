@@ -33,7 +33,7 @@ export function getInterfaceNameForContract(
   const interfaceName = interfaceNameMappings.get(sourceUnit)?.get(contractName);
   assert(
     interfaceName !== undefined,
-    `An error occured during name substitution for the interface ${contractName}`,
+    `An error occurred during name substitution for the interface ${contractName}`,
   );
 
   return interfaceName;

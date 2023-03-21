@@ -5,7 +5,7 @@ import { TranspileFailedError } from '../utils/errors';
 import { warplibImportInfo } from '../warplib/gatherWarplibImports';
 import { Implicits } from './implicits';
 import {
-  createCairoImportFunctionDefintion,
+  createCairoImportFunctionDefinition,
   createCairoImportStructDefinition,
   ParameterInfo,
 } from './functionGeneration';
@@ -39,7 +39,7 @@ export function createImport(
     const hasInputs = inputs !== undefined && inputs.length > 0;
     const hasOutputs = outputs !== undefined && outputs.length > 0;
     if (!hasInputs || !hasOutputs) return existingImport;
-    return createCairoImportFunctionDefintion(
+    return createCairoImportFunctionDefinition(
       name,
       path,
       existingImport.implicits,
@@ -52,7 +52,7 @@ export function createImport(
   }
 
   const createFuncImport = (...implicits: Implicits[]) =>
-    createCairoImportFunctionDefintion(
+    createCairoImportFunctionDefinition(
       name,
       path,
       new Set(implicits),

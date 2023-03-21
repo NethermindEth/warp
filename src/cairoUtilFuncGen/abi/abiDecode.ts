@@ -53,7 +53,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
   public gen(expressions: Expression[]): FunctionCall {
     assert(
       expressions.length === 2,
-      'ABI decode must recieve two arguments: data to decode, and types to decode into',
+      'ABI decode must receive two arguments: data to decode, and types to decode into',
     );
     const [data, types] = expressions.map(
       (t) => generalizeType(safeGetNodeType(t, this.ast.inference))[0],
