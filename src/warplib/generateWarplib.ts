@@ -78,7 +78,7 @@ const mathsContent: string = glob
       .map(({ name }) => `use ${fileName}::${name};`)
       .join('\n');
 
-    return `mod ${fileName}\n${useFuncNames};`;
+    return `mod ${fileName};\n${useFuncNames}`;
   })
   .join('\n\n');
 
