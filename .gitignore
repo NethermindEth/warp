@@ -149,6 +149,8 @@ warp_venv
 # warplib ignores moved to root because they stop from npm packaging the
 # ignored files if the ignore is not in the root
 
+warplib/maths.cairo
+
 warplib/maths/add.cairo
 warplib/maths/add_unsafe.cairo
 warplib/maths/add_signed.cairo
