@@ -58,6 +58,8 @@ type CliOptions = CompilationOptions &
   OutputOptions &
   IOptionalDebugInfo;
 
+const PROJECT_ROOT = path.dirname(__dirname);
+
 export const program = new Command();
 
 program
@@ -123,7 +125,7 @@ function runTranspile(files: string[], options: CliOptions) {
         if (options.compileCairo) {
           const { success, resultPath, abiPath } = compileCairo(
             path.join(options.outputDir, file),
-            path.resolve(__dirname, '..'),
+            PROJECT_ROOT,
             options,
           );
           if (!success) {
@@ -144,7 +146,7 @@ function runTranspile(files: string[], options: CliOptions) {
 function createCairoProject(filePath: string): void {
   // create cairo_project.toml
   const cairoProjectPath = path.join(path.dirname(filePath), 'cairo_project.toml');
-  const warplibRoot = path.join(path.dirname(__dirname), 'warplib');
+  const warplibRoot = path.join(PROJECT_ROOT, 'warplib');
   outputFileSync(
     cairoProjectPath,
     endent`

@@ -18,7 +18,6 @@ import { external_input_check_ints } from './implementations/external_input_chec
 import path from 'path';
 import * as fs from 'fs';
 import endent from 'endent';
-import { warplibImportInfo } from './gatherWarplibImports';
 import { glob } from 'glob';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 
