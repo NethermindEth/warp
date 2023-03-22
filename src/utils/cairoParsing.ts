@@ -13,13 +13,7 @@ export type RawCairoFunctionInfo = {
  *  @returns A list of each function information
  */
 export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFunctionInfo[] {
-  const functions = [
-    // For cairo 1
-    ...rawFunctions.matchAll(/fn (\w+)/gis),
-    // For cairo 0.10: Should be deleted eventually
-    ...rawFunctions.matchAll(/func (\w+)\s*[{].*?[}]/gis),
-    ...rawFunctions.matchAll(/func (\w+)\s*/gis),
-  ];
+  const functions = [...rawFunctions.matchAll(/fn (\w+)/gis)];
 
   return [...functions].map((func) => getRawCairoFunctionInfo(func[0]));
 }
@@ -30,12 +24,7 @@ export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFu
  *  @returns The function implicits and it's name
  */
 export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionInfo {
-  const funcSignature =
-    // For cairo 1
-    rawFunction.match(/fn (?<name>\w+)/) ??
-    // For cairo 0.10: Should be deleted eventually
-    rawFunction.match(/func (?<name>\w+)\s*[{](?<implicits>.+)[}]/is) ??
-    rawFunction.match(/func (?<name>\w+)/);
+  const funcSignature = rawFunction.match(/fn (?<name>\w+)/);
 
   assert(
     funcSignature !== null && funcSignature.groups !== undefined,
