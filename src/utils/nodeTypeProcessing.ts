@@ -19,6 +19,7 @@ import {
   IntType,
   Literal, // eslint-disable-line
   MappingType,
+  MemberAccess,
   PackedArrayType,
   PointerType,
   StringType,
@@ -289,14 +290,35 @@ export function isStorageSpecificType(
   return false;
 }
 
+export class WarpInferType extends InferType {
+  typeOfLiteral(node: Literal): TypeNode {
+    return getNodeType(node, this);
+  }
+  typeOfMemberAccess(node: MemberAccess): TypeNode {
+    // The way infertype compute the type of a member access is by looking the member name inside the base type
+    // (eg: if we had A.B.C it will look for C inside of whatever is A.B).
+    //
+    // Doing this approach if we have an access to a contract 'C.access'
+    // it will look for a function or property with name 'access' inside 'C'. If it match a function with that name it will
+    // compute its signature, encoding its parameters.
+    // In inheritanceInliner, more specificly constructorInheritance, we create a function for each constructor from parent contracts
+    // and call those generated functions inside the constructor. With this approach constructors become functions definitions and
+    // therefore their signatures will be computed, abi-encoding their arguments. This will lead to errors. To see an example that
+    // break check: tests/behaviour/contracts/abstractContracts/mappingInConstructor.sol
+    //
+    // If we look at warp generated functions (like the ones to treat dynamic arrays) they are lack of an ast meaning, therefore
+    // properties access like 'len' will fail
+    //
+    // Until those troubles are solved the best idea is to compute type using the typeString.
+    return getNodeType(node, this);
+  }
+}
+
 export function safeGetNodeType(
   node: Expression | VariableDeclaration,
   inference: InferType,
 ): TypeNode {
   getContainingSourceUnit(node);
-  if (node instanceof Literal) {
-    return getNodeType(node, inference);
-  }
   if (node instanceof CairoAssert) {
     return new TupleType([]);
   }
