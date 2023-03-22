@@ -38,7 +38,6 @@ import {
   UINT256_SUB,
   INTO,
 } from './importPaths';
-import assert from 'assert';
 
 export function createImport(
   path: string[],
@@ -126,7 +125,6 @@ export function createImport(
     case encodePath(U256_FROM_FELTS):
       return createFuncImport();
     default:
-      assert(false);
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
   }
 }
