@@ -88,6 +88,7 @@ export function compileCairo(
   const resultPath = `${cairoPathRoot}_compiled.json`;
   const abiPath = `${cairoPathRoot}_abi.json`;
   const solAbiPath = `${cairoPathRoot}_sol_abi.json`;
+
   const parameters = new Map([
     ['output', resultPath],
     ['abi', abiPath],
@@ -99,7 +100,7 @@ export function compileCairo(
   const command = 'starknet-compile';
 
   try {
-    console.log(`Running starknet compile with cairoPath ${cairoPath}`);
+    console.log(`Running starknet compile on ${filePath}`);
     execSync(
       `${warpVenvPrefix} ${command} --disable_hint_validation ${debug} ${filePath} ${[
         ...parameters.entries(),
