@@ -74,10 +74,13 @@ const mathsContent: string = glob
   .map((pathToFile) => {
     const fileName = path.basename(pathToFile, '.cairo');
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
-    const useFuncNames = parseMultipleRawCairoFunctions(rawCairoCode)
-      .map(({ name }) => `use ${fileName}::${name};`)
-      .join('\n');
-
+    const funcNames = parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
+    return { fileName, funcNames };
+  })
+  // Filter required to deal with both cairo1 and cairo0.10 functions
+  .filter(({ funcNames }) => funcNames.length > 0)
+  .map(({ fileName, funcNames }) => {
+    const useFuncNames = funcNames.map((name) => `use ${fileName}::${name};`).join('\n');
     return `mod ${fileName};\n${useFuncNames}`;
   })
   .join('\n\n');
