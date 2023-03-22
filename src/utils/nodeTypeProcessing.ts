@@ -291,9 +291,6 @@ export function isStorageSpecificType(
 }
 
 export class WarpInferType extends InferType {
-  typeOfLiteral(node: Literal): TypeNode {
-    return getNodeType(node, this);
-  }
   typeOfMemberAccess(node: MemberAccess): TypeNode {
     // The way infertype compute the type of a member access is by looking the member name inside the base type
     // (eg: if we had A.B.C it will look for C inside of whatever is A.B).
@@ -310,7 +307,11 @@ export class WarpInferType extends InferType {
     // properties access like 'len' will fail
     //
     // Until those troubles are solved the best idea is to compute type using the typeString.
-    return getNodeType(node, this);
+    try {
+      return super.typeOfMemberAccess(node);
+    } catch {
+      return getNodeType(node, this);
+    }
   }
 }
 
@@ -319,6 +320,9 @@ export function safeGetNodeType(
   inference: InferType,
 ): TypeNode {
   getContainingSourceUnit(node);
+  if (node instanceof Literal) {
+    return getNodeType(node, inference);
+  }
   if (node instanceof CairoAssert) {
     return new TupleType([]);
   }
