@@ -34,7 +34,7 @@ export function add(): WarplibFunctionInfo {
 export function add_unsafe(): WarplibFunctionInfo {
   return {
     fileName: 'add_unsafe',
-    imports: ['use integer::u256_overflowing_add'],
+    imports: ['use integer::u256_overflowing_add;'],
     functions: forAllWidths((width) => {
       if (width === 256) {
         return [
