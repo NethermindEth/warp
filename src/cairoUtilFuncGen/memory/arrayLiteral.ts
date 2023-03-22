@@ -90,7 +90,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   private isUserElements(
     elements: Expression[],
     type: TypeNode,
-  ): { userDefined: boolean; matrixSize: number; args: string[] } {
+  ): { userDefined: boolean; matrixSize: number; args: string[]; isIdentifier: boolean } {
     const isMatrix =
       type instanceof ArrayType ? (type as ArrayType).elementT instanceof ArrayType : false;
     const elementT = isMatrix
@@ -98,6 +98,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       : (type as ArrayType).elementT;
     let userDefined = false;
     let matrixSize = 0;
+    let isIdentifier = false;
     let args: string[] = [];
     elements.forEach((ele) => {
       if (elementT instanceof UserDefinedType) {
@@ -117,6 +118,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           }
         }
       } else if (ele instanceof Identifier) {
+        isIdentifier = true;
         userDefined = true;
         if (isMatrix) {
           args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? '(Uint256)' : '(felt)');
@@ -221,13 +223,18 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         }
       }
     });
-    return { userDefined, matrixSize, args };
+    return { userDefined, matrixSize, args, isIdentifier };
   }
 
   public getOrCreateFuncDef(
     type: ArrayType | StringType,
     size: number,
-    elementsInfo: { userDefined: boolean; matrixSize: number; args: string[] } | null,
+    elementsInfo: {
+      userDefined: boolean;
+      matrixSize: number;
+      args: string[];
+      isIdentifier: boolean;
+    } | null,
     isMatrix: boolean,
   ) {
     const baseType = getElementType(type);
@@ -260,6 +267,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           ? elementsInfo!.args
           : []
         : [],
+      !isDynamicArray(type) && type instanceof ArrayType ? elementsInfo!.isIdentifier : false,
     );
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
@@ -327,6 +335,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     isUint: boolean,
     isUserDefined: boolean,
     isStaticDynamic: boolean,
+    isIdentifier: boolean,
   ): string[] {
     const isBytesOrString = type instanceof BytesType || type instanceof StringType;
     return [
@@ -339,7 +348,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       `    }`,
       isBytesOrString || isStaticDynamic
         ? isUserDefined
-          ? isStaticDynamic
+          ? isStaticDynamic && !isIdentifier
             ? [
                 `    let (arr) = wm_new(Uint256(low=definedArr[0], high=${
                   isUint ? 'definedArr[1]' : '0'
@@ -349,18 +358,24 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           : ['    let (arr) = wm_new(Uint256(low=0, high=0), Uint256(low=1, high=0));']
         : [],
       `    dict_write{dict_ptr=warp_memory}(index, ${
-        isBytesOrString || isStaticDynamic ? 'arr' : isUserDefined ? 'definedArr[0]' : '0'
+        isBytesOrString || (isStaticDynamic && !isIdentifier)
+          ? 'arr'
+          : isUserDefined || isIdentifier
+          ? 'definedArr[0]'
+          : '0'
       });`,
 
-      isUint
+      isUint && !isStaticDynamic
         ? [
             `    dict_write{dict_ptr=warp_memory}(index + 1, ${
               isUserDefined ? 'definedArr[1]' : '0'
             });`,
           ]
         : [],
-      `    return ${funcName}_recursive(index + ${isUint ? '2' : '1'}, size_arr${
-        isUserDefined ? `, definedArr${isUint ? '+ 2' : '+ 1'}` : ''
+      `    return ${funcName}_recursive(index + ${
+        isUint && !isStaticDynamic ? '2' : '1'
+      }, size_arr${
+        isUserDefined ? `, definedArr${isUint && !isStaticDynamic ? '+ 2' : '+ 1'}` : ''
       });`,
       `}`,
     ].flat();
@@ -431,6 +446,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     isUserDefined: boolean,
     isMatrix: boolean,
     args: string[],
+    isIdentifier: boolean,
   ): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(type, this.ast);
     const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
@@ -488,6 +504,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        isStruct ? this.struct_initializer(funcName, members) : [],
         ...(dynamic
           ? []
           : this.recursiveStaticfunction(
@@ -496,6 +513,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
               this.isUint(type, isMatrix),
               isUserDefined,
               isStaticDynamic,
+              isIdentifier,
             )),
         isMatrix && !isStaticDynamic
           ? this.matrixExtraFunctions(funcName, this.isUint(type, isMatrix), isUserDefined).join(
@@ -504,21 +522,25 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           : [],
         ` `,
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${
-          dynamic ? argString : isMatrix ? argStaticMatrix : argStatic
+          dynamic ? argString : isMatrix && !isIdentifier ? argStaticMatrix : argStatic
         }) -> (loc: felt){`,
         `    alloc_locals;`,
-        isMatrix
+        isMatrix && !isIdentifier
           ? [
               `    let (size256) = felt_to_uint256(${
-                isStaticDynamic ? `row*column${this.isUint(type, isMatrix) ? ` * 2` : ''}` : 'row'
+                isStaticDynamic && !isStruct
+                  ? `row*column${this.isUint(type, isMatrix) && !isStaticDynamic ? ` * 2` : ''}`
+                  : `row${this.isUint(type, isMatrix) ? '* 2' : ''}`
               });`,
               `    let (start) = wm_alloc(size256);`,
               isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : '',
-              isUserDefined && isStaticDynamic
+              isStaticDynamic && !isStruct
                 ? `    ${funcName}_recursive(start,  start + row*column${
-                    this.isUint(type, isMatrix) ? ` * 2` : ''
-                  }, cast(&matrix, felt*));`
-                : `    ${funcName}_iterator(start + row, column, start${
+                    this.isUint(type, isMatrix) ? (isStaticDynamic ? '' : ` * 2`) : ''
+                  }${!isUserDefined ? '' : ', cast(&matrix, felt*)'});`
+                : `    ${funcName}_iterator(start + row${
+                    this.isUint(type, isMatrix) ? '* 2' : ''
+                  }, column${this.isUint(type, isMatrix) ? '* 2' : ''}, start${
                     isUserDefined ? ', cast(&matrix, felt*)' : ''
                   });`,
             ].join('\n')
@@ -538,7 +560,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
                   : [
                       isUserDefined ? '    let (__fp__, _) = get_fp_and_pc();' : [],
                       `    ${funcName}_recursive(start,  start + size_arr${
-                        this.isUint(type, isMatrix) ? (isUserDefined ? '' : ' * 2') : ''
+                        this.isUint(type, isMatrix) ? ' * 2' : ''
                       }${isUserDefined ? ', cast(&arr, felt*)' : ''});`,
                     ].join('\n'),
               ].join('\n'),
