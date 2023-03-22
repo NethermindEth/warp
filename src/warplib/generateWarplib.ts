@@ -77,7 +77,7 @@ const mathsContent: string = glob
     const funcNames = parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
     return { fileName, funcNames };
   })
-  // Filter required to deal with both cairo1 and cairo0.10 functions
+  // TODO: Remove this filter once all warplib modules use cairo1
   .filter(({ funcNames }) => funcNames.length > 0)
   .map(({ fileName, funcNames }) => {
     const useFuncNames = funcNames.map((name) => `use ${fileName}::${name};`).join('\n');
