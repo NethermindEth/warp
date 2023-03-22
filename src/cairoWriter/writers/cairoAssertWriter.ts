@@ -6,6 +6,6 @@ export class CairoAssertWriter extends CairoASTNodeWriter {
   writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
     const expression = writer.write(node.vExpression);
     const message = node.assertMessage ?? 'Assertion error';
-    return [`assert( ${expression}, '${message}' )`];
+    return [`assert(${expression}, '${message}')`];
   }
 }

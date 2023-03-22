@@ -52,8 +52,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     if (node.kind === FunctionKind.Constructor) return ['#[constructor]'];
     const decorators: string[] = [];
     if (node.kind === FunctionKind.Fallback) {
-      decorators.push('@raw_input');
-      if (node.vParameters.vParameters.length > 0) decorators.push('@raw_output');
+      decorators.push('#[raw_input]');
+      if (node.vParameters.vParameters.length > 0) decorators.push('#[raw_output]');
     }
 
     if (node.visibility === FunctionVisibility.External) {

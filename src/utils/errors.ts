@@ -71,3 +71,14 @@ export function getErrorMessage(
   );
   return errorMsg;
 }
+
+export interface ExecSyncError {
+  // So far this is the only property from the execSync Error that is used
+  // if some other is needed then just add it here
+  stderr: Buffer | string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function instanceOfExecSyncError(object: any): object is ExecSyncError {
+  return 'stderr' in object;
+}
