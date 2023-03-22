@@ -9,7 +9,10 @@ compile:
 	yarn tsc
 
 test_compilation:
-	yarn test:examples
+	yarn test:compilation --only-results --force
+
+test_exmaples_compilation:
+	yarn test:examples --only-results --force
 
 test_execution:
 	yarn test

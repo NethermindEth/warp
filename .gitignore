@@ -142,6 +142,9 @@ warpTest/
 #benchmark
 benchmark/*
 
+#.DS_Store
+.DS_Store
+
 # Ignore warp_venv used for packaging
 warp_venv
 

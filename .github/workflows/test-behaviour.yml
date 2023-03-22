@@ -46,6 +46,36 @@ jobs:
           black starknet-testnet/ --check --verbose --diff --color
         # find warplib/ -iname *.cairo -exec cairo-format -c {} +
 
+  compilation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          cache: 'yarn'
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.9 # Cairo was tested with this version
+
+      - name: Install dependencies
+        run: |
+          make
+          make compile
+
+      - name: Setup warp_venv
+        run: bin/warp install --python python --verbose
+
+      # - name: Test code compilations
+      #   run: make test_compilation
+
+      - name: Test code examples compilation
+        run: make test_exmaples_compilation
+
   build:
     # only runs on pull requests to the main and develop branches
     if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'develop') }}
@@ -75,9 +105,6 @@ jobs:
 
       - name: Build warplib
         run: yarn warplib
-
-      - name: Test code compilation
-        run: make test_compilation
 
       - name: Test code execution
         run: |

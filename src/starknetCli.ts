@@ -42,14 +42,14 @@ interface CompileCairo1Result {
   casmResultPath?: string;
 }
 
-export function compileCairo1(filePath: string): CompileCairo1Result {
+export function compileCairo1(filePath: string, debug = true): CompileCairo1Result {
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   const sierraResultPath = `${cairoPathRoot}.sierra`;
   const casmResultPath = `${cairoPathRoot}.casm`;
 
   try {
-    console.log(`Running cairo1 compile`);
+    if (debug) console.log(`Running cairo1 compile`);
     execSync(
       `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${filePath} ${sierraResultPath} --replace-ids`,
       { stdio: 'inherit' },
