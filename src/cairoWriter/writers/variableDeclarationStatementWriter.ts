@@ -69,8 +69,43 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           ? ((nodeType as ArrayType).elementT as ArrayType).elementT
           : (nodeType as ArrayType).elementT;
       let argumentList: string[] = [];
+      if (elementT instanceof ArrayType) {
+        (node.vInitialValue as FunctionCall).vArguments.forEach((element) => {
+          let argsRound: string[] = [];
+          (element as TupleExpression).vOriginalComponents.forEach((ele1) => {
+            let argsRoundL2: string[] = [];
+            (ele1 as TupleExpression).vOriginalComponents.forEach((literal) => {
+              let value = (literal as Literal).value;
+              let isUint256 =
+                (elementT as ArrayType).elementT instanceof IntType
+                  ? ((elementT as ArrayType).elementT as IntType).nBits === 256
+                  : false;
+
+              if (value === '0' || value === 'false' || value === '0x0') {
+                argsRoundL2.push(isUint256 ? uint256(BigInt(value)) : value);
+              } else {
+                argsRoundL2.push(isUint256 ? uint256(BigInt(value)) : value);
+                valuesAreDefault = false;
+              }
+            });
+            argsRound.push(
+              `(${argsRoundL2.join(', ')}${
+                (ele1 as TupleExpression).vOriginalComponents.length === 1 ? ',' : ''
+              })`,
+            );
+          });
+          argumentList.push(
+            `(${argsRound.join(', ')}${
+              (element as TupleExpression).vOriginalComponents.length === 1 ? ',' : ''
+            })`,
+          );
+        });
+        return valuesAreDefault
+          ? ''
+          : `, (${argumentList.join('), (')}${argumentList.length === 1 ? ',' : ''})`;
+      }
       // in case of matrix
-      if (
+      else if (
         ((nodeType as ArrayType).elementT instanceof ArrayType ||
           (nodeType as ArrayType).elementT instanceof UserDefinedType) &&
         node.vInitialValue instanceof FunctionCall &&
@@ -423,7 +458,17 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           : ((node.vInitialValue as FunctionCall)?.vArguments[0] as Literal).kind === 'string'
           ? true
           : false;
-      if ((nodeType as ArrayType).elementT instanceof ArrayType && !isString && !isBytes) {
+      let isMatrix = (nodeType as ArrayType).elementT instanceof ArrayType;
+      let is3dMatrix = isMatrix
+        ? ((nodeType as ArrayType).elementT as ArrayType).elementT instanceof ArrayType
+        : false;
+      if (is3dMatrix && !isString && !isBytes) {
+        staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${Number(
+          ((nodeType as ArrayType).elementT as ArrayType).size,
+        )}, ${Number(
+          (((nodeType as ArrayType).elementT as ArrayType).elementT as ArrayType).size,
+        )}${getArguments()})`;
+      } else if (isMatrix && !isString && !isBytes) {
         if (((nodeType as ArrayType).elementT as ArrayType).size !== undefined) {
           staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${Number(
             ((nodeType as ArrayType).elementT as ArrayType).size,

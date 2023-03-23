@@ -52,7 +52,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const size = node.hexValue.length / 2;
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
 
-    const funcDef = this.getOrCreateFuncDef(type, size, null, false);
+    const funcDef = this.getOrCreateFuncDef(type, size, null, false, false);
     return createCallToFunction(
       funcDef,
       mapRange(size, (n) =>
@@ -77,27 +77,41 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     const isMatrix =
       type instanceof ArrayType ? (type as ArrayType).elementT instanceof ArrayType : false;
+    const is3dMatrix = isMatrix
+      ? ((type as ArrayType).elementT as ArrayType).elementT instanceof ArrayType
+      : false;
+
     const wideSize = getSize(type);
     const size =
       wideSize !== undefined
         ? narrowBigIntSafe(wideSize, `${printNode(node)} too long to process`)
         : elements.length;
 
-    const funcDef = this.getOrCreateFuncDef(type, size, elementsInfo, isMatrix);
+    const funcDef = this.getOrCreateFuncDef(type, size, elementsInfo, isMatrix, is3dMatrix);
     return createCallToFunction(funcDef, elements, this.ast);
   }
 
   private isUserElements(
     elements: Expression[],
     type: TypeNode,
-  ): { userDefined: boolean; matrixSize: number; args: string[]; isIdentifier: boolean } {
+  ): {
+    userDefined: boolean;
+    matrixSize: number;
+    matrixL2Size: number;
+    args: string[];
+    isIdentifier: boolean;
+  } {
     const isMatrix =
       type instanceof ArrayType ? (type as ArrayType).elementT instanceof ArrayType : false;
+    const is3dMatrix = isMatrix
+      ? ((type as ArrayType).elementT as ArrayType).elementT instanceof ArrayType
+      : false;
     const elementT = isMatrix
       ? ((type as ArrayType).elementT as ArrayType).elementT
       : (type as ArrayType).elementT;
     let userDefined = false;
     let matrixSize = 0;
+    let matrixL2Size = 0;
     let isIdentifier = false;
     let args: string[] = [];
     elements.forEach((ele) => {
@@ -125,6 +139,32 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         } else {
           args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
         }
+      } else if (is3dMatrix) {
+        matrixSize = (ele as TupleExpression).vOriginalComponents.length;
+        matrixL2Size = ((ele as TupleExpression).vOriginalComponents[0] as TupleExpression)
+          .vOriginalComponents.length;
+        (ele as TupleExpression).vOriginalComponents.forEach((ele1) => {
+          let argsRound: string[] = [];
+          (ele1 as TupleExpression).vOriginalComponents.forEach((ele2) => {
+            let argsRoundL2: string[] = [];
+            (ele2 as FunctionCall).vArguments.forEach((literal) => {
+              let value = (literal as Literal).value;
+
+              if (value === '0' || value === 'false' || value === '0x0') {
+                argsRoundL2.push(
+                  this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+                );
+              } else {
+                argsRoundL2.push(
+                  this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt',
+                );
+                userDefined = true;
+              }
+            });
+            argsRound.push(`(${argsRoundL2.join(', ')})`);
+          });
+          args.push(`(${argsRound.join(', ')})`);
+        });
       } else if (isMatrix) {
         if (ele instanceof FunctionCall) {
           let argsRound: string[] = [];
@@ -223,7 +263,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         }
       }
     });
-    return { userDefined, matrixSize, args, isIdentifier };
+    return { userDefined, matrixSize, matrixL2Size, args, isIdentifier };
   }
 
   public getOrCreateFuncDef(
@@ -236,6 +276,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       isIdentifier: boolean;
     } | null,
     isMatrix: boolean,
+    is3dMatrix: boolean,
   ) {
     const baseType = getElementType(type);
 
@@ -262,6 +303,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       isDynamicArray(type) || type instanceof StringLiteralType,
       type instanceof ArrayType ? elementsInfo!.userDefined : false,
       isMatrix,
+      is3dMatrix,
       !isDynamicArray(type) && type instanceof ArrayType
         ? elementsInfo!.userDefined
           ? elementsInfo!.args
@@ -381,14 +423,10 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     ].flat();
   }
 
-  private matrixExtraFunctions(
-    funcName: string,
-    isUint: boolean,
-    isUserDefined: boolean,
-  ): string[] {
+  private matrix3dFunctions(funcName: string, isUint: boolean, isUserDefined: boolean): string[] {
     return [
       '  ',
-      `func ${funcName}_matrix{range_check_ptr, warp_memory: DictAccess*}(size_arr${
+      `func ${funcName}_3d_matrix{range_check_ptr, warp_memory: DictAccess*}(size_arr, column2${
         isUserDefined ? ', arr: felt*' : ''
       }) -> (loc: felt){`,
       '    alloc_locals;',
@@ -400,16 +438,59 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       '    return (start,);',
       '}',
       ' ',
-      `func ${funcName}_iterator{range_check_ptr, warp_memory: DictAccess*}(size, column, index${
+      `func ${funcName}_3d_iterator{range_check_ptr, warp_memory: DictAccess*}(size, column, index${
         isUserDefined ? ', matrix: felt*' : ''
       }){`,
       '    alloc_locals;',
       '    if(index == size){',
       '        return ();',
       '    }',
-      `    let (element) = ${funcName}_matrix(column${isUserDefined ? ', matrix' : ''});`,
+      `    let (element) = ${funcName}_3d_matrix(size, column${isUserDefined ? ', matrix' : ''});`,
       `    dict_write{dict_ptr=warp_memory}(index, element);`,
-      `    return ${funcName}_iterator(size, column, index+1${
+      `    return ${funcName}_3d_iterator(size, column, index+1${
+        isUserDefined ? ', matrix+column' : ''
+      });`,
+      '}',
+      '  ',
+    ];
+  }
+
+  private matrixExtraFunctions(
+    funcName: string,
+    isUint: boolean,
+    isUserDefined: boolean,
+    is3dMatrix: boolean,
+  ): string[] {
+    return [
+      '  ',
+      `func ${funcName}_matrix{range_check_ptr, warp_memory: DictAccess*}(size_arr${
+        is3dMatrix ? ', column2' : ''
+      }${isUserDefined ? ', arr: felt*' : ''}) -> (loc: felt){`,
+      '    alloc_locals;',
+      '    let (size256) = felt_to_uint256(size_arr);',
+      '    let (start) = wm_alloc(size256);',
+      is3dMatrix
+        ? `    ${funcName}_3d_iterator(start+ size_arr, column2, start${
+            isUserDefined ? ', arr' : ''
+          });`
+        : `    ${funcName}_recursive(start,  start + size_arr${
+            isUint ? (isUserDefined ? '' : '* 2') : ''
+          }${isUserDefined ? ', arr' : ''});`,
+      '    return (start,);',
+      '}',
+      ' ',
+      `func ${funcName}_iterator{range_check_ptr, warp_memory: DictAccess*}(size, column,${
+        is3dMatrix ? 'column2,' : ''
+      } index${isUserDefined ? ', matrix: felt*' : ''}){`,
+      '    alloc_locals;',
+      '    if(index == size){',
+      '        return ();',
+      '    }',
+      `    let (element) = ${funcName}_matrix(column${is3dMatrix ? ', column2' : ''}${
+        isUserDefined ? ', matrix' : ''
+      });`,
+      `    dict_write{dict_ptr=warp_memory}(index, element);`,
+      `    return ${funcName}_iterator(size, column${is3dMatrix ? ', column2' : ''}, index+1${
         isUserDefined ? ', matrix+column' : ''
       });`,
       '}',
@@ -445,6 +526,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     dynamic: boolean,
     isUserDefined: boolean,
     isMatrix: boolean,
+    is3dMatrix: boolean,
     args: string[],
     isIdentifier: boolean,
   ): GeneratedFunctionInfo {
@@ -475,7 +557,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     const argStatic = isUserDefined && !dynamic ? `size_arr, arr: (${args.join(',')})` : 'size_arr';
     const argStaticMatrix =
-      isUserDefined && !dynamic ? `row, column, matrix: (${args.join(', ')})` : 'row, column';
+      isUserDefined && !dynamic
+        ? `row, column,${is3dMatrix ? ' column2,' : ''} matrix: (${args.join(', ')})`
+        : `row, column${is3dMatrix ? ', column2' : ''}`;
 
     const initializationlist = mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
       .flat()
@@ -515,14 +599,25 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
               isStaticDynamic,
               isIdentifier,
             )),
-        isMatrix && !isStaticDynamic
-          ? this.matrixExtraFunctions(funcName, this.isUint(type, isMatrix), isUserDefined).join(
-              '\n',
-            )
+        is3dMatrix
+          ? this.matrix3dFunctions(funcName, this.isUint(type, isMatrix), isUserDefined).join('\n')
           : [],
+        isMatrix && !isStaticDynamic
+          ? this.matrixExtraFunctions(
+              funcName,
+              this.isUint(type, isMatrix),
+              isUserDefined,
+              is3dMatrix,
+            ).join('\n')
+          : [],
+
         ` `,
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${
-          dynamic ? argString : isMatrix && !isIdentifier ? argStaticMatrix : argStatic
+          dynamic
+            ? argString
+            : (isMatrix && !isIdentifier) || is3dMatrix
+            ? argStaticMatrix
+            : argStatic
         }) -> (loc: felt){`,
         `    alloc_locals;`,
         isMatrix && !isIdentifier
@@ -540,9 +635,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
                   }${!isUserDefined ? '' : ', cast(&matrix, felt*)'});`
                 : `    ${funcName}_iterator(start + row${
                     this.isUint(type, isMatrix) ? '* 2' : ''
-                  }, column${this.isUint(type, isMatrix) ? '* 2' : ''}, start${
-                    isUserDefined ? ', cast(&matrix, felt*)' : ''
-                  });`,
+                  }, column${this.isUint(type, isMatrix) ? '* 2' : ''}${
+                    is3dMatrix ? ', column2' : ''
+                  }, start${isUserDefined ? ', cast(&matrix, felt*)' : ''});`,
             ].join('\n')
           : [
               dynamic
