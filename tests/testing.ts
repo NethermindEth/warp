@@ -16,6 +16,7 @@ import { outputFileSync } from '../src/utils/fs';
 import { error } from '../src/utils/formatting';
 
 import { expect } from 'chai';
+import { createCairoProject } from '../src/export';
 
 export const solCompileResultTypes = [
   'SolCompileFailed',
@@ -64,19 +65,21 @@ export function runSolFileTest(
   results: Map<string, ResultType>,
   onlyResults: boolean,
   unsafe: boolean,
-): { cairoFiles: string[]; result: ResultType } {
+): { cairoProjects: Set<string>; result: ResultType } {
   const mangledPath = path.join(warpTest, file);
-  const cairoFiles: string[] = [];
+  const cairoProjects: Set<string> = new Set();
   try {
     transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
       ([file, cairo]) => {
         outputFileSync(path.join(warpTest, file), cairo);
-        cairoFiles.push(path.join(warpTest, file));
+        createCairoProject(path.join(warpTest, file));
+        const baseDir = path.dirname(path.join(warpTest, file));
+        cairoProjects.add(baseDir);
       },
     );
     results.set(mangledPath, 'Success');
     return {
-      cairoFiles: cairoFiles,
+      cairoProjects: cairoProjects,
       result: 'Success',
     };
   } catch (e) {
@@ -84,7 +87,7 @@ export function runSolFileTest(
       if (!onlyResults) printCompileErrors(e);
       results.set(mangledPath, 'SolCompileFailed');
       return {
-        cairoFiles: cairoFiles,
+        cairoProjects: cairoProjects,
         result: 'SolCompileFailed',
       };
     } else if (e instanceof TranspilationAbandonedError) {
@@ -92,20 +95,20 @@ export function runSolFileTest(
       if (e instanceof NotSupportedYetError) {
         results.set(mangledPath, 'NotSupportedYet');
         return {
-          cairoFiles: cairoFiles,
+          cairoProjects: cairoProjects,
           result: 'NotSupportedYet',
         };
       } else if (e instanceof WillNotSupportError) {
         results.set(mangledPath, 'WillNotSupport');
         return {
-          cairoFiles: cairoFiles,
+          cairoProjects: cairoProjects,
           result: 'WillNotSupport',
         };
       } else {
         results.set(mangledPath, 'TranspilationFailed');
         if (unsafe) throw e;
         return {
-          cairoFiles: cairoFiles,
+          cairoProjects: cairoProjects,
           result: 'TranspilationFailed',
         };
       }
@@ -115,7 +118,7 @@ export function runSolFileTest(
       results.set(mangledPath, 'TranspilationFailed');
       if (unsafe) throw e;
       return {
-        cairoFiles: cairoFiles,
+        cairoProjects: cairoProjects,
         result: 'TranspilationFailed',
       };
     }
@@ -123,20 +126,20 @@ export function runSolFileTest(
 }
 
 export function runCairoFileTest(
-  file: string,
+  cairoProject: string,
   results: Map<string, ResultType>,
   onlyResults: boolean,
   throwError = false,
 ): ResultType {
-  if (!onlyResults) console.log(`Compiling ${file}`);
-  if (compileCairo1(file, !onlyResults).success) {
-    results.set(file, 'Success');
+  if (!onlyResults) console.log(`Compiling ${cairoProject}`);
+  if (compileCairo1(cairoProject, !onlyResults).success) {
+    results.set(cairoProject, 'Success');
     return 'Success';
   } else {
     if (throwError) {
-      throw new Error(error(`Compilation of ${file} failed`));
+      throw new Error(error(`Compilation of ${cairoProject} failed`));
     }
-    results.set(file, 'CairoCompileFailed');
+    results.set(cairoProject, 'CairoCompileFailed');
     return 'CairoCompileFailed';
   }
 }
@@ -254,7 +257,7 @@ export function runTests(
     describe(`Running warp compilation tests on ${contractsFolder} solidity files`, async function () {
       findSolSourceFilePaths(warpCompilationTestPath, true).forEach((file) => {
         if (filter === undefined || file.includes(filter)) {
-          let compileResult: { result: ResultType; cairoFiles?: string[] };
+          let compileResult: { result: ResultType; cairoProjects?: Set<string> };
           const expectedResult: ResultType | undefined = expectedResults.get(
             path.join(warpTest, file),
           );
@@ -271,10 +274,10 @@ export function runTests(
               }
             });
             if (expectedResult !== undefined && cairoCompileResultTypes.includes(expectedResult)) {
-              it(`Running cairo compile on ${file}`, async () => {
-                if (compileResult.cairoFiles !== undefined) {
-                  compileResult.cairoFiles.forEach((cairoFile) => {
-                    const cairoCompileResult = runCairoFileTest(cairoFile, results, onlyResults);
+              it(`Running cairo compile on project ${file}`, async () => {
+                if (compileResult.cairoProjects !== undefined) {
+                  compileResult.cairoProjects.forEach((cairoProject) => {
+                    const cairoCompileResult = runCairoFileTest(cairoProject, results, onlyResults);
                     expect(cairoCompileResult).to.equal(expectedResult);
                   });
                 }

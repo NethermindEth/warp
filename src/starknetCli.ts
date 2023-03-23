@@ -17,6 +17,7 @@ import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
 import { getPlatform } from './nethersolc';
+import { existsSync } from 'fs';
 
 // Options of StarkNet cli commands
 const GATEWAY_URL = 'gateway_url';
@@ -51,16 +52,21 @@ interface CompileCairo1Result {
   casmResultPath?: string;
 }
 
-export function compileCairo1(filePath: string, debug = true): CompileCairo1Result {
-  assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
-  const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
-  const sierraResultPath = `${cairoPathRoot}.sierra`;
-  const casmResultPath = `${cairoPathRoot}.casm`;
+export function compileCairo1(cairoProjectPath: string, debug = true): CompileCairo1Result {
+  // check existence of cairo project dir and proejct files
+  assert(existsSync(cairoProjectPath), `Cairo project does not exist at ${cairoProjectPath}`);
+  const libPath = path.join(cairoProjectPath, 'lib.cairo');
+  const tomlPath = path.join(cairoProjectPath, 'cairo_project.toml');
+  assert(existsSync(libPath), `lib.cairo does not exist at ${libPath}`);
+  assert(existsSync(tomlPath), `cairo_project.toml does not exist at ${tomlPath}`);
+
+  const sierraResultPath = `${cairoProjectPath}/temp.sierra`;
+  const casmResultPath = `${cairoProjectPath}/temp.casm`;
 
   try {
     if (debug) console.log(`Running cairo1 compile`);
     execSync(
-      `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${filePath} ${sierraResultPath} --replace-ids`,
+      `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${cairoProjectPath} ${sierraResultPath} --replace-ids`,
       { stdio: 'inherit' },
     );
     return { success: true, sierraResultPath: sierraResultPath, casmResultPath: casmResultPath };
