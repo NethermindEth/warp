@@ -67,6 +67,9 @@ jobs:
           make
           make compile
 
+      - name: Build warplib
+        run: yarn warplib
+
       - name: Setup warp_venv
         run: bin/warp install --python python --verbose
 
