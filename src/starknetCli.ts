@@ -53,7 +53,7 @@ interface CompileCairo1Result {
 }
 
 export function compileCairo1(cairoProjectPath: string, debug = true): CompileCairo1Result {
-  // check existence of cairo project dir and proejct files
+  // check existence of cairo project dir and project files
   assert(existsSync(cairoProjectPath), `Cairo project does not exist at ${cairoProjectPath}`);
   const libPath = path.join(cairoProjectPath, 'lib.cairo');
   const tomlPath = path.join(cairoProjectPath, 'cairo_project.toml');

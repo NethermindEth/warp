@@ -11,7 +11,7 @@ compile:
 test_compilation:
 	yarn test:compilation --only-results --force
 
-test_exmaples_compilation:
+test_examples_compilation:
 	yarn test:examples --only-results --force
 
 test_execution:

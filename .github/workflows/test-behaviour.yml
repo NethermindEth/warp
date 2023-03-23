@@ -77,7 +77,7 @@ jobs:
       #   run: make test_compilation
 
       - name: Test code examples compilation
-        run: make test_exmaples_compilation
+        run: make test_examples_compilation
 
   build:
     # only runs on pull requests to the main and develop branches
