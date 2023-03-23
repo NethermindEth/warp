@@ -253,33 +253,36 @@ describe('Running compilation tests', function () {
     filter = process.env.FILTER;
   });
 
-  describe('Running warp compilation tests on solidity files', async function () {
+  describe('Running warp compilation tests on compilation solidity files', async function () {
     findSolSourceFilePaths(WARP_COMPILATION_TEST_PATH, true).forEach((file) => {
       if (filter === undefined || file.includes(filter)) {
         let compileResult: { result: ResultType; cairoFiles?: string[] };
         const expectedResult: ResultType | undefined = expectedResults.get(
           path.join(WARP_TEST, file),
         );
-        it(`Running warp compile on ${file}`, async () => {
-          compileResult = runSolFileTest(WARP_TEST, file, results, onlyResults, unsafe);
-          expect(expectedResult).to.not.be.undefined;
-          if (expectedResult === 'Success') {
-            expect(compileResult.result).to.equal('Success');
-          }
-          if (expectedResult !== undefined && solCompileResultTypes.includes(expectedResult)) {
-            expect(compileResult.result).to.equal(expectedResult);
-          }
-        });
-        if (expectedResult !== undefined && cairoCompileResultTypes.includes(expectedResult)) {
-          it(`Running cairo compile on ${file}`, async () => {
-            if (compileResult.cairoFiles !== undefined) {
-              compileResult.cairoFiles.forEach((cairoFile) => {
-                const cairoCompileResult = runCairoFileTest(cairoFile, results, onlyResults);
-                expect(cairoCompileResult).to.equal(expectedResult);
-              });
+
+        describe(`Running compilation test on ${file}`, async function () {
+          it(`Running warp compile on ${file}`, async () => {
+            compileResult = runSolFileTest(WARP_TEST, file, results, onlyResults, unsafe);
+            expect(expectedResult).to.not.be.undefined;
+            if (expectedResult === 'Success') {
+              expect(compileResult.result).to.equal('Success');
+            }
+            if (expectedResult !== undefined && solCompileResultTypes.includes(expectedResult)) {
+              expect(compileResult.result).to.equal(expectedResult);
             }
           });
-        }
+          if (expectedResult !== undefined && cairoCompileResultTypes.includes(expectedResult)) {
+            it(`Running cairo compile on ${file}`, async () => {
+              if (compileResult.cairoFiles !== undefined) {
+                compileResult.cairoFiles.forEach((cairoFile) => {
+                  const cairoCompileResult = runCairoFileTest(cairoFile, results, onlyResults);
+                  expect(cairoCompileResult).to.equal(expectedResult);
+                });
+              }
+            });
+          }
+        });
       }
     });
   });
