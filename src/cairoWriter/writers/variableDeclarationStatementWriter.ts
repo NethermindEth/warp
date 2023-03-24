@@ -290,7 +290,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
 
           (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
             if (element instanceof Identifier) {
-              argRound.push((element as Identifier).name + ',');
+              argRound.push((element as Identifier).name);
               valuesAreDefault = false;
             } else {
               isStringArray = true;
