@@ -186,7 +186,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
               argRound = [];
             }
             // bool type
-            if (elementT instanceof BoolType) {
+            else if (elementT instanceof BoolType) {
               (element as TupleExpression).vComponents?.forEach((ele) => {
                 if (ele instanceof Identifier) {
                   argRound.push((element as Identifier).name + `${single ? ',' : ''}`);
@@ -274,9 +274,12 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         } else if (elementT instanceof UserDefinedType) {
           valuesAreDefault = false;
           let argRound: string[] = [];
+          const isSingle =
+            ((node as VariableDeclarationStatement).vInitialValue as FunctionCall).vArguments
+              .length === 1;
           ((node as VariableDeclarationStatement).vInitialValue as FunctionCall).vArguments.forEach(
             (ele) => {
-              argRound.push(`${(ele as Identifier).name}`);
+              argRound.push(`${(ele as Identifier).name}${isSingle ? ',' : ''}`);
             },
           );
           argumentList.push(argRound.join(', '));
@@ -288,21 +291,18 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
               argRound.push((element as Identifier).name + ',');
               valuesAreDefault = false;
             } else {
-              const single = (element as FunctionCall)?.vArguments.length === 1;
-              (element as FunctionCall)?.vArguments?.forEach((ele) => {
-                const value = (ele as Literal).value;
+              if (element instanceof Literal) {
+                const value = (element as Literal).value;
                 if (value === '') {
-                  argRound.push(`0x0${single ? ',' : ''}`);
+                  argRound.push(`0x0,`);
                 } else if (value === '0') {
                   argRound.push(
-                    `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
-                      single ? ',' : ''
-                    }`,
+                    `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value},`,
                   );
                 } else if (value === '0x0') {
-                  argRound.push(`0x0${single ? ',' : ''}`);
+                  argRound.push(`0x0,`);
                 } else if (value === 'false') {
-                  argRound.push(`0${single ? ',' : ''}`);
+                  argRound.push(`0,`);
                 } else {
                   valuesAreDefault = false;
 
@@ -310,26 +310,63 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                     const type = typeof JSON.parse(value);
                     if (type === 'number') {
                       argRound.push(
-                        `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
-                          single ? ',' : ''
-                        }`,
+                        `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value},`,
                       );
                     } else if (type === 'boolean') {
-                      argRound.push(`1${single ? ',' : ''}`);
+                      argRound.push(`1,`);
                     }
                   } catch (error) {
                     if (value.includes('0x')) {
-                      argRound.push(`${value}${single ? ',' : ''}`);
+                      argRound.push(`${value},`);
                     } else {
-                      argRound.push(
-                        `${((element as FunctionCall)?.vArguments[0] as Literal).hexValue}${
-                          single ? ',' : ''
-                        }`,
-                      );
+                      argRound.push(`${(element as Literal).hexValue},`);
                     }
                   }
                 }
-              });
+              } else if (element instanceof FunctionCall) {
+                const single = (element as FunctionCall)?.vArguments.length === 1;
+                (element as FunctionCall)?.vArguments?.forEach((ele) => {
+                  const value = (ele as Literal).value;
+                  if (value === '') {
+                    argRound.push(`0x0${single ? ',' : ''}`);
+                  } else if (value === '0') {
+                    argRound.push(
+                      `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
+                        single ? ',' : ''
+                      }`,
+                    );
+                  } else if (value === '0x0') {
+                    argRound.push(`0x0${single ? ',' : ''}`);
+                  } else if (value === 'false') {
+                    argRound.push(`0${single ? ',' : ''}`);
+                  } else {
+                    valuesAreDefault = false;
+
+                    try {
+                      const type = typeof JSON.parse(value);
+                      if (type === 'number') {
+                        argRound.push(
+                          `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
+                            single ? ',' : ''
+                          }`,
+                        );
+                      } else if (type === 'boolean') {
+                        argRound.push(`1${single ? ',' : ''}`);
+                      }
+                    } catch (error) {
+                      if (value.includes('0x')) {
+                        argRound.push(`${value}${single ? ',' : ''}`);
+                      } else {
+                        argRound.push(
+                          `${((element as FunctionCall)?.vArguments[0] as Literal).hexValue}${
+                            single ? ',' : ''
+                          }`,
+                        );
+                      }
+                    }
+                  }
+                });
+              }
             }
 
             argumentList.push(argRound.join(', '));
