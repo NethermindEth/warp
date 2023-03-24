@@ -319,7 +319,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                     if (value.includes('0x')) {
                       argRound.push(`${value},`);
                     } else {
-                      argRound.push(`${(element as Literal).hexValue},`);
+                      argRound.push(`0x${(element as Literal).hexValue},`);
                     }
                   }
                 }
@@ -358,7 +358,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                         argRound.push(`${value}${single ? ',' : ''}`);
                       } else {
                         argRound.push(
-                          `${((element as FunctionCall)?.vArguments[0] as Literal).hexValue}${
+                          `0x${((element as FunctionCall)?.vArguments[0] as Literal).hexValue}${
                             single ? ',' : ''
                           }`,
                         );
