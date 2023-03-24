@@ -401,7 +401,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         : [],
       `    dict_write{dict_ptr=warp_memory}(index, ${
         isBytesOrString || (isStaticDynamic && !isIdentifier)
-          ? 'arr'
+          ? isBytesOrString && isUserDefined
+            ? 'definedArr[0]'
+            : 'arr'
           : isUserDefined || isIdentifier
           ? 'definedArr[0]'
           : '0'
