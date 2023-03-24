@@ -119,7 +119,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         userDefined = true;
         if (ele instanceof TupleExpression) {
           let argsRound: string[] = [];
-          (ele as TupleExpression).vOriginalComponents.forEach((e) => {
+          (ele as TupleExpression).vOriginalComponents.forEach(() => {
             argsRound.push('felt');
           });
           args.push(`(${argsRound.join(', ')})`);
