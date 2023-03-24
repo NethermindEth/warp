@@ -111,6 +111,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         node.vInitialValue instanceof FunctionCall &&
         !(node.vInitialValue instanceof Identifier)
       ) {
+        let isStringArray = false;
         if ((node.vInitialValue as FunctionCall)?.vArguments[0] instanceof TupleExpression) {
           let argRound: string[] = [];
           (node.vInitialValue as FunctionCall).vArguments?.forEach((element, index) => {
@@ -286,23 +287,25 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           argRound = [];
         } else {
           let argRound: string[] = [];
+
           (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
             if (element instanceof Identifier) {
               argRound.push((element as Identifier).name + ',');
               valuesAreDefault = false;
             } else {
+              isStringArray = true;
               if (element instanceof Literal) {
                 const value = (element as Literal).value;
                 if (value === '') {
-                  argRound.push(`0x0,`);
+                  argRound.push(`0x0`);
                 } else if (value === '0') {
                   argRound.push(
-                    `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value},`,
+                    `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}`,
                   );
                 } else if (value === '0x0') {
-                  argRound.push(`0x0,`);
+                  argRound.push(`0x0`);
                 } else if (value === 'false') {
-                  argRound.push(`0,`);
+                  argRound.push(`0`);
                 } else {
                   valuesAreDefault = false;
 
@@ -310,16 +313,16 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                     const type = typeof JSON.parse(value);
                     if (type === 'number') {
                       argRound.push(
-                        `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value},`,
+                        `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}`,
                       );
                     } else if (type === 'boolean') {
-                      argRound.push(`1,`);
+                      argRound.push(`1`);
                     }
                   } catch (error) {
                     if (value.includes('0x')) {
-                      argRound.push(`${value},`);
+                      argRound.push(`${value}`);
                     } else {
-                      argRound.push(`0x${(element as Literal).hexValue},`);
+                      argRound.push(`0x${(element as Literal).hexValue}`);
                     }
                   }
                 }
@@ -376,6 +379,8 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
 
         return valuesAreDefault
           ? ''
+          : isStringArray
+          ? `, (${argumentList.join(', ')})`
           : elementT instanceof UserDefinedType && !isStructMatrix
           ? `, (${argumentList.join('), (')})`
           : `, ((${argumentList.join('), (')}))`;
