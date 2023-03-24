@@ -242,10 +242,10 @@ export function runTests(
     const results = new Map<string, ResultType>();
 
     this.beforeAll(() => {
-      onlyResults = process.argv.includes('--only-results') ? true : false;
-      unsafe = process.argv.includes('--unsafe') ? true : false;
-      force = process.argv.includes('--force') ? true : false;
-      exact = process.argv.includes('--exact') ? true : false;
+      onlyResults = process.argv.includes('--only-results');
+      unsafe = process.argv.includes('--unsafe');
+      force = process.argv.includes('--force');
+      exact = process.argv.includes('--exact');
       if (force) {
         postTestCleanup(warpTestFolder);
       } else {
