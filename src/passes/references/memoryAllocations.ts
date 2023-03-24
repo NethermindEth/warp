@@ -37,7 +37,10 @@ export class MemoryAllocations extends ReferenceSubPass {
     ) {
       const replacement = ast.getUtilFuncGen(node).memory.struct.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
-    } else if (node.vExpression instanceof NewExpression && !(node.parent instanceof TupleExpression)) {
+    } else if (
+      node.vExpression instanceof NewExpression &&
+      !(node.parent instanceof TupleExpression)
+    ) {
       if (actualLoc === DataLocation.Memory) {
         this.allocateMemoryDynArray(node, ast);
       } else {

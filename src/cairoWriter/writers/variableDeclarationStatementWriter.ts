@@ -61,22 +61,22 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
 
     let valuesAreDefault = true;
     let isStructMatrix = false;
-    let structInitCalls: string[] = [];
+    const structInitCalls: string[] = [];
 
     const getArguments = (): string => {
       const elementT =
         (nodeType as ArrayType).elementT instanceof ArrayType
           ? ((nodeType as ArrayType).elementT as ArrayType).elementT
           : (nodeType as ArrayType).elementT;
-      let argumentList: string[] = [];
+      const argumentList: string[] = [];
       if (elementT instanceof ArrayType) {
         (node.vInitialValue as FunctionCall).vArguments.forEach((element) => {
-          let argsRound: string[] = [];
+          const argsRound: string[] = [];
           (element as TupleExpression).vOriginalComponents.forEach((ele1) => {
-            let argsRoundL2: string[] = [];
+            const argsRoundL2: string[] = [];
             (ele1 as TupleExpression).vOriginalComponents.forEach((literal) => {
-              let value = (literal as Literal).value;
-              let isUint256 =
+              const value = (literal as Literal).value;
+              const isUint256 =
                 (elementT as ArrayType).elementT instanceof IntType
                   ? ((elementT as ArrayType).elementT as IntType).nBits === 256
                   : false;
@@ -114,25 +114,25 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         if ((node.vInitialValue as FunctionCall)?.vArguments[0] instanceof TupleExpression) {
           let argRound: string[] = [];
           (node.vInitialValue as FunctionCall).vArguments?.forEach((element, index) => {
-            let single = (node.vInitialValue as FunctionCall).vArguments.length === 1;
+            const single = (node.vInitialValue as FunctionCall).vArguments.length === 1;
             if (elementT instanceof UserDefinedType) {
               valuesAreDefault = false;
               isStructMatrix = true;
               let structElements: string[] = [];
-              let structInputArgs: string[] = [];
+              const structInputArgs: string[] = [];
               let argRound: string[] = [];
 
               (element as TupleExpression).vOriginalComponents.forEach((ele, ind) => {
                 argRound.push(`${funcName}_struct_${index}x${ind}`);
                 (ele as FunctionCall).vArguments.forEach((e, i) => {
-                  let value: string = '';
+                  let value = '';
                   if (e instanceof FunctionCall) {
                     value = ((e as FunctionCall).vArguments[0] as Literal).value;
                   } else if (e instanceof Literal) {
                     value = (e as Literal).value;
                   }
 
-                  let eleType = safeGetNodeType(
+                  const eleType = safeGetNodeType(
                     ((elementT as UserDefinedType).definition as StructDefinition).vMembers[i],
                     this.ast.inference,
                   );
@@ -150,7 +150,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                     structElements.push(`0${single ? ',' : ''}`);
                   } else {
                     try {
-                      let type = typeof JSON.parse(value);
+                      const type = typeof JSON.parse(value);
                       if (type === 'number') {
                         structElements.push(
                           `${(eleType as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
@@ -196,7 +196,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                     valuesAreDefault = false;
                   }
                   argRound.push(
-                    (ele as Literal).value == 'false'
+                    (ele as Literal).value === 'false'
                       ? `0${single ? ',' : ''}`
                       : `1${single ? ',' : ''}`,
                   );
@@ -288,9 +288,9 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
               argRound.push((element as Identifier).name + ',');
               valuesAreDefault = false;
             } else {
-              let single = (element as FunctionCall)?.vArguments.length === 1;
+              const single = (element as FunctionCall)?.vArguments.length === 1;
               (element as FunctionCall)?.vArguments?.forEach((ele) => {
-                let value = (ele as Literal).value;
+                const value = (ele as Literal).value;
                 if (value === '') {
                   argRound.push(`0x0${single ? ',' : ''}`);
                 } else if (value === '0') {
@@ -307,7 +307,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                   valuesAreDefault = false;
 
                   try {
-                    let type = typeof JSON.parse(value);
+                    const type = typeof JSON.parse(value);
                     if (type === 'number') {
                       argRound.push(
                         `${(elementT as IntType).nBits === 256 ? uint256(BigInt(value)) : value}${
@@ -347,7 +347,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         // bool type
 
         if (!(node.vInitialValue instanceof Identifier)) {
-          let single = (node.vInitialValue as FunctionCall).vArguments.length === 1;
+          const single = (node.vInitialValue as FunctionCall).vArguments.length === 1;
           if (elementT instanceof UserDefinedType) {
             valuesAreDefault = false;
             (node.vInitialValue as FunctionCall).vArguments.forEach((element) => {
@@ -364,7 +364,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                   valuesAreDefault = false;
                 }
                 argumentList.push(
-                  (element as Literal).value == 'false'
+                  (element as Literal).value === 'false'
                     ? `0${single ? ',' : ''}`
                     : `1${single ? ',' : ''}`,
                 );
@@ -444,7 +444,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       !funcName?.includes('storage')
     ) {
       isStaticArray = true;
-      let isBytes =
+      const isBytes =
         node.vInitialValue instanceof Identifier
           ? false
           : (node.vInitialValue as FunctionCall)?.vArguments[0] instanceof FunctionCall
@@ -452,14 +452,14 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
             ? true
             : false
           : false;
-      let isString =
+      const isString =
         node.vInitialValue instanceof Identifier
           ? false
           : ((node.vInitialValue as FunctionCall)?.vArguments[0] as Literal).kind === 'string'
           ? true
           : false;
-      let isMatrix = (nodeType as ArrayType).elementT instanceof ArrayType;
-      let is3dMatrix = isMatrix
+      const isMatrix = (nodeType as ArrayType).elementT instanceof ArrayType;
+      const is3dMatrix = isMatrix
         ? ((nodeType as ArrayType).elementT as ArrayType).elementT instanceof ArrayType
         : false;
       if (is3dMatrix && !isString && !isBytes) {

@@ -113,7 +113,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     let matrixSize = 0;
     let matrixL2Size = 0;
     let isIdentifier = false;
-    let args: string[] = [];
+    const args: string[] = [];
     elements.forEach((ele) => {
       if (elementT instanceof UserDefinedType) {
         userDefined = true;
@@ -144,11 +144,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         matrixL2Size = ((ele as TupleExpression).vOriginalComponents[0] as TupleExpression)
           .vOriginalComponents.length;
         (ele as TupleExpression).vOriginalComponents.forEach((ele1) => {
-          let argsRound: string[] = [];
+          const argsRound: string[] = [];
           (ele1 as TupleExpression).vOriginalComponents.forEach((ele2) => {
-            let argsRoundL2: string[] = [];
+            const argsRoundL2: string[] = [];
             (ele2 as FunctionCall).vArguments.forEach((literal) => {
-              let value = (literal as Literal).value;
+              const value = (literal as Literal).value;
 
               if (value === '0' || value === 'false' || value === '0x0') {
                 argsRoundL2.push(
@@ -170,7 +170,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           let argsRound: string[] = [];
           matrixSize = (ele as FunctionCall).vArguments.length;
           (ele as FunctionCall).vArguments.forEach((e) => {
-            let value = (e as Literal).value;
+            const value = (e as Literal).value;
 
             if (value === '0' || value === 'false' || value === '0x0') {
               argsRound.push(
@@ -327,10 +327,10 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   }
 
   private struct_initializer(funcName: string, members: string[]): string {
-    let feltMembers: string[] = [];
-    let memberIndex: number = 0;
-    let arrayIndex: number = 0;
-    let args: string[] = [];
+    const feltMembers: string[] = [];
+    let memberIndex = 0;
+    let arrayIndex = 0;
+    const args: string[] = [];
     members.forEach((member) => {
       if (member === 'Uint256') {
         feltMembers.push(
@@ -535,13 +535,13 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const isStruct = isMatrix
       ? (type as ArrayType).elementT instanceof UserDefinedType
       : type instanceof UserDefinedType;
-    let members: string[] = [];
+    const members: string[] = [];
     if (isStruct) {
       if (isMatrix) {
         (
           ((type as ArrayType).elementT as UserDefinedType).definition as StructDefinition
         ).vMembers.forEach((member) => {
-          let memberType = safeGetNodeType(member, this.ast.inference);
+          const memberType = safeGetNodeType(member, this.ast.inference);
           if (memberType instanceof IntType) {
             if ((memberType as IntType).nBits === 256) {
               members.push('Uint256');
@@ -569,7 +569,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       );
 
     const imports = () => {
-      let importList = [
+      const importList = [
         this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
         this.requireImport('warplib.memory', 'wm_alloc'),
         this.requireImport('warplib.memory', 'wm_write_256'),
