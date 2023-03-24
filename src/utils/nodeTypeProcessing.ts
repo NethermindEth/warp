@@ -16,6 +16,7 @@ import {
   FunctionLikeType,
   generalizeType,
   InferType,
+  IntLiteralType,
   IntType,
   Literal, // eslint-disable-line
   MappingType,
@@ -167,6 +168,15 @@ export function intTypeForLiteral(typestring: string): IntType {
     const width = 8 * Math.ceil(binaryLength / 8);
     return new IntType(width, true);
   }
+}
+
+export function literalToValueType(literal: TypeNode) {
+  if (literal instanceof IntLiteralType) {
+    const intType = literal.smallestFittingType();
+    assert(intType !== undefined);
+    return intType;
+  }
+  return literal;
 }
 
 export function isDynamicArray(type: TypeNode): boolean {

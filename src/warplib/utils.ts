@@ -14,7 +14,7 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from '../utils/astPrinter';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
-import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { literalToValueType, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import path from 'path';
 
 export type WarplibFunctionInfo = {
@@ -80,7 +80,7 @@ export function IntxIntFunction(
 ) {
   const lhsType = typeNameFromTypeNode(safeGetNodeType(node.vLeftExpression, ast.inference), ast);
   const rhsType = typeNameFromTypeNode(safeGetNodeType(node.vRightExpression, ast.inference), ast);
-  const retType = safeGetNodeType(node, ast.inference);
+  const retType = literalToValueType(safeGetNodeType(node, ast.inference));
   assert(
     retType instanceof IntType || retType instanceof FixedBytesType,
     `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with ${name}`,

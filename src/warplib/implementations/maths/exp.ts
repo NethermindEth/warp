@@ -8,7 +8,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
-import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
+import { literalToValueType, safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import { forAllWidths, getIntOrFixedByteBitWidth, mask, WarplibFunctionInfo } from '../../utils';
 
@@ -164,9 +164,9 @@ function getNegativeOneShortcutCode(signed: boolean, lhsWidth: number, rhsWide: 
 }
 
 export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AST) {
-  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
-  const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
-  const retType = safeGetNodeType(node, ast.inference);
+  const lhsType = literalToValueType(safeGetNodeType(node.vLeftExpression, ast.inference));
+  const rhsType = literalToValueType(safeGetNodeType(node.vRightExpression, ast.inference));
+  const retType = literalToValueType(safeGetNodeType(node, ast.inference));
   assert(
     retType instanceof IntType,
     `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with **`,

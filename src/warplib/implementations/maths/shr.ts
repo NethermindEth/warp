@@ -9,7 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
-import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
+import { literalToValueType, safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import {
   forAllWidths,
@@ -217,9 +217,9 @@ export function shr_signed(): WarplibFunctionInfo {
 }
 
 export function functionaliseShr(node: BinaryOperation, ast: AST): void {
-  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
-  const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
-  const retType = safeGetNodeType(node, ast.inference);
+  const lhsType = literalToValueType(safeGetNodeType(node.vLeftExpression, ast.inference));
+  const rhsType = literalToValueType(safeGetNodeType(node.vRightExpression, ast.inference));
+  const retType = literalToValueType(safeGetNodeType(node, ast.inference));
 
   assert(
     lhsType instanceof IntType || lhsType instanceof FixedBytesType,
