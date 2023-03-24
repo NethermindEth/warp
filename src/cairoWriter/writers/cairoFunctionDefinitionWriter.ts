@@ -16,6 +16,7 @@ import { notNull } from '../../utils/typeConstructs';
 import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
+import endent from 'endent';
 
 export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
@@ -105,12 +106,9 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     return [
       this.getConstructorStorageAllocation(node),
       ...keccakPtrInit,
-      'let (local warp_memory : DictAccess*) = default_dict_new(0);',
-      'local warp_memory_start: DictAccess* = warp_memory;',
-      'dict_write{dict_ptr=warp_memory}(0,1);',
-      `with warp_memory${keccakPtr}{`,
-      writer.write(node.vBody),
-      '}',
+      endent`let mut warp_memory: Array::<felt> = ArrayTrait::new();
+      ${writer.write(node.vBody)}
+      `,
     ]
       .flat()
       .filter(notNull)

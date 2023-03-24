@@ -17,7 +17,15 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { DICT_WRITE, GET_U128, WM_ALLOC, WM_WRITE256 } from '../../utils/importPaths';
+import {
+  ARRAY,
+  ARRAY_TRAIT,
+  DICT_WRITE,
+  GET_U128,
+  U32_TO_FELT,
+  WM_ALLOC,
+  WM_WRITE256,
+} from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -29,6 +37,7 @@ import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import endent from 'endent';
 
 /*
   Converts [a,b,c] and "abc" into WM0_arr(a,b,c), which allocates new space in warp_memory
@@ -117,32 +126,33 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     // If it's dynamic we need to include the length at the start
     const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
+    const writes = [
+      ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`] : []),
+      ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
+        .flat()
+        .map(
+          (name, index) => `warp_memory.append(${name});`,
+          // `warp_memory.insert(
+          //   ${add(
+          //   'start',
+          //   dynamic ? index + 2 : index,
+          // )},
+          // ${name});`,
+        ),
+    ];
     return {
       name: funcName,
-      code: [
-        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt){`,
-        `    alloc_locals;`,
-        `    let (start) = wm_alloc(${uint256(alloc_len)});`,
-        [
-          ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`] : []),
-          ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
-            .flat()
-            .map(
-              (name, index) =>
-                `dict_write{dict_ptr=warp_memory}(${add(
-                  'start',
-                  dynamic ? index + 2 : index,
-                )}, ${name});`,
-            ),
-        ].join('\n'),
-        `    return (start,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        fn ${funcName}(${argString}) -> felt {
+          let start = warp_memory.len();
+          ${writes.join('\n')}
+          return u32_to_felt(start);
+        }`,
       functionsCalled: [
-        this.requireImport(...WM_ALLOC),
-        this.requireImport(...WM_WRITE256),
-        this.requireImport(...GET_U128),
-        this.requireImport(...DICT_WRITE),
+        this.requireImport(...ARRAY),
+        this.requireImport(...ARRAY_TRAIT),
+        this.requireImport(...U32_TO_FELT),
       ],
     };
   }

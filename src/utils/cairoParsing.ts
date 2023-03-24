@@ -32,6 +32,7 @@ export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFu
 export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionInfo {
   const funcSignature =
     // For cairo 1
+    rawFunction.match(/#\[implicit\((?<implicits>.+)\)\](\s+)fn (?<name>\w+)/) ??
     rawFunction.match(/fn (?<name>\w+)/) ??
     // For cairo 0.10: Should be deleted eventually
     rawFunction.match(/func (?<name>\w+)\s*[{](?<implicits>.+)[}]/is) ??
@@ -45,9 +46,7 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
   const name = funcSignature.groups.name;
 
   const implicits =
-    funcSignature.groups.implicits !== undefined
-      ? parseImplicits(funcSignature.groups.implicits)
-      : [];
+    funcSignature.groups.implicits !== undefined ? ['warp_memory' as Implicits] : [];
 
   return { name, implicits };
 }

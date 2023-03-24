@@ -37,6 +37,10 @@ import {
   UINT256_MUL,
   UINT256_SUB,
   INTO,
+  ARRAY,
+  ARRAY_TRAIT,
+  GET_U32,
+  U32_TO_FELT,
 } from './importPaths';
 
 export function createImport(
@@ -123,6 +127,10 @@ export function createImport(
     case encodePath(ADDRESS_INTO_FELT):
     case encodePath(U128_TO_FELT):
     case encodePath(U256_FROM_FELTS):
+    case encodePath(ARRAY):
+    case encodePath(ARRAY_TRAIT):
+    case encodePath(GET_U32):
+    case encodePath(U32_TO_FELT):
       return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);

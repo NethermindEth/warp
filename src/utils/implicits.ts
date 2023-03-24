@@ -41,9 +41,6 @@ export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Im
     case 'bitwise_ptr':
       ast.registerImport(node, ...BITWISE_BUILTIN, [], []);
       break;
-    case 'warp_memory':
-      ast.registerImport(node, ...DICT_ACCESS, [], []);
-      break;
   }
 }
 
