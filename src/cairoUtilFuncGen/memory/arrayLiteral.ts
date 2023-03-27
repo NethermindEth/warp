@@ -17,15 +17,7 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  ARRAY,
-  ARRAY_TRAIT,
-  DICT_WRITE,
-  GET_U128,
-  U32_TO_FELT,
-  WM_ALLOC,
-  WM_WRITE256,
-} from '../../utils/importPaths';
+import { ARRAY, ARRAY_TRAIT, U32_TO_FELT } from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -36,7 +28,7 @@ import {
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import endent from 'endent';
 
 /*

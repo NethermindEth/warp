@@ -1,6 +1,6 @@
 import { ASTNode } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { BITWISE_BUILTIN, DICT_ACCESS } from './importPaths';
+import { BITWISE_BUILTIN } from './importPaths';
 
 export type Implicits =
   | 'bitwise_ptr'

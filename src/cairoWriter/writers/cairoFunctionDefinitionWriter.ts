@@ -77,33 +77,15 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   private getBody(node: CairoFunctionDefinition, writer: ASTWriter): string | null {
     if (node.vBody === undefined) return null;
 
-    const [keccakPtrInit, [withKeccak, end]] =
-      node.implicits.has('keccak_ptr') && isExternallyVisible(node)
-        ? [
-            [
-              'let (local keccak_ptr_start : felt*) = alloc();',
-              'let keccak_ptr = keccak_ptr_start;',
-            ],
-            ['with keccak_ptr{', '}'],
-          ]
-        : [[], ['', '']];
-
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
-      return [
-        this.getConstructorStorageAllocation(node),
-        ...keccakPtrInit,
-        withKeccak,
-        writer.write(node.vBody),
-        end,
-      ]
+      return [this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
         .filter(notNull)
         .join('\n');
     }
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
-    const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
-    return [this.getConstructorStorageAllocation(node), ...keccakPtrInit, writer.write(node.vBody)]
+    return [this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
       .flat()
       .filter(notNull)
       .join('\n');
