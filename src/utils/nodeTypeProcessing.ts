@@ -323,6 +323,9 @@ export class WarpInferType extends InferType {
       return getNodeType(node, this);
     }
   }
+  typeOfLiteral(node: Literal): TypeNode {
+    return getNodeType(node, this);
+  }
 }
 
 export function safeGetNodeType(
@@ -330,9 +333,6 @@ export function safeGetNodeType(
   inference: InferType,
 ): TypeNode {
   getContainingSourceUnit(node);
-  if (node instanceof Literal) {
-    return getNodeType(node, inference);
-  }
   if (node instanceof CairoAssert) {
     return new TupleType([]);
   }
