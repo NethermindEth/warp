@@ -67,7 +67,7 @@ import { getContainingSourceUnit } from '../utils/utils';
 export class NewToDeploy extends ASTMapper {
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
-      'Ffi', // Define the `encoder` util function after the free funtion has been moved
+      'Ffi', // Define the `encoder` util function after the free function has been moved
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }

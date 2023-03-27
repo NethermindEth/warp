@@ -193,7 +193,7 @@ function genFunctionParams(
   ast: AST,
 ): VariableDeclaration[] {
   /*
-    This function will return the list of paramters
+    This function will return the list of parameters
     for a getter function of a public state var
     For e.g 
       mapping(uint => mapping(address => uint256))  

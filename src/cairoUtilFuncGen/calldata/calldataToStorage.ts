@@ -113,7 +113,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     return { name: funcName, code: code, functionsCalled: funcsCalled };
   }
 
-  // TODO: Check if funcion size can be reduced for big static arrays
+  // TODO: Check if function size can be reduced for big static arrays
   private createStaticArrayCopyFunction(arrayType: ArrayType): GeneratedFunctionInfo {
     assert(arrayType.size !== undefined);
 

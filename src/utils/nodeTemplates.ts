@@ -288,7 +288,7 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
 
 export function createVariableDeclarationStatement(
   varDecls: (VariableDeclaration | null)[],
-  intitalValue: Expression | undefined,
+  initialValue: Expression | undefined,
   ast: AST,
 ): VariableDeclarationStatement {
   assert(
@@ -300,7 +300,7 @@ export function createVariableDeclarationStatement(
     '',
     varDecls.map((v) => (v === null ? null : v.id)),
     varDecls.filter(notNull),
-    intitalValue,
+    initialValue,
   );
   ast.setContextRecursive(node);
   return node;

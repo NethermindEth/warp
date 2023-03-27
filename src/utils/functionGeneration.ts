@@ -113,7 +113,7 @@ export function createCairoGeneratedFunction(
   return funcDef;
 }
 
-export function createCairoImportFunctionDefintion(
+export function createCairoImportFunctionDefinition(
   funcName: string,
   path: string,
   implicits: Set<Implicits>,

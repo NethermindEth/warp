@@ -79,7 +79,7 @@ program
     false,
   )
   .option('--print-trees', 'Debug: Print all the intermediate ASTs')
-  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
+  .option('--no-stubs', 'Debug: Hide the stubs in the intermediate ASTs when using --print-trees')
   .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
   .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings', 'Suppress warnings from the Solidity compiler')
@@ -152,7 +152,7 @@ program
   .option('--order <passOrder>', 'Use a custom set of transpilation passes')
   .option('-o, --output-dir <path>', 'Output directory for transformed Solidity files')
   .option('--print-trees', 'Debug: Print all the intermediate ASTs')
-  .option('--no-stubs', 'Debug: Hide the stubs in the intermedidate ASTs when using --print-trees')
+  .option('--no-stubs', 'Debug: Hide the stubs in the intermediate ASTs when using --print-trees')
   .option('--no-strict', 'Debug: Allow silent failure of AST consistency checks')
   .option('--until <pass>', 'Stop processing at specified pass')
   .option('--no-warnings', 'Suppress printed warnings')
@@ -235,7 +235,7 @@ export interface SolcInterfaceGenOptions {
 program
   .command('gen-interface <file>')
   .description(
-    'Use native Cairo contracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
+    'Use native Cairo contracts in your Solidity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract',
   )
   .option('--cairo-path <cairo-path>', 'Cairo libraries/modules import path')
   .option(
@@ -275,7 +275,7 @@ program
   .option('-d, --debug_info', 'Compile include debug information', false)
   .option(
     '--inputs <inputs...>',
-    'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists',
+    'Arguments to be passed to constructor of the program as a comma separated list of strings, ints and lists',
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs', false)
