@@ -64,7 +64,7 @@ describe('Transpile solidity', function () {
   }
 });
 
-// Compiling the transpiled contracts using the StarkNet CLI.
+// Compiling the transpiled contracts using the Starknet CLI.
 describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
@@ -113,7 +113,7 @@ const deployedAddresses: Map<string, { address: string; hash: string }> = new Ma
 
 // Deploying the tests to the Testnet thought interface commands
 // The test net is a flask server that runs and therefor cannot be interacted with
-// in the same manner as the StarkNet CLI.
+// in the same manner as the Starknet CLI.
 describe('Compiled contracts are deployable', function () {
   this.timeout(TIME_LIMIT);
 

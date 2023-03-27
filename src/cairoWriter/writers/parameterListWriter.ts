@@ -3,7 +3,6 @@ import {
   ContractDefinition,
   DataLocation,
   FunctionDefinition,
-  InferType,
   ParameterList,
   SrcDesc,
 } from 'solc-typed-ast';
@@ -13,7 +12,7 @@ import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 
 export class ParameterListWriter extends CairoASTNodeWriter {
-  writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
+  writeInner(node: ParameterList, _writer: ASTWriter): SrcDesc {
     const defContext =
       node.parent instanceof FunctionDefinition && isExternallyVisible(node.parent)
         ? TypeConversionContext.CallDataRef
@@ -26,7 +25,7 @@ export class ParameterListWriter extends CairoASTNodeWriter {
           : defContext;
 
       const tp = CairoType.fromSol(
-        safeGetNodeType(value, new InferType(writer.targetCompilerVersion)),
+        safeGetNodeType(value, this.ast.inference),
         this.ast,
         varTypeConversionContext,
       );

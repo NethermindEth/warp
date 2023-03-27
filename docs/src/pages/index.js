@@ -18,7 +18,7 @@ function HomepageHeader() {
         </h1>
         <p className="hero__subtitle">
           <Translate id="homepage.projectDescription" description="Description of Warp at homepage">
-            Bringing Solidity to StarkNet at warp speed
+            Bringing Solidity to Starknet at warp speed
           </Translate>
         </p>
         <div className={styles.buttons}>

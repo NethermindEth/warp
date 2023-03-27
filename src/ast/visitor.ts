@@ -73,6 +73,7 @@ import {
 } from './cairoNodes';
 
 import { AST } from './ast';
+import { CairoGeneratedFunctionDefinition } from './cairoNodes/cairoGeneratedFunctionDefinition';
 
 /*
  Visits every node in a tree in depth first order, calling visitT for each T extends ASTNode
@@ -120,6 +121,8 @@ export abstract class ASTVisitor<T> {
     else if (node instanceof Literal) res = this.visitLiteral(node, ast);
     else if (node instanceof TupleExpression) res = this.visitTupleExpression(node, ast);
     else if (node instanceof UnaryOperation) res = this.visitUnaryOperation(node, ast);
+    else if (node instanceof CairoGeneratedFunctionDefinition)
+      res = this.visitCairoGeneratedFunctionDefinition(node, ast);
     else if (node instanceof CairoFunctionDefinition)
       res = this.visitCairoFunctionDefinition(node, ast);
     else if (node instanceof CairoTempVarStatement) res = this.visitCairoTempVar(node, ast);
@@ -168,6 +171,9 @@ export abstract class ASTVisitor<T> {
   abstract commonVisit(node: ASTNode, ast: AST): T;
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): T {
     return this.visitFunctionDefinition(node, ast);
+  }
+  visitCairoGeneratedFunctionDefinition(node: CairoGeneratedFunctionDefinition, ast: AST): T {
+    return this.visitCairoFunctionDefinition(node, ast);
   }
   visitCairoTempVar(node: CairoTempVarStatement, ast: AST): T {
     return this.commonVisit(node, ast);

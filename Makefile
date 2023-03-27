@@ -9,7 +9,7 @@ compile:
 	yarn tsc
 
 test_compilation:
-	bin/warp test --exact -f
+	yarn test:examples
 
 test_execution:
 	yarn test

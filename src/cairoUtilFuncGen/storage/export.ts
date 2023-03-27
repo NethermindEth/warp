@@ -9,7 +9,6 @@ export * from './storageToMemory';
 export * from './storageRead';
 export * from './dynArray';
 export * from './dynArrayIndexAccess';
-export * from './dynArrayLength';
 export * from './dynArrayPop';
 export * from './storageWrite';
 export * from './storageDelete';

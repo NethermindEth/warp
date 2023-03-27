@@ -25,7 +25,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createAddressTypeName, createUint256TypeName } from '../../utils/nodeTemplates';
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
 import { functionaliseBytesToFixedBytes } from '../../warplib/implementations/conversions/dynBytesToFixed';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -79,20 +79,17 @@ export class ExplicitConversionToFunc extends ASTMapper {
         functionaliseIntConversion(node, ast);
       } else if (argType instanceof AddressType) {
         const replacementCall = createCallToFunction(
-          createCairoFunctionStub(
+          ast.registerImport(
+            node,
+            'warplib.maths.utils',
             'felt_to_uint256',
             [['address_arg', createAddressTypeName(false, ast)]],
             [['uint_ret', createUint256TypeName(ast)]],
-            ['range_check_ptr'],
-            ast,
-            node,
           ),
           [node.vArguments[0]],
           ast,
         );
-
         ast.replaceNode(node, replacementCall);
-        ast.registerImport(replacementCall, 'warplib.maths.utils', 'felt_to_uint256');
       } else {
         throw new NotSupportedYetError(
           `Unexpected type ${printTypeNode(argType)} in uint256 conversion`,
@@ -107,20 +104,17 @@ export class ExplicitConversionToFunc extends ASTMapper {
         (argType instanceof FixedBytesType && argType.size === 32)
       ) {
         const replacementCall = createCallToFunction(
-          createCairoFunctionStub(
+          ast.registerImport(
+            node,
+            'warplib.maths.utils',
             'uint256_to_address_felt',
             [['uint_arg', createUint256TypeName(ast)]],
             [['address_ret', createAddressTypeName(false, ast)]],
-            [],
-            ast,
-            node,
           ),
           [node.vArguments[0]],
           ast,
         );
-
         ast.replaceNode(node, replacementCall);
-        ast.registerImport(replacementCall, 'warplib.maths.utils', 'uint256_to_address_felt');
       } else {
         ast.replaceNode(node, node.vArguments[0]);
       }
@@ -130,20 +124,18 @@ export class ExplicitConversionToFunc extends ASTMapper {
     if (typeTo instanceof FixedBytesType) {
       if (argType instanceof AddressType) {
         const replacementCall = createCallToFunction(
-          createCairoFunctionStub(
+          ast.registerImport(
+            node,
+            'warplib.maths.utils',
             'felt_to_uint256',
             [['address_arg', createAddressTypeName(false, ast)]],
             [['uint_ret', createUint256TypeName(ast)]],
-            ['range_check_ptr'],
-            ast,
-            node,
           ),
           [node.vArguments[0]],
           ast,
         );
 
         ast.replaceNode(node, replacementCall);
-        ast.registerImport(replacementCall, 'warplib.maths.utils', 'felt_to_uint256');
         return;
       } else if (argType instanceof BytesType) {
         functionaliseBytesToFixedBytes(node, typeTo, ast);

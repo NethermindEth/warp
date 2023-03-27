@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ArrayType,
-  ASTNode,
   BytesType,
   DataLocation,
   FunctionCall,
@@ -12,8 +11,9 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   getElementType,
   isDynamicArray,
@@ -21,7 +21,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
 
@@ -35,7 +35,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  gen(pop: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
+  public gen(pop: FunctionCall): FunctionCall {
     assert(pop.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
       safeGetNodeType(pop.vExpression.vExpression, this.ast.inference),
@@ -46,35 +46,44 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         arrayType instanceof StringType,
     );
 
-    const name = this.getOrCreate(getElementType(arrayType));
-
-    const functionStub = createCairoFunctionStub(
-      name,
-      [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
-      [],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? pop,
-    );
-
-    return createCallToFunction(functionStub, [pop.vExpression.vExpression], this.ast);
+    const funcDef = this.getOrCreateFuncDef(arrayType);
+    return createCallToFunction(funcDef, [pop.vExpression.vExpression], this.ast);
   }
 
-  private getOrCreate(elementType: TypeNode): string {
+  public getOrCreateFuncDef(
+    arrayType: ArrayType | BytesType | StringType,
+  ): CairoFunctionDefinition {
+    const elementT = getElementType(arrayType);
     const cairoElementType = CairoType.fromSol(
-      elementType,
+      elementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
 
     const key = cairoElementType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
     }
 
-    const [arrayName, lengthName] = this.dynArrayGen.gen(cairoElementType);
-    const deleteFuncName = this.storageDelete.genFuncName(elementType);
+    const funcInfo = this.getOrCreate(elementT);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
+      [],
+      this.ast,
+      this.sourceUnit,
+    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
+  }
+
+  private getOrCreate(elementType: TypeNode): GeneratedFunctionInfo {
+    const deleteFunc = this.storageDelete.getOrCreateFuncDef(elementType);
+    const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementType);
+
+    const arrayName = dynArray.name;
+    const lengthName = dynArrayLength.name;
 
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
@@ -85,7 +94,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         : `let (elem_loc) = ${arrayName}.read(loc, newLen);`;
 
     const funcName = `${arrayName}_POP`;
-    this.generatedFunctions.set(key, {
+    return {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (){`,
@@ -96,13 +105,17 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         `    let (newLen) = uint256_sub(len, Uint256(1,0));`,
         `    ${lengthName}.write(loc, newLen);`,
         `    ${getElemLoc}`,
-        `    return ${deleteFuncName}(elem_loc);`,
+        `    return ${deleteFunc.name}(elem_loc);`,
         `}`,
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
-    return funcName;
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
+        deleteFunc,
+        dynArray,
+        dynArrayLength,
+      ],
+    };
   }
 }

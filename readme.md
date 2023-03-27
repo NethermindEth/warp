@@ -2,8 +2,8 @@
 
 # Warp
 
-Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
-smart contracts to StarkNet Cairo Contracts.
+Warp brings Solidity to Starknet, making it possible to transpile Ethereum
+smart contracts to Starknet Cairo Contracts.
 
 ## Quickstart
 
@@ -21,10 +21,10 @@ docker-compose up
 ### Transpile
 
 ```bash
-docker-compose exec warp warp transpile example_contracts/ERC20.sol
+docker-compose exec warp warp transpile exampleContracts/ERC20.sol
 ```
 
-It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
+It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `exampleContracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
 
 ### Deploy to devnet
 
@@ -45,18 +45,18 @@ You can install warp in one of two methods, read more about it [here](installati
 
 If you have used installation method 1 you can use the `warp` command in any folder. If you have used installation method 2, you will have to specify the path to the warp directory followed by `bin/warp` e.g `path_to_warp_repo/bin/warp ...`
 
-### StarkNet setup
+### Starknet setup
 
 Select your network and wallet types. It's recommended to set these as
 environment variables but they can also be passed as explicit arguments to the
-Warp CLI and the StarkNet CLI.
+Warp CLI and the Starknet CLI.
 
 ```
 export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
 export STARKNET_NETWORK=alpha-goerli
 ```
 
-Make sure you have a StarkNet account set up, if you have not done so yet
+Make sure you have a Starknet account set up, if you have not done so yet
 please:
 
 ```
@@ -72,18 +72,18 @@ To transpile a Solidity contract:
 warp transpile <path to Solidity contract>
 ```
 
-To declare a StarkNet contract:
+To declare a Starknet contract:
 
 ```bash
-warp declare <path to StarkNet contract>
+warp declare <path to Starknet contract>
 ```
 
 _Please note to deploy a contract you will first have to declare it._
 
-To deploy a StarkNet contract:
+To deploy a Starknet contract:
 
 ```bash
-warp deploy <path to StarkNet contract>
+warp deploy <path to Starknet contract>
 ```
 
 The deploy command will generate the compiled json file as well as the abi json
@@ -102,7 +102,7 @@ Libraries are bundled into the point of use, therefore if you try transpile a st
 
 <hr>
 Several features of Solidity are not supported/do not have analogs in Starknet yet.
-We will try our best to add these features as StarkNet supports them, but some may not be
+We will try our best to add these features as Starknet supports them, but some may not be
 possible due to fundamental differences in the platforms.
 
 Please see the list below:
@@ -144,7 +144,7 @@ Please see the list below:
 | member access of address object e.g address.balance |    :question:     |
 |              nested tuple assignments               |    :question:     |
 
-Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
+Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for Starknet addresses.
 
 ## Docker :whale:
 
@@ -160,7 +160,7 @@ docker build -t warp .
 Run the container with the same options and arguments as the Warp binary:
 
 ```bash
-docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
+docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile exampleContracts/ERC20.sol
 ```
 
 ## Contributing
@@ -169,4 +169,4 @@ You can read about contributing, first steps, devlopment tips and testing for co
 
 ## Contact Us :phone:
 
-[![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT) [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/)
+[![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT) [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/nethermindeth)

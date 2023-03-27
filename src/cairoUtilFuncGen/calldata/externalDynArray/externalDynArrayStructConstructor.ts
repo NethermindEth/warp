@@ -10,15 +10,19 @@ import {
   generalizeType,
   BytesType,
   StringType,
+  TypeNode,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
+import {
+  createCairoGeneratedFunction,
+  createCallToFunction,
+} from '../../../utils/functionGeneration';
 import {
   CairoType,
   generateCallDataDynArrayStructName,
   TypeConversionContext,
 } from '../../../utils/cairoTypeSystem';
-import { StringIndexedFuncGen } from '../../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../../base';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { FunctionStubKind } from '../../../ast/cairoNodes';
 import { typeNameFromTypeNode } from '../../../utils/utils';
@@ -32,9 +36,9 @@ import {
 const INDENT = ' '.repeat(4);
 
 export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
-  gen(astNode: VariableDeclaration, nodeInSourceUnit?: ASTNode): FunctionCall;
-  gen(astNode: Expression, nodeInSourceUnit?: ASTNode): void;
-  gen(
+  public gen(astNode: VariableDeclaration, nodeInSourceUnit?: ASTNode): FunctionCall;
+  public gen(astNode: Expression, nodeInSourceUnit?: ASTNode): void;
+  public gen(
     astNode: VariableDeclaration | Expression,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall | undefined {
@@ -46,57 +50,62 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       `Attempted to create dynArray struct for non-dynarray type ${printTypeNode(type)}`,
     );
 
-    const name = this.getOrCreate(type);
-    const structDefStub = createCairoFunctionStub(
-      name,
+    const funcDef = this.getOrCreateFuncDef(type);
+    if (astNode instanceof VariableDeclaration) {
+      const functionInputs: Identifier[] = [
+        createIdentifier(astNode, this.ast, DataLocation.CallData, nodeInSourceUnit ?? astNode),
+      ];
+      return createCallToFunction(funcDef, functionInputs, this.ast);
+    } else {
+      // When CallData DynArrays are being returned and we do not need the StructConstructor
+      // to be returned, we just need the StructDefinition to be in the contract.
+      return;
+    }
+  }
+
+  public getOrCreateFuncDef(type: ArrayType | BytesType | StringType) {
+    const elemType = getElementType(type);
+
+    const key = elemType.pp();
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
+    }
+
+    const funcInfo = this.getOrCreate(elemType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
       [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [['darray_struct', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
-      [],
       this.ast,
-      nodeInSourceUnit ?? astNode,
+      this.sourceUnit,
       {
         mutability: FunctionStateMutability.View,
         stubKind: FunctionStubKind.StructDefStub,
         acceptsRawDArray: true,
       },
     );
-
-    if (astNode instanceof VariableDeclaration) {
-      const functionInputs: Identifier[] = [
-        createIdentifier(astNode, this.ast, DataLocation.CallData, nodeInSourceUnit ?? astNode),
-      ];
-      return createCallToFunction(structDefStub, functionInputs, this.ast);
-    } else {
-      // When CallData DynArrays are being returned and we do not need the StructConstructor to be returned, we just need
-      // the StructDefinition to be in the contract.
-      return;
-    }
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
   }
 
-  getOrCreate(type: ArrayType | BytesType | StringType): string {
-    const elemType = getElementType(type);
+  private getOrCreate(elemType: TypeNode): GeneratedFunctionInfo {
     const elementCairoType = CairoType.fromSol(
       elemType,
       this.ast,
       TypeConversionContext.CallDataRef,
     );
-    const key = generateCallDataDynArrayStructName(elemType, this.ast);
-
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
-    }
-
-    this.generatedFunctions.set(key, {
-      name: key,
+    const structName = generateCallDataDynArrayStructName(elemType, this.ast);
+    const funcInfo: GeneratedFunctionInfo = {
+      name: structName,
       code: [
-        `struct ${key}{`,
+        `struct ${structName}{`,
         `${INDENT} len : felt ,`,
         `${INDENT} ptr : ${elementCairoType.toString()}*,`,
         `}`,
       ].join('\n'),
-    });
-
-    return key;
+      functionsCalled: [],
+    };
+    return funcInfo;
   }
 }

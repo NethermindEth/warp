@@ -1,7 +1,7 @@
 import { MemberAccess, Identifier, ExternalReferenceType, Expression } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 
 /*
@@ -22,34 +22,30 @@ export class BlockMethods extends ASTMapper {
     ) {
       if (node.memberName === 'number') {
         const replacementCall = createCallToFunction(
-          createCairoFunctionStub(
+          ast.registerImport(
+            node,
+            'warplib.block_methods',
             'warp_block_number',
             [],
             [['block_num', createUint256TypeName(ast)]],
-            ['syscall_ptr', 'range_check_ptr'],
-            ast,
-            node,
           ),
           [],
           ast,
         );
         ast.replaceNode(node, replacementCall);
-        ast.registerImport(replacementCall, 'warplib.block_methods', 'warp_block_number');
       } else if (node.memberName === 'timestamp') {
         const replacementCall = createCallToFunction(
-          createCairoFunctionStub(
+          ast.registerImport(
+            node,
+            'warplib.block_methods',
             'warp_block_timestamp',
             [],
             [['block_timestamp', createUint256TypeName(ast)]],
-            ['syscall_ptr', 'range_check_ptr'],
-            ast,
-            node,
           ),
           [],
           ast,
         );
         ast.replaceNode(node, replacementCall);
-        ast.registerImport(replacementCall, 'warplib.block_methods', 'warp_block_timestamp');
       }
     } else {
       this.visitExpression(node, ast);

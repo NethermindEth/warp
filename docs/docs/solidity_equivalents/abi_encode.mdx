@@ -10,7 +10,7 @@ Due to cairo addresses being able to occupy the whole felt space and solidity's 
 
 - When ABI Encoding:
   although each data type occupies 32 bytes slot, and a `felt` fits perfectly inside,
-  an address encoded on a warped contract on StarkNet and later decoded on a L1 will
+  an address encoded on a warped contract on Starknet and later decoded on a L1 will
   cause a `revert` if the address is bigger than 20 bytes. If you wish to decode a cairo address on L1 you must
   substitute the address type for `uint256` (or other similar size type) e.g `abi.decode(data, (address))` -> `abi.decode(data, (uint256))`
 

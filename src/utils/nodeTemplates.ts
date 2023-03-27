@@ -50,14 +50,8 @@ export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTyp
   return node;
 }
 
-export function createStringTypeName(payable: boolean, ast: AST): ElementaryTypeName {
-  const node = new ElementaryTypeName(
-    ast.reserveId(),
-    '',
-    'string',
-    'string',
-    payable ? 'payable' : 'nonpayable',
-  );
+export function createStringTypeName(ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(ast.reserveId(), '', 'string', 'string', 'nonpayable');
   ast.setContextRecursive(node);
   return node;
 }
@@ -297,7 +291,7 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
 
 export function createVariableDeclarationStatement(
   varDecls: (VariableDeclaration | null)[],
-  intitalValue: Expression | undefined,
+  initialValue: Expression | undefined,
   ast: AST,
 ): VariableDeclarationStatement {
   assert(
@@ -309,7 +303,7 @@ export function createVariableDeclarationStatement(
     '',
     varDecls.map((v) => (v === null ? null : v.id)),
     varDecls.filter(notNull),
-    intitalValue,
+    initialValue,
   );
   ast.setContextRecursive(node);
   return node;

@@ -9,8 +9,8 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { createIdentifier } from '../../utils/nodeTemplates';
-import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { createExpressionStatement, createIdentifier } from '../../utils/nodeTemplates';
+import { checkableType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class ExternalReturnReceiver extends ASTMapper {
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
@@ -25,8 +25,8 @@ export class ExternalReturnReceiver extends ASTMapper {
       return this.commonVisit(node, ast);
     }
 
-    // For each variable that recieves an external call and is neither a value type nor a
-    // reference type with calldata location, create a temporal variable which recieves the
+    // For each variable that receives an external call and is neither a value type nor a
+    // reference type with calldata location, create a temporal variable which receives the
     // calldata output and then copy it to the current node expected location
     node.vDeclarations
       .filter(
@@ -52,7 +52,17 @@ export class ExternalReturnReceiver extends ASTMapper {
         ast.insertStatementAfter(node, statement);
         node.assignments = node.assignments.map((value) => (value === decl.id ? newId : value));
       });
+
+    node.vDeclarations.forEach((decl) => addOutputValidation(decl, ast));
   }
+}
+
+function addOutputValidation(decl: VariableDeclaration, ast: AST) {
+  const type = safeGetNodeType(decl, ast.inference);
+  if (!checkableType(type)) return;
+  const validationFunctionCall = ast.getUtilFuncGen(decl).boundChecks.inputCheck.gen(decl, type);
+  const validationStatement = createExpressionStatement(ast, validationFunctionCall);
+  ast.insertStatementAfter(decl, validationStatement);
 }
 
 function generateCopyStatement(

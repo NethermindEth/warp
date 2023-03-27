@@ -3,7 +3,8 @@ import { EventItem, argType, WarpInterface } from '../../../src/export';
 import { EventFragment } from 'ethers/lib/utils';
 
 const capacity = (bits: number) => 2n ** BigInt(bits);
-const max_uint = (bits: number) => capacity(bits) - 1n;
+// This was commented to avoid lint unused error. If it's not necessary feel free to remove the line.
+// const max_uint = (bits: number) => capacity(bits) - 1n;
 const max_int = (bits: number) => capacity(bits) / 2n - 1n;
 const min_int = (bits: number) => -(capacity(bits) / 2n);
 
@@ -40,7 +41,7 @@ export function stringFlatten(val: Value[]): string[] {
 }
 
 /**
- * Given a series of numbers it produces an array of it's bytes32 represenation
+ * Given a series of numbers it produces an array of it's bytes32 representation
  * where the first value is the total amount of bytes
  * e.g. (3, 2) -> [64, 0 ..., 3, 0 ..., 2]
  * @param val number(s) to get it's byte32 representation

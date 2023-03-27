@@ -52,9 +52,9 @@ export function getErrorMessage(
 ): string {
   let errorNum = 0;
   const errorMsg = [...unsupportedPerSource.entries()].reduce(
-    (fullMsg, [filePath, unsopported]) => {
+    (fullMsg, [filePath, unsupported]) => {
       const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-      const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
+      const newMessage = unsupported.reduce((newMessage, [errorMsg, node]) => {
         const errorCode = getSourceFromLocations(
           content,
           [parseSourceLocation(node.src)],
@@ -70,4 +70,15 @@ export function getErrorMessage(
     error(initialMessage + '\n'),
   );
   return errorMsg;
+}
+
+export interface ExecSyncError {
+  // So far this is the only property from the execSync Error that is used
+  // if some other is needed then just add it here
+  stderr: Buffer | string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function instanceOfExecSyncError(object: any): object is ExecSyncError {
+  return 'stderr' in object;
 }

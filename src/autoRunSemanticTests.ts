@@ -157,7 +157,7 @@ if (process.env.SM_BATCH) {
 
 console.log(filters);
 
-const whitelistPath = './tests/behaviour/expectations/semantic_whitelist.ts';
+const whitelistPath = './tests/behaviour/expectations/semanticWhitelist.ts';
 const whitelistData = readFileSync(whitelistPath, 'utf-8');
 
 function uncommentTests(filter: string): void {

@@ -12,7 +12,7 @@ There is no algorithm to get around unsupported features, in most scenarios it i
 - tx.gasprice, tx.origin: No equivalent in Cairo so far.
 - Member access of block(block.gaslimit, block.chainid): No equivalent in Cairo. Most of the time won't be needed.
 - User defined Errors: No equivalent in Cairo for now.
-- Receive function: StarkNet doesn't have a native currency for the protocol so should be rewritten using other approach.
+- Receive function: Starknet doesn't have a native currency for the protocol so should be rewritten using other approach.
 - Function call options e.g x.f{gas: 10000}(arg1): Most of the options passed are not compatible with Cairo so in most cases can be just removed.
 
 ## Unsupported features that developer can get around.

@@ -37,7 +37,7 @@ import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
 import { error } from './formatting';
 import { getContainingSourceUnit } from './utils';
-import { getNodeType, getNodeTypeInCtx } from './typeStrings/typeString_parser';
+import { getNodeType, getNodeTypeInCtx } from './typeStrings/typeStringParser';
 import { CairoAssert } from '../ast/cairoNodes'; // eslint-disable-line
 
 /*
@@ -344,7 +344,7 @@ export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
  *      uint16[3] -> byte size is 6
  *      and so on
  *  address are 32 bytes instead of 20 bytes due to size difference
- *  between addresses in StarkNet and Ethereum
+ *  between addresses in Starknet and Ethereum
  *  For every type whose byte size can be known on compile time
  *  @param type Solidity type
  *  @param version required for calculating structs byte size

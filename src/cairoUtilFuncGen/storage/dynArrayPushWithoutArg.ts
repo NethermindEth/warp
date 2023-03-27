@@ -1,11 +1,21 @@
 import assert from 'assert';
-import { ASTNode, DataLocation, FunctionCall, MemberAccess, SourceUnit } from 'solc-typed-ast';
+import {
+  ArrayType,
+  BytesType,
+  DataLocation,
+  FunctionCall,
+  generalizeType,
+  MemberAccess,
+  SourceUnit,
+  TypeNode,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
@@ -13,37 +23,52 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
+  gen(push: FunctionCall): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
-    const arrayType = safeGetNodeType(push.vExpression.vExpression, this.ast.inference);
-    const elementType = safeGetNodeType(push, this.ast.inference);
-
-    const name = this.getOrCreate(
-      CairoType.fromSol(elementType, this.ast, TypeConversionContext.StorageAllocation),
+    const arrayType = generalizeType(
+      safeGetNodeType(push.vExpression.vExpression, this.ast.inference),
+    )[0];
+    assert(
+      arrayType instanceof ArrayType || arrayType instanceof BytesType,
+      `Pushing without args to a non array: ${printTypeNode(arrayType)}`,
     );
+    const funcDef = this.getOrCreateFuncDef(arrayType);
 
-    const functionStub = createCairoFunctionStub(
-      name,
-      [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
-      [['newElemLoc', typeNameFromTypeNode(elementType, this.ast), DataLocation.Storage]],
-      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
-      this.ast,
-      nodeInSourceUnit ?? push,
-    );
-
-    return createCallToFunction(functionStub, [push.vExpression.vExpression], this.ast);
+    return createCallToFunction(funcDef, [push.vExpression.vExpression], this.ast);
   }
 
-  private getOrCreate(elementType: CairoType): string {
-    const key = elementType.fullStringRepresentation;
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
+  getOrCreateFuncDef(arrayType: ArrayType | BytesType) {
+    const elementType = getElementType(arrayType);
+    const cairoElementType = CairoType.fromSol(
+      elementType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+
+    const key = elementType.pp(); //cairoElementType.fullStringRepresentation;
+    const value = this.generatedFunctionsDef.get(key);
+    if (value !== undefined) {
+      return value;
     }
 
-    const [arrayName, lengthName] = this.dynArrayGen.gen(elementType);
+    const funcInfo = this.getOrCreate(elementType, cairoElementType);
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
+      [['new_elem_loc', typeNameFromTypeNode(elementType, this.ast), DataLocation.Storage]],
+      this.ast,
+      this.sourceUnit,
+    );
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
+  }
+
+  private getOrCreate(elementType: TypeNode, cairoElementType: CairoType): GeneratedFunctionInfo {
+    const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementType);
+    const arrayName = dynArray.name;
+    const lengthName = dynArrayLength.name;
     const funcName = `${arrayName}_PUSH`;
-    this.generatedFunctions.set(key, {
+    return {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (newElemLoc: felt){`,
@@ -55,7 +80,7 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `    let (existing) = ${arrayName}.read(loc, len);`,
         `    if ((existing) == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(used + ${elementType.width});`,
+        `        WARP_USED_STORAGE.write(used + ${cairoElementType.width});`,
         `        ${arrayName}.write(loc, len, used);`,
         `        return (used,);`,
         `    }else{`,
@@ -63,9 +88,12 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
       ].join('\n'),
-    });
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
-    return funcName;
+      functionsCalled: [
+        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        dynArray,
+        dynArrayLength,
+      ],
+    };
   }
 }

@@ -1,13 +1,12 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import { generateFile, forAllWidths, Comparison } from '../../utils';
+import { forAllWidths, Comparison, WarplibFunctionInfo } from '../../utils';
 
-export function lt_signed() {
-  generateFile(
-    'lt_signed',
-    [
+export function lt_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'lt_signed',
+    imports: [
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_lt',
       'from warplib.maths.utils import felt_to_uint256',
@@ -15,14 +14,14 @@ export function lt_signed() {
         ', ',
       )}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_lt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){',
           '    let (res) = uint256_signed_lt(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_lt_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
@@ -33,17 +32,12 @@ export function lt_signed() {
           `    let (res) = warp_le_signed${width}(lhs, rhs);`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 export function functionaliseLt(node: BinaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean, signed: boolean): Implicits[] => {
-    if (!wide && signed) return ['range_check_ptr', 'bitwise_ptr'];
-    else return ['range_check_ptr'];
-  };
-
-  Comparison(node, 'lt', 'signedOrWide', true, implicitsFn, ast);
+  Comparison(node, 'lt', 'signedOrWide', true, ast);
 }

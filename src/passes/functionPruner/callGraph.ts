@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { FunctionCall, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 
@@ -30,6 +31,14 @@ export class CallGraphBuilder extends ASTMapper {
     this.currentFunction = undefined;
   }
 
+  visitCairoGeneratedFunctionDefinition(node: CairoGeneratedFunctionDefinition, ast: AST): void {
+    this.currentFunction = node;
+    this.functionId.set(node.id, node);
+    this.callGraph.set(node.id, new Set(node.functionsCalled.map((funcDef) => funcDef.id)));
+    node.functionsCalled.forEach((funcDef) => this.commonVisit(funcDef, ast));
+    this.currentFunction = undefined;
+  }
+
   visitFunctionCall(node: FunctionCall, ast: AST) {
     assert(
       this.currentFunction !== undefined,
@@ -41,7 +50,7 @@ export class CallGraphBuilder extends ASTMapper {
       `${printNode(this.currentFunction)} should have been added to the map`,
     );
     const refFunc = node.vReferencedDeclaration;
-    if (refFunc !== undefined && refFunc instanceof FunctionDefinition) {
+    if (refFunc instanceof FunctionDefinition) {
       existingCalls.add(refFunc.id);
       this.callGraph.set(this.currentFunction.id, existingCalls);
     }

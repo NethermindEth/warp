@@ -3,8 +3,8 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
+  FunctionDefinition,
   generalizeType,
-  IntType,
   MappingType,
   PointerType,
   SourceUnit,
@@ -14,17 +14,21 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { CairoFunctionDefinition, CairoImportFunctionDefinition } from '../ast/cairoNodes';
+import { createCairoGeneratedFunction, ParameterInfo } from '../utils/functionGeneration';
 import { TranspileFailedError } from '../utils/errors';
+import { createImport } from '../utils/importFuncGenerator';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
-
-export type CairoFunction = {
-  name: string;
-  code: string;
-};
 
 export type CairoStructDef = {
   name: string;
   code: string;
+};
+
+export type GeneratedFunctionInfo = {
+  name: string;
+  code: string;
+  functionsCalled: FunctionDefinition[];
 };
 
 /*
@@ -38,29 +42,19 @@ export abstract class CairoUtilFuncGenBase {
   protected ast: AST;
   protected imports: Map<string, Set<string>> = new Map();
   protected sourceUnit: SourceUnit;
+
   constructor(ast: AST, sourceUnit: SourceUnit) {
     this.ast = ast;
     this.sourceUnit = sourceUnit;
   }
 
-  // import file -> import symbols
-  getImports(): Map<string, Set<string>> {
-    return this.imports;
-  }
-
-  // Concatenate all the generated cairo code into a single string
-  abstract getGeneratedCode(): string;
-
-  protected requireImport(location: string, name: string): void {
-    const existingImports = this.imports.get(location) ?? new Set<string>();
-    existingImports.add(name);
-    this.imports.set(location, existingImports);
-  }
-
-  protected checkForImport(type: TypeNode): void {
-    if (type instanceof IntType && type.nBits === 256) {
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    }
+  protected requireImport(
+    location: string,
+    name: string,
+    inputs?: ParameterInfo[],
+    outputs?: ParameterInfo[],
+  ): CairoImportFunctionDefinition {
+    return createImport(location, name, this.sourceUnit, this.ast, inputs, outputs);
   }
 }
 
@@ -68,21 +62,15 @@ export abstract class CairoUtilFuncGenBase {
   Most subclasses of CairoUtilFuncGenBase index their CairoFunctions off a single string,
   usually the cairo type of the input that the function's code depends on
 */
-export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
-  protected generatedFunctions: Map<string, CairoFunction> = new Map();
-
-  getGeneratedCode(): string {
-    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
-  }
+export abstract class StringIndexedFuncGen extends CairoUtilFuncGenBase {
+  protected generatedFunctionsDef: Map<string, CairoFunctionDefinition> = new Map();
 }
 
-export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
-  protected auxiliarGeneratedFunctions: Map<string, CairoFunction> = new Map();
+export abstract class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
+  protected auxiliarGeneratedFunctions: Map<string, CairoFunctionDefinition> = new Map();
 
-  getGeneratedCode(): string {
-    return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
-      .map((func) => func.code)
-      .join('\n\n');
+  protected createAuxiliarGeneratedFunction(genFuncInfo: GeneratedFunctionInfo) {
+    return createCairoGeneratedFunction(genFuncInfo, [], [], this.ast, this.sourceUnit);
   }
 }
 

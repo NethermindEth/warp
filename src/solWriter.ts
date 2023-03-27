@@ -12,6 +12,8 @@ import {
   CairoAssert,
   CairoContract,
   CairoFunctionDefinition,
+  CairoGeneratedFunctionDefinition,
+  CairoImportFunctionDefinition,
   FunctionStubKind,
 } from './ast/cairoNodes';
 
@@ -94,6 +96,18 @@ class CairoFunctionDefinitionSolWriter extends ASTNodeWriter {
   }
 }
 
+class CairoGeneratedFunctionDefinitionSolWriter extends ASTNodeWriter {
+  writeInner(node: CairoGeneratedFunctionDefinition, _writer: ASTWriter): SrcDesc {
+    return [node.rawStringDefinition];
+  }
+}
+
+class CairoImportFunctionDefinitionSolWriter extends ASTNodeWriter {
+  writeInner(node: CairoImportFunctionDefinition, _writer: ASTWriter): SrcDesc {
+    return [`from ${node.path} import ${node.name}`];
+  }
+}
+
 class CairoAssertSolWriter extends ASTNodeWriter {
   writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
     const result: SrcDesc = [];
@@ -106,6 +120,8 @@ const CairoExtendedASTWriterMapping = (printStubs: boolean) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
     [CairoContract, new CairoContractSolWriter()],
     [CairoFunctionDefinition, new CairoFunctionDefinitionSolWriter(printStubs)],
+    [CairoGeneratedFunctionDefinition, new CairoGeneratedFunctionDefinitionSolWriter()],
+    [CairoImportFunctionDefinition, new CairoImportFunctionDefinitionSolWriter()],
     [CairoAssert, new CairoAssertSolWriter()],
   ]);
 

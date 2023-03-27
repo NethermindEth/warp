@@ -1,6 +1,6 @@
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { MathsOperationToFunction } from './MathsOperationToFunction';
+import { MathsOperationToFunction } from './mathsOperationToFunction';
 import { ExplicitConversionToFunc } from './explicitConversionToFunc';
 import { MsgSender } from './msgSender';
 import { ThisKeyword } from './thisKeyword';

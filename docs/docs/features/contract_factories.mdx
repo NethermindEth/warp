@@ -2,15 +2,15 @@
 title: Contract Factories
 ---
 
-Contract factories are now supported by Warp. Contract factories work slightly differently on StarkNet as they do on Ethereum.
-To deploy a contract on StarkNet we need to know the class hash of the contract being deployed, this class hash is then passed
+Contract factories are now supported by Warp. Contract factories work slightly differently on Starknet as they do on Ethereum.
+To deploy a contract on Starknet we need to know the class hash of the contract being deployed, this class hash is then passed
 as an argument to the deploy system call. Warp is designed so that the above is hidden from the user and handled internally.
 The class hash is calculated offline and inserted into the transpiled Contract factory as a constant.
 
 Note that the contract being deployed by the contract factory will still need to be declared online by the user.
 
 :warning: **Warning**: Warp also supports the use of the salt option i.e `new Contract{salt: salt}()` but because of core differences
-between Ethereum and StarkNet the salt value will be truncated from 32 to the 31 most significant bytes.
+between Ethereum and Starknet the salt value will be truncated from 32 to the 31 most significant bytes.
 
 The following Solidity contract named example.sol will be used to illustrate the feature:
 

@@ -1,19 +1,20 @@
 import assert = require('assert');
 import {
   MemberAccess,
-  ASTNode,
   FunctionCall,
   PointerType,
   UserDefinedType,
   VariableDeclaration,
   DataLocation,
+  StructDefinition,
 } from 'solc-typed-ast';
+import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
-import { CairoUtilFuncGenBase, CairoFunction, add } from '../base';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 /*
   Produces a separate function for each struct type and member name, that when given
@@ -22,52 +23,63 @@ import { CairoUtilFuncGenBase, CairoFunction, add } from '../base';
   so that it doesn't get converted into fixed-width solidity arithmetic. A CairoExpression
   node could serve as an optimisation here
 */
-export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
-  // cairoType -> property name -> code
-  private generatedFunctions: Map<string, Map<string, CairoFunction>> = new Map();
+export class MemoryMemberAccessGen extends StringIndexedFuncGen {
+  public gen(memberAccess: MemberAccess): FunctionCall {
+    const solType = safeGetNodeType(memberAccess.vExpression, this.ast.inference);
+    assert(
+      solType instanceof PointerType &&
+        solType.to instanceof UserDefinedType &&
+        solType.to.definition instanceof StructDefinition,
+      `Trying to generate a member access for a type different than a struct: ${printTypeNode(
+        solType,
+      )}`,
+    );
 
-  // Concatenate all the generated cairo code into a single string
-  getGeneratedCode(): string {
-    return [...this.generatedFunctions.values()]
-      .flatMap((map) => [...map.values()])
-      .map((cairoMapping) => cairoMapping.code)
-      .join('\n\n');
+    const referencedDeclaration = memberAccess.vReferencedDeclaration;
+    assert(referencedDeclaration instanceof VariableDeclaration);
+
+    const outType = referencedDeclaration.vType;
+    assert(outType !== undefined);
+
+    const funcDef = this.getOrCreateFuncDef(solType.to, memberAccess.memberName);
+    return createCallToFunction(funcDef, [memberAccess.vExpression], this.ast);
   }
 
-  gen(memberAccess: MemberAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const solType = safeGetNodeType(memberAccess.vExpression, this.ast.inference);
-    assert(solType instanceof PointerType);
-    assert(solType.to instanceof UserDefinedType);
+  public getOrCreateFuncDef(solType: UserDefinedType, memberName: string) {
+    assert(solType.definition instanceof StructDefinition);
     const structCairoType = CairoType.fromSol(
       solType,
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-    const name = this.getOrCreate(structCairoType, memberAccess.memberName);
-    const referencedDeclaration = memberAccess.vReferencedDeclaration;
-    assert(referencedDeclaration instanceof VariableDeclaration);
-    const outType = referencedDeclaration.vType;
-    assert(outType !== undefined);
-    const functionStub = createCairoFunctionStub(
-      name,
-      [['loc', typeNameFromTypeNode(solType, this.ast), DataLocation.Memory]],
-      [['memberLoc', cloneASTNode(outType, this.ast), DataLocation.Memory]],
-      [],
-      this.ast,
-      nodeInSourceUnit ?? memberAccess,
-    );
-    return createCallToFunction(functionStub, [memberAccess.vExpression], this.ast);
-  }
 
-  private getOrCreate(structCairoType: CairoType, memberName: string): string {
-    const existingMemberAccesses =
-      this.generatedFunctions.get(structCairoType.fullStringRepresentation) ??
-      new Map<string, CairoFunction>();
-    const existing = existingMemberAccesses.get(memberName);
+    const key = structCairoType.fullStringRepresentation + memberName;
+    const existing = this.generatedFunctionsDef.get(key);
     if (existing !== undefined) {
-      return existing.name;
+      return existing;
     }
 
+    const funcInfo = this.getOrCreate(structCairoType, memberName);
+
+    const solTypeName = typeNameFromTypeNode(solType, this.ast);
+    const [outTypeName] = solType.definition.vMembers
+      .filter((member) => member.name === memberName)
+      .map((member) => member.vType);
+    assert(outTypeName !== undefined);
+
+    const funcDef = createCairoGeneratedFunction(
+      funcInfo,
+      [['loc', solTypeName, DataLocation.Memory]],
+      [['member_loc', cloneASTNode(outTypeName, this.ast), DataLocation.Memory]],
+      this.ast,
+      this.sourceUnit,
+    );
+
+    this.generatedFunctionsDef.set(key, funcDef);
+    return funcDef;
+  }
+
+  private getOrCreate(structCairoType: CairoType, memberName: string): GeneratedFunctionInfo {
     const structName = structCairoType.toString();
     assert(
       structCairoType instanceof CairoStruct,
@@ -75,20 +87,16 @@ export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
     );
 
     const offset = structCairoType.offsetOf(memberName);
-    const funcName = `WM${countNestedMapItems(
-      this.generatedFunctions,
-    )}_${structName}_${memberName}`;
+    const funcName = `wm_${structName}_${memberName}`;
 
-    existingMemberAccesses.set(memberName, {
+    return {
       name: funcName,
       code: [
         `func ${funcName}(loc: felt) -> (memberLoc: felt){`,
         `    return (${add('loc', offset)},);`,
         `}`,
       ].join('\n'),
-    });
-
-    this.generatedFunctions.set(structCairoType.fullStringRepresentation, existingMemberAccesses);
-    return funcName;
+      functionsCalled: [],
+    };
   }
 }

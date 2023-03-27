@@ -4,7 +4,7 @@
     "description": "The name of the project"
   },
   "homepage.projectDescription": {
-    "message": "Bringing Solidity to StarkNet at warp speed",
+    "message": "Bringing Solidity to Starknet at warp speed",
     "description": "Description of Warp at homepage"
   },
   "homepage.documentation.linkLabel": {

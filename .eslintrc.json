@@ -1,6 +1,6 @@
 {
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier"],
+  "plugins": ["@typescript-eslint", "prettier", "unicorn"],
   "env": {
     "es2020": true,
     "node": true
@@ -15,7 +15,11 @@
   "rules": {
     "eqeqeq": "error",
     "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "unicorn/filename-case": ["error", { "case": "camelCase" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
     "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }]
   }
 }

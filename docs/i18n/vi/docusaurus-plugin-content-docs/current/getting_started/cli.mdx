@@ -16,7 +16,7 @@ Available Commands:
     compile [options] <file>            Compile cairo files with warplib in the cairo-path
     gen_interface [options] <file>      Use native Cairo contracts in your Soldity by creating a Solidity interface and a Cairo translation contract for the target Cairo contract
     deploy [options] <file>             Deploy a warped cairo contract
-    deploy_account [options]            Deploy an account to StarkNet
+    deploy_account [options]            Deploy an account to Starknet
     invoke [options] <file>             Invoke a function on a warped contract using the Solidity abi
     call [options] <file>               Call a function on a warped contract using the Solidity abi
     install [options]                   Install the python dependencies required for Warp
@@ -78,11 +78,11 @@ compile `[options]` `<file...>`:
 
 declare `[options]` `<cairo_contract>`:
 
-    --network <network>                        StarkNet network URL
+    --network <network>                        Starknet network URL
     --account <account>                        The name of the account. If not given, the default for the wallet will be used.
     --account_dir <account_dir>                The directory of the account
-    --gateway_url <gateway_url>                StarkNet gateway URL
-    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --gateway_url <gateway_url>                Starknet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  Starknet feeder gateway URL
     --wallet <wallet>                          The name of the wallet, including the python module and wallet class
     --max_fee <max_fee>                        Maximum fee to pay for the transaction
     -h, --help                                 display help for command
@@ -92,9 +92,9 @@ deploy `[options]` `<file...>`:
     -d, --debug_info                           Compile include debug information (default: false)
     --inputs <inputs...>                       Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists
     --use_cairo_abi                            Use the cairo abi instead of solidity for the inputs (default: false)
-    --network <network>                        StarkNet network URL
-    --gateway_url <gateway_url>                StarkNet gateway URL
-    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --network <network>                        Starknet network URL
+    --gateway_url <gateway_url>                Starknet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  Starknet feeder gateway URL
     --no_wallet                                Do not use a wallet for deployment (default: false)
     --wallet <wallet>                          Wallet provider to use
     --account <account>                        Account to use for deployment
@@ -106,9 +106,9 @@ deploy_account `[options]`:
 
     --account <account>                        The name of the account. If not given, the default for the wallet will be used
     --account_dir <account_dir>                The directory of the account.
-    --network <network>                        StarkNet network URL
-    --gateway_url <gateway_url>                StarkNet gateway URL
-    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --network <network>                        Starknet network URL
+    --gateway_url <gateway_url>                Starknet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  Starknet feeder gateway URL
     --wallet <wallet>                          The name of the wallet, including the python module and wallet class
     --max_fee <max_fee>                        Maximum fee to pay for the transaction.
     -h, --help                                 display help for command
@@ -121,9 +121,9 @@ invoke `[options]` `<file...>`:
     --use_cairo_abi                            Use the cairo abi instead of solidity for the inputs (default: false)
     --account <account>                        The name of the account. If not given, the default for the wallet will be used
     --account_dir <account_dir>                The directory of the account
-    --network <network>                        StarkNet network URL
-    --gateway_url <gateway_url>                StarkNet gateway URL
-    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --network <network>                        Starknet network URL
+    --gateway_url <gateway_url>                Starknet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  Starknet feeder gateway URL
     --wallet <wallet>                          The name of the wallet, including the python module and wallet class
     --max_fee <max_fee>                        Maximum fee to pay for the transaction
     -h, --help                                 display help for command
@@ -136,9 +136,9 @@ call `[options]` `<file...>`:
     --use_cairo_abi                            Use the cairo abi instead of solidity for the inputs (default: false)
     --account <account>                        The name of the account. If not given, the default for the wallet will be used
     --account_dir <account_dir>                The directory of the account
-    --network <network>                        StarkNet network URL
-    --gateway_url <gateway_url>                StarkNet gateway URL
-    --feeder_gateway_url <feeder_gateway_url>  StarkNet feeder gateway URL
+    --network <network>                        Starknet network URL
+    --gateway_url <gateway_url>                Starknet gateway URL
+    --feeder_gateway_url <feeder_gateway_url>  Starknet feeder gateway URL
     --wallet <wallet>                          The name of the wallet, including the python module and wallet class
     --max_fee <max_fee>                        Maximum fee to pay for the transaction
     -h, --help                                 display help for command

@@ -1,13 +1,12 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
-import { generateFile, forAllWidths, Comparison } from '../../utils';
+import { forAllWidths, Comparison, WarplibFunctionInfo } from '../../utils';
 
-export function gt_signed() {
-  generateFile(
-    'gt_signed',
-    [
+export function gt_signed(): WarplibFunctionInfo {
+  return {
+    fileName: 'gt_signed',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_signed_lt',
@@ -15,14 +14,14 @@ export function gt_signed() {
         ', ',
       )}`,
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_gt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){',
           '    let (res) =  uint256_signed_lt(rhs, lhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_gt_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
@@ -30,16 +29,12 @@ export function gt_signed() {
           `    let (res) = warp_lt_signed${width}(rhs, lhs);`,
           `    return (res,);`,
           '}',
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 export function functionaliseGt(node: BinaryOperation, ast: AST): void {
-  const implicitsFn = (wide: boolean, signed: boolean): Implicits[] => {
-    if (wide || !signed) return ['range_check_ptr'];
-    else return ['range_check_ptr', 'bitwise_ptr'];
-  };
-  Comparison(node, 'gt', 'signedOrWide', true, implicitsFn, ast);
+  Comparison(node, 'gt', 'signedOrWide', true, ast);
 }

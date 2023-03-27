@@ -9,17 +9,16 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
-import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../../utils/utils';
-import { generateFile, forAllWidths, getIntOrFixedByteBitWidth } from '../../utils';
+import { forAllWidths, getIntOrFixedByteBitWidth, WarplibFunctionInfo } from '../../utils';
 
 // rhs is always unsigned, and signed and unsigned shl are the same
-export function shl(): void {
+export function shl(): WarplibFunctionInfo {
   //Need to provide an implementation with 256bit rhs and <256bit lhs
-  generateFile(
-    'shl',
-    [
+  return {
+    fileName: 'shl',
+    imports: [
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.math import split_felt',
@@ -27,7 +26,7 @@ export function shl(): void {
       'from starkware.cairo.common.uint256 import Uint256, uint256_shl',
       'from warplib.maths.pow2 import pow2',
     ],
-    forAllWidths((width) => {
+    functions: forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_shl256{range_check_ptr}(lhs : Uint256, rhs : felt) -> (result : Uint256){',
@@ -39,7 +38,7 @@ export function shl(): void {
           '    let (res) = uint256_shl(lhs, rhs);',
           '    return (res,);',
           '}',
-        ];
+        ].join('\n');
       } else {
         return [
           `func warp_shl${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
@@ -65,10 +64,10 @@ export function shl(): void {
           `        return (0,);`,
           `    }`,
           `}`,
-        ];
+        ].join('\n');
       }
     }),
-  );
+  };
 }
 
 export function functionaliseShl(node: BinaryOperation, ast: AST): void {
@@ -91,16 +90,15 @@ export function functionaliseShl(node: BinaryOperation, ast: AST): void {
 
   const importName = 'warplib.maths.shl';
 
-  const stub = createCairoFunctionStub(
+  const importedFunc = ast.registerImport(
+    node,
+    importName,
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],
       ['rhs', typeNameFromTypeNode(rhsType, ast)],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    lhsWidth === 256 ? ['range_check_ptr'] : ['range_check_ptr', 'bitwise_ptr'],
-    ast,
-    node,
   );
   const call = new FunctionCall(
     ast.reserveId(),
@@ -112,11 +110,10 @@ export function functionaliseShl(node: BinaryOperation, ast: AST): void {
       '',
       `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
       fullName,
-      stub.id,
+      importedFunc.id,
     ),
     [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);
-  ast.registerImport(call, importName, fullName);
 }
