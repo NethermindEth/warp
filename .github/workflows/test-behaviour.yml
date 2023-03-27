@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - cairo-1.0
   pull_request:
 
 concurrency:
