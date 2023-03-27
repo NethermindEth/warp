@@ -371,6 +371,27 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       .join('\n');
   }
 
+  private stringInit(funcName: string): string {
+    return [
+      `func ${funcName}_string_array_init{range_check_ptr, warp_memory: DictAccess*}(index, str_size, char: felt*) {`,
+      `    alloc_locals;`,
+      `    if (index == str_size) {`,
+      `        return ();`,
+      `    }`,
+      `    dict_write{dict_ptr=warp_memory}(index, char[0]);`,
+      `    return ${funcName}_string_array_init(index + 1, str_size, char+ 1);`,
+      `}`,
+      ``,
+      `func ${funcName}_string_array{range_check_ptr, warp_memory: DictAccess*}(str_size, str: felt*) -> (loc: felt){`,
+      `    alloc_locals;`,
+      `    let (size256) = felt_to_uint256(str_size);`,
+      `    let (start) = wm_alloc(size256);`,
+      `    ${funcName}_string_array_init(start,  start + str_size, str);`,
+      `    return (start,);`,
+      `}`,
+    ].join('\n');
+  }
+
   private recursiveStaticfunction(
     funcName: string,
     type: TypeNode,
@@ -590,6 +611,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        !isMatrix && type instanceof StringType ? this.stringInit(funcName) : [],
         isStruct ? this.struct_initializer(funcName, members) : [],
         ...(dynamic
           ? []

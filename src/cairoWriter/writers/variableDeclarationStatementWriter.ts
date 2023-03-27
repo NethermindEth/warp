@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  ArrayTypeName,
   ASTWriter,
   BoolType,
   DataLocation,
@@ -53,6 +54,7 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     };
 
     let isStaticArray = false;
+    let isStringArray = false;
     let staticArrayCall = '';
 
     const nodeType = generalizeType(getValueN(0))[0];
@@ -62,8 +64,9 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     let valuesAreDefault = true;
     let isStructMatrix = false;
     const structInitCalls: string[] = [];
+    const stringInitCalls: string[] = [];
 
-    const getArguments = (): string => {
+    const getArguments = (argsLen: number): string => {
       const elementT =
         (nodeType as ArrayType).elementT instanceof ArrayType
           ? ((nodeType as ArrayType).elementT as ArrayType).elementT
@@ -109,7 +112,8 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         ((nodeType as ArrayType).elementT instanceof ArrayType ||
           (nodeType as ArrayType).elementT instanceof UserDefinedType) &&
         node.vInitialValue instanceof FunctionCall &&
-        !(node.vInitialValue instanceof Identifier)
+        !(node.vInitialValue instanceof Identifier) &&
+        argsLen !== 1
       ) {
         let isStringArray = false;
         if ((node.vInitialValue as FunctionCall)?.vArguments[0] instanceof TupleExpression) {
@@ -290,11 +294,11 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
 
           (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
             if (element instanceof Identifier) {
-              argRound.push((element as Identifier).name);
+              argRound.push((element as Identifier).name + ',');
               valuesAreDefault = false;
             } else {
-              isStringArray = true;
               if (element instanceof Literal) {
+                isStringArray = true;
                 const value = (element as Literal).value;
                 if (value === '') {
                   argRound.push(`0x0`);
@@ -416,17 +420,47 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           // string type
           else if (
             elementT instanceof IntType &&
-            ((node.vInitialValue as FunctionCall)?.vArguments[0] as Literal)?.kind === 'string'
+            (((node.vInitialValue as FunctionCall)?.vArguments[0] as Literal)?.kind === 'string' ||
+              ((node.vInitialValue as FunctionCall)?.vArguments[0] instanceof Identifier &&
+                (elementT as IntType)?.nBits === 8))
           ) {
-            (node.vInitialValue as FunctionCall).vArguments?.forEach((element) => {
+            (node.vInitialValue as FunctionCall).vArguments?.forEach((element, index) => {
               if (element instanceof Identifier) {
                 argumentList.push((element as Identifier).name + `${single ? ',' : ''}`);
                 valuesAreDefault = false;
               } else {
-                if ((element as Literal).value !== '') {
+                let value = (element as Literal).value;
+                let chars = value.split('');
+                let stringArray: string[] = [];
+                if (value !== '') {
+                  isStringArray = true;
+                  let call = `${funcName}_string_${index}`;
                   valuesAreDefault = false;
+                  stringArray.push('0x' + chars.length.toString(16));
+                  stringArray.push('0x0');
+                  chars.forEach((char) => {
+                    stringArray.push(`${char.charCodeAt(0)}`);
+                  });
+                  let str_elements: string[] = [];
+                  let str_values: string[] = [];
+                  stringArray.forEach((_, index) => {
+                    str_elements.push(`e_${index}: felt`);
+                    str_values.push(`e_${index}= ${stringArray[index]}`);
+                  });
+                  stringInitCalls.push(
+                    [
+                      `local str_${index}: (${str_elements.join(', ')}) = (${stringArray.join(
+                        ', ',
+                      )});`,
+                      `let (${call}) = ${funcName}_string_array(${
+                        chars.length + 2
+                      } ,cast(&str_${index}, felt*));`,
+                    ].join('\n'),
+                  );
+                  argumentList.push(`${call}${single ? ',' : ''}`);
+                } else {
+                  argumentList.push(`0x0${single ? ',' : ''}`);
                 }
-                argumentList.push('0x' + (element as Literal).hexValue + `${single ? ',' : ''}`);
               }
             });
           }
@@ -509,25 +543,27 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           ((nodeType as ArrayType).elementT as ArrayType).size,
         )}, ${Number(
           (((nodeType as ArrayType).elementT as ArrayType).elementT as ArrayType).size,
-        )}${getArguments()})`;
+        )}${getArguments(3)})`;
       } else if (isMatrix && !isString && !isBytes) {
         if (((nodeType as ArrayType).elementT as ArrayType).size !== undefined) {
           staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${Number(
             ((nodeType as ArrayType).elementT as ArrayType).size,
-          )}${getArguments()})`;
+          )}${getArguments(2)})`;
         } else {
           if ((node.vInitialValue as FunctionCall).vArguments[0] instanceof Identifier) {
-            staticArrayCall = `${funcName}(${Number(
-              (nodeType as ArrayType).size,
-            )}${getArguments()})`;
+            staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}${getArguments(
+              1,
+            )})`;
           } else {
             staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${
               ((node.vInitialValue as FunctionCall).vArguments[0] as FunctionCall).vArguments.length
-            }${getArguments()})`;
+            }${getArguments(2)})`;
           }
         }
       } else {
-        staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}${getArguments()})`;
+        staticArrayCall = `${funcName}(${
+          ((node.vDeclarations[0].vType as ArrayTypeName).vLength as Literal).value
+        }${getArguments(1)})`;
       }
     }
 
@@ -575,6 +611,9 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       return [
         [
           documentation,
+          isStringArray
+            ? ['let (__fp__, _) = get_fp_and_pc();', stringInitCalls.join('\n')].join('\n')
+            : '',
           structInitCalls.join('\n'),
           `let (${declarations.join(', ')}) = ${
             isStaticArray ? staticArrayCall : writer.write(node.vInitialValue)
