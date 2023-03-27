@@ -429,20 +429,20 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
                 argumentList.push((element as Identifier).name + `${single ? ',' : ''}`);
                 valuesAreDefault = false;
               } else {
-                let value = (element as Literal).value;
-                let chars = value.split('');
-                let stringArray: string[] = [];
+                const value = (element as Literal).value;
+                const chars = value.split('');
+                const stringArray: string[] = [];
                 if (value !== '') {
                   isStringArray = true;
-                  let call = `${funcName}_string_${index}`;
+                  const call = `${funcName}_string_${index}`;
                   valuesAreDefault = false;
                   stringArray.push('0x' + chars.length.toString(16));
                   stringArray.push('0x0');
                   chars.forEach((char) => {
                     stringArray.push(`${char.charCodeAt(0)}`);
                   });
-                  let str_elements: string[] = [];
-                  let str_values: string[] = [];
+                  const str_elements: string[] = [];
+                  const str_values: string[] = [];
                   stringArray.forEach((_, index) => {
                     str_elements.push(`e_${index}: felt`);
                     str_values.push(`e_${index}= ${stringArray[index]}`);

@@ -8,6 +8,7 @@ import {
   FunctionCall,
   generalizeType,
   Identifier,
+  IndexAccess,
   IntType,
   Literal,
   LiteralKind,
@@ -135,7 +136,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         isIdentifier = true;
         userDefined = true;
         if (isMatrix) {
-          args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? '(Uint256)' : '(felt)');
+          if (((type as ArrayType).elementT as ArrayType).size === undefined) {
+            args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
+          } else {
+            args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? '(Uint256)' : '(felt)');
+          }
         } else {
           args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
         }
@@ -260,6 +265,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
             userDefined = true;
             args.push(this.isUint((type as ArrayType).elementT, isMatrix) ? 'Uint256' : 'felt');
           }
+        } else if (ele instanceof IndexAccess) {
+          userDefined = true;
+          args.push('felt');
         }
       }
     });
