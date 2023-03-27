@@ -1,4 +1,4 @@
-import { FunctionDefinition, VariableDeclarationStatement } from 'solc-typed-ast';
+import { FunctionDefinition, generalizeType, VariableDeclarationStatement } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
@@ -27,7 +27,7 @@ export class ReturnVariableInitializer extends ASTMapper {
           '',
           [newDecl.id],
           [newDecl],
-          getDefaultValue(safeGetNodeType(decl, ast.inference), newDecl, ast),
+          getDefaultValue(generalizeType(safeGetNodeType(decl, ast.inference))[0], newDecl, ast),
         );
         identifiers.forEach((identifier) => {
           identifier.referencedDeclaration = newDecl.id;
