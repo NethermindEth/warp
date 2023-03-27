@@ -1,7 +1,7 @@
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { ReplaceIndexAccessBytesConverter } from './replaceIndexAccessBytesConverter';
-import { UpdateTypeStringBytesConverter } from './UpdateTypeStringBytesConverter';
+import { UpdateTypeStringBytesConverter } from './updateTypeStringBytesConverter';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
     This pass does not handle dynamically-sized bytes arrays (i.e. bytes).
