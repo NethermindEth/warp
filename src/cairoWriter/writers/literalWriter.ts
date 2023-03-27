@@ -1,14 +1,14 @@
 import { ASTWriter, Literal, LiteralKind, SrcDesc } from 'solc-typed-ast';
 import { TranspileFailedError } from '../../utils/errors';
-import { primitiveTypeToCairo, CairoPrimitiveIntType } from '../../utils/utils';
+import { primitiveTypeToCairo, isCairoPrimitiveIntType } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 
 export class LiteralWriter extends CairoASTNodeWriter {
   writeInner(node: Literal, _: ASTWriter): SrcDesc {
+    const type = primitiveTypeToCairo(node.typeString);
     switch (node.kind) {
       case LiteralKind.Number:
-        const type = primitiveTypeToCairo(node.typeString);
-        if (type as CairoPrimitiveIntType) {
+        if (isCairoPrimitiveIntType(type)) {
           return [`${node.value}_${type}`];
         } else if (type === 'felt') {
           return [node.value];
@@ -30,10 +30,9 @@ export class LiteralWriter extends CairoASTNodeWriter {
         return [`0x${node.hexValue}`];
       }
       case LiteralKind.HexString:
-        const hexType = primitiveTypeToCairo(node.typeString);
-        if (hexType as CairoPrimitiveIntType) {
-          return [`0x${node.hexValue}_${hexType}`];
-        } else if (hexType === 'felt') {
+        if (isCairoPrimitiveIntType(type)) {
+          return [`0x${node.hexValue}_${type}`];
+        } else if (type === 'felt') {
           return [`0x${node.hexValue}`];
         } else {
           throw new TranspileFailedError('Attempted to write unexpected cairo type');
