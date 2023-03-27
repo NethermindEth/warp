@@ -103,13 +103,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
     const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
-    return [
-      this.getConstructorStorageAllocation(node),
-      ...keccakPtrInit,
-      endent`let mut warp_memory: Array::<felt> = ArrayTrait::new();
-      ${writer.write(node.vBody)}
-      `,
-    ]
+    return [this.getConstructorStorageAllocation(node), ...keccakPtrInit, writer.write(node.vBody)]
       .flat()
       .filter(notNull)
       .join('\n');
