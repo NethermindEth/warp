@@ -311,7 +311,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
 
     const [encodeCode, encodeCalls] = type.definition.vMembers.reduce(
       ([encodeCode, encodeCalls], varDecl, index) => {
-        const varType = safeGetNodeType(varDecl, this.ast.inference);
+        const varType = generalizeType(safeGetNodeType(varDecl, this.ast.inference))[0];
         const [memberEncodeCode, memberEncodeCalls] = this.generateEncodeCode(
           varType,
           `member_${index}`,
