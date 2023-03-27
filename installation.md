@@ -1,12 +1,12 @@
-
 ### Dependencies
 
-<hr> 
- 
+<hr>
+
 1. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
    installed to use Warp.
-  
+
 - Install command on macOS:
+
 ```bash
 brew install z3 gmp
 ```
@@ -53,7 +53,7 @@ sudo apt install python3.9 python3.9-venv python3.9-dev
 
 Or you can just install python3.9 and then install python-dev-tools using pip.
 
-### Warp Installation Method 1:
+### Warp Install as a User:
 
 <hr> 
 Without any virtual environment activated perform the following in order:
@@ -90,7 +90,7 @@ warp transpile example_contracts/ERC20.sol
 
 <br>
 
-### Warp Installation Method 2 (from source/for devs):
+### Warp Install for Devs:
 
 <hr>
 

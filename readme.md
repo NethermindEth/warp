@@ -1,6 +1,7 @@
 <img src="https://raw.githubusercontent.com/NethermindEth/warp/develop/resources/warp.png"/>
 
 # Warp
+
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
 smart contracts to StarkNet Cairo Contracts.
 
@@ -163,7 +164,9 @@ docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_co
 ```
 
 ## Contributing
-You can read about contributing, first steps, devlopment tips and testing for contributors [here](Contributing.md)
-## Contact Us :phone:
-[![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT) [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/)
 
+You can read about contributing, first steps, devlopment tips and testing for contributors [here](contributing.md)
+
+## Contact Us :phone:
+
+[![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT) [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/)
