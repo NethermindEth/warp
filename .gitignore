@@ -142,12 +142,17 @@ warpTest/
 #benchmark
 benchmark/*
 
+#.DS_Store
+.DS_Store
+
 # Ignore warp_venv used for packaging
 warp_venv
 
 # ---- warplib ----
 # warplib ignores moved to root because they stop from npm packaging the
 # ignored files if the ignore is not in the root
+
+warplib/maths.cairo
 
 warplib/maths/add.cairo
 warplib/maths/add_unsafe.cairo
