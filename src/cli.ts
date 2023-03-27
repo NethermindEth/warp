@@ -143,7 +143,7 @@ function runTranspile(files: string[], options: CliOptions) {
   }
 }
 
-function createCairoProject(filePath: string): void {
+export function createCairoProject(filePath: string): void {
   // create cairo_project.toml
   const cairoProjectPath = path.join(path.dirname(filePath), 'cairo_project.toml');
   const warplibRoot = path.join(PROJECT_ROOT, 'warplib');
