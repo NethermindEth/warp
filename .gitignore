@@ -149,6 +149,8 @@ warp_venv
 # warplib ignores moved to root because they stop from npm packaging the
 # ignored files if the ignore is not in the root
 
+warplib/maths.cairo
+
 warplib/maths/add.cairo
 warplib/maths/add_unsafe.cairo
 warplib/maths/add_signed.cairo
@@ -210,3 +212,4 @@ warplib/maths/external_input_check_ints.cairo
 
 tests/cli/starknet_open_zeppelin_accounts.json
 tests/cli/starknet_open_zeppelin_accounts.json.backup
+

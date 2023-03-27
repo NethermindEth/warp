@@ -19,10 +19,11 @@ import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 
 import { generateSolInterface } from './icf/interfaceCallForwarder';
+import { outputFileSync } from './utils/fs';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 import { defaultBasePathAndIncludePath } from './utils/utils';
 import { exec } from 'child_process';
-import { parse } from 'path';
+import endent from 'endent';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -57,6 +58,8 @@ type CliOptions = CompilationOptions &
   OutputOptions &
   IOptionalDebugInfo;
 
+const PROJECT_ROOT = path.dirname(__dirname);
+
 export const program = new Command();
 
 program
@@ -87,7 +90,7 @@ program
   .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTranspile);
 
-export function runTranspile(files: string[], options: CliOptions) {
+function runTranspile(files: string[], options: CliOptions) {
   // We do the extra work here to make sure all the errors are printed out
   // for all files which are invalid.
   if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
@@ -111,24 +114,25 @@ export function runTranspile(files: string[], options: CliOptions) {
   try {
     transpile(ast, options)
       .map(([fname, cairo]) => {
-        outputResult(parse(fname).name, fname, cairo, options, ast);
+        outputResult(path.parse(fname).name, fname, cairo, options, ast);
         return fname;
       })
       .map((file) =>
         postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
       )
       .forEach((file: string) => {
+        createCairoProject(path.join(options.outputDir, file));
         if (options.compileCairo) {
           const { success, resultPath, abiPath } = compileCairo(
             path.join(options.outputDir, file),
-            path.resolve(__dirname, '..'),
+            PROJECT_ROOT,
             options,
           );
           if (!success) {
-            if (resultPath) {
+            if (resultPath !== undefined) {
               fs.unlinkSync(resultPath);
             }
-            if (abiPath) {
+            if (abiPath !== undefined) {
               fs.unlinkSync(abiPath);
             }
           }
@@ -137,6 +141,24 @@ export function runTranspile(files: string[], options: CliOptions) {
   } catch (e) {
     handleTranspilationError(e);
   }
+}
+
+function createCairoProject(filePath: string): void {
+  // create cairo_project.toml
+  const cairoProjectPath = path.join(path.dirname(filePath), 'cairo_project.toml');
+  const warplibRoot = path.join(PROJECT_ROOT, 'warplib');
+  outputFileSync(
+    cairoProjectPath,
+    endent`
+      [crate_roots]
+      root = "."
+      warplib = "${warplibRoot}"
+    `,
+  );
+  // create lib.cairo
+  const libPath = path.join(path.dirname(filePath), 'lib.cairo');
+  const contractName = path.parse(filePath).name;
+  outputFileSync(libPath, `mod ${contractName};`);
 }
 
 program
@@ -160,7 +182,7 @@ program
   .option('--base-path <path>', 'Pass through to solc --base-path option')
   .action(runTransform);
 
-export function runTransform(file: string, options: CliOptions) {
+function runTransform(file: string, options: CliOptions) {
   if (!isValidSolFile(file)) return;
 
   const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
@@ -177,7 +199,13 @@ export function runTransform(file: string, options: CliOptions) {
     const mFile = path.relative(process.cwd(), file);
     const ast = compileSolFiles([mFile], options);
     transform(ast, options).map(([fname, solidity]) => {
-      outputResult(parse(fname).name, replaceSuffix(fname, '_warp.cairo'), solidity, options, ast);
+      outputResult(
+        path.parse(fname).name,
+        replaceSuffix(fname, '_warp.cairo'),
+        solidity,
+        options,
+        ast,
+      );
     });
   } catch (e) {
     handleTranspilationError(e);
@@ -480,7 +508,7 @@ program
   .option('--max_fee <max_fee>', 'Maximum fee to pay for the transaction')
   .action(runStarknetDeclare);
 
-export type StarkNetNewAccountOptions = IOptionalAccount &
+export type StarknetNewAccountOptions = IOptionalAccount &
   IOptionalAccount &
   IOptionalNetwork &
   IGatewayProps &
@@ -536,5 +564,5 @@ program
     const starknetVersion = await (await sh('starknet --version')).stdout;
 
     console.log(blue(`Warp Version `) + green(pjson.version));
-    console.log(blue(`StarkNet Version `) + green(starknetVersion.split(' ')[1]));
+    console.log(blue(`Starknet Version `) + green(starknetVersion.split(' ')[1]));
   });

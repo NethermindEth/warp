@@ -40,29 +40,28 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const body = this.getBody(node, writer);
 
     const returns = this.getReturns(node, writer);
-    const implicits = this.getImplicits(node);
 
     return [
-      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}{`, body, `}`]
+      [documentation, ...decorator, `fn ${name}(${args})${returns}{`, body, `}`]
         .filter(notNull)
         .join('\n'),
     ];
   }
 
   private getDecorator(node: CairoFunctionDefinition): string[] {
-    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    if (node.kind === FunctionKind.Constructor) return ['#[constructor]'];
     const decorators: string[] = [];
     if (node.kind === FunctionKind.Fallback) {
-      decorators.push('@raw_input');
-      if (node.vParameters.vParameters.length > 0) decorators.push('@raw_output');
+      decorators.push('#[raw_input]');
+      if (node.vParameters.vParameters.length > 0) decorators.push('#[raw_output]');
     }
 
     if (node.visibility === FunctionVisibility.External) {
       if (
         [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
       )
-        decorators.push('@view');
-      else decorators.push('@external');
+        decorators.push('#[view]');
+      else decorators.push('#[external]');
     }
 
     return decorators;
@@ -90,7 +89,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
       return [
-        'alloc_locals;',
         this.getConstructorStorageAllocation(node),
         ...keccakPtrInit,
         withKeccak,
@@ -105,7 +103,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
     return [
-      'alloc_locals;',
       this.getConstructorStorageAllocation(node),
       ...keccakPtrInit,
       'let (local warp_memory : DictAccess*) = default_dict_new(0);',
@@ -122,7 +119,13 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
   private getReturns(node: CairoFunctionDefinition, writer: ASTWriter): string {
     if (node.kind === FunctionKind.Constructor) return '';
-    return `-> (${writer.write(node.vReturnParameters)})`;
+
+    const returnStr = writer.write(node.vReturnParameters);
+    const paramLen = node.vReturnParameters.vParameters.length;
+    // Cairo1 does not need to always return a tuple as former versions
+    if (paramLen > 1) return `-> (${returnStr})`;
+    else if (paramLen === 1) return `-> ${returnStr}`;
+    else return ''; // No return specified so nothing to print
   }
 
   private getImplicits(node: CairoFunctionDefinition): string {
@@ -152,8 +155,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         return null;
       }
       return [
-        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE.write(${contract.usedStorage});`,
-        contract.usedIds === 0 ? '' : `WARP_NAMEGEN.write(${contract.usedIds});`,
+        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE::write(${contract.usedStorage});`,
+        contract.usedIds === 0 ? '' : `WARP_NAMEGEN::write(${contract.usedIds});`,
       ].join(`\n`);
     }
     return null;

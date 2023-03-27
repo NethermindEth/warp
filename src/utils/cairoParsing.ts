@@ -13,7 +13,7 @@ export type RawCairoFunctionInfo = {
  *  @returns A list of each function information
  */
 export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFunctionInfo[] {
-  const functions = rawFunctions.matchAll(/func (\w+)\s*[{]?.*?[}]?\s*[(].*?[)]/gis);
+  const functions = [...rawFunctions.matchAll(/fn (\w+)/gis)];
 
   return [...functions].map((func) => getRawCairoFunctionInfo(func[0]));
 }
@@ -24,10 +24,7 @@ export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFu
  *  @returns The function implicits and it's name
  */
 export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionInfo {
-  // Todo: Update match so implicit can be empty and there is a version of them without keys
-  const funcSignature =
-    rawFunction.match(/func (?<name>\w+)\s*[{](?<implicits>.+)[}]/is) ??
-    rawFunction.match(/func (?<name>\w+)\s*/);
+  const funcSignature = rawFunction.match(/fn (?<name>\w+)/);
 
   assert(
     funcSignature !== null && funcSignature.groups !== undefined,
@@ -35,6 +32,7 @@ export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionIn
   );
 
   const name = funcSignature.groups.name;
+
   const implicits =
     funcSignature.groups.implicits !== undefined
       ? parseImplicits(funcSignature.groups.implicits)

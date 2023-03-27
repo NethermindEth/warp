@@ -1,15 +1,18 @@
-import { ASTWriter, ContractKind, SrcDesc } from 'solc-typed-ast';
+import { ASTWriter, ContractKind, SourceUnit, SrcDesc } from 'solc-typed-ast';
 import { isExternallyVisible } from '../../utils/utils';
-import { CairoContract } from '../../ast/cairoNodes';
+import {
+  CairoContract,
+  CairoGeneratedFunctionDefinition,
+  CairoImportFunctionDefinition,
+  FunctionStubKind,
+} from '../../ast/cairoNodes';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
 import { CairoASTNodeWriter } from '../base';
-import {
-  getDocumentation,
-  getInterfaceNameForContract,
-  INCLUDE_CAIRO_DUMP_FUNCTIONS,
-  INDENT,
-} from '../utils';
+import { getDocumentation, getInterfaceNameForContract, INDENT } from '../utils';
 import { interfaceNameMappings } from './sourceUnitWriter';
+import { getStructs } from '../../freeStructWritter';
+import assert from 'assert';
+import endent from 'endent';
 
 export class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -22,10 +25,10 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       ];
 
     const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
-      ([decl, loc]) => `const ${decl.name} = ${loc};`,
+      ([decl, loc]) => `const ${decl.name}: felt = ${loc};`,
     );
     const staticVariables = [...node.staticStorageAllocations.entries()].map(
-      ([decl, loc]) => `const ${decl.name} = ${loc};`,
+      ([decl, loc]) => `const ${decl.name}: felt = ${loc};`,
     );
     const variables = [
       `// Dynamic variables - Arrays and Maps`,
@@ -56,7 +59,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       .filter((func) => !isExternallyVisible(func))
       .map((func) => writer.write(func));
 
-    const events = node.vEvents.map((value) => writer.write(value));
+    const events = node.vEvents.map((value) => writer.write(value)).join('\n\n');
 
     const body = [...variables, ...enums, ...otherFunctions]
       .join('\n\n')
@@ -70,65 +73,111 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       .map((l) => (l.length > 0 ? INDENT + l : l))
       .join('\n');
 
-    const storageCode = [
-      '@storage_var',
-      'func WARP_STORAGE(index: felt) -> (val: felt){',
-      '}',
-      '@storage_var',
-      'func WARP_USED_STORAGE() -> (val: felt){',
-      '}',
-      '@storage_var',
-      'func WARP_NAMEGEN() -> (name: felt){',
-      '}',
-      'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt){',
-      '    alloc_locals;',
-      '    let (id) = WARP_STORAGE.read(loc);',
-      '    if (id == 0){',
-      '        let (id) = WARP_NAMEGEN.read();',
-      '        WARP_NAMEGEN.write(id + 1);',
-      '        WARP_STORAGE.write(loc, id + 1);',
-      '        return (id + 1,);',
-      '    }else{',
-      '        return (id,);',
-      '    }',
-      '}',
-      ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
-        ? [
-            'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){',
-            '    alloc_locals;',
-            '    if (length == 0){',
-            '        return ();',
-            '    }',
-            '    let index = length - 1;',
-            '    let (read) = WARP_STORAGE.read(index);',
-            '    assert ptr[index] = read;',
-            '    DUMP_WARP_STORAGE_ITER(index, ptr);',
-            '    return ();',
-            '}',
-            '@external',
-            'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){',
-            '    alloc_locals;',
-            '    let (p: felt*) = alloc();',
-            '    DUMP_WARP_STORAGE_ITER(length, p);',
-            '    return (length, p);',
-            '}',
-          ]
-        : []),
-    ].join('\n');
+    const sourceUnit = node.parent;
+    assert(sourceUnit instanceof SourceUnit, 'Contract node parent should be a Source Unit node.');
+    const otherStorageVars = sourceUnit.vFunctions.filter(
+      (v) =>
+        v instanceof CairoGeneratedFunctionDefinition &&
+        v.functionStubKind === FunctionStubKind.StorageDefStub,
+    );
+    const storageCode = endent`
+      struct Storage {
+        WARP_STORAGE: LegacyMap::<felt, felt>,
+        WARP_USED_STORAGE: felt,
+        WARP_NAMEGEN: felt,
+        ${otherStorageVars.map((v) => `${writer.write(v)}`).join('\n')}
+      }
+
+      fn readId(loc: felt) -> felt {
+        let id = WARP_STORAGE::read(loc);
+        if id == 0 {
+          let id = WARP_NAMEGEN::read();
+          WARP_NAMEGEN::write(id + 1);
+          WARP_STORAGE::write(loc, id + 1);
+          return id + 1;
+        } 
+        return id;
+      }
+    `;
+
+    // Data about imports used, util funcs, constants and structs definition are stored in the Source Unit node
+    // but should be printed inside the contract module
+
+    // Only constants generated by `newToDeploy` exist at this stage
+    const constants = sourceUnit.vVariables
+      .map((v) => {
+        assert(v.vValue !== undefined, 'Constants cannot be unanssigned');
+        return [`// ${v.documentation}`, `const ${v.name} = ${writer.write(v.vValue)};`].join('\n');
+      })
+      .join('\n');
+
+    const freeStructs = getStructs(sourceUnit, this.ast);
+    const structs = [...freeStructs, ...sourceUnit.vStructs, ...(node?.vStructs || [])]
+      .map((v) => writer.write(v))
+      .join('\n\n');
+
+    const importFunctions = sourceUnit.vFunctions.filter(
+      (f): f is CairoImportFunctionDefinition => f instanceof CairoImportFunctionDefinition,
+    );
+    const generatedFunctions = sourceUnit.vFunctions.filter(
+      (f): f is CairoGeneratedFunctionDefinition => f instanceof CairoGeneratedFunctionDefinition,
+    );
+    const otherSourceUnitFunctions = sourceUnit.vFunctions.filter(
+      (f) =>
+        !(f instanceof CairoGeneratedFunctionDefinition) &&
+        !(f instanceof CairoImportFunctionDefinition),
+    );
+
+    const writtenImportFuncs = importFunctions
+      .map((n) => writer.write(n))
+      .sort((importA, importB) => importA.localeCompare(importB))
+      .filter((func, index, importFuncs) => func !== importFuncs[index - 1])
+      .join('\n');
+
+    const writtenGeneratedFuncs = generatedFunctions
+      .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
+      .sort((funcA, funcB) => {
+        const stubA = funcA.functionStubKind;
+        const stubB = funcB.functionStubKind;
+        if (stubA === stubB) return 0;
+        if (stubA === FunctionStubKind.StructDefStub) return -1;
+        if (stubA === FunctionStubKind.StorageDefStub) return -1;
+        return 1;
+      })
+      .filter(
+        (func, index, genFuncs) =>
+          func.name !== genFuncs[index - 1]?.name &&
+          func.functionStubKind !== FunctionStubKind.StorageDefStub,
+      )
+      .map((func) => writer.write(func))
+      .join('\n\n');
+
+    const writtenOtherSourceUnitFunctions = otherSourceUnitFunctions
+      .map((func) => writer.write(func))
+      .join('\n\n');
+
+    const contractHeader = '#[contract] \n' + `mod ${node.name} {`;
 
     return [
       [
+        contractHeader,
         documentation,
-        ...events,
-        `namespace ${node.name}{\n\n${body}\n\n}`,
-        outsideNamespaceBody,
+        writtenImportFuncs,
+        constants,
         storageCode,
+        events,
+        structs,
+        body,
+        outsideNamespaceBody,
+        writtenGeneratedFuncs,
+        writtenOtherSourceUnitFunctions,
+        `}`,
       ].join('\n\n'),
     ];
   }
 
   writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {
-    return [`// Contract Def ${node.name}\n\n${this.writeInner(node, writer)}`];
+    return [`${this.writeInner(node, writer)}`];
   }
 
   private writeContractInterface(node: CairoContract, writer: ASTWriter): SrcDesc {

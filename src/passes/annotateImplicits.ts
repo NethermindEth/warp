@@ -12,7 +12,7 @@ import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
 import { Implicits, registerImportsForImplicit } from '../utils/implicits';
-import { isExternallyVisible, union } from '../utils/utils';
+import { union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
 import { EMIT_PREFIX } from '../export';
 import { parseImplicits } from '../utils/cairoParsing';
@@ -96,15 +96,6 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     if (isCairoStub(node)) {
       extractImplicitFromStubs(node, result);
       return node === this.root ? result : union(result, this.commonVisit(node, ast));
-    }
-    if (node.implemented && isExternallyVisible(node)) {
-      result.add('range_check_ptr');
-      result.add('syscall_ptr');
-    }
-    if (node.isConstructor) {
-      result.add('syscall_ptr');
-      result.add('pedersen_ptr');
-      result.add('range_check_ptr');
     }
 
     if (node === this.root) return result;

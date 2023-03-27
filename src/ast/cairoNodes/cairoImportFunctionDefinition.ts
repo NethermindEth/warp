@@ -8,13 +8,13 @@ import { CairoFunctionDefinition, FunctionStubKind } from './cairoFunctionDefini
 import { Implicits } from '../../utils/implicits';
 
 export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
-  path: string;
+  path: string[];
   constructor(
     id: number,
     src: string,
     scope: number,
     name: string,
-    path: string,
+    path: string[],
     implicits: Set<Implicits>,
     parameters: ParameterList,
     returnParameters: ParameterList,

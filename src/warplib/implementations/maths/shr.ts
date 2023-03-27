@@ -9,6 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
+import { WARPLIB_MATHS } from '../../../utils/importPaths';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import {
@@ -237,7 +238,7 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
     rhsType.nBits === 256 ? '_256' : ''
   }`;
 
-  const importName = `warplib.maths.shr${signed ? '_signed' : ''}`;
+  const importName = [...WARPLIB_MATHS, `shr${signed ? '_signed' : ''}`];
 
   const importedFunc = ast.registerImport(
     node,

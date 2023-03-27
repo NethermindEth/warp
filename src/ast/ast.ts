@@ -276,7 +276,7 @@ export class AST {
 
   registerImport(
     node: ASTNode,
-    location: string,
+    location: string[],
     name: string,
     inputs: ParameterInfo[],
     outputs: ParameterInfo[],
