@@ -12,6 +12,7 @@ import {
   ContractKind,
   DataLocation,
   EnumDefinition,
+  EventType,
   Expression,
   FixedBytesType,
   FunctionDefinition,
@@ -258,6 +259,10 @@ export function generateExpressionTypeString(type: TypeNode): string {
     return `function ${
       type.name !== undefined ? type.name : ''
     }(${argStr})${mutStr}${visStr}${retStr}`;
+  } else if (type instanceof EventType) {
+    const mapper = (node: TypeNode) => generateExpressionTypeString(node);
+    const argStr = type.parameters.map(mapper).join(',');
+    return `function ${type.name !== undefined ? type.name : ''}(${argStr})`;
   } else if (type instanceof ArrayType) {
     return `${generateExpressionTypeString(type.elementT)}[${
       type.size !== undefined ? type.size : ''
