@@ -1,5 +1,23 @@
+# Contributing
 
-### First steps :feet:
+You can contribute to Warp by raising issues and PRs. Simply filing issues for problems you encounter is a great way to contribute. Contributing implementations is greatly appreciated.
+
+## DOs and DON'Ts
+
+Please do:
+
+- **DO** give priority to the current style of the project or file you're changing even if it diverges from the general guidelines.
+- **DO** include tests for both, new features and bug fixes
+- **DO** keep the discussions focused on the initial topic
+
+Please do not:
+
+- **DON'T** raise PRs with style changes
+- **DON'T** surprise us with big pull requests. It's better to first raise it as an issue and have it discussed
+- **DON'T** commit code that you didn't author. This may breach IP
+- **DON'T** submit PRs that alter licensing, contributing guide lines or code of conduct
+
+## First steps :feet:
 
 If you like to contribute, the first step is to install Warp from source for devs [steps here](#warp-installation-method-2-from-sourcefor-devs)
 
@@ -7,7 +25,7 @@ To look what features we are currently working on or tasks that are pending to d
 
 Also, please take a look through our [Contribution Guidelines](CONTRIBUTING.md)
 
-### Developing tips :honey_pot:
+## Developing tips :honey_pot:
 
 While developing your code, remembering to compile the project every time some minor changes are applied could be annoying. You could start a process that watch for changes and automatically recompile it.
 
@@ -73,3 +91,7 @@ python starknet-testnet/generateMarkdown.py
 ```
 
 This saves the benchmarks at `benchmark/stats/data.md`
+
+## PR - CI Process
+
+The project uses GitHub Actions to build its artifacts and run tests. We do our best to keep the suite fast and stable. For incoming PRs, builds and test runs must be clean.
