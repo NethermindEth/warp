@@ -561,9 +561,15 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           }
         }
       } else {
-        staticArrayCall = `${funcName}(${
-          ((node.vDeclarations[0].vType as ArrayTypeName).vLength as Literal).value
-        }${getArguments(1)})`;
+        if ((node.vDeclarations[0].vType as ArrayTypeName).vLength instanceof Literal) {
+          staticArrayCall = `${funcName}(${
+            ((node.vDeclarations[0].vType as ArrayTypeName).vLength as Literal).value
+          }${getArguments(1)})`;
+        } else {
+          staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}${getArguments(
+            1,
+          )})`;
+        }
       }
     }
 
