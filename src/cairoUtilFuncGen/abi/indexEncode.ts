@@ -20,7 +20,7 @@ import {
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
   NARROW_SAFE,
-  GET_U128,
+  U128_FROM_FELT,
   WM_DYN_ARRAY_LENGTH,
   WM_INDEX_DYN,
   WM_NEW,
@@ -95,7 +95,7 @@ export class IndexEncode extends AbiBase {
     const importedFuncs = [
       this.requireImport(...ALLOC),
       this.requireImport(...BITWISE_BUILTIN),
-      this.requireImport(...GET_U128),
+      this.requireImport(...U128_FROM_FELT),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...WM_NEW),
       this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),

@@ -19,7 +19,13 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { ALLOC, NARROW_SAFE, WM_READ256, GET_U128, GET_U32 } from '../../utils/importPaths';
+import {
+  ALLOC,
+  NARROW_SAFE,
+  WM_READ256,
+  U128_FROM_FELT,
+  U32_FROM_FELT,
+} from '../../utils/importPaths';
 import {
   getElementType,
   getSize,
@@ -227,7 +233,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `let (mem_read1) = ${auxFunc.name}(mem_read0);`,
         `assert ptr[0] = mem_read1;`,
       ];
-      funcCalls = [this.requireImport(...GET_U128), auxFunc, readFunc];
+      funcCalls = [this.requireImport(...U128_FROM_FELT), auxFunc, readFunc];
     } else {
       code = [`let (mem_read0) = ${readFunc.name}(mem_loc);`, 'assert ptr[0] = mem_read0;'];
       funcCalls = [readFunc];
@@ -266,7 +272,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
           `let read_${index} = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(allocSize)});`,
           `let member${index}= ${memberGetterFunc.name}(read_${index});`,
         ],
-        [this.requireImport(...GET_U128), memberGetterFunc, readFunc],
+        [this.requireImport(...U128_FROM_FELT), memberGetterFunc, readFunc],
         offset + 1,
       ];
     }
@@ -274,7 +280,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const memberFeltSize = CairoType.fromSol(type, this.ast).width;
     return [
       [`let member${index} = *warp_memory.at(u32_from_felt(${add('mem_loc', offset)}));`],
-      [this.requireImport(...GET_U32)],
+      [this.requireImport(...U32_FROM_FELT)],
       offset + memberFeltSize,
     ];
   }

@@ -18,7 +18,7 @@ import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes';
 import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { GET_U128, UINT256_ADD, UINT256_EQ, UINT256_SUB } from '../../utils/importPaths';
+import { U128_FROM_FELT, UINT256_ADD, UINT256_EQ, UINT256_SUB } from '../../utils/importPaths';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -176,7 +176,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const importedFuncs = [
       this.requireImport(...UINT256_EQ),
       this.requireImport(...UINT256_ADD),
-      this.requireImport(...GET_U128),
+      this.requireImport(...U128_FROM_FELT),
     ];
     return {
       name: funcName,
@@ -251,7 +251,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const importedFuncs = [
       this.requireImport(...UINT256_EQ),
       this.requireImport(...UINT256_SUB),
-      this.requireImport(...GET_U128),
+      this.requireImport(...U128_FROM_FELT),
     ];
 
     return {
