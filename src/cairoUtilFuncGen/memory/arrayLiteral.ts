@@ -117,14 +117,14 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
 
     // If it's dynamic we need to include the length at the start
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
     const writes = [
       ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`] : []),
       ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
         .flat()
         .map(
-          // eslint-disable-next-line no-unused-vars
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           (name, index) => `warp_memory.append(${name});`,
           // `warp_memory.insert(
           //   ${add(
