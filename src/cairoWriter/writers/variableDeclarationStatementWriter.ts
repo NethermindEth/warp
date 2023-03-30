@@ -1,21 +1,13 @@
 import assert from 'assert';
 import {
   ArrayType,
-  ArrayTypeName,
   ASTWriter,
-  BoolType,
   DataLocation,
   FunctionCall,
   generalizeType,
-  Identifier,
-  IntType,
-  Literal,
   SrcDesc,
-  StructDefinition,
-  TupleExpression,
   TupleType,
   TypeNode,
-  UserDefinedType,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -23,7 +15,6 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes'
 import { TranspileFailedError } from '../../utils/errors';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternalCall } from '../../utils/utils';
-import { uint256 } from '../../warplib/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation, getStaticArrayCallInfo } from '../utils';
 

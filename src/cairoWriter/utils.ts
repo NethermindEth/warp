@@ -5,7 +5,6 @@ import {
   ASTNode,
   ASTWriter,
   BoolType,
-  Expression,
   FunctionCall,
   Identifier,
   InferType,
@@ -15,7 +14,6 @@ import {
   StructDefinition,
   StructuredDocumentation,
   TupleExpression,
-  TypeNode,
   UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -108,7 +106,7 @@ function getArguments(
         })`,
       );
     });
-    let args = valuesAreDefault
+    const args = valuesAreDefault
       ? ''
       : `, (${argumentList.join('), (')}${argumentList.length === 1 ? ',' : ''})`;
     return { args, isStringArray, structInitCalls, stringInitCalls };
@@ -386,7 +384,7 @@ function getArguments(
       });
     }
 
-    let args = valuesAreDefault
+    const args = valuesAreDefault
       ? ''
       : isStringArray
       ? `, (${argumentList.join(', ')})`
@@ -511,7 +509,7 @@ function getArguments(
         });
       }
     }
-    let args = valuesAreDefault ? '' : `, (${argumentList.join(', ')})`;
+    const args = valuesAreDefault ? '' : `, (${argumentList.join(', ')})`;
     return { args, isStringArray, structInitCalls, stringInitCalls };
   }
 }
@@ -559,7 +557,7 @@ export function getStaticArrayCallInfo(
     return { staticArrayCall, isStringArray, structInitCalls, stringInitCalls };
   } else if (isMatrix && !isString && !isBytes) {
     if (((nodeType as ArrayType).elementT as ArrayType).size !== undefined) {
-      let argsInfo = getArguments(node, nodeType, inf, funcName, 2);
+      const argsInfo = getArguments(node, nodeType, inf, funcName, 2);
       staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${Number(
         ((nodeType as ArrayType).elementT as ArrayType).size,
       )}${argsInfo.args})`;
@@ -569,14 +567,14 @@ export function getStaticArrayCallInfo(
       return { staticArrayCall, isStringArray, structInitCalls, stringInitCalls };
     } else {
       if ((node.vInitialValue as FunctionCall).vArguments[0] instanceof Identifier) {
-        let argsInfo = getArguments(node, nodeType, inf, funcName, 1);
+        const argsInfo = getArguments(node, nodeType, inf, funcName, 1);
         staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}${argsInfo.args})`;
         const isStringArray = argsInfo.isStringArray;
         const structInitCalls = argsInfo.structInitCalls;
         const stringInitCalls = argsInfo.stringInitCalls;
         return { staticArrayCall, isStringArray, structInitCalls, stringInitCalls };
       } else {
-        let argsInfo = getArguments(node, nodeType, inf, funcName, 2);
+        const argsInfo = getArguments(node, nodeType, inf, funcName, 2);
         staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}, ${
           ((node.vInitialValue as FunctionCall).vArguments[0] as FunctionCall).vArguments.length
         }${argsInfo.args})`;
@@ -588,7 +586,7 @@ export function getStaticArrayCallInfo(
     }
   } else {
     if ((node.vDeclarations[0].vType as ArrayTypeName).vLength instanceof Literal) {
-      let argsInfo = getArguments(node, nodeType, inf, funcName, 1);
+      const argsInfo = getArguments(node, nodeType, inf, funcName, 1);
       staticArrayCall = `${funcName}(${
         ((node.vDeclarations[0].vType as ArrayTypeName).vLength as Literal).value
       }${argsInfo.args})`;
@@ -597,7 +595,7 @@ export function getStaticArrayCallInfo(
       const stringInitCalls = argsInfo.stringInitCalls;
       return { staticArrayCall, isStringArray, structInitCalls, stringInitCalls };
     } else {
-      let argsInfo = getArguments(node, nodeType, inf, funcName, 1);
+      const argsInfo = getArguments(node, nodeType, inf, funcName, 1);
       staticArrayCall = `${funcName}(${Number((nodeType as ArrayType).size)}${argsInfo.args})`;
       const isStringArray = argsInfo.isStringArray;
       const structInitCalls = argsInfo.structInitCalls;
