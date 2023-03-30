@@ -5,6 +5,8 @@
 Warp brings Solidity to Starknet, making it possible to transpile Ethereum
 smart contracts to Starknet Cairo Contracts.
 
+:warning: **Note**: Support for Cairo 0.10 has been reduced in order for our team to focus on upgrading Warp to be compatible with the upcoming release of Cairo 1. This upgrade will provide much more readable transpiled contracts with improved performance. All new development is being done at this [branch](https://github.com/NethermindEth/warp/tree/cairo-1.0).
+
 ## Quickstart
 
 Docker compose provides a ready to use environment featuring warp and devnet.
