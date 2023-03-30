@@ -14,8 +14,8 @@ import { replaceBytesType } from './utils';
 
 export class ReplaceIndexAccessBytesConverter extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
-    const a = generalizeType(safeGetNodeType(node.vBaseExpression, ast.inference))[0];
-    if (!(node.vIndexExpression && a instanceof FixedBytesType)) {
+    const baseExprType = generalizeType(safeGetNodeType(node.vBaseExpression, ast.inference))[0];
+    if (node.vIndexExpression === undefined || !(baseExprType instanceof FixedBytesType)) {
       this.visitExpression(node, ast);
       return;
     }
@@ -25,7 +25,7 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
       ast,
     );
 
-    const width: string = baseTypeName.typeString.slice(5);
+    const width: string = baseTypeName.typeString.slice('bytes'.length);
 
     const indexTypeName =
       node.vIndexExpression instanceof Literal
