@@ -1,9 +1,11 @@
 # Installation
 
-> **Note:**
-> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
+### Dependencies
 
-<hr> 
+Before proceeding with the instalation, please make sure you have all required external [dependencies](dependencies.md) installed.
+
+<hr>
+
 Without any virtual environment activated perform the following in order:
 
 1. Add the warp package from npm.
@@ -35,7 +37,3 @@ warp install --python <path/to/python3.9> --verbose
 ```bash
 warp transpile example_contracts/ERC20.sol
 ```
-
-## Dependencies
-
-In case of having any issues during installation, please make sure you have all required external [dependencies](dependencies.md) installed.
