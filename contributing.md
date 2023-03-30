@@ -17,13 +17,49 @@ Please do not:
 - **DON'T** commit code that you didn't author. This may breach IP
 - **DON'T** submit PRs that alter licensing, contributing guide lines or code of conduct
 
+## Installation
+
+Make sure you have the [dependencies](dependencies.md) installed first.
+
+With a virtual environment (with Python3.9) activated:
+
+1. Clone this repo and change directory into the `warp` folder.
+
+2. Install the JavaScript dependencies:
+
+```bash
+yarn
+```
+
+3. Install the Python dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
+
+```bash
+CFLAGS=-I`brew --prefix gmp`/include LDFLAGS=-L`brew --prefix gmp`/lib pip install ecdsa fastecdsa sympy
+```
+
+Then run the pip command above again.
+
+4. Compile the project:
+
+```bash
+yarn warplib
+```
+
+5. Test the installation worked by transpiling an example ERC20 contract:
+
+```bash
+bin/warp transpile example_contracts/ERC20.sol
+```
+
 ## First steps :feet:
 
-If you like to contribute, the first step is to install Warp from source for devs [steps here](#warp-installation-method-2-from-sourcefor-devs)
-
-To look what features we are currently working on or tasks that are pending to do, please checkout the project on github [here](https://github.com/orgs/NethermindEth/projects/30/views/3)
-
-Also, please take a look through our [Contribution Guidelines](CONTRIBUTING.md)
+To look what features we are currently working on or tasks that are pending to do, please checkout the [project on github](https://github.com/orgs/NethermindEth/projects/30/views/3).
 
 ## Developing tips :honey_pot:
 

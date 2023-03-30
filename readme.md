@@ -41,7 +41,7 @@ You can read the documentation [here](https://nethermindeth.github.io/warp/).
 
 ## Installation :gear:
 
-You can install warp in one of two methods, read more about it [here](installation.md)
+If you want to use Warp, learn how to install it [here](installation.md). If you want to contribute to its development, [here](contributing.md) are the instructions to set it up.
 
 ## Usage :computer:
 
