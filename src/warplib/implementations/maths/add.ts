@@ -18,9 +18,9 @@ export function add(): WarplibFunctionInfo {
       );
     } else {
       return [
-        `fn warp_add${width}(lhs: felt, rhs: felt) -> felt{`,
+        `fn warp_add${width}(lhs: felt252, rhs: felt252) -> felt252{`,
         `    let res = lhs + rhs;`,
-        `    let max: felt = ${mask(width)};`,
+        `    let max: felt252 = ${mask(width)};`,
         `    assert (res <= max, 'Value out of bounds');`,
         `    return res;`,
         `}`,
@@ -46,7 +46,7 @@ export function add_unsafe(): WarplibFunctionInfo {
       } else {
         // TODO: Use bitwise '&' to take just the width-bits
         return [
-          `fn warp_add_unsafe${width}(lhs : felt, rhs : felt) -> felt {`,
+          `fn warp_add_unsafe${width}(lhs : felt252, rhs : felt252) -> felt252 {`,
           `    let res = lhs + rhs;`,
           `    return res;`,
           `}`,
@@ -72,7 +72,7 @@ export function add_signed(): WarplibFunctionInfo {
           `        lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
           `    let (lhs_extend) = bitwise_and(lhs.high, ${msb(128)});`,
           `    let (rhs_extend) = bitwise_and(rhs.high, ${msb(128)});`,
-          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs);`,
+          `    let (res : Uint256, carry : felt252) = uint256_add(lhs, rhs);`,
           `    let carry_extend = lhs_extend + rhs_extend + carry*${msb(128)};`,
           `    let (msb) = bitwise_and(res.high, ${msb(128)});`,
           `    let (carry_lsb) = bitwise_and(carry_extend, ${msb(128)});`,
@@ -82,8 +82,8 @@ export function add_signed(): WarplibFunctionInfo {
         ].join('\n');
       } else {
         return [
-          `func warp_add_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
-          `        res : felt){`,
+          `func warp_add_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt252, rhs : felt252) -> (`,
+          `        res : felt252){`,
           `// Do the addition sign extended`,
           `    let (lmsb) = bitwise_and(lhs, ${msb(width)});`,
           `    let (rmsb) = bitwise_and(rhs, ${msb(width)});`,
@@ -121,7 +121,7 @@ export function add_signed_unsafe(): WarplibFunctionInfo {
       } else {
         return [
           `func warp_add_signed_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : felt, rhs : felt) -> (res : felt){`,
+          `        lhs : felt252, rhs : felt252) -> (res : felt252){`,
           `    let (res) = bitwise_and(lhs + rhs, ${mask(width)});`,
           `    return (res,);`,
           `}`,

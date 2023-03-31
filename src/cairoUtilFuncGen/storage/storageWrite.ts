@@ -69,7 +69,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
-        fn ${funcName}(loc: felt, value: ${cairoTypeString}) -> ${cairoTypeString}{
+        fn ${funcName}(loc: felt252, value: ${cairoTypeString}) -> ${cairoTypeString}{
           ${writeCode}
           return value;
         }

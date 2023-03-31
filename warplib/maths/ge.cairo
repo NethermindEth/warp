@@ -1,5 +1,5 @@
 
-fn warp_ge(lhs: felt, rhs: felt) -> bool {
+fn warp_ge(lhs: felt252, rhs: felt252) -> bool {
     return lhs >= rhs;
 }
 

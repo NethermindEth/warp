@@ -79,13 +79,13 @@ export class DynArrayGen extends StringIndexedFuncGen {
     const mappingName = `WARP_DARRAY${this.generatedFunctionsDef.size}_${valueCairoType.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: `${mappingName}: LegacyMap::<(felt, u256), felt>`,
+      code: `${mappingName}: LegacyMap::<(felt252, u256), felt252>`,
       functionsCalled: [],
     };
 
     const lengthFuncInfo: GeneratedFunctionInfo = {
       name: `${mappingName}_LENGTH`,
-      code: `${mappingName}_LENGTH: LegacyMap::<felt, u256>`,
+      code: `${mappingName}_LENGTH: LegacyMap::<felt252, u256>`,
       functionsCalled: [],
     };
     return [funcInfo, lengthFuncInfo];

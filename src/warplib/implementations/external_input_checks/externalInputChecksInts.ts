@@ -13,8 +13,8 @@ export function external_input_check_ints(): WarplibFunctionInfo {
         return 'fn warp_external_input_check_int256(x : u256){}\n';
       } else {
         return [
-          `fn warp_external_input_check_int${int_width}(x : felt){`,
-          `${INDENT}let max: felt = ${mask(int_width)};`,
+          `fn warp_external_input_check_int${int_width}(x : felt252){`,
+          `${INDENT}let max: felt252 = ${mask(int_width)};`,
           `${INDENT}assert(x <= max, 'Error: value out-of-bounds.');`,
           `}\n`,
         ].join('\n');
