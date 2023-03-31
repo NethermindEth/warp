@@ -1,15 +1,16 @@
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
-import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
+import { CairoFelt, CairoType, CairoUint } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import {
   createCairoGeneratedFunction,
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { DICT_WRITE, WM_WRITE256, WM_WRITE_FELT } from '../../utils/importPaths';
+import { DICT_WRITE, WM_WRITE_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
+import { wmWriteuNImport } from '../utils/uNselector';
 
 /*
   Produces functions to write a given value into warp_memory, returning that value (to simulate assignments)
@@ -49,10 +50,10 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
     if (cairoTypeToWrite instanceof CairoFelt) {
       return this.requireImport(...WM_WRITE_FELT, inputs, outputs);
-    } else if (
-      cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation
-    ) {
-      return this.requireImport(...WM_WRITE256, inputs, outputs);
+    }
+
+    if (cairoTypeToWrite instanceof CairoUint) {
+      this.requireImport(...wmWriteuNImport(cairoTypeToWrite), inputs, outputs);
     }
 
     const funcInfo = this.getOrCreate(typeToWrite);

@@ -86,20 +86,214 @@ export const WM_DYN_ARRAY_LENGTH: [string[], string] = [[...WARPLIB_MEMORY], 'wm
 export const WM_INDEX_DYN: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_dyn'];
 export const WM_INDEX_STATIC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_static'];
 export const WM_NEW: [string[], string] = [[...WARPLIB_MEMORY], 'wm_new'];
-export const WM_READ256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_256'];
 export const WM_READ_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_felt'];
 export const WM_READ_ID: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_id'];
 export const WM_TO_FELT_ARRAY: [string[], string] = [[...WARPLIB_MEMORY], 'wm_to_felt_array'];
 export const WM_ALLOC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_alloc'];
-export const WM_WRITE256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_256'];
 export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_felt'];
+
+/** cairo1 uX memory read */
+export const WM_READ8: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_8'];
+export const WM_READ16: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_16'];
+export const WM_READ24: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_24'];
+export const WM_READ32: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_32'];
+export const WM_READ40: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_40'];
+export const WM_READ48: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_48'];
+export const WM_READ56: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_56'];
+export const WM_READ64: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_64'];
+export const WM_READ72: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_72'];
+export const WM_READ80: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_80'];
+export const WM_READ88: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_88'];
+export const WM_READ96: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_96'];
+export const WM_READ104: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_104'];
+export const WM_READ112: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_112'];
+export const WM_READ120: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_120'];
+export const WM_READ128: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_128'];
+export const WM_READ136: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_136'];
+export const WM_READ144: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_144'];
+export const WM_READ152: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_152'];
+export const WM_READ160: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_160'];
+export const WM_READ168: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_168'];
+export const WM_READ176: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_176'];
+export const WM_READ184: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_184'];
+export const WM_READ192: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_192'];
+export const WM_READ200: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_200'];
+export const WM_READ208: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_208'];
+export const WM_READ216: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_216'];
+export const WM_READ224: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_224'];
+export const WM_READ232: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_232'];
+export const WM_READ240: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_240'];
+export const WM_READ248: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_248'];
+export const WM_READ256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_256'];
+/** --------------------- */
+
+/** cairo1 uX memory write */
+export const WM_WRITE8: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_8'];
+export const WM_WRITE16: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_16'];
+export const WM_WRITE24: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_24'];
+export const WM_WRITE32: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_32'];
+export const WM_WRITE40: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_40'];
+export const WM_WRITE48: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_48'];
+export const WM_WRITE56: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_56'];
+export const WM_WRITE64: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_64'];
+export const WM_WRITE72: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_72'];
+export const WM_WRITE80: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_80'];
+export const WM_WRITE88: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_88'];
+export const WM_WRITE96: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_96'];
+export const WM_WRITE104: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_104'];
+export const WM_WRITE112: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_112'];
+export const WM_WRITE120: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_120'];
+export const WM_WRITE128: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_128'];
+export const WM_WRITE136: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_136'];
+export const WM_WRITE144: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_144'];
+export const WM_WRITE152: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_152'];
+export const WM_WRITE160: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_160'];
+export const WM_WRITE168: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_168'];
+export const WM_WRITE176: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_176'];
+export const WM_WRITE184: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_184'];
+export const WM_WRITE192: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_192'];
+export const WM_WRITE200: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_200'];
+export const WM_WRITE208: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_208'];
+export const WM_WRITE216: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_216'];
+export const WM_WRITE224: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_224'];
+export const WM_WRITE232: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_232'];
+export const WM_WRITE240: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_240'];
+export const WM_WRITE248: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_248'];
+export const WM_WRITE256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_256'];
+/** --------------------- */
 
 //------------------------------------------------------
 
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
 export const U256_FROM_FELTS: [string[], string] = [['warplib', 'integer'], 'u256_from_felts'];
+
+/**  cairo1 uX <-> felt conversions */
+
+// u8 <-> felt
+export const GET_U8: [string[], string] = [['integer'], 'u8_from_felt'];
+export const U8_TO_FELT: [string[], string] = [['integer'], 'u8_to_felt'];
+
+// u16 <-> felt
+export const GET_U16: [string[], string] = [['integer'], 'u16_from_felt'];
+export const U16_TO_FELT: [string[], string] = [['integer'], 'u16_to_felt'];
+
+// u24 <-> felt
+export const GET_U24: [string[], string] = [['integer'], 'u24_from_felt'];
+export const U24_TO_FELT: [string[], string] = [['integer'], 'u24_to_felt'];
+
+// u32 <-> felt
+export const GET_U32: [string[], string] = [['integer'], 'u32_from_felt'];
+export const U32_TO_FELT: [string[], string] = [['integer'], 'u32_to_felt'];
+
+// u40 <-> felt
+export const GET_U40: [string[], string] = [['integer'], 'u40_from_felt'];
+export const U40_TO_FELT: [string[], string] = [['integer'], 'u40_to_felt'];
+
+// u48 <-> felt
+export const GET_U48: [string[], string] = [['integer'], 'u48_from_felt'];
+export const U48_TO_FELT: [string[], string] = [['integer'], 'u48_to_felt'];
+
+// u56 <-> felt
+export const GET_U56: [string[], string] = [['integer'], 'u56_from_felt'];
+export const U56_TO_FELT: [string[], string] = [['integer'], 'u56_to_felt'];
+
+// u64 <-> felt
+export const GET_U64: [string[], string] = [['integer'], 'u64_from_felt'];
+export const U64_TO_FELT: [string[], string] = [['integer'], 'u64_to_felt'];
+
+// u72 <-> felt
+export const GET_U72: [string[], string] = [['integer'], 'u72_from_felt'];
+export const U72_TO_FELT: [string[], string] = [['integer'], 'u72_to_felt'];
+
+// u80 <-> felt
+export const GET_U80: [string[], string] = [['integer'], 'u80_from_felt'];
+export const U80_TO_FELT: [string[], string] = [['integer'], 'u80_to_felt'];
+
+// u88 <-> felt
+export const GET_U88: [string[], string] = [['integer'], 'u88_from_felt'];
+export const U88_TO_FELT: [string[], string] = [['integer'], 'u88_to_felt'];
+
+// u96 <-> felt
+export const GET_U96: [string[], string] = [['integer'], 'u96_from_felt'];
+export const U96_TO_FELT: [string[], string] = [['integer'], 'u96_to_felt'];
+
+// u104 <-> felt
+export const GET_U104: [string[], string] = [['integer'], 'u104_from_felt'];
+export const U104_TO_FELT: [string[], string] = [['integer'], 'u104_to_felt'];
+
+// u112 <-> felt
+export const GET_U112: [string[], string] = [['integer'], 'u112_from_felt'];
+export const U112_TO_FELT: [string[], string] = [['integer'], 'u112_to_felt'];
+
+// u120 <-> felt
+export const GET_U120: [string[], string] = [['integer'], 'u120_from_felt'];
+export const U120_TO_FELT: [string[], string] = [['integer'], 'u120_to_felt'];
+
+// u128 <-> felt
 export const GET_U128: [string[], string] = [['integer'], 'u128_from_felt'];
 export const U128_TO_FELT: [string[], string] = [['integer'], 'u128_to_felt'];
+
+// u136 <-> felt
+export const GET_U136: [string[], string] = [['integer'], 'u136_from_felt'];
+export const U136_TO_FELT: [string[], string] = [['integer'], 'u136_to_felt'];
+
+// u144 <-> felt
+export const GET_U144: [string[], string] = [['integer'], 'u144_from_felt'];
+export const U144_TO_FELT: [string[], string] = [['integer'], 'u144_to_felt'];
+
+// u152 <-> felt
+export const GET_U152: [string[], string] = [['integer'], 'u152_from_felt'];
+export const U152_TO_FELT: [string[], string] = [['integer'], 'u152_to_felt'];
+
+// u160 <-> felt
+export const GET_U160: [string[], string] = [['integer'], 'u160_from_felt'];
+export const U160_TO_FELT: [string[], string] = [['integer'], 'u160_to_felt'];
+
+// u168 <-> felt
+export const GET_U168: [string[], string] = [['integer'], 'u168_from_felt'];
+export const U168_TO_FELT: [string[], string] = [['integer'], 'u168_to_felt'];
+
+// u176 <-> felt
+export const GET_U176: [string[], string] = [['integer'], 'u176_from_felt'];
+export const U176_TO_FELT: [string[], string] = [['integer'], 'u176_to_felt'];
+
+// u184 <-> felt
+export const GET_U184: [string[], string] = [['integer'], 'u184_from_felt'];
+export const U184_TO_FELT: [string[], string] = [['integer'], 'u184_to_felt'];
+
+// u192 <-> felt
+export const GET_U192: [string[], string] = [['integer'], 'u192_from_felt'];
+export const U192_TO_FELT: [string[], string] = [['integer'], 'u192_to_felt'];
+
+// u200 <-> felt
+export const GET_U200: [string[], string] = [['integer'], 'u200_from_felt'];
+export const U200_TO_FELT: [string[], string] = [['integer'], 'u200_to_felt'];
+
+// u208 <-> felt
+export const GET_U208: [string[], string] = [['integer'], 'u208_from_felt'];
+export const U208_TO_FELT: [string[], string] = [['integer'], 'u208_to_felt'];
+
+// u216 <-> felt
+export const GET_U216: [string[], string] = [['integer'], 'u216_from_felt'];
+export const U216_TO_FELT: [string[], string] = [['integer'], 'u216_to_felt'];
+
+// u224 <-> felt
+export const GET_U224: [string[], string] = [['integer'], 'u224_from_felt'];
+export const U224_TO_FELT: [string[], string] = [['integer'], 'u224_to_felt'];
+
+// u232 <-> felt
+export const GET_U232: [string[], string] = [['integer'], 'u232_from_felt'];
+export const U232_TO_FELT: [string[], string] = [['integer'], 'u232_to_felt'];
+
+// u240 <-> felt
+export const GET_U240: [string[], string] = [['integer'], 'u240_from_felt'];
+export const U240_TO_FELT: [string[], string] = [['integer'], 'u240_to_felt'];
+
+// u248 <-> felt
+export const GET_U248: [string[], string] = [['integer'], 'u248_from_felt'];
+export const U248_TO_FELT: [string[], string] = [['integer'], 'u248_to_felt'];
+
+/**  ------------------------------ */
 
 export const GET_CALLER_ADDRESS: [string[], string] = [['starknet'], 'get_caller_address'];
 export const ADDRESS_INTO_FELT: [string[], string] = [['starknet'], 'ContractAddressIntoFelt'];

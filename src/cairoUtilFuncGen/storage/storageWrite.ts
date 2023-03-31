@@ -1,12 +1,18 @@
 import endent from 'endent';
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
-import { CairoType, CairoUint256, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import {
+  CairoType,
+  CairoUint,
+  CairoUint256,
+  TypeConversionContext,
+} from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { U128_TO_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
+import { toFeltfromuXImport } from '../utils/uNselector';
 
 export class StorageWriteGen extends StringIndexedFuncGen {
   public gen(storageLocation: Expression, writeValue: Expression): FunctionCall {
@@ -55,11 +61,16 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
     const cairoTypeString = cairoTypeToWrite.toString();
+    const fnsToImport: [string[], string][] = [];
     const writeCode = cairoTypeToWrite
       .serialiseMembers('value')
       .map((name, index) => {
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
           name = `u128_to_felt(${name})`;
+          fnsToImport.push(U128_TO_FELT);
+        } else if (cairoTypeToWrite instanceof CairoUint) {
+          name = `${cairoTypeString}_to_felt(${name})`;
+          fnsToImport.push(toFeltfromuXImport(cairoTypeToWrite));
         }
         return `  ${write(add('loc', index), name)}`;
       })
@@ -74,7 +85,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           return value;
         }
       `,
-      functionsCalled: [this.requireImport(...U128_TO_FELT)],
+      functionsCalled: [...fnsToImport.map((imp) => this.requireImport(...imp))],
     };
     return funcInfo;
   }

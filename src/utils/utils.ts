@@ -128,16 +128,21 @@ export function primitiveTypeToCairo(typeString: string): CairoPrimitiveIntType 
     throw new NotSupportedYetError('Fixed types not implemented');
   }
 
-  if (typeString.startsWith('uint')) {
-    const bits = parseInt(typeString.slice('uint'.length));
+  // regex match if typeString is uintN or intN
+
+  const uintMatch = typeString.match(/^uint([0-9]+)$/);
+  const intMatch = typeString.match(/^int([0-9]+)$/);
+
+  if (uintMatch) {
+    const bits = BigInt(uintMatch[1]);
     if (bits > 256) {
       throw new NotSupportedYetError('uint types larger than 256 bits not supported');
     }
     return `u${bits}` as CairoPrimitiveIntType;
   }
 
-  if (typeString.startsWith('int')) {
-    const bits = parseInt(typeString.slice('int'.length));
+  if (intMatch) {
+    const bits = BigInt(intMatch[1]);
     if (bits > 256) {
       throw new NotSupportedYetError('int types larger than 256 bits not supported');
     }

@@ -2,6 +2,7 @@ import { ASTWriter, Literal, LiteralKind, SrcDesc } from 'solc-typed-ast';
 import { TranspileFailedError } from '../../utils/errors';
 import { primitiveTypeToCairo, isCairoPrimitiveIntType } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
+import { CairoUint256, divmod } from '../../export';
 
 export class LiteralWriter extends CairoASTNodeWriter {
   writeInner(node: Literal, _: ASTWriter): SrcDesc {
@@ -9,11 +10,15 @@ export class LiteralWriter extends CairoASTNodeWriter {
     switch (node.kind) {
       case LiteralKind.Number:
         if (isCairoPrimitiveIntType(type)) {
+          if (type === CairoUint256.toString()) {
+            const [high, low] = divmod(BigInt(node.value), BigInt(Math.pow(2, 128)));
+            return [`u256_from_felts( ${low}, ${high} )`];
+          }
           return [`${node.value}_${type}`];
         } else if (type === 'felt') {
           return [node.value];
         } else {
-          throw new TranspileFailedError('Attempted to write unexpected cairo type');
+          throw new TranspileFailedError(`Attempted to write unexpected cairo type: ${type}`);
         }
 
       case LiteralKind.Bool:
