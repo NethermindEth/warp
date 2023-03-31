@@ -59,7 +59,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       .serialiseMembers('value')
       .map((name, index) => {
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
-          name = `u128_to_felt(${name})`;
+          name = `u128_to_felt252(${name})`;
         }
         return `  ${write(add('loc', index), name)}`;
       })
