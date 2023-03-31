@@ -11,6 +11,7 @@ import {
 
 export function add(): WarplibFunctionInfo {
   const fileName = 'add';
+  const imports = ['use warplib::maths::le::warp_le;'];
   const functions = forAllWidths((width) => {
     if (width === 256) {
       return [`fn warp_add256(lhs: u256, rhs: u256) -> u256{`, `    return lhs + rhs;`, `}`].join(
@@ -21,14 +22,14 @@ export function add(): WarplibFunctionInfo {
         `fn warp_add${width}(lhs: felt252, rhs: felt252) -> felt252{`,
         `    let res = lhs + rhs;`,
         `    let max: felt252 = ${mask(width)};`,
-        `    assert (res <= max, 'Value out of bounds');`,
+        `    assert(warp_le(res, max), 'Value out of bounds');`,
         `    return res;`,
         `}`,
       ].join('\n');
     }
   });
 
-  return { fileName, imports: [], functions };
+  return { fileName, imports, functions };
 }
 
 export function add_unsafe(): WarplibFunctionInfo {
