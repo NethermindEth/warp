@@ -1,12 +1,8 @@
 # Installation
 
-### Dependencies
+The first step is to make sure you have all required external [dependencies](dependencies.md) installed.
 
-Before proceeding with the instalation, please make sure you have all required external [dependencies](dependencies.md) installed.
-
-<hr>
-
-Without any virtual environment activated perform the following in order:
+Then perform the following instructions in order:
 
 1. Add the warp package from npm.
 

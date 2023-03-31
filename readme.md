@@ -41,7 +41,7 @@ You can read the documentation [here](https://nethermindeth.github.io/warp/).
 
 ## Installation :gear:
 
-If you want to use Warp, learn how to install it [here](installation.md). If you want to contribute to its development, [here](contributing.md) are the instructions to set it up.
+If you want to use Warp, you can learn how to install it [here](installation.md). If you want to contribute to its development, [here](contributing.md) are the instructions to set it up.
 
 ## Usage :computer:
 
@@ -167,7 +167,7 @@ docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile exampleCon
 
 ## Contributing
 
-You can read about contributing, first steps, devlopment tips and testing for contributors [here](contributing.md)
+You can read about contributing, first steps, development tips and testing for contributors [here](contributing.md)
 
 ## Contact Us :phone:
 

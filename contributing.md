@@ -19,9 +19,9 @@ Please do not:
 
 ## Installation
 
-Make sure you have the [dependencies](dependencies.md) installed first.
+First, please make sure you have all the required external [dependencies](dependencies.md) installed.
 
-With a virtual environment (with Python3.9) activated:
+Then, with a Python3.9 virtual environment activated, perform the following instructions:
 
 1. Clone this repo and change directory into the `warp` folder.
 
