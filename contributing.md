@@ -71,7 +71,7 @@ In a separate terminal execute:
 yarn dev
 ```
 
-Developers could run warp instructions using docker. This is an example using `transpile` command:
+You can also run warp instructions using docker to achieve the same. This is an example using `transpile` command:
 
 ```bash
 docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
