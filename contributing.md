@@ -63,7 +63,7 @@ To look what features we are currently working on or tasks that are pending to d
 
 ## Developing tips :honey_pot:
 
-While developing your code, remembering to compile the project every time some minor changes are applied could be annoying. You could start a process that watch for changes and automatically recompile it.
+While developing your code, remembering to compile the project every time some minor changes are applied can be annoying. You can start a process to recompile Warp on file changes.
 
 In a separate terminal execute:
 
