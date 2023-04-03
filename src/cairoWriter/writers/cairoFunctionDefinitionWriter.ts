@@ -84,7 +84,12 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
 
-    return [this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
+    return [
+      this.getConstructorStorageAllocation(node),
+      endent`let mut warp_memory: Array::<felt> = ArrayTrait::new();
+      ${writer.write(node.vBody)}
+      `,
+    ]
       .flat()
       .filter(notNull)
       .join('\n');
