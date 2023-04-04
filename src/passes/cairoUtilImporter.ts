@@ -14,9 +14,6 @@ import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
 import {
   ALLOC,
-  DEFAULT_DICT_FINALIZE,
-  DEFAULT_DICT_NEW,
-  DICT_WRITE,
   FINALIZE_KECCAK,
   INTO,
   U256_FROM_FELTS,
@@ -74,12 +71,6 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
-    if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
-      createImport(...DEFAULT_DICT_NEW, node, ast);
-      createImport(...DEFAULT_DICT_FINALIZE, node, ast);
-      createImport(...DICT_WRITE, node, ast);
-    }
-
     if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
       createImport(...FINALIZE_KECCAK, node, ast);
       // Required to create a keccak_ptr

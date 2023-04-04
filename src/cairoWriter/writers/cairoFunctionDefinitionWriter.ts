@@ -16,6 +16,7 @@ import { notNull } from '../../utils/typeConstructs';
 import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
+import endent from 'endent';
 
 export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
@@ -76,41 +77,19 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   private getBody(node: CairoFunctionDefinition, writer: ASTWriter): string | null {
     if (node.vBody === undefined) return null;
 
-    const [keccakPtrInit, [withKeccak, end]] =
-      node.implicits.has('keccak_ptr') && isExternallyVisible(node)
-        ? [
-            [
-              'let (local keccak_ptr_start : felt*) = alloc();',
-              'let keccak_ptr = keccak_ptr_start;',
-            ],
-            ['with keccak_ptr{', '}'],
-          ]
-        : [[], ['', '']];
-
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
-      return [
-        this.getConstructorStorageAllocation(node),
-        ...keccakPtrInit,
-        withKeccak,
-        writer.write(node.vBody),
-        end,
-      ]
+      return [this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
         .filter(notNull)
         .join('\n');
     }
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
-    const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
     return [
       this.getConstructorStorageAllocation(node),
-      ...keccakPtrInit,
-      'let (local warp_memory : DictAccess*) = default_dict_new(0);',
-      'local warp_memory_start: DictAccess* = warp_memory;',
-      'dict_write{dict_ptr=warp_memory}(0,1);',
-      `with warp_memory${keccakPtr}{`,
-      writer.write(node.vBody),
-      '}',
+      endent`let mut warp_memory: Array::<felt> = ArrayTrait::new();
+      ${writer.write(node.vBody)}
+      `,
     ]
       .flat()
       .filter(notNull)

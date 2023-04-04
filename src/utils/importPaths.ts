@@ -164,6 +164,7 @@ export const WM_WRITE256: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_2
 
 //------------------------------------------------------
 
+export const ARRAY: [string[], string] = [['array'], 'Array'];
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
 export const U256_FROM_FELTS: [string[], string] = [['warplib', 'integer'], 'u256_from_felts'];
 
