@@ -255,7 +255,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       TypeConversionContext.CallDataRef,
     );
 
-    const [copyInstructions, requiredFunctions] = this.createDyamicToDynamicCopyCode(
+    const [copyInstructions, requiredFunctions] = this.createDynamicToDynamicCopyCode(
       targetType,
       sourceType,
     );
@@ -478,7 +478,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     ];
   }
 
-  private createDyamicToDynamicCopyCode(
+  private createDynamicToDynamicCopyCode(
     targetType: ArrayType,
     sourceType: ArrayType,
   ): [() => string, CairoFunctionDefinition[]] {
@@ -489,7 +489,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     if (targetElmType instanceof IntType) {
       assert(sourceElmType instanceof IntType);
-      const convertionFunc = targetElmType.signed
+      const conversionFunc = targetElmType.signed
         ? this.requireImport(
             INT_CONVERSIONS,
             `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
@@ -499,11 +499,11 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         () =>
           [
             sourceElmType.signed
-              ? `    let (val) = ${convertionFunc.name}(ptr[0]);`
+              ? `    let (val) = ${conversionFunc.name}(ptr[0]);`
               : `    let (val) = felt_to_uint256(ptr[0]);`,
             `    ${writeDef.name}(storage_loc, val);`,
           ].join('\n'),
-        [writeDef, convertionFunc],
+        [writeDef, conversionFunc],
       ];
     }
 

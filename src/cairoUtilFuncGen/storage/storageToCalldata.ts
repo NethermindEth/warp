@@ -148,7 +148,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     assert(structDef instanceof CairoDynArray);
 
     const storageReadFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
-    const sturctDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
+    const structDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
     const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
 
     const arrayName = dynArray.name;
@@ -202,7 +202,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [
         ...importedFuncs,
-        sturctDynArray,
+        structDynArray,
         dynArray,
         dynArrayLength,
         storageReadFunc,

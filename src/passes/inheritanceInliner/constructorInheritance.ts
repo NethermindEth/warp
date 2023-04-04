@@ -48,7 +48,7 @@ import { updateReferencedDeclarations } from './utils';
 
   When collecting the arguments, it's important to notice that expressions should be 
   evaluated in the reverse order the constructors are executed. To do so, each time a
-  contract is entered, the previous constracts in the order of linearization are checked
+  contract is entered, the previous contract in the order of linearization are checked
   looking for the call to this contract's constructor; and argument references are updated
 
   In the following example:
