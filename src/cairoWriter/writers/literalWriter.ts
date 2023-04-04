@@ -36,6 +36,11 @@ export class LiteralWriter extends CairoASTNodeWriter {
       }
       case LiteralKind.HexString:
         if (isCairoPrimitiveIntType(type)) {
+          if (type === CairoUint256.toString()) {
+            return [
+              `u256_from_felts( ${node.hexValue.slice(32, 64)}, ${node.hexValue.slice(0, 32)} )`,
+            ];
+          }
           return [`0x${node.hexValue}_${type}`];
         } else if (type === 'felt') {
           return [`0x${node.hexValue}`];
