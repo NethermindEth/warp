@@ -114,7 +114,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
 
     const mappingFuncInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: `${mappingName}: LegacyMap::<(felt, ${indexTypeString}), felt>`,
+      code: `${mappingName}: LegacyMap::<(felt252, ${indexTypeString}), felt252>`,
       functionsCalled: [],
     };
     const mappingFunc = createCairoGeneratedFunction(
@@ -132,7 +132,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     return {
       name: funcName,
       code: endent`
-        fn ${funcName}(name: felt, index: ${indexCairoType}) -> felt {
+        fn ${funcName}(name: felt252, index: ${indexCairoType}) -> felt252 {
           let existing = ${mappingName}::read((name, index));
           if existing == 0 {
             let used = WARP_USED_STORAGE::read();
@@ -211,7 +211,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
     return {
       name: funcName,
       code: endent`
-          fn ${helperFuncName}(name: felt, ref result_array: Array::<felt>, index: u256, len: u256){
+          fn ${helperFuncName}(name: felt252, ref result_array: Array::<felt252>, index: u256, len: u256){
             if index == len {
               return;
             }
@@ -220,7 +220,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
             result_array.append(value);
             return ${helperFuncName}(name, ref result_array, index + 1, len);
           }
-          fn ${funcName}(name: felt) -> felt {
+          fn ${funcName}(name: felt252) -> felt252 {
             let len: u256 = ${lenName}::read(name);
             let mut result_array = ArrayTrait::new();
             ${helperFuncName}(name, ref result_array, 0, len);
