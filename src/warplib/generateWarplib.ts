@@ -65,7 +65,7 @@ const warplibFunctions: WarplibFunctionInfo[] = [
   int_conversions(),
   // ---external_input_checks---
   external_input_check_ints(),
-  // external_inputt_check_address - handwritten
+  // external_input_check_address - handwritten
 ];
 warplibFunctions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc));
 

@@ -31,7 +31,7 @@ import { CairoUtilFuncGenBase, GeneratedFunctionInfo, locationIfComplexType } fr
 import { DynArrayGen } from './dynArray';
 
 export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
-  private indexAccesFunctions = new Map<string, CairoFunctionDefinition>();
+  private indexAccessFunctions = new Map<string, CairoFunctionDefinition>();
   private stringHashFunctions = new Map<string, CairoFunctionDefinition>();
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
@@ -69,7 +69,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       TypeConversionContext.StorageAllocation,
     ).fullStringRepresentation;
     const key = indexKey + '-' + nodeKey;
-    const existing = this.indexAccesFunctions.get(key);
+    const existing = this.indexAccessFunctions.get(key);
     if (existing !== undefined) {
       return existing;
     }
@@ -95,7 +95,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       this.ast,
       this.sourceUnit,
     );
-    this.indexAccesFunctions.set(key, funcDef);
+    this.indexAccessFunctions.set(key, funcDef);
     return funcDef;
   }
 
@@ -107,7 +107,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       TypeConversionContext.StorageAllocation,
     );
 
-    const identifier = this.indexAccesFunctions.size;
+    const identifier = this.indexAccessFunctions.size;
     const funcName = `WS_INDEX_${indexCairoType.typeName}_to_${valueCairoType.typeName}${identifier}`;
     const mappingName = `WARP_MAPPING${identifier}`;
     const indexTypeString = indexCairoType.toString();

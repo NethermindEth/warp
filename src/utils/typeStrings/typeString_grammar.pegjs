@@ -328,7 +328,7 @@ UserDefinedType =
 
 MappingType =
     MAPPING __ "(" __ keyType: ArrayPtrType __ "=>" __ valueType: Type __ ")" {
-        // Identifiers refering directly to state variable maps
+        // Identifiers referring directly to state variable maps
         // don't have a pointer suffix.
         // So we wrap them in a PointerType here.
         // This means we explicitly disagree with the exact typeString.
