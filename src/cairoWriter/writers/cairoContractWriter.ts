@@ -25,10 +25,10 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       ];
 
     const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
-      ([decl, loc]) => `const ${decl.name}: felt = ${loc};`,
+      ([decl, loc]) => `const ${decl.name}: felt252 = ${loc};`,
     );
     const staticVariables = [...node.staticStorageAllocations.entries()].map(
-      ([decl, loc]) => `const ${decl.name}: felt = ${loc};`,
+      ([decl, loc]) => `const ${decl.name}: felt252 = ${loc};`,
     );
     const variables = [
       `// Dynamic variables - Arrays and Maps`,
@@ -82,13 +82,13 @@ export class CairoContractWriter extends CairoASTNodeWriter {
     );
     const storageCode = endent`
       struct Storage {
-        WARP_STORAGE: LegacyMap::<felt, felt>,
-        WARP_USED_STORAGE: felt,
-        WARP_NAMEGEN: felt,
+        WARP_STORAGE: LegacyMap::<felt252, felt252>,
+        WARP_USED_STORAGE: felt252,
+        WARP_NAMEGEN: felt252,
         ${otherStorageVars.map((v) => `${writer.write(v)}`).join('\n')}
       }
 
-      fn readId(loc: felt) -> felt {
+      fn readId(loc: felt252) -> felt252 {
         let id = WARP_STORAGE::read(loc);
         if id == 0 {
           let id = WARP_NAMEGEN::read();

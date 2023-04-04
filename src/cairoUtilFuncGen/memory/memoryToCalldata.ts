@@ -279,7 +279,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     const memberFeltSize = CairoType.fromSol(type, this.ast).width;
     return [
-      [`let member${index} = *warp_memory.at(u32_from_felt(${add('mem_loc', offset)}));`],
+      [`let member${index} = *warp_memory.at(u32_from_felt252(${add('mem_loc', offset)}));`],
       [this.requireImport(...U32_FROM_FELT)],
       offset + memberFeltSize,
     ];

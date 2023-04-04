@@ -1,6 +1,9 @@
+use integer::u256_from_felt252;
 
-fn warp_ge(lhs: felt, rhs: felt) -> bool {
-    return lhs >= rhs;
+fn warp_ge(lhs: felt252, rhs: felt252) -> bool {
+    let lhs_u256 = u256_from_felt252(lhs);
+    let rhs_u256 = u256_from_felt252(rhs);
+    return warp_ge256(lhs_u256, rhs_u256);
 }
 
 fn warp_ge256(op1: u256, op2: u256) -> bool {

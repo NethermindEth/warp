@@ -69,7 +69,7 @@ function producePackExpression(type: CairoType): (string | Read)[] {
         '}',
       ];
     }
-    return [`core::integer::${type.toString()}_from_felt(${Read.Felt})`];
+    return [`core::integer::${type.toString()}_from_felt252(${Read.Felt})`];
   }
 
   if (type instanceof CairoStruct) {

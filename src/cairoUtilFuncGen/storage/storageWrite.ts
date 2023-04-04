@@ -66,10 +66,10 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       .serialiseMembers('value')
       .map((name, index) => {
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
-          name = `u128_to_felt(${name})`;
+          name = `u128_to_felt252(${name})`;
           fnsToImport.push(U128_TO_FELT);
         } else if (cairoTypeToWrite instanceof CairoUint) {
-          name = `${cairoTypeString}_to_felt(${name})`;
+          name = `${cairoTypeString}_to_felt252(${name})`;
           fnsToImport.push(toFeltfromuXImport(cairoTypeToWrite));
         }
         return `  ${write(add('loc', index), name)}`;
@@ -80,7 +80,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
-        fn ${funcName}(loc: felt, value: ${cairoTypeString}) -> ${cairoTypeString}{
+        fn ${funcName}(loc: felt252, value: ${cairoTypeString}) -> ${cairoTypeString}{
           ${writeCode}
           return value;
         }

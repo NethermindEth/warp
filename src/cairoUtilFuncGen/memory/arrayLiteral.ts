@@ -141,7 +141,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         fn ${funcName}(${argString}) -> felt {
           let start = warp_memory.len();
           ${writes.join('\n')}
-          return u32_to_felt(start);
+          return u32_to_felt252(start);
         }`,
       functionsCalled: [
         this.requireImport(...ARRAY),
