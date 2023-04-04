@@ -16,7 +16,7 @@ export class ReturnWriter extends CairoASTNodeWriter {
       ? 'finalize_keccak(keccak_ptr_start, keccak_ptr);\n'
       : '';
 
-    return [[documentation, '', finalizeKeccakPtr, `return ${returns};`].join('\n')];
+    return [[documentation, finalizeKeccakPtr, `return ${returns};`].join('\n')];
   }
 
   private usesImplicit(implicit: Implicits, node: Return): boolean {
