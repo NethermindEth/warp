@@ -20,7 +20,7 @@ import {
   FINALIZE_KECCAK,
   INTO,
   U256_FROM_FELTS,
-  GET_U128,
+  U128_FROM_FELT,
 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
@@ -43,7 +43,7 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'u256') {
-      createImport(...GET_U128, this.dummySourceUnit ?? node, ast);
+      createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
     }
   }
 
@@ -57,7 +57,7 @@ export class CairoUtilImporter extends ASTMapper {
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(...GET_U128, this.dummySourceUnit ?? node, ast);
+      createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining

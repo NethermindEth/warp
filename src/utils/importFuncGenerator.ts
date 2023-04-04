@@ -59,37 +59,37 @@ import {
   U240_TO_FELT,
   U248_TO_FELT,
   U256_FROM_FELTS,
-  GET_U8,
-  GET_U16,
-  GET_U24,
-  GET_U32,
-  GET_U40,
-  GET_U48,
-  GET_U56,
-  GET_U64,
-  GET_U72,
-  GET_U80,
-  GET_U88,
-  GET_U96,
-  GET_U104,
-  GET_U112,
-  GET_U120,
-  GET_U128,
-  GET_U136,
-  GET_U144,
-  GET_U152,
-  GET_U160,
-  GET_U168,
-  GET_U176,
-  GET_U184,
-  GET_U192,
-  GET_U200,
-  GET_U208,
-  GET_U216,
-  GET_U224,
-  GET_U232,
-  GET_U240,
-  GET_U248,
+  U8_FROM_FELT,
+  U16_FROM_FELT,
+  U24_FROM_FELT,
+  U32_FROM_FELT,
+  U40_FROM_FELT,
+  U48_FROM_FELT,
+  U56_FROM_FELT,
+  U64_FROM_FELT,
+  U72_FROM_FELT,
+  U80_FROM_FELT,
+  U88_FROM_FELT,
+  U96_FROM_FELT,
+  U104_FROM_FELT,
+  U112_FROM_FELT,
+  U120_FROM_FELT,
+  U128_FROM_FELT,
+  U136_FROM_FELT,
+  U144_FROM_FELT,
+  U152_FROM_FELT,
+  U160_FROM_FELT,
+  U168_FROM_FELT,
+  U176_FROM_FELT,
+  U184_FROM_FELT,
+  U192_FROM_FELT,
+  U200_FROM_FELT,
+  U208_FROM_FELT,
+  U216_FROM_FELT,
+  U224_FROM_FELT,
+  U232_FROM_FELT,
+  U240_FROM_FELT,
+  U248_FROM_FELT,
   UINT256_ADD,
   UINT256_EQ,
   UINT256_LE,
@@ -161,37 +161,37 @@ export function createImport(
       return createFuncImport('dict_ptr');
     case encodePath(DICT_ACCESS):
       return createStructImport();
-    case encodePath(GET_U8):
-    case encodePath(GET_U16):
-    case encodePath(GET_U24):
-    case encodePath(GET_U32):
-    case encodePath(GET_U40):
-    case encodePath(GET_U48):
-    case encodePath(GET_U56):
-    case encodePath(GET_U64):
-    case encodePath(GET_U72):
-    case encodePath(GET_U80):
-    case encodePath(GET_U88):
-    case encodePath(GET_U96):
-    case encodePath(GET_U104):
-    case encodePath(GET_U112):
-    case encodePath(GET_U120):
-    case encodePath(GET_U128):
-    case encodePath(GET_U136):
-    case encodePath(GET_U144):
-    case encodePath(GET_U152):
-    case encodePath(GET_U160):
-    case encodePath(GET_U168):
-    case encodePath(GET_U176):
-    case encodePath(GET_U184):
-    case encodePath(GET_U192):
-    case encodePath(GET_U200):
-    case encodePath(GET_U208):
-    case encodePath(GET_U216):
-    case encodePath(GET_U224):
-    case encodePath(GET_U232):
-    case encodePath(GET_U240):
-    case encodePath(GET_U248):
+    case encodePath(U8_FROM_FELT):
+    case encodePath(U16_FROM_FELT):
+    case encodePath(U24_FROM_FELT):
+    case encodePath(U32_FROM_FELT):
+    case encodePath(U40_FROM_FELT):
+    case encodePath(U48_FROM_FELT):
+    case encodePath(U56_FROM_FELT):
+    case encodePath(U64_FROM_FELT):
+    case encodePath(U72_FROM_FELT):
+    case encodePath(U80_FROM_FELT):
+    case encodePath(U88_FROM_FELT):
+    case encodePath(U96_FROM_FELT):
+    case encodePath(U104_FROM_FELT):
+    case encodePath(U112_FROM_FELT):
+    case encodePath(U120_FROM_FELT):
+    case encodePath(U128_FROM_FELT):
+    case encodePath(U136_FROM_FELT):
+    case encodePath(U144_FROM_FELT):
+    case encodePath(U152_FROM_FELT):
+    case encodePath(U160_FROM_FELT):
+    case encodePath(U168_FROM_FELT):
+    case encodePath(U176_FROM_FELT):
+    case encodePath(U184_FROM_FELT):
+    case encodePath(U192_FROM_FELT):
+    case encodePath(U200_FROM_FELT):
+    case encodePath(U208_FROM_FELT):
+    case encodePath(U216_FROM_FELT):
+    case encodePath(U224_FROM_FELT):
+    case encodePath(U232_FROM_FELT):
+    case encodePath(U240_FROM_FELT):
+    case encodePath(U248_FROM_FELT):
       return createStructImport();
     case encodePath(SPLIT_FELT):
     case encodePath(IS_LE):

@@ -170,127 +170,127 @@ export const U256_FROM_FELTS: [string[], string] = [['warplib', 'integer'], 'u25
 /**  cairo1 uX <-> felt conversions */
 
 // u8 <-> felt
-export const GET_U8: [string[], string] = [['integer'], 'u8_from_felt'];
+export const U8_FROM_FELT: [string[], string] = [['integer'], 'u8_from_felt'];
 export const U8_TO_FELT: [string[], string] = [['integer'], 'u8_to_felt'];
 
 // u16 <-> felt
-export const GET_U16: [string[], string] = [['integer'], 'u16_from_felt'];
+export const U16_FROM_FELT: [string[], string] = [['integer'], 'u16_from_felt'];
 export const U16_TO_FELT: [string[], string] = [['integer'], 'u16_to_felt'];
 
 // u24 <-> felt
-export const GET_U24: [string[], string] = [['integer'], 'u24_from_felt'];
+export const U24_FROM_FELT: [string[], string] = [['integer'], 'u24_from_felt'];
 export const U24_TO_FELT: [string[], string] = [['integer'], 'u24_to_felt'];
 
 // u32 <-> felt
-export const GET_U32: [string[], string] = [['integer'], 'u32_from_felt'];
+export const U32_FROM_FELT: [string[], string] = [['integer'], 'u32_from_felt'];
 export const U32_TO_FELT: [string[], string] = [['integer'], 'u32_to_felt'];
 
 // u40 <-> felt
-export const GET_U40: [string[], string] = [['integer'], 'u40_from_felt'];
+export const U40_FROM_FELT: [string[], string] = [['integer'], 'u40_from_felt'];
 export const U40_TO_FELT: [string[], string] = [['integer'], 'u40_to_felt'];
 
 // u48 <-> felt
-export const GET_U48: [string[], string] = [['integer'], 'u48_from_felt'];
+export const U48_FROM_FELT: [string[], string] = [['integer'], 'u48_from_felt'];
 export const U48_TO_FELT: [string[], string] = [['integer'], 'u48_to_felt'];
 
 // u56 <-> felt
-export const GET_U56: [string[], string] = [['integer'], 'u56_from_felt'];
+export const U56_FROM_FELT: [string[], string] = [['integer'], 'u56_from_felt'];
 export const U56_TO_FELT: [string[], string] = [['integer'], 'u56_to_felt'];
 
 // u64 <-> felt
-export const GET_U64: [string[], string] = [['integer'], 'u64_from_felt'];
+export const U64_FROM_FELT: [string[], string] = [['integer'], 'u64_from_felt'];
 export const U64_TO_FELT: [string[], string] = [['integer'], 'u64_to_felt'];
 
 // u72 <-> felt
-export const GET_U72: [string[], string] = [['integer'], 'u72_from_felt'];
+export const U72_FROM_FELT: [string[], string] = [['integer'], 'u72_from_felt'];
 export const U72_TO_FELT: [string[], string] = [['integer'], 'u72_to_felt'];
 
 // u80 <-> felt
-export const GET_U80: [string[], string] = [['integer'], 'u80_from_felt'];
+export const U80_FROM_FELT: [string[], string] = [['integer'], 'u80_from_felt'];
 export const U80_TO_FELT: [string[], string] = [['integer'], 'u80_to_felt'];
 
 // u88 <-> felt
-export const GET_U88: [string[], string] = [['integer'], 'u88_from_felt'];
+export const U88_FROM_FELT: [string[], string] = [['integer'], 'u88_from_felt'];
 export const U88_TO_FELT: [string[], string] = [['integer'], 'u88_to_felt'];
 
 // u96 <-> felt
-export const GET_U96: [string[], string] = [['integer'], 'u96_from_felt'];
+export const U96_FROM_FELT: [string[], string] = [['integer'], 'u96_from_felt'];
 export const U96_TO_FELT: [string[], string] = [['integer'], 'u96_to_felt'];
 
 // u104 <-> felt
-export const GET_U104: [string[], string] = [['integer'], 'u104_from_felt'];
+export const U104_FROM_FELT: [string[], string] = [['integer'], 'u104_from_felt'];
 export const U104_TO_FELT: [string[], string] = [['integer'], 'u104_to_felt'];
 
 // u112 <-> felt
-export const GET_U112: [string[], string] = [['integer'], 'u112_from_felt'];
+export const U112_FROM_FELT: [string[], string] = [['integer'], 'u112_from_felt'];
 export const U112_TO_FELT: [string[], string] = [['integer'], 'u112_to_felt'];
 
 // u120 <-> felt
-export const GET_U120: [string[], string] = [['integer'], 'u120_from_felt'];
+export const U120_FROM_FELT: [string[], string] = [['integer'], 'u120_from_felt'];
 export const U120_TO_FELT: [string[], string] = [['integer'], 'u120_to_felt'];
 
 // u128 <-> felt
-export const GET_U128: [string[], string] = [['integer'], 'u128_from_felt'];
+export const U128_FROM_FELT: [string[], string] = [['integer'], 'u128_from_felt'];
 export const U128_TO_FELT: [string[], string] = [['integer'], 'u128_to_felt'];
 
 // u136 <-> felt
-export const GET_U136: [string[], string] = [['integer'], 'u136_from_felt'];
+export const U136_FROM_FELT: [string[], string] = [['integer'], 'u136_from_felt'];
 export const U136_TO_FELT: [string[], string] = [['integer'], 'u136_to_felt'];
 
 // u144 <-> felt
-export const GET_U144: [string[], string] = [['integer'], 'u144_from_felt'];
+export const U144_FROM_FELT: [string[], string] = [['integer'], 'u144_from_felt'];
 export const U144_TO_FELT: [string[], string] = [['integer'], 'u144_to_felt'];
 
 // u152 <-> felt
-export const GET_U152: [string[], string] = [['integer'], 'u152_from_felt'];
+export const U152_FROM_FELT: [string[], string] = [['integer'], 'u152_from_felt'];
 export const U152_TO_FELT: [string[], string] = [['integer'], 'u152_to_felt'];
 
 // u160 <-> felt
-export const GET_U160: [string[], string] = [['integer'], 'u160_from_felt'];
+export const U160_FROM_FELT: [string[], string] = [['integer'], 'u160_from_felt'];
 export const U160_TO_FELT: [string[], string] = [['integer'], 'u160_to_felt'];
 
 // u168 <-> felt
-export const GET_U168: [string[], string] = [['integer'], 'u168_from_felt'];
+export const U168_FROM_FELT: [string[], string] = [['integer'], 'u168_from_felt'];
 export const U168_TO_FELT: [string[], string] = [['integer'], 'u168_to_felt'];
 
 // u176 <-> felt
-export const GET_U176: [string[], string] = [['integer'], 'u176_from_felt'];
+export const U176_FROM_FELT: [string[], string] = [['integer'], 'u176_from_felt'];
 export const U176_TO_FELT: [string[], string] = [['integer'], 'u176_to_felt'];
 
 // u184 <-> felt
-export const GET_U184: [string[], string] = [['integer'], 'u184_from_felt'];
+export const U184_FROM_FELT: [string[], string] = [['integer'], 'u184_from_felt'];
 export const U184_TO_FELT: [string[], string] = [['integer'], 'u184_to_felt'];
 
 // u192 <-> felt
-export const GET_U192: [string[], string] = [['integer'], 'u192_from_felt'];
+export const U192_FROM_FELT: [string[], string] = [['integer'], 'u192_from_felt'];
 export const U192_TO_FELT: [string[], string] = [['integer'], 'u192_to_felt'];
 
 // u200 <-> felt
-export const GET_U200: [string[], string] = [['integer'], 'u200_from_felt'];
+export const U200_FROM_FELT: [string[], string] = [['integer'], 'u200_from_felt'];
 export const U200_TO_FELT: [string[], string] = [['integer'], 'u200_to_felt'];
 
 // u208 <-> felt
-export const GET_U208: [string[], string] = [['integer'], 'u208_from_felt'];
+export const U208_FROM_FELT: [string[], string] = [['integer'], 'u208_from_felt'];
 export const U208_TO_FELT: [string[], string] = [['integer'], 'u208_to_felt'];
 
 // u216 <-> felt
-export const GET_U216: [string[], string] = [['integer'], 'u216_from_felt'];
+export const U216_FROM_FELT: [string[], string] = [['integer'], 'u216_from_felt'];
 export const U216_TO_FELT: [string[], string] = [['integer'], 'u216_to_felt'];
 
 // u224 <-> felt
-export const GET_U224: [string[], string] = [['integer'], 'u224_from_felt'];
+export const U224_FROM_FELT: [string[], string] = [['integer'], 'u224_from_felt'];
 export const U224_TO_FELT: [string[], string] = [['integer'], 'u224_to_felt'];
 
 // u232 <-> felt
-export const GET_U232: [string[], string] = [['integer'], 'u232_from_felt'];
+export const U232_FROM_FELT: [string[], string] = [['integer'], 'u232_from_felt'];
 export const U232_TO_FELT: [string[], string] = [['integer'], 'u232_to_felt'];
 
 // u240 <-> felt
-export const GET_U240: [string[], string] = [['integer'], 'u240_from_felt'];
+export const U240_FROM_FELT: [string[], string] = [['integer'], 'u240_from_felt'];
 export const U240_TO_FELT: [string[], string] = [['integer'], 'u240_to_felt'];
 
 // u248 <-> felt
-export const GET_U248: [string[], string] = [['integer'], 'u248_from_felt'];
+export const U248_FROM_FELT: [string[], string] = [['integer'], 'u248_from_felt'];
 export const U248_TO_FELT: [string[], string] = [['integer'], 'u248_to_felt'];
 
 /**  ------------------------------ */

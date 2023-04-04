@@ -31,37 +31,37 @@ import {
   U232_TO_FELT,
   U240_TO_FELT,
   U248_TO_FELT,
-  GET_U8,
-  GET_U16,
-  GET_U24,
-  GET_U32,
-  GET_U40,
-  GET_U48,
-  GET_U56,
-  GET_U64,
-  GET_U72,
-  GET_U80,
-  GET_U88,
-  GET_U96,
-  GET_U104,
-  GET_U112,
-  GET_U120,
-  GET_U128,
-  GET_U136,
-  GET_U144,
-  GET_U152,
-  GET_U160,
-  GET_U168,
-  GET_U176,
-  GET_U184,
-  GET_U192,
-  GET_U200,
-  GET_U208,
-  GET_U216,
-  GET_U224,
-  GET_U232,
-  GET_U240,
-  GET_U248,
+  U8_FROM_FELT,
+  U16_FROM_FELT,
+  U24_FROM_FELT,
+  U32_FROM_FELT,
+  U40_FROM_FELT,
+  U48_FROM_FELT,
+  U56_FROM_FELT,
+  U64_FROM_FELT,
+  U72_FROM_FELT,
+  U80_FROM_FELT,
+  U88_FROM_FELT,
+  U96_FROM_FELT,
+  U104_FROM_FELT,
+  U112_FROM_FELT,
+  U120_FROM_FELT,
+  U128_FROM_FELT,
+  U136_FROM_FELT,
+  U144_FROM_FELT,
+  U152_FROM_FELT,
+  U160_FROM_FELT,
+  U168_FROM_FELT,
+  U176_FROM_FELT,
+  U184_FROM_FELT,
+  U192_FROM_FELT,
+  U200_FROM_FELT,
+  U208_FROM_FELT,
+  U216_FROM_FELT,
+  U224_FROM_FELT,
+  U232_FROM_FELT,
+  U240_FROM_FELT,
+  U248_FROM_FELT,
   WM_READ8,
   WM_READ16,
   WM_READ24,
@@ -200,67 +200,67 @@ export const toFeltfromuXImport = (uNtype: CairoUint) => {
 export const getFeltfromuXImport = (uNtype: CairoUint) => {
   switch (uNtype.toString()) {
     case 'u8':
-      return GET_U8;
+      return U8_FROM_FELT;
     case 'u16':
-      return GET_U16;
+      return U16_FROM_FELT;
     case 'u24':
-      return GET_U24;
+      return U24_FROM_FELT;
     case 'u32':
-      return GET_U32;
+      return U32_FROM_FELT;
     case 'u40':
-      return GET_U40;
+      return U40_FROM_FELT;
     case 'u48':
-      return GET_U48;
+      return U48_FROM_FELT;
     case 'u56':
-      return GET_U56;
+      return U56_FROM_FELT;
     case 'u64':
-      return GET_U64;
+      return U64_FROM_FELT;
     case 'u72':
-      return GET_U72;
+      return U72_FROM_FELT;
     case 'u80':
-      return GET_U80;
+      return U80_FROM_FELT;
     case 'u88':
-      return GET_U88;
+      return U88_FROM_FELT;
     case 'u96':
-      return GET_U96;
+      return U96_FROM_FELT;
     case 'u104':
-      return GET_U104;
+      return U104_FROM_FELT;
     case 'u112':
-      return GET_U112;
+      return U112_FROM_FELT;
     case 'u120':
-      return GET_U120;
+      return U120_FROM_FELT;
     case 'u128':
-      return GET_U128;
+      return U128_FROM_FELT;
     case 'u136':
-      return GET_U136;
+      return U136_FROM_FELT;
     case 'u144':
-      return GET_U144;
+      return U144_FROM_FELT;
     case 'u152':
-      return GET_U152;
+      return U152_FROM_FELT;
     case 'u160':
-      return GET_U160;
+      return U160_FROM_FELT;
     case 'u168':
-      return GET_U168;
+      return U168_FROM_FELT;
     case 'u176':
-      return GET_U176;
+      return U176_FROM_FELT;
     case 'u184':
-      return GET_U184;
+      return U184_FROM_FELT;
     case 'u192':
-      return GET_U192;
+      return U192_FROM_FELT;
     case 'u200':
-      return GET_U200;
+      return U200_FROM_FELT;
     case 'u208':
-      return GET_U208;
+      return U208_FROM_FELT;
     case 'u216':
-      return GET_U216;
+      return U216_FROM_FELT;
     case 'u224':
-      return GET_U224;
+      return U224_FROM_FELT;
     case 'u232':
-      return GET_U232;
+      return U232_FROM_FELT;
     case 'u240':
-      return GET_U240;
+      return U240_FROM_FELT;
     case 'u248':
-      return GET_U248;
+      return U248_FROM_FELT;
     default:
       throw new Error('Invalid CairoUint type');
   }
