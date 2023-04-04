@@ -29,7 +29,7 @@ import {
   specializeType,
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
-import { GET_U128, UINT256_ADD } from '../../utils/importPaths';
+import { U128_FROM_FELT, UINT256_ADD } from '../../utils/importPaths';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   public constructor(
@@ -176,7 +176,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...GET_U128),
+        this.requireImport(...U128_FROM_FELT),
         this.requireImport(...UINT256_ADD),
         elementWriteDef,
         dynArray,

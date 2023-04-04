@@ -29,7 +29,7 @@ import {
   SPLIT_FELT,
   U128_TO_FELT,
   U256_FROM_FELTS,
-  GET_U128,
+  U128_FROM_FELT,
   UINT256_ADD,
   UINT256_EQ,
   UINT256_LE,
@@ -37,6 +37,10 @@ import {
   UINT256_MUL,
   UINT256_SUB,
   INTO,
+  ARRAY,
+  ARRAY_TRAIT,
+  U32_FROM_FELT,
+  U32_TO_FELT,
 } from './importPaths';
 
 export function createImport(
@@ -101,7 +105,7 @@ export function createImport(
       return createFuncImport('dict_ptr');
     case encodePath(DICT_ACCESS):
       return createStructImport();
-    case encodePath(GET_U128):
+    case encodePath(U128_FROM_FELT):
       return createStructImport();
     case encodePath(SPLIT_FELT):
     case encodePath(IS_LE):
@@ -123,6 +127,10 @@ export function createImport(
     case encodePath(ADDRESS_INTO_FELT):
     case encodePath(U128_TO_FELT):
     case encodePath(U256_FROM_FELTS):
+    case encodePath(ARRAY):
+    case encodePath(ARRAY_TRAIT):
+    case encodePath(U32_FROM_FELT):
+    case encodePath(U32_TO_FELT):
       return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);

@@ -29,7 +29,7 @@ import {
   BYTES_CONVERSIONS,
   FELT_TO_UINT256,
   INT_CONVERSIONS,
-  GET_U128,
+  U128_FROM_FELT,
 } from '../../utils/importPaths';
 
 const IMPLICITS =
@@ -233,7 +233,11 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: code,
-      functionsCalled: [this.requireImport(...GET_U128), ...requiredFunctions, ...optionalImport],
+      functionsCalled: [
+        this.requireImport(...U128_FROM_FELT),
+        ...requiredFunctions,
+        ...optionalImport,
+      ],
     };
   }
 
