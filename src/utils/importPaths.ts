@@ -105,5 +105,6 @@ export const U32_FROM_FELT: [string[], string] = [['integer'], 'u32_from_felt252
 export const U32_TO_FELT: [string[], string] = [['integer'], 'u32_to_felt252'];
 
 export const GET_CALLER_ADDRESS: [string[], string] = [['starknet'], 'get_caller_address'];
+export const CONTRACT_ADDRESS: [string[], string] = [['starknet'], 'ContractAddress'];
 export const ADDRESS_INTO_FELT: [string[], string] = [['starknet'], 'ContractAddressIntoFelt252'];
 export const INTO: [string[], string] = [['traits'], 'Into'];

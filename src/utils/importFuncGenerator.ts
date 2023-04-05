@@ -41,6 +41,7 @@ import {
   ARRAY_TRAIT,
   U32_FROM_FELT,
   U32_TO_FELT,
+  CONTRACT_ADDRESS,
 } from './importPaths';
 
 export function createImport(
@@ -124,6 +125,7 @@ export function createImport(
       return createFuncImport('syscall_ptr');
     // Import libraries from Cairo1
     case encodePath(INTO):
+    case encodePath(CONTRACT_ADDRESS):
     case encodePath(ADDRESS_INTO_FELT):
     case encodePath(U128_TO_FELT):
     case encodePath(U256_FROM_FELTS):
