@@ -48,10 +48,16 @@ Then run the pip command above again.
 4. Compile the project:
 
 ```bash
+yarn tsc
+```
+
+5. Compile Warp librariesÑ
+
+```bash
 yarn warplib
 ```
 
-5. Test the installation worked by transpiling an example ERC20 contract:
+6. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
 bin/warp transpile example_contracts/ERC20.sol
@@ -79,31 +85,33 @@ docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
 
 ### Testing for contributors :stethoscope:
 
-To test that your contribution doesn't break any features you can test that all previous example contracts transpile and then cairo compile by running the following:
+Warp includes three sets of tests:
+
+- Compilation Tests: These tests ensure that transpiled contracts are valid Cairo code.
+
+- Behaviour Tests: These tests verify the correct functionality of transpiled contracts.
+
+- Semantic Tests: These tests involve transpiling Solidity's semantic tests and checking that the runtime behaviour remains consistent.
+
+#### Compilation Tests
+
+Start by running the compilation tests to verify that your contribution doesn't break any fundamental features. These tests are also the quickest to execute.
 
 ```bash
-warp test
+yarn test:examples
 ```
 
-For this to work, you must have the cairo-lang package installed.
-To test try:
+#### Behaviour Tests
 
-```bash
-starknet-compile -v
-```
+Behavior tests involve transpiling a set of Solidity contracts and deploying them to a testnet. Each deployed contract undergoes testing for all of its runtime functionality.
 
-Instructions to set this up can be found at
-https://www.cairo-lang.org/docs/quickstart.html
-
-Then to see that your contribution doesn't break the behaviour tests follow these steps:
-
-1. Run the setup script:
+1. Run the setup script (Required only once):
 
 ```bash
 tests/behaviour/setup.sh
 ```
 
-2. In a separate terminal, start a StarkNet testnet server (in an environment with cairo-lang installed):
+2. In a separate terminal, start a StarkNet testnet server (make sure cairo-lang is installed in the environment):
 
 ```bash
 yarn testnet
@@ -114,6 +122,8 @@ yarn testnet
 ```bash
 yarn test
 ```
+
+<br>
 
 To generate benchmarks locally during development:
 
@@ -127,6 +137,18 @@ python starknet-testnet/generateMarkdown.py
 ```
 
 This saves the benchmarks at `benchmark/stats/data.md`
+
+#### Semantic Tests
+
+Semantic tests involve transpiling each of Solidity's behavior tests and deploying them. Each test is executed, and its result is compared to the output of its Solidity counterpart.
+
+Execute instructions _1_ and _2_ from [Behaviour Tests](#behaviour-tests) if you haven't already. Then:
+
+3. Run semantic tests:
+
+```bash
+yarn test:semantic
+```
 
 ## PR - CI Process
 
