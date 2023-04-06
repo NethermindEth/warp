@@ -31,7 +31,7 @@ export class ArgBoundChecker extends ASTMapper {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((decl) => {
         const type = safeGetNodeType(decl, ast.inference);
-        if (checkableType(type)) {
+        if (checkableType(type) && !(type instanceof IntType)) {
           const functionCall = ast.getUtilFuncGen(node).boundChecks.inputCheck.gen(decl, type);
           this.insertFunctionCall(node, functionCall, ast);
         }
