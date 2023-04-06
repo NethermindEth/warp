@@ -261,11 +261,9 @@ export function runTests(
         // and preFilters are ignored, otherwise run tests that are in preFilters
         if (filter !== undefined) {
           complexFiltering = file.includes(filter);
-        }
-        if (filter === undefined && preFilters !== undefined) {
+        } else if (preFilters !== undefined) {
           complexFiltering = preFilters.includes(file);
         }
-        console.log(`Running test on ${file} with complexFiltering: ${complexFiltering}`, filter);
         if (complexFiltering) {
           let compileResult: { result: ResultType; cairoProjects?: Set<string> };
           const expectedResult: ResultType | undefined = expectedResults.get(
