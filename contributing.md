@@ -69,12 +69,10 @@ To look what features we are currently working on or tasks that are pending to d
 
 ## Developing tips :honey_pot:
 
-While developing your code, remembering to compile the project every time some minor changes are applied can be annoying. You can start a process to recompile Warp on file changes.
-
-In a separate terminal execute:
+It can be tedious to manually recompile the project after every minor change. You can automate the process of recompiling by executing the following command:
 
 ```bash
-yarn dev
+yarn tsc -w
 ```
 
 You can also run warp instructions using docker to achieve the same. This is an example using `transpile` command:
