@@ -11,27 +11,8 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { WARPLIB_MATHS } from '../../utils/importPaths';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
-import { functionaliseAdd } from '../../warplib/implementations/maths/add';
-import { functionaliseAnd } from '../../warplib/implementations/maths/and';
-import { functionaliseBitwiseAnd } from '../../warplib/implementations/maths/bitwiseAnd';
 import { functionaliseBitwiseNot } from '../../warplib/implementations/maths/bitwiseNot';
-import { functionaliseBitwiseOr } from '../../warplib/implementations/maths/bitwiseOr';
-import { functionaliseDiv } from '../../warplib/implementations/maths/div';
-import { functionaliseEq } from '../../warplib/implementations/maths/eq';
-import { functionaliseExp } from '../../warplib/implementations/maths/exp';
-import { functionaliseGe } from '../../warplib/implementations/maths/ge';
-import { functionaliseGt } from '../../warplib/implementations/maths/gt';
-import { functionaliseLe } from '../../warplib/implementations/maths/le';
-import { functionaliseLt } from '../../warplib/implementations/maths/lt';
-import { functionaliseMod } from '../../warplib/implementations/maths/mod';
-import { functionaliseMul } from '../../warplib/implementations/maths/mul';
 import { functionaliseNegate } from '../../warplib/implementations/maths/negate';
-import { functionaliseNeq } from '../../warplib/implementations/maths/neq';
-import { functionaliseOr } from '../../warplib/implementations/maths/or';
-import { functionaliseShl } from '../../warplib/implementations/maths/shl';
-import { functionaliseShr } from '../../warplib/implementations/maths/shr';
-import { functionaliseSub } from '../../warplib/implementations/maths/sub';
-import { functionaliseXor } from '../../warplib/implementations/maths/xor';
 
 /* Note we also include mulmod and add mod here */
 export class MathsOperationToFunction extends ASTMapper {
