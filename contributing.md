@@ -140,7 +140,7 @@ This saves the benchmarks at `benchmark/stats/data.md`
 
 #### Semantic Tests
 
-Semantic tests involve transpiling each of Solidity's behavior tests and deploying them. Each test is executed, and its result is compared to the output of its Solidity counterpart.
+Semantic tests involve transpiling each of Solidity's behaviour tests and deploying them. Each test is executed, and its result is compared to the output of its Solidity counterpart.
 
 Execute instructions _1_ and _2_ from [Behaviour Tests](#behaviour-tests) if you haven't already. Then:
 
