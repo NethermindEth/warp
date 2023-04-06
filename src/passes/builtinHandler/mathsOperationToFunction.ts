@@ -45,34 +45,6 @@ export class MathsOperationToFunction extends ASTMapper {
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
-    const operatorMap: Map<string, () => void> = new Map([
-      ['+', () => functionaliseAdd(node, this.inUncheckedBlock, ast)],
-      ['-', () => functionaliseSub(node, this.inUncheckedBlock, ast)],
-      ['*', () => functionaliseMul(node, this.inUncheckedBlock, ast)],
-      ['/', () => functionaliseDiv(node, this.inUncheckedBlock, ast)],
-      ['%', () => functionaliseMod(node, ast)],
-      ['**', () => functionaliseExp(node, this.inUncheckedBlock, ast)],
-      ['==', () => functionaliseEq(node, ast)],
-      ['!=', () => functionaliseNeq(node, ast)],
-      ['>=', () => functionaliseGe(node, ast)],
-      ['>', () => functionaliseGt(node, ast)],
-      ['<=', () => functionaliseLe(node, ast)],
-      ['<', () => functionaliseLt(node, ast)],
-      ['&', () => functionaliseBitwiseAnd(node, ast)],
-      ['|', () => functionaliseBitwiseOr(node, ast)],
-      ['^', () => functionaliseXor(node, ast)],
-      ['<<', () => functionaliseShl(node, ast)],
-      ['>>', () => functionaliseShr(node, ast)],
-      ['&&', () => functionaliseAnd(node, ast)],
-      ['||', () => functionaliseOr(node, ast)],
-    ]);
-
-    const thunk = operatorMap.get(node.operator);
-    if (thunk === undefined) {
-      throw new NotSupportedYetError(`${node.operator} not supported yet`);
-    }
-
-    thunk();
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
