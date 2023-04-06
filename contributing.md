@@ -51,7 +51,7 @@ Then run the pip command above again.
 yarn tsc
 ```
 
-5. Compile Warp librariesÑ
+5. Compile Warp libraries
 
 ```bash
 yarn warplib
@@ -101,7 +101,7 @@ yarn test:examples
 
 #### Behaviour Tests
 
-Behavior tests involve transpiling a set of Solidity contracts and deploying them to a testnet. Each deployed contract undergoes testing for all of its runtime functionality.
+Behaviour tests involve transpiling a set of Solidity contracts and deploying them to a testnet. Each deployed contract undergoes testing for all of its runtime functionality.
 
 1. Run the setup script (Required only once):
 
@@ -138,7 +138,7 @@ This saves the benchmarks at `benchmark/stats/data.md`
 
 #### Semantic Tests
 
-Semantic tests involve transpiling each of Solidity's behavior tests and deploying them. Each test is executed, and its result is compared to the output of its Solidity counterpart.
+Semantic tests involve transpiling each of Solidity's behaviour tests and deploying them. Each test is executed, and its result is compared to the output of its Solidity counterpart.
 
 Execute instructions _1_ and _2_ from [Behaviour Tests](#behaviour-tests) if you haven't already. Then:
 
