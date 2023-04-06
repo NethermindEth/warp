@@ -153,7 +153,7 @@ Note: We have changed the return of `ecrecover` to be `uint160` because we use t
 ## Docker :whale:
 
 > **Note:**
-> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
+> Executing Warp using Docker works only for x86 architecture, ARM architectures (such as Apple's M1) will be supported soon.
 
 Build the image from source:
 
