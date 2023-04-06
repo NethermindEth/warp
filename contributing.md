@@ -51,7 +51,7 @@ Then run the pip command above again.
 yarn tsc
 ```
 
-5. Compile Warp librariesÑ
+5. Compile Warp libraries
 
 ```bash
 yarn warplib
