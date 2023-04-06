@@ -103,7 +103,7 @@ yarn test:examples
 
 #### Behaviour Tests
 
-Behavior tests involve transpiling a set of Solidity contracts and deploying them to a testnet. Each deployed contract undergoes testing for all of its runtime functionality.
+Behaviour tests involve transpiling a set of Solidity contracts and deploying them to a testnet. Each deployed contract undergoes testing for all of its runtime functionality.
 
 1. Run the setup script (Required only once):
 
