@@ -31,5 +31,5 @@ warp install --python <path/to/python3.9> --verbose
 4. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
-warp transpile example_contracts/ERC20.sol
+warp transpile <contract-path>
 ```
