@@ -50,6 +50,7 @@ use info::get_caller_address;
 use info::get_contract_address;
 use info::get_block_info;
 use info::get_tx_info;
+use info::get_block_timestamp;
 
 extern type System;
 
@@ -63,13 +64,11 @@ trait SyscallResultTrait<T> {
     /// If `val` is `Result::Ok(x)`, returns `x`. Otherwise, panics with the revert reason.
     fn unwrap_syscall(self: SyscallResult<T>) -> T;
 }
-impl SyscallResultTraitImpl<T> of SyscallResultTrait::<T> {
+impl SyscallResultTraitImpl<T> of SyscallResultTrait<T> {
     fn unwrap_syscall(self: SyscallResult<T>) -> T {
         match self {
             Result::Ok(x) => x,
-            Result::Err(revert_reason) => {
-                panic(revert_reason)
-            },
+            Result::Err(revert_reason) => panic(revert_reason),
         }
     }
 }
