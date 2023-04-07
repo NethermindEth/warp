@@ -22,9 +22,9 @@ import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/
 import {
   ALLOC,
   NARROW_SAFE,
-  WM_READ256,
   U128_FROM_FELT,
   U32_FROM_FELT,
+  WARPLIB_MEMORY,
 } from '../../utils/importPaths';
 import {
   getElementType,
@@ -204,7 +204,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...ALLOC),
         this.requireImport(...NARROW_SAFE),
-        this.requireImport(...WM_READ256),
+        this.requireImport([...WARPLIB_MEMORY], 'wm_read_256'),
         calldataDynArrayStruct,
         ...dynArrayReaderInfo.functionsCalled,
       ],

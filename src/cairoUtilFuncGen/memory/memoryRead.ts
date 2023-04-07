@@ -85,7 +85,8 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       funcDef = this.requireImport(...WM_READ_FELT, inputs, outputs);
     } else if (resultCairoType instanceof CairoUint) {
       funcDef = this.requireImport(
-        ...[[...WARPLIB_MEMORY], `wm_read_${resultCairoType.nBits}`],
+        [...WARPLIB_MEMORY],
+        `wm_read_${resultCairoType.nBits}`,
         inputs,
         outputs,
       );
