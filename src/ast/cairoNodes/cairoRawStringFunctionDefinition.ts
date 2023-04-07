@@ -5,6 +5,7 @@ import {
   ParameterList,
 } from 'solc-typed-ast';
 import { CairoFunctionDefinition, FunctionStubKind } from './cairoFunctionDefinition';
+import { getRawCairoFunctionInfo } from '../../utils/cairoParsing';
 
 export class CairoRawStringFunctionDefinition extends CairoFunctionDefinition {
   rawStringDefinition: string;
@@ -36,7 +37,9 @@ export class CairoRawStringFunctionDefinition extends CairoFunctionDefinition {
       parameters,
       returnParameters,
       [], // Modifier Invocation
-      new Set(),
+      functionSutbKind === FunctionStubKind.FunctionDefStub
+        ? new Set(getRawCairoFunctionInfo(rawStringDefinition).implicits)
+        : new Set(),
       functionSutbKind,
       acceptsRawDArray,
       acceptsUnpackedStructArray,
