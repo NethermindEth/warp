@@ -35,9 +35,6 @@ import {
   WM_NEW,
 } from '../../utils/importPaths';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 /**
  * Given any data type produces the same output of solidity abi.encodePacked
  * in the form of an array of felts where each element represents a byte
@@ -75,7 +72,7 @@ export class AbiEncodePacked extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
       `  let (bytes_array : felt*) = alloc();`,
@@ -208,7 +205,7 @@ export class AbiEncodePacked extends AbiBase {
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_index : felt,`,

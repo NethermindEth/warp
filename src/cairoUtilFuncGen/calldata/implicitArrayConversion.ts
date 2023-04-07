@@ -32,9 +32,6 @@ import {
   U128_FROM_FELT,
 } from '../../utils/importPaths';
 
-const IMPLICITS =
-  '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
-
 // TODO: Add checks for expressions locations when generating
 export class ImplicitArrayConversion extends StringIndexedFuncGen {
   public constructor(
@@ -180,7 +177,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     ).toString();
     const funcName = `calldata_conversion_static_to_static${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(storage_loc: felt, arg: ${cairoSourceTypeName}){`,
+      `func ${funcName}(storage_loc: felt, arg: ${cairoSourceTypeName}){`,
       `alloc_locals;`,
       ...copyInstructions,
       '    return ();',
@@ -223,7 +220,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     ).toString();
     const funcName = `calldata_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(ref: felt, arg: ${cairoSourceTypeName}){`,
+      `func ${funcName}(ref: felt, arg: ${cairoSourceTypeName}){`,
       `alloc_locals;`,
       `    ${optionalCode}`,
       ...copyInstructions,
@@ -268,7 +265,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const funcName = `calldata_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
     const recursiveFuncName = `${funcName}_helper`;
     const code = [
-      `func ${recursiveFuncName}${IMPLICITS}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
+      `func ${recursiveFuncName}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
       `    alloc_locals;`,
       `    if (len == 0){`,
       `      return ();`,
@@ -279,7 +276,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       `    return ${recursiveFuncName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
       `}`,
       ``,
-      `func ${funcName}${IMPLICITS}(ref: felt, source: ${cairoSourceType.toString()}){`,
+      `func ${funcName}(ref: felt, source: ${cairoSourceType.toString()}){`,
       `     alloc_locals;`,
       `    ${dynArrayLength.name}.write(ref, Uint256(source.len, 0));`,
       `    ${recursiveFuncName}(ref, source.len, source.ptr, 0);`,

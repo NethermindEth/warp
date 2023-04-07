@@ -40,9 +40,6 @@ import {
 export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
 
-const IMPLICITS =
-  '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*, keccak_ptr: felt*}';
-
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
  * Then replace the emit statement with a call to the generated function.
@@ -155,7 +152,7 @@ export class EventFunction extends StringIndexedFuncGen {
     );
     const suffix = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
     const code = [
-      `func ${EMIT_PREFIX}${suffix}${IMPLICITS}(${cairoParams}){`,
+      `func ${EMIT_PREFIX}${suffix}(${cairoParams}){`,
       `   alloc_locals;`,
       `   // keys arrays`,
       `   let keys_len: felt = 0;`,

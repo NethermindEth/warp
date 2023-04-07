@@ -40,8 +40,6 @@ import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/
 import { MemoryReadGen } from './memoryRead';
 import endent from 'endent';
 
-const IMPLICITS =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 export class MemoryToCallDataGen extends StringIndexedFuncGen {
   public constructor(
     private dynamicArrayStructGen: ExternalDynArrayStructConstructor,
@@ -121,7 +119,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
+        `func ${funcName}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
         `    alloc_locals;`,
         ...code,
         `    return (${outputType.toString()}(${mapRange(
@@ -192,7 +190,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         dynArrayReaderInfo.code,
-        `func ${funcName}${IMPLICITS}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
+        `func ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
         `    alloc_locals;`,
         `    let (len_256) = wm_read_256(mem_loc);`,
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
@@ -242,7 +240,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
+        `func ${funcName}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
         `    alloc_locals;`,
         `    if (len == 0){`,
         `         return ();`,

@@ -48,9 +48,6 @@ import {
   WM_ALLOC,
 } from '../../utils/importPaths';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
   protected functionName = 'abi_decode';
   protected memoryWrite: MemoryWriteGen;
@@ -144,7 +141,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const returnValues = returnParams.map((r) => `${r.name} = ${r.name}`).join(',');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(mem_ptr : felt) -> (${returnCairoParams}){`,
+      `func ${funcName}(mem_ptr : felt) -> (${returnCairoParams}){`,
       `  alloc_locals;`,
       `  let max_index_length: felt = ${indexLength};`,
       `  let mem_index: felt = 0;`,
@@ -356,7 +353,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
       `  array_index: felt,`,
@@ -410,7 +407,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
       `  dyn_array_index: felt,`,
@@ -495,7 +492,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_struct_${definition.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
       `  struct_ptr: felt`,

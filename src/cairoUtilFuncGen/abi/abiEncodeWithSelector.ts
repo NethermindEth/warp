@@ -19,9 +19,6 @@ import { GeneratedFunctionInfo } from '../base';
 import { AbiEncode } from './abiEncode';
 import { AbiBase } from './base';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 export class AbiEncodeWithSelector extends AbiBase {
   protected override functionName = 'abi_encode_with_selector';
   protected abiEncode: AbiEncode;
@@ -77,7 +74,7 @@ export class AbiEncodeWithSelector extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
       `  let bytes_offset : felt = ${initialOffset};`,

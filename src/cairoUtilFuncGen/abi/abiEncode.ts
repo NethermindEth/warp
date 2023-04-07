@@ -38,9 +38,6 @@ import { delegateBasedOnType, GeneratedFunctionInfo, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase, removeSizeInfo } from './base';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 /**
  * Given any data type produces the same output of solidity abi.encode
  * in the form of an array of felts where each element represents a byte
@@ -87,7 +84,7 @@ export class AbiEncode extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
       `  let bytes_offset : felt = ${initialOffset};`,
@@ -235,7 +232,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index: felt,`,
       `  bytes_offset: felt,`,
       `  bytes_array: felt*,`,
@@ -305,7 +302,7 @@ export class AbiEncode extends AbiBase {
     );
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
@@ -356,7 +353,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
@@ -419,7 +416,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
@@ -480,7 +477,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
@@ -553,7 +550,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_struct_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,

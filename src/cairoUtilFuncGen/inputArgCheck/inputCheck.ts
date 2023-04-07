@@ -40,8 +40,6 @@ import {
 import { cloneASTNode } from '../../utils/cloning';
 import { IS_LE_FELT, NARROW_SAFE, WARPLIB_MATHS } from '../../utils/importPaths';
 
-const IMPLICITS = '{range_check_ptr : felt}';
-
 export class InputCheckGen extends StringIndexedFuncGen {
   public gen(nodeInput: VariableDeclaration | Expression, typeToCheck: TypeNode): FunctionCall {
     let functionInput;
@@ -154,7 +152,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(arg : ${cairoType.toString()}) -> (){`,
+        `func ${funcName}(arg : ${cairoType.toString()}) -> (){`,
         `alloc_locals;`,
         ...inputCheckCode,
         `return ();`,
@@ -179,7 +177,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(arg : ${cairoType.toString()}) -> (){`,
+        `func ${funcName}(arg : ${cairoType.toString()}) -> (){`,
         `alloc_locals;`,
         ...mapRange(length, (index) => {
           return [`${auxFunc.name}(arg[${index}]);`];
@@ -210,7 +208,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
+        `func ${funcName}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
         takesUint
           ? [
               '    let (arg_0) = narrow_safe(arg);',
@@ -245,7 +243,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
+        `func ${funcName}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
         `    alloc_locals;`,
         `    if (len == 0){`,
         `        return ();`,

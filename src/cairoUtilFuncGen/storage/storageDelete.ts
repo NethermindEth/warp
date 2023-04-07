@@ -26,8 +26,6 @@ import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen }
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
-const IMPLICITS = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-
 export class StorageDeleteGen extends StringIndexedFuncGen {
   // Map to store functions being created to
   // avoid infinite recursion when deleting
@@ -127,7 +125,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(loc: felt){`,
+        `func ${funcName}(loc: felt){`,
         ...mapRange(cairoType.width, (n) => `    WARP_STORAGE.write(${add('loc', n)}, 0);`),
         `    return ();`,
         `}`,
@@ -154,7 +152,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       : [`    ${auxDeleteFuncName}(elem_loc);`];
 
     const deleteFunc = [
-      `func ${funcName}_elem${IMPLICITS}(loc : felt, index : Uint256, length : Uint256){`,
+      `func ${funcName}_elem(loc : felt, index : Uint256, length : Uint256){`,
       `     alloc_locals;`,
       `     let (stop) = uint256_eq(index, length);`,
       `     if (stop == 1){`,
@@ -165,7 +163,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     let (next_index, _) = uint256_add(index, ${uint256(1)});`,
       `     return ${funcName}_elem(loc, next_index, length);`,
       `}`,
-      `func ${funcName}${IMPLICITS}(loc : felt){`,
+      `func ${funcName}(loc : felt){`,
       `   alloc_locals;`,
       `   let (length) = ${lengthName}.read(loc);`,
       `   ${lengthName}.write(loc, ${uint256(0)});`,
@@ -197,7 +195,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     );
 
     const code = [
-      `func ${funcName}${IMPLICITS}(loc: felt) {`,
+      `func ${funcName}(loc: felt) {`,
       `   alloc_locals;`,
       ...deleteCode,
       `   return ();`,
@@ -233,7 +231,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const nextLoc = add('loc', elementTWidth);
 
     const deleteFunc = [
-      `func ${funcName}_elem${IMPLICITS}(loc : felt, index : felt){`,
+      `func ${funcName}_elem(loc : felt, index : felt){`,
       `     alloc_locals;`,
       `     if (index == ${length}){`,
       `        return ();`,
@@ -242,7 +240,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       ...deleteCode,
       `     return ${funcName}_elem(${nextLoc}, next_index);`,
       `}`,
-      `func ${funcName}${IMPLICITS}(loc : felt){`,
+      `func ${funcName}(loc : felt){`,
       `   alloc_locals;`,
       `   return ${funcName}_elem(loc, 0);`,
       `}`,
@@ -271,7 +269,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     );
 
     const deleteFunc = [
-      `func ${funcName}${IMPLICITS}(loc : felt){`,
+      `func ${funcName}(loc : felt){`,
       `   alloc_locals;`,
       ...deleteCode,
       `   return ();`,
@@ -287,7 +285,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [`func ${funcName}${IMPLICITS}(loc: felt){`, `    return ();`, `}`].join('\n'),
+      code: [`func ${funcName}(loc: felt){`, `    return ();`, `}`].join('\n'),
       functionsCalled: [],
     };
   }

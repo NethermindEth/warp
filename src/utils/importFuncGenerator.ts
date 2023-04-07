@@ -90,23 +90,16 @@ export function createImport(
   }
 
   switch (encodePath([path, name])) {
-    case encodePath(ALLOC):
-      return createFuncImport();
     case encodePath(BITWISE_BUILTIN):
-      return createStructImport();
-    case encodePath(FINALIZE_KECCAK):
-      return createFuncImport('range_check_ptr', 'bitwise_ptr');
-    case encodePath(DEFAULT_DICT_NEW):
-      return createFuncImport();
-    case encodePath(DEFAULT_DICT_FINALIZE):
-      return createFuncImport('range_check_ptr');
-    case encodePath(DICT_READ):
-    case encodePath(DICT_WRITE):
-      return createFuncImport('dict_ptr');
     case encodePath(DICT_ACCESS):
-      return createStructImport();
     case encodePath(U128_FROM_FELT):
       return createStructImport();
+    case encodePath(ALLOC):
+    case encodePath(FINALIZE_KECCAK):
+    case encodePath(DEFAULT_DICT_NEW):
+    case encodePath(DEFAULT_DICT_FINALIZE):
+    case encodePath(DICT_READ):
+    case encodePath(DICT_WRITE):
     case encodePath(SPLIT_FELT):
     case encodePath(IS_LE):
     case encodePath(IS_LE_FELT):
@@ -116,14 +109,11 @@ export function createImport(
     case encodePath(UINT256_LT):
     case encodePath(UINT256_MUL):
     case encodePath(UINT256_SUB):
-      return createFuncImport('range_check_ptr');
     case encodePath(DEPLOY):
     case encodePath(EMIT_EVENT):
     case encodePath(GET_CALLER_ADDRESS):
     case encodePath(GET_CONTRACT_ADDRESS):
-      return createFuncImport('syscall_ptr');
-    // Import libraries from Cairo1
-    case encodePath(INTO):
+    case encodePath(INTO): // Import libraries from Cairo1
     case encodePath(ADDRESS_INTO_FELT):
     case encodePath(U128_TO_FELT):
     case encodePath(U256_FROM_FELTS):

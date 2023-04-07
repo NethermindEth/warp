@@ -34,8 +34,6 @@ import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
-const IMPLICITS =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 /*
   Generates functions to copy data from WARP_STORAGE to warp_memory
   Specifically this has to deal with structs, static arrays, and dynamic arrays
@@ -119,7 +117,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc: felt){`,
+        `func ${funcName}(loc : felt) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...copyInstructions,
@@ -164,7 +162,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc : felt){`,
+        `func ${funcName}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let length = ${uint256(memoryType.width)};`,
         `    let (mem_start) = wm_alloc(length);`,
@@ -206,7 +204,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}_elem${IMPLICITS}(mem_start: felt, loc : felt, length: Uint256) -> (){`,
+        `func ${funcName}_elem(mem_start: felt, loc : felt, length: Uint256) -> (){`,
         `   alloc_locals;`,
         `   if (length.low == 0){`,
         `       if (length.high == 0){`,
@@ -221,7 +219,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         )}, index);`,
         `}`,
 
-        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc : felt){`,
+        `func ${funcName}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let length = ${uint256(length)};`,
         `    let (mem_start) = wm_alloc(length);`,
@@ -264,7 +262,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}_elem${IMPLICITS}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
+        `func ${funcName}_elem(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
@@ -276,7 +274,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return ${funcName}_elem(storage_name, mem_start, index);`,
         `}`,
 
-        `func ${funcName}${IMPLICITS}(loc : felt) -> (mem_loc : felt){`,
+        `func ${funcName}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let (length: Uint256) = ${lengthMappingName}.read(loc);`,
         `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)});`,

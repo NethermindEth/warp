@@ -92,17 +92,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   }
 
   private getOrCreate(argTypes: TypeNode[]): GeneratedFunctionInfo {
-    const implicits = argTypes.some(
-      (type) => type instanceof IntType || type instanceof FixedBytesType,
-    )
-      ? '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}'
-      : '{range_check_ptr : felt, warp_memory : DictAccess*}';
-
-    const funcInfo = this.generateBytesConcat(argTypes, implicits);
+    const funcInfo = this.generateBytesConcat(argTypes);
     return funcInfo;
   }
 
-  private generateBytesConcat(argTypes: TypeNode[], implicits: string): GeneratedFunctionInfo {
+  private generateBytesConcat(argTypes: TypeNode[]): GeneratedFunctionInfo {
     const argAmount = argTypes.length;
     const funcName = `concat${this.generatedFunctionsDef.size}_${argAmount}`;
 
@@ -110,7 +104,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return {
         name: funcName,
         code: [
-          `func ${funcName}${implicits}() -> (res_loc : felt){`,
+          `func ${funcName}() -> (res_loc : felt){`,
           `   alloc_locals;`,
           `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
           `   return (res_loc,);`,
@@ -153,7 +147,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     );
 
     const code = [
-      `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt){`,
+      `func ${funcName}(${cairoArgs}) -> (res_loc : felt){`,
       `    alloc_locals;`,
       `    // Get all sizes`,
       argSizes,

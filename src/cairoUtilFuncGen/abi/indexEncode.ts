@@ -39,9 +39,6 @@ import { delegateBasedOnType, GeneratedFunctionInfo, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase, removeSizeInfo } from './base';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 /**
  * It is a special class used for encoding of indexed arguments in events.
  * More info at:
@@ -80,7 +77,7 @@ export class IndexEncode extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
       `  let (bytes_array : felt*) = alloc();`,
@@ -213,7 +210,7 @@ export class IndexEncode extends AbiBase {
     const tailEncoding = this.createDynamicArrayTailEncoding(type);
     const name = `${this.functionName}_head_dynamic_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index: felt,`,
       `  bytes_array: felt*,`,
       `  mem_ptr : felt`,
@@ -264,7 +261,7 @@ export class IndexEncode extends AbiBase {
     );
     const name = `${this.functionName}_tail_dynamic_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  index : felt,`,
@@ -309,7 +306,7 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_head_static_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
@@ -356,7 +353,7 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_index : felt,`,
@@ -400,7 +397,7 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_head_spl_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
@@ -466,7 +463,7 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_struct_spl_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,

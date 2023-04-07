@@ -1,8 +1,6 @@
 import assert from 'assert';
 import {
   ASTWriter,
-  ContractDefinition,
-  ContractKind,
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
@@ -11,7 +9,6 @@ import {
 import { CairoContract, CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
 import { error } from '../../utils/formatting';
-import { implicitOrdering, implicitTypes } from '../../utils/implicits';
 import { notNull } from '../../utils/typeConstructs';
 import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
@@ -105,25 +102,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     if (paramLen > 1) return `-> (${returnStr})`;
     else if (paramLen === 1) return `-> ${returnStr}`;
     else return ''; // No return specified so nothing to print
-  }
-
-  private getImplicits(node: CairoFunctionDefinition): string {
-    // Function in interfaces should not have implicit arguments written out
-    if (node.vScope instanceof ContractDefinition && node.vScope.kind === ContractKind.Interface) {
-      return '';
-    }
-
-    const implicits = [...node.implicits.values()].filter(
-      // External functions should not print the warp_memory or keccak_ptr implicit argument, even
-      // if they use them internally. Instead their contents are wrapped
-      // in code to initialise them
-      (i) => !isExternallyVisible(node) || (i !== 'warp_memory' && i !== 'keccak_ptr'),
-    );
-    if (implicits.length === 0) return '';
-    return `{${implicits
-      .sort(implicitOrdering)
-      .map((implicit) => `${implicit} : ${implicitTypes[implicit]}`)
-      .join(', ')}}`;
   }
 
   private getConstructorStorageAllocation(node: CairoFunctionDefinition): string | null {

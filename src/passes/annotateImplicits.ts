@@ -1,20 +1,13 @@
 import assert from 'assert';
-import {
-  ASTNode,
-  EventDefinition,
-  FunctionCall,
-  FunctionDefinition,
-  SourceUnit,
-} from 'solc-typed-ast';
+import { ASTNode, EventDefinition, FunctionCall, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
-import { Implicits, registerImportsForImplicit } from '../utils/implicits';
+import { Implicits } from '../utils/implicits';
 import { union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
-import { EMIT_PREFIX } from '../export';
 import { parseImplicits } from '../utils/cairoParsing';
 
 export class AnnotateImplicits extends ASTMapper {
@@ -56,7 +49,6 @@ export class AnnotateImplicits extends ASTMapper {
       node.raw,
     );
     ast.replaceNode(node, annotatedFunction);
-    implicits.forEach((i) => registerImportsForImplicit(ast, annotatedFunction, i));
     node.children.forEach((child) => this.dispatchVisit(child, ast));
   }
 }
@@ -112,20 +104,11 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     ) {
       this.dispatchVisit(node.vReferencedDeclaration, ast).forEach((defn) => result.add(defn));
     }
-
-    const sourceUnit = node.getClosestParentByType(SourceUnit);
-    const referencedSourceUnit = node.vReferencedDeclaration?.getClosestParentByType(SourceUnit);
-    if (referencedSourceUnit !== sourceUnit || node.vFunctionName.startsWith(EMIT_PREFIX)) {
-      result.add('range_check_ptr');
-      result.add('syscall_ptr');
-    }
     return result;
   }
 
   visitEventDefinition(node: EventDefinition, ast: AST): Set<Implicits> {
     const result = this.commonVisit(node, ast);
-    result.add('syscall_ptr');
-    result.add('range_check_ptr');
     return result;
   }
 }

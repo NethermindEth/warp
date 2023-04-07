@@ -95,10 +95,9 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       'member',
     );
 
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_struct_${cairoStruct.toString()}_to_calldata`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
+      `func ${funcName}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
       `   alloc_locals;`,
       ...copyInstructions,
       `   return (${cairoStruct.toString()}(${members.join(', ')}),);`,
@@ -123,10 +122,9 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       'elem',
     );
 
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_static_array_to_calldata${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
+      `func ${funcName}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
       `    alloc_locals;`,
       ...copyInstructions,
       `    return ((${members.join(', ')}),);`,
@@ -160,11 +158,10 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     );
 
     const ptrType = `${cairoElementType.toString()}*`;
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const funcName = `ws_dynamic_array_to_calldata${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}_write${implicits}(`,
+      `func ${funcName}_write(`,
       `   loc : felt,`,
       `   index : felt,`,
       `   len : felt,`,
@@ -180,7 +177,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `   return ${funcName}_write(loc, index + 1, len, ptr);`,
       `}`,
 
-      `func ${funcName}${implicits}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
+      `func ${funcName}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
       `   alloc_locals;`,
       `   let (len_uint256) = ${lenName}.read(loc);`,
       `   let len = len_uint256.low + len_uint256.high*128;`,

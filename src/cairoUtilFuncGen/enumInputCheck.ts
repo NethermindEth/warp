@@ -68,12 +68,11 @@ export class EnumInputCheck extends StringIndexedFuncGen {
       imports.push(this.requireImport(...NARROW_SAFE), this.requireImport(...U128_FROM_FELT));
     }
 
-    const implicits = '{range_check_ptr : felt}';
     const nMembers = enumDef.vMembers.length;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(${
+        `func ${funcName}(${
           input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'
         }) -> (arg: felt){`,
         '    alloc_locals;',

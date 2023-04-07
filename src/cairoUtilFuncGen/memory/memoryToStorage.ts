@@ -47,9 +47,6 @@ import { MemoryReadGen } from './memoryRead';
   These require extra care because the representations are different in storage and memory
   In storage nested structures are stored in place, whereas in memory 'pointers' are used
 */
-const IMPLICITS =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 export class MemoryToStorageGen extends StringIndexedFuncGen {
   public constructor(
     private dynArrayGen: DynArrayGen,
@@ -121,7 +118,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(loc : felt, mem_loc: felt) -> (loc: felt){`,
+        `func ${funcName}(loc : felt, mem_loc: felt) -> (loc: felt){`,
         `    alloc_locals;`,
         ...copyInstructions,
         `    return (loc,);`,
@@ -150,7 +147,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(loc : felt, mem_loc: felt) -> (loc: felt){`,
+        `func ${funcName}(loc : felt, mem_loc: felt) -> (loc: felt){`,
         `    alloc_locals;`,
         ...copyInstructions,
         `    return (loc,);`,
@@ -209,7 +206,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${IMPLICITS}(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
+        `func ${funcName}_elem(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
         `    alloc_locals;`,
         `    if (length == 0){`,
         `        return ();`,
@@ -222,7 +219,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         )}, index);`,
         `}`,
 
-        `func ${funcName}${IMPLICITS}(loc : felt, mem_loc : felt) -> (loc : felt){`,
+        `func ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt){`,
         `    alloc_locals;`,
         `    ${funcName}_elem(loc, mem_loc, ${length});`,
         `    return (loc,);`,
@@ -283,7 +280,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
-        `func ${funcName}_elem${IMPLICITS}(storage_name: felt, mem_loc : felt, length: Uint256) -> (){`,
+        `func ${funcName}_elem(storage_name: felt, mem_loc : felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
@@ -303,7 +300,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
 
-        `func ${funcName}${IMPLICITS}(loc : felt, mem_loc : felt) -> (loc : felt){`,
+        `func ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt){`,
         `    alloc_locals;`,
         `    let (length) = ${lengthMappingName}.read(loc);`,
         `    let (mem_length) = wm_dyn_array_length(mem_loc);`,

@@ -28,9 +28,6 @@ import { uint256 } from '../../warplib/utils';
 import { GeneratedFunctionInfo } from '../base';
 import { AbiEncodeWithSelector } from './abiEncodeWithSelector';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
   protected override functionName = 'abi_encode_with_signature';
 
@@ -109,7 +106,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
       `  let bytes_offset : felt = ${initialOffset};`,

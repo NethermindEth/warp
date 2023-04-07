@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { TranspileFailedError } from './errors';
-import { Implicits, implicitTypes } from './implicits';
+import { Implicits } from './implicits';
 
 export type RawCairoFunctionInfo = {
   name: string;
@@ -68,17 +68,13 @@ export function parseImplicits(rawImplicits: string): Implicits[] {
 
   return implicitsNameList.map((i) => {
     const impl = i[0];
-    if (!elementIsImplicit(impl)) {
+    if (impl !== 'warp_memory') {
       throw new TranspileFailedError(
         `Implicit '${impl}' defined on raw string is not known: '${rawImplicits}'`,
       );
     }
     return impl;
   });
-}
-
-function elementIsImplicit(e: string): e is Implicits {
-  return Object.keys(implicitTypes).includes(e);
 }
 
 function notContainsNull<T>(l: (T | null)[]): l is T[] {

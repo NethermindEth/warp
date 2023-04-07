@@ -9,18 +9,11 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
-import {
-  ALLOC,
-  FINALIZE_KECCAK,
-  INTO,
-  U256_FROM_FELTS,
-  U128_FROM_FELT,
-} from '../utils/importPaths';
+import { INTO, U256_FROM_FELTS, U128_FROM_FELT } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
+import { getContainingSourceUnit, primitiveTypeToCairo } from '../utils/utils';
 
 /*
   Analyses the tree after all processing has been done to find code the relies on
@@ -68,16 +61,6 @@ export class CairoUtilImporter extends ASTMapper {
       }
     }
     this.visitExpression(node, ast);
-  }
-
-  visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
-    if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
-      createImport(...FINALIZE_KECCAK, node, ast);
-      // Required to create a keccak_ptr
-      createImport(...ALLOC, node, ast);
-    }
-
-    this.commonVisit(node, ast);
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {

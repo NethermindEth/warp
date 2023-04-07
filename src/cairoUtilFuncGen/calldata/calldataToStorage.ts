@@ -25,8 +25,6 @@ import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen }
 import { DynArrayGen } from '../storage/dynArray';
 import { StorageWriteGen } from '../storage/storageWrite';
 
-const IMPLICITS = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-
 export class CalldataToStorageGen extends StringIndexedFuncGen {
   public constructor(
     private dynArrayGen: DynArrayGen,
@@ -104,7 +102,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
     const funcName = `cd_struct_${cairoStruct.toString()}_to_storage`;
     const code = [
-      `func ${funcName}${IMPLICITS}(loc : felt, ${structName} : ${cairoStruct.toString()}) -> (loc : felt){`,
+      `func ${funcName}(loc : felt, ${structName} : ${cairoStruct.toString()}) -> (loc : felt){`,
       `   alloc_locals;`,
       ...copyInstructions,
       `   return (loc,);`,
@@ -129,7 +127,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
     const funcName = `cd_static_array_to_storage${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(loc : felt, static_array : ${cairoType.toString()}) -> (loc : felt){`,
+      `func ${funcName}(loc : felt, static_array : ${cairoType.toString()}) -> (loc : felt){`,
       `   alloc_locals;`,
       ...copyInstructions,
       `   return (loc,);`,
@@ -161,7 +159,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
     const funcName = `cd_dynamic_array_to_storage${this.generatedFunctionsDef.size}`;
     const code = [
-      `func ${funcName}_write${IMPLICITS}(loc : felt, index : felt, len : felt, elem: ${pointerType}){`,
+      `func ${funcName}_write(loc : felt, index : felt, len : felt, elem: ${pointerType}){`,
       `   alloc_locals;`,
       `   if (index == len){`,
       `       return ();`,
@@ -180,7 +178,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       `   }`,
       `}`,
 
-      `func ${funcName}${IMPLICITS}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt){ `,
+      `func ${funcName}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt){ `,
       `   alloc_locals;`,
       `   let (len_uint256) = warp_uint256(dyn_array_struct.len);`,
       `   ${lenName}.write(loc, len_uint256);`,

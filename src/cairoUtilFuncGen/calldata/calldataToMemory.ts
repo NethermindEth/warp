@@ -34,9 +34,6 @@ import {
   WM_NEW,
 } from '../../utils/importPaths';
 
-const IMPLICITS =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
   public gen(node: Expression): FunctionCall {
     const type = generalizeType(safeGetNodeType(node, this.ast.inference))[0];
@@ -118,7 +115,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${IMPLICITS}(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
+        `func ${funcName}_elem(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
         `    alloc_locals;`,
         `    if (length == 0){`,
         `        return ();`,
@@ -126,7 +123,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         copyCode,
         `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1);`,
         `}`,
-        `func ${funcName}${IMPLICITS}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (len256) = felt_to_uint256(calldata.len);`,
         `    let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)});`,
@@ -178,7 +175,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)),
@@ -237,7 +234,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${IMPLICITS}(calldata : ${calldataType}) -> (mem_loc: felt){`,
+        `func ${funcName}(calldata : ${calldataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...copyCode,
