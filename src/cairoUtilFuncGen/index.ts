@@ -1,5 +1,4 @@
 import { AST } from '../ast/ast';
-import { InputCheckGen } from './inputArgCheck/inputCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
 import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
 import { MemoryMemberAccessGen } from './memory/memoryMemberAccess';
@@ -84,10 +83,6 @@ export class CairoUtilFuncGen {
     toMemory: StorageToMemoryGen;
     toStorage: StorageToStorageGen;
     write: StorageWriteGen;
-  };
-  boundChecks: {
-    inputCheck: InputCheckGen;
-    enums: EnumInputCheck;
   };
   events: {
     index: IndexEncode;
@@ -176,10 +171,6 @@ export class CairoUtilFuncGen {
       toMemory: new StorageToMemoryGen(dynArray, ast, sourceUnit),
       toStorage: storageToStorage,
       write: storageWrite,
-    };
-    this.boundChecks = {
-      inputCheck: new InputCheckGen(ast, sourceUnit),
-      enums: new EnumInputCheck(ast, sourceUnit),
     };
     this.calldata = {
       dynArrayStructConstructor: externalDynArrayStructConstructor,
