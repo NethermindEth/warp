@@ -52,7 +52,7 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     }
 
     if (cairoTypeToWrite instanceof CairoUint) {
-      this.requireImport(
+      return this.requireImport(
         [...WARPLIB_MEMORY],
         `wm_write_${cairoTypeToWrite.nBits}`,
         inputs,
