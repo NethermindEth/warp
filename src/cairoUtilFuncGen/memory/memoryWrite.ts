@@ -6,11 +6,10 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { DICT_WRITE, WM_WRITE_FELT } from '../../utils/importPaths';
+import { DICT_WRITE, WARPLIB_MEMORY, WM_WRITE_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
-import { wmWriteuNImport } from '../utils/uNselector';
 
 /*
   Produces functions to write a given value into warp_memory, returning that value (to simulate assignments)
@@ -53,7 +52,11 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     }
 
     if (cairoTypeToWrite instanceof CairoUint) {
-      this.requireImport(...wmWriteuNImport(cairoTypeToWrite), inputs, outputs);
+      this.requireImport(
+        ...[[...WARPLIB_MEMORY], `wm_write_${cairoTypeToWrite.nBits}`],
+        inputs,
+        outputs,
+      );
     }
 
     const funcInfo = this.getOrCreate(typeToWrite);
