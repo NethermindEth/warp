@@ -1,6 +1,5 @@
 use dict::Felt252Dict;
 use dict::Felt252DictTrait;
-use dict::Felt252DictDestruct;
 
 
 struct WarpMemory {
