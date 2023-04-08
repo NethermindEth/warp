@@ -1,7 +1,7 @@
 import { ExternalReferenceType, FunctionCall, FunctionCallKind } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
-import { TranspileFailedError } from '../utils/errors';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
+import { TranspileFailedError } from '../../utils/errors';
 
 /**
  * Swap any builtin call to abi.encode | encodePacked | encodeWithSelector | encodeWithSignature
