@@ -6,7 +6,6 @@ import {
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
-import { makeStructTree, reorderStructs } from './passes/orderNestedStructs';
 
 /* 
   Library calls in solidity are delegate calls
@@ -20,7 +19,7 @@ import { makeStructTree, reorderStructs } from './passes/orderNestedStructs';
 
 export function getStructs(node: SourceUnit, ast: AST): StructDefinition[] {
   const externalStructs = getDefinitionsToInline(node, node, new Set());
-  return reorderStructs(...makeStructTree(externalStructs, ast));
+  return Array.from(externalStructs.values());
 }
 
 // DFS a node for definitions in a free context.

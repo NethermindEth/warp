@@ -52,7 +52,17 @@ export class ExternalReturnReceiver extends ASTMapper {
         ast.insertStatementAfter(node, statement);
         node.assignments = node.assignments.map((value) => (value === decl.id ? newId : value));
       });
+
+    node.vDeclarations.forEach((decl) => addOutputValidation(decl, ast));
   }
+}
+
+function addOutputValidation(decl: VariableDeclaration, ast: AST) {
+  const type = safeGetNodeType(decl, ast.inference);
+  if (!checkableType(type)) return;
+  const validationFunctionCall = ast.getUtilFuncGen(decl).boundChecks.inputCheck.gen(decl, type);
+  const validationStatement = createExpressionStatement(ast, validationFunctionCall);
+  ast.insertStatementAfter(decl, validationStatement);
 }
 
 function generateCopyStatement(
