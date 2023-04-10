@@ -72,7 +72,7 @@ To look what features we are currently working on or tasks that are pending to d
 It can be tedious to manually recompile the project after every minor change. You can automate the process of recompiling by executing the following command:
 
 ```bash
-yarn tsc -w
+yarn dev
 ```
 
 Alternatively to `yarn dev` you can run typescript in interpreted mode to achieve the same. This is an example using `transpile` command:
