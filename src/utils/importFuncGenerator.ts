@@ -11,36 +11,17 @@ import {
 } from './functionGeneration';
 import { getContainingSourceUnit } from './utils';
 import {
-  ALLOC,
-  BITWISE_BUILTIN,
-  DEFAULT_DICT_FINALIZE,
-  DEFAULT_DICT_NEW,
-  DEPLOY,
-  DICT_ACCESS,
-  DICT_READ,
-  DICT_WRITE,
-  EMIT_EVENT,
-  FINALIZE_KECCAK,
-  GET_CALLER_ADDRESS,
-  GET_CONTRACT_ADDRESS,
   ADDRESS_INTO_FELT,
-  IS_LE,
-  IS_LE_FELT,
-  SPLIT_FELT,
   U128_TO_FELT,
   U256_FROM_FELTS,
   U128_FROM_FELT,
-  UINT256_ADD,
-  UINT256_EQ,
-  UINT256_LE,
-  UINT256_LT,
-  UINT256_MUL,
-  UINT256_SUB,
   INTO,
   ARRAY,
   ARRAY_TRAIT,
   U32_FROM_FELT,
   U32_TO_FELT,
+  GET_CALLER_ADDRESS,
+  GET_CONTRACT_ADDRESS,
 } from './importPaths';
 
 export function createImport(
@@ -88,43 +69,27 @@ export function createImport(
   if (warplibFunc !== undefined) {
     return createFuncImport(...warplibFunc);
   }
-
-  switch (encodePath([path, name])) {
-    case encodePath(BITWISE_BUILTIN):
-    case encodePath(DICT_ACCESS):
-    case encodePath(U128_FROM_FELT):
-      return createStructImport();
-    case encodePath(ALLOC):
-    case encodePath(FINALIZE_KECCAK):
-    case encodePath(DEFAULT_DICT_NEW):
-    case encodePath(DEFAULT_DICT_FINALIZE):
-    case encodePath(DICT_READ):
-    case encodePath(DICT_WRITE):
-    case encodePath(SPLIT_FELT):
-    case encodePath(IS_LE):
-    case encodePath(IS_LE_FELT):
-    case encodePath(UINT256_ADD):
-    case encodePath(UINT256_EQ):
-    case encodePath(UINT256_LE):
-    case encodePath(UINT256_LT):
-    case encodePath(UINT256_MUL):
-    case encodePath(UINT256_SUB):
-    case encodePath(DEPLOY):
-    case encodePath(EMIT_EVENT):
-    case encodePath(GET_CALLER_ADDRESS):
-    case encodePath(GET_CONTRACT_ADDRESS):
-    case encodePath(INTO): // Import libraries from Cairo1
-    case encodePath(ADDRESS_INTO_FELT):
-    case encodePath(U128_TO_FELT):
-    case encodePath(U256_FROM_FELTS):
-    case encodePath(ARRAY):
-    case encodePath(ARRAY_TRAIT):
-    case encodePath(U32_FROM_FELT):
-    case encodePath(U32_TO_FELT):
-      return createFuncImport();
-    default:
-      throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
+  if (encodePath([path, name]) === encodePath(U128_FROM_FELT)) {
+    return createStructImport();
   }
+  if (
+    [
+      encodePath(GET_CALLER_ADDRESS),
+      encodePath(GET_CONTRACT_ADDRESS),
+      encodePath(INTO), // Import libraries from Cairo1
+      encodePath(ADDRESS_INTO_FELT),
+      encodePath(U128_TO_FELT),
+      encodePath(U256_FROM_FELTS),
+      encodePath(ARRAY),
+      encodePath(ARRAY_TRAIT),
+      encodePath(U32_FROM_FELT),
+      encodePath(U32_TO_FELT),
+    ].includes(encodePath([path, name]))
+  ) {
+    return createFuncImport();
+  }
+
+  throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
 }
 
 function findExistingImport(
