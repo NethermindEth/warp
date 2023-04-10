@@ -5,7 +5,6 @@ import {
   StructDefinition,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
-import { AST } from './ast/ast';
 
 /* 
   Library calls in solidity are delegate calls
@@ -17,7 +16,7 @@ import { AST } from './ast/ast';
   function which do that.
 */
 
-export function getStructs(node: SourceUnit, ast: AST): StructDefinition[] {
+export function getStructs(node: SourceUnit): StructDefinition[] {
   const externalStructs = getDefinitionsToInline(node, node, new Set());
   return Array.from(externalStructs.values());
 }

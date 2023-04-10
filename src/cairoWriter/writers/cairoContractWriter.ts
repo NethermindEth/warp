@@ -111,7 +111,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       })
       .join('\n');
 
-    const freeStructs = getStructs(sourceUnit, this.ast);
+    const freeStructs = getStructs(sourceUnit);
     const structs = [...freeStructs, ...sourceUnit.vStructs, ...(node?.vStructs || [])]
       .map((v) => writer.write(v))
       .join('\n\n');
