@@ -1,6 +1,11 @@
 import endent from 'endent';
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
-import { CairoType, CairoUint256, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import {
+  CairoBool,
+  CairoType,
+  CairoUint256,
+  TypeConversionContext,
+} from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { U128_TO_FELT } from '../../utils/importPaths';
@@ -58,6 +63,18 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     const writeCode = cairoTypeToWrite
       .serialiseMembers('value')
       .map((name, index) => {
+        if (cairoTypeToWrite instanceof CairoBool) {
+          // It will store a felt corresponding to the bool value
+          // True -> `1`   False -> `0`
+          return endent`
+            if ${name} {
+              ${write(add('loc', index), `1`)}
+            }
+            else {
+              ${write(add('loc', index), `0`)}
+            }
+          `;
+        }
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
           name = `u128_to_felt(${name})`;
         }
@@ -65,7 +82,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       })
       .join('\n');
 
-    const funcName = `WS_WRITE${this.generatedFunctionsDef.size}`;
+    const funcName = `WS${this.generatedFunctionsDef.size}_WRITE_${cairoTypeToWrite.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`

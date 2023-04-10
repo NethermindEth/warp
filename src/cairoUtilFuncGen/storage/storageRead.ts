@@ -1,3 +1,4 @@
+import assert from 'assert';
 import endent from 'endent';
 import {
   Expression,
@@ -8,7 +9,12 @@ import {
   TypeName,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import {
+  CairoBool,
+  CairoFelt,
+  CairoType,
+  TypeConversionContext,
+} from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -61,13 +67,30 @@ export class StorageReadGen extends StringIndexedFuncGen {
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const funcName = `WS${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
+    let funcBody: string;
+    if (typeToRead instanceof CairoBool) {
+      const equivalentStoredType = new CairoFelt();
+      // Given that only 1 variable was generated, then, in `pack` is stored its name
+      const [reads, pack] = serialiseReads(equivalentStoredType, readFelt, readId);
+      assert(reads.length === 1, 'Storage read for Cairo Bools should generate only 1 variable');
+      // It's assumed here that `1` -> True and `0` -> False. With simplification purposes it´s
+      // infered that if is not `1` then it must be false.
+      funcBody = endent`
+        ${reads.map((s) => `  ${s}`).join('\n')}
+        ${pack} == 1
+      `;
+    } else {
+      const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
+      funcBody = endent`
+        ${reads.map((s) => `  ${s}`).join('\n')}
+        ${pack}
+      `;
+    }
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
         fn ${funcName}(loc: felt) -> ${resultCairoType}{
-          ${reads.map((s) => `  ${s}`).join('\n')}
-          ${pack}
+          ${funcBody}
         }
       `,
       functionsCalled: [],
