@@ -11,7 +11,6 @@ import {
 } from './functionGeneration';
 import { getContainingSourceUnit } from './utils';
 import {
-  ADDRESS_INTO_FELT,
   U128_TO_FELT,
   U256_FROM_FELTS,
   U128_FROM_FELT,
@@ -77,7 +76,6 @@ export function createImport(
       encodePath(GET_CALLER_ADDRESS),
       encodePath(GET_CONTRACT_ADDRESS),
       encodePath(INTO), // Import libraries from Cairo1
-      encodePath(ADDRESS_INTO_FELT),
       encodePath(U128_TO_FELT),
       encodePath(U256_FROM_FELTS),
       encodePath(ARRAY),
