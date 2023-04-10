@@ -41,6 +41,7 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
+    const cairoType = primitiveTypeToCairo(node.name);
     if (primitiveTypeToCairo(node.name) === 'u256') {
       createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
     } else if (cairoType === 'ContractAddress') {
