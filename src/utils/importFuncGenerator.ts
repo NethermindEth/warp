@@ -23,7 +23,6 @@ import {
   FINALIZE_KECCAK,
   GET_CALLER_ADDRESS,
   GET_CONTRACT_ADDRESS,
-  ADDRESS_INTO_FELT,
   IS_LE,
   IS_LE_FELT,
   SPLIT_FELT,
@@ -43,6 +42,7 @@ import {
   U32_TO_FELT,
   WARP_MEMORY,
   MEMORY_TRAIT,
+  CONTRACT_ADDRESS,
 } from './importPaths';
 
 export function createImport(
@@ -126,7 +126,7 @@ export function createImport(
       return createFuncImport('syscall_ptr');
     // Import libraries from Cairo1
     case encodePath(INTO):
-    case encodePath(ADDRESS_INTO_FELT):
+    case encodePath(CONTRACT_ADDRESS):
     case encodePath(U128_TO_FELT):
     case encodePath(U256_FROM_FELTS):
     case encodePath(ARRAY):
