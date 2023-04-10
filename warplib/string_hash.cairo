@@ -10,7 +10,7 @@ use array::Array;
 use array::ArrayTrait;
 
 
-fn hash_chain(arr: @Array::<felt>, pos: u32) -> felt {
+fn hash_chain(arr: @Array::<felt252>, pos: u32) -> felt252 {
     let next = pos + 1_u32;
     if (next == arr.len()) {
         return *arr.at(pos);
@@ -19,13 +19,13 @@ fn hash_chain(arr: @Array::<felt>, pos: u32) -> felt {
 }
 
 
-fn string_hash(arr: @Array::<felt>) -> felt {
+fn string_hash(arr: @Array::<felt252>) -> felt252 {
     return hash_chain(arr, 1_u32);
 }
 
 // func wm_string_hash{pedersen_ptr: HashBuiltin*, range_check_ptr, warp_memory: DictAccess*}(
-//     mem_loc: felt
-// ) -> felt {
+//     mem_loc: felt252
+// ) -> felt252 {
 //     let (len, ptr) = wm_to_felt_array(mem_loc);
 
 //     let hashedValue = string_hash(len, ptr);

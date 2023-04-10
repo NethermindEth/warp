@@ -11,7 +11,7 @@ export const HASH_OPTION = 'sha256';
 
 /**
   Is used post transpilation to insert the class hash for any contract that can deploy another.
-  During transpilation 0 is placed where the class hash would be because cotracts to declare
+  During transpilation 0 is placed where the class hash would be because contracts to declare
   have not yet been fully transpiled. At this stage all contracts have been transpiled, so they
   can be  compiled and their class hash computed. Each class hash needed is written into the
   cairo contract
@@ -40,13 +40,13 @@ export function postProcessCairoFile(
   // If the file does have dependencies then we need to make sure that the dependencies of
   // those files have been calculated and inserted.
   filesToHash.forEach((file) => {
-    hashDependacies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
+    hashDependencies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
   });
   setDeclaredAddresses(path.join(outputDir, contractPath), contractHashToClassHash);
   return contractPath;
 }
 
-function hashDependacies(
+function hashDependencies(
   contractPath: string,
   outputDir: string,
   debugInfo: boolean,
@@ -63,7 +63,7 @@ function hashDependacies(
 
   filesToHash
     .map((file) => {
-      hashDependacies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
+      hashDependencies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
       return file;
     })
     .forEach((file) => {
@@ -184,7 +184,7 @@ export function getDependencyGraph(root: string, outputDir: string): Map<string,
  * Read a cairo file and parse all instructions of the form:
  * @declare `location`. All `location` are gathered and then returned
  * @param contractPath cairo file path to read
- * @param outputDir filepath may be different during transpilation and after transpilation. This parameter is appended at the beggining to make them equal
+ * @param outputDir filepath may be different during transpilation and after transpilation. This parameter is appended at the beginning to make them equal
  * @returns list of locations
  */
 function extractContractsToDeclare(contractPath: string, outputDir: string): string[] {

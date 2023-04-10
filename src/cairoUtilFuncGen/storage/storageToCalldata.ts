@@ -17,7 +17,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { ALLOC, GET_U128, WARP_UINT256 } from '../../utils/importPaths';
+import { ALLOC, U128_FROM_FELT, WARP_UINT256 } from '../../utils/importPaths';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -148,7 +148,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     assert(structDef instanceof CairoDynArray);
 
     const storageReadFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
-    const sturctDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
+    const structDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
     const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
 
     const arrayName = dynArray.name;
@@ -193,7 +193,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const importedFuncs = [
       this.requireImport(...WARP_UINT256),
-      this.requireImport(...GET_U128),
+      this.requireImport(...U128_FROM_FELT),
       this.requireImport(...ALLOC),
     ];
 
@@ -202,7 +202,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [
         ...importedFuncs,
-        sturctDynArray,
+        structDynArray,
         dynArray,
         dynArrayLength,
         storageReadFunc,

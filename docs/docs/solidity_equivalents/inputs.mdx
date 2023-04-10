@@ -122,7 +122,7 @@ Arrays can have a compile-time fixed size, or they can have a dynamic size.
   `uint[3][2]` is represented as `(Uint256, Uint256, Uint256), (Uint256, Uint256, Uint256))`.
   So, If you want to pass `[[12, 13, 14], [13, 14, 15]]` then you have to provide `12, 0, 13, 0, 14, 0, 13, 0, 14, 0, 15, 0` to interact with warped contracts.
 
-- Dynamic sized arrays are repsented as `(arr_len: felt, arr: (base type in cairo)*)`, the first value represents number of elements in the array.
+- Dynamic sized arrays are represented as `(arr_len: felt, arr: (base type in cairo)*)`, the first value represents number of elements in the array.
 
   **Example**:
 

@@ -4,7 +4,7 @@ import { CairoContract } from '../../ast/cairoNodes';
 import { cloneASTNode } from '../../utils/cloning';
 import { getBaseContracts } from './utils';
 
-export function addEventDefintion(
+export function addEventDefinition(
   node: CairoContract,
   idRemapping: Map<number, EventDefinition>,
   ast: AST,

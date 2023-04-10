@@ -24,7 +24,7 @@ import {
   BYTES_CONVERSIONS,
   FELT_TO_UINT256,
   INT_CONVERSIONS,
-  GET_U128,
+  U128_FROM_FELT,
   UINT256_ADD,
   WM_ALLOC,
   WM_INDEX_DYN,
@@ -60,7 +60,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  public genIfNecesary(sourceExpression: Expression, targetType: TypeNode): [Expression, boolean] {
+  public genIfNecessary(sourceExpression: Expression, targetType: TypeNode): [Expression, boolean] {
     const sourceType = safeGetNodeType(sourceExpression, this.ast.inference);
 
     const generalTarget = generalizeType(targetType)[0];
@@ -230,7 +230,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...GET_U128),
+        this.requireImport(...U128_FROM_FELT),
         this.requireImport(...WM_ALLOC),
         sourceLocationFunc,
         ...calledFuncs,
@@ -310,7 +310,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...GET_U128),
+        this.requireImport(...U128_FROM_FELT),
         this.requireImport(...UINT256_ADD),
         this.requireImport(...WM_INDEX_DYN),
         this.requireImport(...WM_NEW),
@@ -386,7 +386,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...GET_U128),
+        this.requireImport(...U128_FROM_FELT),
         this.requireImport(...UINT256_ADD),
         this.requireImport(...WM_INDEX_DYN),
         this.requireImport(...WM_NEW),
@@ -470,10 +470,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 }
 
 export function getBaseType(type: TypeNode): TypeNode {
-  const deferencedType = generalizeType(type)[0];
-  return deferencedType instanceof ArrayType
-    ? getBaseType(deferencedType.elementT)
-    : deferencedType;
+  const dereferencedType = generalizeType(type)[0];
+  return dereferencedType instanceof ArrayType
+    ? getBaseType(dereferencedType.elementT)
+    : dereferencedType;
 }
 
 function typesToCairoTypes(

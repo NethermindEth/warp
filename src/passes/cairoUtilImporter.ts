@@ -14,13 +14,10 @@ import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
 import {
   ALLOC,
-  DEFAULT_DICT_FINALIZE,
-  DEFAULT_DICT_NEW,
-  DICT_WRITE,
   FINALIZE_KECCAK,
   INTO,
   U256_FROM_FELTS,
-  GET_U128,
+  U128_FROM_FELT,
 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
@@ -43,7 +40,7 @@ export class CairoUtilImporter extends ASTMapper {
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImport(...GET_U128, this.dummySourceUnit ?? node, ast);
+      createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
     }
   }
 
@@ -57,7 +54,7 @@ export class CairoUtilImporter extends ASTMapper {
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport(...GET_U128, this.dummySourceUnit ?? node, ast);
+      createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining
@@ -74,12 +71,6 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
-    if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
-      createImport(...DEFAULT_DICT_NEW, node, ast);
-      createImport(...DEFAULT_DICT_FINALIZE, node, ast);
-      createImport(...DICT_WRITE, node, ast);
-    }
-
     if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
       createImport(...FINALIZE_KECCAK, node, ast);
       // Required to create a keccak_ptr

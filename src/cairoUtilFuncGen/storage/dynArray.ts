@@ -34,12 +34,12 @@ export class DynArrayGen extends StringIndexedFuncGen {
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
 
     const key = cairoType.fullStringRepresentation;
-    const lenghtKey = key + '_LENGTH';
+    const lengthKey = key + '_LENGTH';
     const existing = this.generatedFunctionsDef.get(key);
     if (existing !== undefined) {
-      const exsitingLength = this.generatedFunctionsDef.get(lenghtKey);
-      assert(exsitingLength !== undefined);
-      return [existing, exsitingLength];
+      const existingLength = this.generatedFunctionsDef.get(lengthKey);
+      assert(existingLength !== undefined);
+      return [existing, existingLength];
     }
 
     const [arrayInfo, lengthInfo] = this.getOrCreate(cairoType);
@@ -71,7 +71,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
     );
 
     this.generatedFunctionsDef.set(key, dynArray);
-    this.generatedFunctionsDef.set(lenghtKey, dynArrayLength);
+    this.generatedFunctionsDef.set(lengthKey, dynArrayLength);
     return [dynArray, dynArrayLength];
   }
 
@@ -79,13 +79,13 @@ export class DynArrayGen extends StringIndexedFuncGen {
     const mappingName = `WARP_DARRAY${this.generatedFunctionsDef.size}_${valueCairoType.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: `${mappingName}: LegacyMap::<(felt, u256), felt>`,
+      code: `${mappingName}: LegacyMap::<(felt252, u256), felt252>`,
       functionsCalled: [],
     };
 
     const lengthFuncInfo: GeneratedFunctionInfo = {
       name: `${mappingName}_LENGTH`,
-      code: `${mappingName}_LENGTH: LegacyMap::<felt, u256>`,
+      code: `${mappingName}_LENGTH: LegacyMap::<felt252, u256>`,
       functionsCalled: [],
     };
     return [funcInfo, lengthFuncInfo];

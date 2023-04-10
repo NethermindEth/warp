@@ -22,7 +22,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   DICT_WRITE,
-  GET_U128,
+  U128_FROM_FELT,
   UINT256_SUB,
   WM_ALLOC,
   WM_INDEX_DYN,
@@ -233,7 +233,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         this.requireImport(...DICT_WRITE),
         this.requireImport(...WM_ALLOC),
         this.requireImport(...UINT256_SUB),
-        this.requireImport(...GET_U128),
+        this.requireImport(...U128_FROM_FELT),
         ...copyCalls,
       ],
     };
@@ -287,7 +287,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...DICT_WRITE),
         this.requireImport(...UINT256_SUB),
-        this.requireImport(...GET_U128),
+        this.requireImport(...U128_FROM_FELT),
         this.requireImport(...WM_NEW),
         this.requireImport(...WM_INDEX_DYN),
         ...copyCalls,
@@ -349,7 +349,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         ];
       }
       throw new TranspileFailedError(
-        `Trying to create recursive code for unsupported referency type: ${printTypeNode(
+        `Trying to create recursive code for unsupported reference type: ${printTypeNode(
           elementT,
         )}`,
       );

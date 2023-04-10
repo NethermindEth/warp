@@ -156,10 +156,10 @@ export abstract class CairoType {
 
 export class CairoFelt extends CairoType {
   get fullStringRepresentation(): string {
-    return '[Felt]';
+    return '[Felt252]';
   }
   toString(): string {
-    return 'felt';
+    return 'felt252';
   }
   get width(): number {
     return 1;

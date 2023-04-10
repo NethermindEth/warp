@@ -1,25 +1,25 @@
+use array::ArrayTrait;
+use zeroable::IsZeroResult;
+use zeroable::NonZeroIntoImpl;
+use traits::Into;
+
 mod StarkCurve {
     /// The STARK Curve is defined by the equation `y^2 = x^3 + ALPHA*x + BETA`.
-    const ALPHA: felt = 1;
+    const ALPHA: felt252 = 1;
     /// The STARK Curve is defined by the equation `y^2 = x^3 + ALPHA*x + BETA`.
-    const BETA: felt = 0x6f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89;
+    const BETA: felt252 = 0x6f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89;
     /// The order (number of points) of the STARK Curve.
-    const ORDER: felt = 0x800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f;
+    const ORDER: felt252 = 0x800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f;
     /// The x coordinate of the generator point used in the ECDSA signature.
-    const GEN_X: felt = 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca;
+    const GEN_X: felt252 = 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca;
     /// The y coordinate of the generator point used in the ECDSA signature.
-    const GEN_Y: felt = 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f;
+    const GEN_Y: felt252 = 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f;
 }
 
 extern type EcOp;
 #[derive(Copy, Drop)]
 extern type EcPoint;
 type NonZeroEcPoint = NonZero<EcPoint>;
-
-impl NonZeroEcPointCopy of Copy::<NonZeroEcPoint>;
-impl OptionNonZeroEcPointCopy of Copy::<Option<NonZeroEcPoint>>;
-impl NonZeroEcPointDrop of Drop::<NonZeroEcPoint>;
-impl OptionNonZeroEcPointDrop of Drop::<Option<NonZeroEcPoint>>;
 
 /// Returns the zero point of the curve ("the point at infinity").
 extern fn ec_point_zero() -> EcPoint nopanic;
@@ -28,31 +28,31 @@ extern fn ec_point_zero() -> EcPoint nopanic;
 /// * `ec_point_try_new_nz` returns `None` if the point (x, y) is not on the curve.
 /// * `ec_point_new_nz` panics in that case.
 #[panic_with('not on EC', ec_point_new_nz)]
-extern fn ec_point_try_new_nz(x: felt, y: felt) -> Option<NonZeroEcPoint> nopanic;
+extern fn ec_point_try_new_nz(x: felt252, y: felt252) -> Option<NonZeroEcPoint> nopanic;
 
 #[inline(always)]
-fn ec_point_try_new(x: felt, y: felt) -> Option<EcPoint> {
+fn ec_point_try_new(x: felt252, y: felt252) -> Option<EcPoint> {
     match ec_point_try_new_nz(:x, :y) {
-        Option::Some(pt) => Option::Some(unwrap_nz(pt)),
+        Option::Some(pt) => Option::Some(pt.into()),
         Option::None(()) => Option::None(()),
     }
 }
 
-fn ec_point_new(x: felt, y: felt) -> EcPoint {
-    unwrap_nz(ec_point_new_nz(:x, :y))
+fn ec_point_new(x: felt252, y: felt252) -> EcPoint {
+    ec_point_new_nz(:x, :y).into()
 }
 
-extern fn ec_point_from_x_nz(x: felt) -> Option<NonZeroEcPoint> nopanic;
+extern fn ec_point_from_x_nz(x: felt252) -> Option<NonZeroEcPoint> implicits(RangeCheck) nopanic;
 
 #[inline(always)]
-fn ec_point_from_x(x: felt) -> Option<EcPoint> {
+fn ec_point_from_x(x: felt252) -> Option<EcPoint> {
     match ec_point_from_x_nz(:x) {
-        Option::Some(pt) => Option::Some(unwrap_nz(pt)),
+        Option::Some(pt) => Option::Some(pt.into()),
         Option::None(()) => Option::None(()),
     }
 }
 
-extern fn ec_point_unwrap(p: NonZeroEcPoint) -> (felt, felt) nopanic;
+extern fn ec_point_unwrap(p: NonZeroEcPoint) -> (felt252, felt252) nopanic;
 /// Computes the negation of an elliptic curve point (-p).
 extern fn ec_neg(p: EcPoint) -> EcPoint nopanic;
 /// Checks whether the given `EcPoint` is the zero point.
@@ -61,11 +61,7 @@ extern fn ec_point_is_zero(p: EcPoint) -> IsZeroResult<EcPoint> nopanic;
 /// Converts `p` to `NonZeroEcPoint`. Panics if `p` is the zero point.
 fn ec_point_non_zero(p: EcPoint) -> NonZeroEcPoint {
     match ec_point_is_zero(p) {
-        IsZeroResult::Zero(()) => {
-            let mut data = array_new();
-            array_append(ref data, 'Zero point');
-            panic(data)
-        },
+        IsZeroResult::Zero(()) => panic_with_felt252('Zero point'),
         IsZeroResult::NonZero(p_nz) => p_nz,
     }
 }
@@ -84,19 +80,19 @@ extern fn ec_state_add(ref s: EcState, p: NonZeroEcPoint) nopanic;
 /// zero point).
 extern fn ec_state_try_finalize_nz(s: EcState) -> Option<NonZeroEcPoint> nopanic;
 /// Adds the product p * m to the state.
-extern fn ec_state_add_mul(ref s: EcState, m: felt, p: NonZeroEcPoint) implicits(EcOp) nopanic;
+extern fn ec_state_add_mul(ref s: EcState, m: felt252, p: NonZeroEcPoint) implicits(EcOp) nopanic;
 
 /// Finalizes the EC computation and returns the result.
 #[inline(always)]
-fn ec_state_finalize(s: EcState) -> EcPoint nopanic {
+fn ec_state_finalize(s: EcState) -> EcPoint {
     match ec_state_try_finalize_nz(s) {
-        Option::Some(pt) => unwrap_nz(pt),
+        Option::Some(pt) => pt.into(),
         Option::None(()) => ec_point_zero(),
     }
 }
 
 /// Computes the product of an EC point `p` by the given scalar `m`.
-fn ec_mul(p: EcPoint, m: felt) -> EcPoint {
+fn ec_mul(p: EcPoint, m: felt252) -> EcPoint {
     match ec_point_is_zero(p) {
         IsZeroResult::Zero(()) => p,
         IsZeroResult::NonZero(p_nz) => {
@@ -107,7 +103,7 @@ fn ec_mul(p: EcPoint, m: felt) -> EcPoint {
     }
 }
 
-impl EcPointAdd of Add::<EcPoint> {
+impl EcPointAdd of Add<EcPoint> {
     /// Computes the sum of two points on the curve.
     // TODO(lior): Implement using a libfunc to make it more efficient.
     fn add(p: EcPoint, q: EcPoint) -> EcPoint {
@@ -130,14 +126,14 @@ impl EcPointAdd of Add::<EcPoint> {
     }
 }
 
-impl EcPointAddEq of AddEq::<EcPoint> {
+impl EcPointAddEq of AddEq<EcPoint> {
     #[inline(always)]
     fn add_eq(ref self: EcPoint, other: EcPoint) {
         self = Add::add(self, other);
     }
 }
 
-impl EcPointSub of Sub::<EcPoint> {
+impl EcPointSub of Sub<EcPoint> {
     /// Computes the difference between two points on the curve.
     fn sub(p: EcPoint, q: EcPoint) -> EcPoint {
         match ec_point_is_zero(q) {
@@ -152,7 +148,7 @@ impl EcPointSub of Sub::<EcPoint> {
     }
 }
 
-impl EcPointSubEq of SubEq::<EcPoint> {
+impl EcPointSubEq of SubEq<EcPoint> {
     #[inline(always)]
     fn sub_eq(ref self: EcPoint, other: EcPoint) {
         self = Sub::sub(self, other);

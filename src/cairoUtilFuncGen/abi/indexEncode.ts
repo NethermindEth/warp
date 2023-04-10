@@ -20,7 +20,7 @@ import {
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
   NARROW_SAFE,
-  GET_U128,
+  U128_FROM_FELT,
   WM_DYN_ARRAY_LENGTH,
   WM_INDEX_DYN,
   WM_NEW,
@@ -95,7 +95,7 @@ export class IndexEncode extends AbiBase {
     const importedFuncs = [
       this.requireImport(...ALLOC),
       this.requireImport(...BITWISE_BUILTIN),
-      this.requireImport(...GET_U128),
+      this.requireImport(...U128_FROM_FELT),
       this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...WM_NEW),
       this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
@@ -254,7 +254,7 @@ export class IndexEncode extends AbiBase {
     if (existing !== undefined) return existing;
 
     const elementT = getElementType(type);
-    const elemntTSize = CairoType.fromSol(elementT, this.ast).width;
+    const elementTSize = CairoType.fromSol(elementT, this.ast).width;
 
     const [readElement, readFunc] = this.readMemory(elementT, 'elem_loc');
     const [headEncodingCode, functionsCalled] = this.generateEncodingCode(
@@ -276,7 +276,7 @@ export class IndexEncode extends AbiBase {
       `     return (final_index=bytes_index);`,
       `  }`,
       `  let (index256) = felt_to_uint256(index);`,
-      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elemntTSize)});`,
+      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});`,
       `  let (elem) = ${readElement};`,
       `  ${headEncodingCode}`,
       `  return ${name}(bytes_index, bytes_array, index + 1, length, mem_ptr);`,

@@ -479,11 +479,11 @@ export function getSourceFromLocations(
     let marked = false;
     let newLine = `${lineNum}\t`;
     while (locIndex < locations.length && maxWalk >= locations[locIndex].offset) {
-      // Mark the line as a highlited line
+      // Mark the line as a highlighted line
       marked = true;
       const currentLocation = locations[locIndex];
       if (currentLocation.offset + currentLocation.length > maxWalk) {
-        // Case when node source spans accross multiple lines
+        // Case when node source spans across multiple lines
         newLine =
           newLine +
           source.substring(textWalked, currentLocation.offset) +

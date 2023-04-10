@@ -1,4 +1,4 @@
-fn warp_sub(lhs: felt, rhs: felt) -> felt {
+fn warp_sub(lhs: felt252, rhs: felt252) -> felt252 {
     return lhs - rhs;
 }
 
