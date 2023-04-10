@@ -75,11 +75,10 @@ It can be tedious to manually recompile the project after every minor change. Yo
 yarn tsc -w
 ```
 
-You can also run warp instructions using docker to achieve the same. This is an example using `transpile` command:
+Alternatively to `yarn dev` you can run typescript in interpreted mode to achieve the same. This is an example using `transpile` command:
 
 ```bash
-docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
-```
+npx ts-node src transpile example_contracts/ERC20.sol
 
 ### Testing for contributors :stethoscope:
 
