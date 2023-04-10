@@ -89,7 +89,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
-        fn ${funcName}(loc: felt) -> ${resultCairoType}{
+        fn ${funcName}(loc: felt252) -> ${resultCairoType}{
           ${funcBody}
         }
       `,
