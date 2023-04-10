@@ -81,8 +81,11 @@ export function divmod(x: bigint, y: bigint): [bigint, bigint] {
   return [div, rem];
 }
 
-export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
+export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' | 'ContractAddress' {
   switch (typeString) {
+    case 'address':
+    case 'address payable':
+      return 'ContractAddress';
     case 'uint':
     case 'uint256':
     case 'int':
