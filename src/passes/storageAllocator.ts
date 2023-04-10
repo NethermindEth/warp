@@ -94,7 +94,7 @@ export class StorageAllocator extends ASTMapper {
 
     ast.replaceNode(node, cairoNode);
 
-    // This next code line is a hotfix when there is struct inheritance and the base contract's definiton
+    // This next code line is a hotfix when there is struct inheritance and the base contract's definition
     // gets replaced by its cairo counter part. From now on using `getNodeType` on an expression with a
     // an inherited struct type will crash unexpectedly.
     // The issue is caused because the property `vLinearizedBaseContracts` that is accessed through `getNodeType`

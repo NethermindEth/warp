@@ -1,4 +1,5 @@
 import {
+  AddressType,
   ElementaryTypeName,
   IntType,
   Literal,
@@ -18,6 +19,7 @@ import {
   INTO,
   U256_FROM_FELTS,
   U128_FROM_FELT,
+  CONTRACT_ADDRESS,
 } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
@@ -41,6 +43,8 @@ export class CairoUtilImporter extends ASTMapper {
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'u256') {
       createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
+    } else if (cairoType === 'ContractAddress') {
+      createImport(...CONTRACT_ADDRESS, this.dummySourceUnit ?? node, ast);
     }
   }
 
@@ -49,12 +53,20 @@ export class CairoUtilImporter extends ASTMapper {
     if (type instanceof IntType && type.nBits > 251) {
       createImport(...U256_FROM_FELTS, this.dummySourceUnit ?? node, ast);
     }
+
+    if (type instanceof AddressType) {
+      createImport(...CONTRACT_ADDRESS, this.dummySourceUnit ?? node, ast);
+    }
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
       createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
+    }
+
+    if (type instanceof AddressType) {
+      createImport(...CONTRACT_ADDRESS, this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining

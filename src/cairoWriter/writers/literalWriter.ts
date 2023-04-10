@@ -15,6 +15,8 @@ export class LiteralWriter extends CairoASTNodeWriter {
             return [`u256_from_felts( ${low}, ${high} )`];
           }
           return [`${node.value}_${type}`];
+        } else if (type === 'ContractAddress') {
+          return [`starknet::contract_address_const::<${node.value}>()`];
         } else if (type === 'felt') {
           return [node.value];
         } else {
@@ -42,6 +44,8 @@ export class LiteralWriter extends CairoASTNodeWriter {
             ];
           }
           return [`0x${node.hexValue}_${type}`];
+        } else if (type === 'ContractAddress') {
+          return [`starknet::contract_address_const::<${node.hexValue}>()`];
         } else if (type === 'felt') {
           return [`0x${node.hexValue}`];
         } else {

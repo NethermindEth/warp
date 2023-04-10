@@ -58,7 +58,7 @@ export class CairoFunctionDefinition extends FunctionDefinition {
   ) {
     assert(
       !(acceptsRawDArray && acceptsUnpackedStructArray),
-      'A function cannot recieve both structured and raw dynamic arrays',
+      'A function cannot receive both structured and raw dynamic arrays',
     );
     super(
       id,

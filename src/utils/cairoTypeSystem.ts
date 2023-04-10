@@ -49,7 +49,7 @@ export abstract class CairoType {
     context: TypeConversionContext = TypeConversionContext.Ref,
   ): CairoType {
     if (tp instanceof AddressType) {
-      return new CairoFelt();
+      return new CairoContractAddress();
     } else if (tp instanceof ArrayType) {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
@@ -185,6 +185,21 @@ export class CairoUint extends CairoType {
   }
   serialiseMembers(name: string): string[] {
     if (this.nBits === 256) return [`${name}.low`, `${name}.high`];
+    return [name];
+  }
+}
+
+export class CairoContractAddress extends CairoType {
+  get fullStringRepresentation(): string {
+    return '[ContractAddress]';
+  }
+  toString(): string {
+    return 'ContractAddress';
+  }
+  get width(): number {
+    return 1;
+  }
+  serialiseMembers(name: string): string[] {
     return [name];
   }
 }

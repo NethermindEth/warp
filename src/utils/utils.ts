@@ -121,7 +121,11 @@ export const isCairoPrimitiveIntType = (x: string): x is CairoPrimitiveIntType =
   return cairoPrimitiveIntTypes.includes(x as CairoPrimitiveIntType);
 };
 
-export function primitiveTypeToCairo(typeString: string): CairoPrimitiveIntType | 'felt' {
+export function primitiveTypeToCairo(
+  typeString: string,
+): CairoPrimitiveIntType | 'felt' | 'ContractAddress' {
+  if (typeString === 'address' || typeString === 'address payable') return 'ContractAddress';
+
   if (typeString === 'uint' || typeString === 'int') return 'u256';
 
   if (typeString === 'fixed' || typeString === 'ufixed') {
@@ -535,11 +539,11 @@ export function getSourceFromLocations(
     let marked = false;
     let newLine = `${lineNum}\t`;
     while (locIndex < locations.length && maxWalk >= locations[locIndex].offset) {
-      // Mark the line as a highlited line
+      // Mark the line as a highlighted line
       marked = true;
       const currentLocation = locations[locIndex];
       if (currentLocation.offset + currentLocation.length > maxWalk) {
-        // Case when node source spans accross multiple lines
+        // Case when node source spans across multiple lines
         newLine =
           newLine +
           source.substring(textWalked, currentLocation.offset) +

@@ -143,7 +143,7 @@ function checkVFieldCtx<T extends ASTNode, K extends keyof T>(
  * 3) if field is a number then `vField` is an `ASTNode` and `field == vField.id`
  * 4) if field is an array of numbers then `vField` is an `ASTNode[]` and
  *      `node.field.length === node.vField.length` and `node.field[i] ===
- *      node.vField[i].id` forall i in `[0, ... node.field.lenth)`
+ *      node.vField[i].id` forall i in `[0, ... node.field.length)`
  *
  */
 function checkFieldAndVFieldMatch<T extends ASTNode, K1 extends keyof T, K2 extends keyof T>(
@@ -421,9 +421,9 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
         node.vSymbolAliases.length !== node.symbolAliases.length
       ) {
         throw new InsaneASTError(
-          `symbolAliases.length (${node.symbolAliases.length}) and vSymboliAliases.length ${
+          `symbolAliases.length (${node.symbolAliases.length}) and vSymbolAliases.length ${
             node.vSymbolAliases.length
-          } misamtch for import ${pp(node)}`,
+          } mismatch for import ${pp(node)}`,
         );
       }
 
@@ -725,7 +725,7 @@ function checkEmptyNamesForNamelessFunctions(nodes: FunctionDefinition[]) {
  *  - All reachable nodes belong to the same context, have their parent/sibling set correctly.
  *  - All number id properties of nodes point to a node in the same context.
  *  - When a number property (e.g. `scope`) has a corresponding `v` prefixed property (e.g. `vScope`)
- *    check that the number proerty corresponds to the id of the `v` prefixed property.
+ *    check that the number property corresponds to the id of the `v` prefixed property.
  *  - Most 'v' properties point to direct children of a node.
  *
  * NOTE: While this code can be slightly slow, its meant to be used mostly in testing so its

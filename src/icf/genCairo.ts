@@ -4,7 +4,7 @@ import {
   castStatement,
   getStructDependencyGraph,
   reverseCastStatement,
-  stringfyStructs,
+  stringifyStructs,
   transformType,
   typeToStructMapping,
   uint256TransformStructs,
@@ -18,7 +18,7 @@ export function genCairoContract(
   class_hash: string | undefined,
 ): string {
   const langDirective: string[] = getStarknetLangDirective();
-  const structs: string[] = stringfyStructs(getStructDependencyGraph(abi));
+  const structs: string[] = stringifyStructs(getStructDependencyGraph(abi));
   const forwarderInterface: string[] = getForwarderInterface(abi);
   const [
     interactiveFuncs,
@@ -35,9 +35,9 @@ export function genCairoContract(
     '\n\n// existing structs\n' +
     structs.join('\n') +
     '\n\n// transformed structs \n' +
-    stringfyStructs(transformStructs).join('\n') +
+    stringifyStructs(transformStructs).join('\n') +
     '\n\n// tuple structs \n' +
-    stringfyStructs(tupleStructs).join('\n') +
+    stringifyStructs(tupleStructs).join('\n') +
     '\n\n// forwarder interface \n' +
     forwarderInterface.join('\n') +
     '\n\n//cast functions for structs \n' +

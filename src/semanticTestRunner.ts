@@ -10,7 +10,7 @@ To execute this script, run:
 
 - compare flag will tell the differences between tests list present in 
   semanticWhitelist.ts and tests written in specified version of solc
-- filter can be specified to run a specfic group of tests or an individual 
+- filter can be specified to run a specific group of tests or an individual 
   test
 
 It generates a file `tests/behaviour/expectations/semanticTestsGenerated.ts`
@@ -122,7 +122,7 @@ const testDirs = execSync(
 
 const filterDirs: string[] = [
   ...testDirs,
-  'tests/behaviour/solidity/test/libsolidity/semanticTests', // An extra entry for miscllaneous tests
+  'tests/behaviour/solidity/test/libsolidity/semanticTests', // An extra entry for miscellaneous tests
 ];
 
 const currentTestsFileBody = readFileSync(

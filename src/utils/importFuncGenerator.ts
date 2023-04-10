@@ -5,7 +5,7 @@ import { TranspileFailedError } from '../utils/errors';
 import { warplibImportInfo } from '../warplib/gatherWarplibImports';
 import { Implicits } from './implicits';
 import {
-  createCairoImportFunctionDefintion,
+  createCairoImportFunctionDefinition,
   createCairoImportStructDefinition,
   ParameterInfo,
 } from './functionGeneration';
@@ -23,7 +23,6 @@ import {
   FINALIZE_KECCAK,
   GET_CALLER_ADDRESS,
   GET_CONTRACT_ADDRESS,
-  ADDRESS_INTO_FELT,
   IS_LE,
   IS_LE_FELT,
   SPLIT_FELT,
@@ -99,6 +98,7 @@ import {
   INTO,
   ARRAY,
   ARRAY_TRAIT,
+  CONTRACT_ADDRESS,
 } from './importPaths';
 
 export function createImport(
@@ -117,7 +117,7 @@ export function createImport(
     const hasInputs = inputs !== undefined && inputs.length > 0;
     const hasOutputs = outputs !== undefined && outputs.length > 0;
     if (!hasInputs || !hasOutputs) return existingImport;
-    return createCairoImportFunctionDefintion(
+    return createCairoImportFunctionDefinition(
       name,
       path,
       existingImport.implicits,
@@ -130,7 +130,7 @@ export function createImport(
   }
 
   const createFuncImport = (...implicits: Implicits[]) =>
-    createCairoImportFunctionDefintion(
+    createCairoImportFunctionDefinition(
       name,
       path,
       new Set(implicits),
@@ -212,7 +212,7 @@ export function createImport(
       return createFuncImport('syscall_ptr');
     // Import libraries from Cairo1
     case encodePath(INTO):
-    case encodePath(ADDRESS_INTO_FELT):
+    case encodePath(CONTRACT_ADDRESS):
     case encodePath(U8_TO_FELT):
     case encodePath(U16_TO_FELT):
     case encodePath(U24_TO_FELT):
