@@ -21,6 +21,7 @@ import {
   U32_TO_FELT,
   GET_CALLER_ADDRESS,
   GET_CONTRACT_ADDRESS,
+  CONTRACT_ADDRESS,
 } from './importPaths';
 
 export function createImport(
@@ -75,6 +76,7 @@ export function createImport(
     [
       encodePath(GET_CALLER_ADDRESS),
       encodePath(GET_CONTRACT_ADDRESS),
+      encodePath(CONTRACT_ADDRESS),
       encodePath(INTO), // Import libraries from Cairo1
       encodePath(U128_TO_FELT),
       encodePath(U256_FROM_FELTS),
