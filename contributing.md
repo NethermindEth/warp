@@ -79,6 +79,7 @@ Alternatively to `yarn dev` you can run typescript in interpreted mode to achiev
 
 ```bash
 npx ts-node src transpile example_contracts/ERC20.sol
+```
 
 ### Testing for contributors :stethoscope:
 
