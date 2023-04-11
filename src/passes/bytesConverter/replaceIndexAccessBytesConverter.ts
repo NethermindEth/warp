@@ -1,11 +1,4 @@
-import {
-  FixedBytesType,
-  generalizeType,
-  TypeName,
-  IndexAccess,
-  Literal,
-  BytesType,
-} from 'solc-typed-ast';
+import { FixedBytesType, generalizeType, TypeName, IndexAccess, Literal } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
@@ -40,7 +33,7 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
       ['index', indexTypeName],
     ];
     const callArgs = [node.vBaseExpression, node.vIndexExpression];
-    if (baseExprType.size != 32) {
+    if (baseExprType.size !== 32) {
       stubParams.push(['width', createUint8TypeName(ast)]);
       callArgs.push(createNumberLiteral(baseExprType.size, ast, 'uint8'));
     }
