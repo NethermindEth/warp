@@ -39,9 +39,7 @@ export function replaceBytesType(type: TypeNode): TypeNode {
     return new TupleType(type.elements.map(replaceBytesType), type.src);
   } else if (type instanceof TypeNameType) {
     return new TypeNameType(replaceBytesType(type.type), type.src);
-  } else if (type instanceof BytesType) {
-    return new ArrayType(new IntType(8, false, type.src), undefined, type.src);
-  } else if (type instanceof StringType) {
+  } else if (type instanceof BytesType || type instanceof StringType) {
     return new ArrayType(new IntType(8, false, type.src), undefined, type.src);
   } else {
     return type;
