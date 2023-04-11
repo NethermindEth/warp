@@ -48,7 +48,7 @@ Then run the pip command above again.
 4. Compile the project:
 
 ```bash
-yarn tsc
+yarn build
 ```
 
 5. Compile Warp libraries
