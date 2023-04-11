@@ -48,7 +48,7 @@ export class UpdateTypeStringBytesConverter extends ASTMapper {
     }
     const replacementTypeNode = replaceBytesType(typeNode);
     if (typeNode.pp() !== replacementTypeNode.pp()) {
-      const typeString = replacementTypeNode.pp();
+      const typeString = generateExpressionTypeString(replacementTypeNode);
       node.typeString = typeString;
       node.name = typeString;
     }
