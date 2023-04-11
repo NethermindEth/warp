@@ -292,7 +292,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, inference: InferType)
   } else if (tp instanceof BuiltinStructType) {
     throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
   } else if (tp instanceof MappingType) {
-    throw new Error('Mappings cannot be serialised as external function paramenters');
+    throw new Error('Mappings cannot be serialised as external function parameters');
   } else if (tp instanceof UserDefinedType) {
     const definition = tp.definition;
     if (definition instanceof UserDefinedValueTypeDefinition) {

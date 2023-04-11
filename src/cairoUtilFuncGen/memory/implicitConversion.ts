@@ -49,7 +49,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  public genIfNecesary(sourceExpression: Expression, targetType: TypeNode): [Expression, boolean] {
+  public genIfNecessary(sourceExpression: Expression, targetType: TypeNode): [Expression, boolean] {
     const sourceType = safeGetNodeType(sourceExpression, this.ast.inference);
 
     const generalTarget = generalizeType(targetType)[0];
@@ -460,10 +460,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 }
 
 export function getBaseType(type: TypeNode): TypeNode {
-  const deferencedType = generalizeType(type)[0];
-  return deferencedType instanceof ArrayType
-    ? getBaseType(deferencedType.elementT)
-    : deferencedType;
+  const dereferencedType = generalizeType(type)[0];
+  return dereferencedType instanceof ArrayType
+    ? getBaseType(dereferencedType.elementT)
+    : dereferencedType;
 }
 
 function typesToCairoTypes(

@@ -13,7 +13,7 @@ import { makeStructTree, reorderStructs } from './passes/orderNestedStructs';
   i.e  libraries can be seen as implicit base contracts of the contracts that use them
   The ReferencedLibraries pass converts external call to the library to internal call 
   to it. 
-  This pass is called before the ReferncedLibraries pass to inline free functions 
+  This pass is called before the ReferencedLibraries pass to inline free functions 
   into the contract if the free functions make library calls or if they call other free
   function which do that.
 */

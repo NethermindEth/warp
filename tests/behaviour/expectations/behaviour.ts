@@ -1364,7 +1364,7 @@ export const expectations = flatten(
               'getD',
               [],
               ['1', '0', '1', '0', '2', '1', '2', '0'],
-              'struct of structs is copyed form calldata to storage',
+              'struct of structs is copied form calldata to storage',
             ),
             new Expect('dynamic array of structs of structs is copied from calldata to storage', [
               ['setE', [], [], '0'],
@@ -2849,7 +2849,7 @@ export const expectations = flatten(
         new Dir('externalFunctionInputs', [
           File.Simple('dynamicArrayReturnIndex', [
             new Expect(
-              'testing that dynamic memory array as calldata are tranformed and returned correctly',
+              'testing that dynamic memory array as calldata are transformed and returned correctly',
               [
                 [
                   'dArrayCallDataExternal',
@@ -2892,7 +2892,7 @@ export const expectations = flatten(
               [['dArrayPublic', ['4', '1', '2', '3', '4'], ['1'], '0']],
             ),
             new Expect(
-              'testing that multiple inputs containing dynamic arrays that are handeled correctly to external functions',
+              'testing that multiple inputs containing dynamic arrays that are handled correctly to external functions',
               [
                 [
                   'dArrayMultipleInputsExternal',
@@ -2903,7 +2903,7 @@ export const expectations = flatten(
               ],
             ),
             new Expect(
-              'testing that multipe inputs containing dynamic arrays that are handeled correctly when passed to public functions',
+              'testing that multiple inputs containing dynamic arrays that are handled correctly when passed to public functions',
               [
                 [
                   'dArrayMultipleInputsPublic',
@@ -3117,7 +3117,7 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Value must be less than 2**8',
               ],
             ]),
-            new Expect('testing solidity pure exernal unsigned int32 overflow', [
+            new Expect('testing solidity pure external unsigned int32 overflow', [
               [
                 'testUint32',
                 ['4294967296'],
@@ -3137,7 +3137,7 @@ export const expectations = flatten(
                 '0',
               ],
             ]),
-            new Expect('testing soldity unsigned int248 overflow', [
+            new Expect('testing solidity unsigned int248 overflow', [
               [
                 'testInt248',
                 ['452312848583266388373324160190187140051835877600158453279131187530910662656'],
@@ -3153,7 +3153,7 @@ export const expectations = flatten(
                 '0',
               ],
             ]),
-            new Expect('testing soldity unsigned int256 in bounds', [
+            new Expect('testing solidity unsigned int256 in bounds', [
               [
                 'testInt256',
                 ['340282366920938463463374607431768211455', '0'],
@@ -4062,7 +4062,7 @@ export const expectations = flatten(
               'Delete dynamic array but keep a reference copy',
             ),
             // Blocked by returning a struct containing a dynamic array
-            // Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dyanmic array as a member'),
+            // Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dynamic array as a member'),
             Expect.Simple(
               'deleteCnotArray',
               ['3', '5', '1', '2'],

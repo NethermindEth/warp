@@ -44,10 +44,10 @@ import { ModuleType } from './ast/moduleType';
 function getFunctionAttributes(
   decorators: string[],
 ): [FunctionVisibility, FunctionStateMutability] {
-  let visiblity: FunctionVisibility | undefined;
+  let visibility: FunctionVisibility | undefined;
   let mutability: FunctionStateMutability | undefined;
 
-  const visiblities = new Set<string>([
+  const visibilities = new Set<string>([
     FunctionVisibility.Internal,
     FunctionVisibility.External,
     FunctionVisibility.Public,
@@ -62,14 +62,14 @@ function getFunctionAttributes(
   ]);
 
   for (const decorator of decorators) {
-    if (visiblities.has(decorator)) {
-      if (visiblity !== undefined) {
+    if (visibilities.has(decorator)) {
+      if (visibility !== undefined) {
         throw new Error(
-          `Multiple visiblity decorators specified: ${decorator} conflicts with ${visiblity}`,
+          `Multiple visibility decorators specified: ${decorator} conflicts with ${visibility}`,
         );
       }
 
-      visiblity = decorator as FunctionVisibility;
+      visibility = decorator as FunctionVisibility;
     } else if (mutabilities.has(decorator)) {
       if (mutability !== undefined) {
         throw new Error(
@@ -81,9 +81,9 @@ function getFunctionAttributes(
     }
   }
 
-  // Assume default visiblity is internal
-  if (visiblity === undefined) {
-    visiblity = FunctionVisibility.Internal;
+  // Assume default visibility is internal
+  if (visibility === undefined) {
+    visibility = FunctionVisibility.Internal;
   }
 
   // Assume default mutability is non-payable
@@ -91,7 +91,7 @@ function getFunctionAttributes(
     mutability = FunctionStateMutability.NonPayable;
   }
 
-  return [visiblity, mutability];
+  return [visibility, mutability];
 }
 
 /**
@@ -709,7 +709,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c206 = '=>';
   const peg$c207 = peg$literalExpectation('=>', false);
   const peg$c208 = function (keyType: any, valueType: any): any {
-    // Identifiers refering directly to state variable maps
+    // Identifiers referring directly to state variable maps
     // don't have a pointer suffix.
     // So we wrap them in a PointerType here.
     // This means we explicitly disagree with the exact typeString.

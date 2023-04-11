@@ -27,7 +27,7 @@ const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
 /**
- * Given any data type produces the same output of solidty abi.encodePacked
+ * Given any data type produces the same output of solidity abi.encodePacked
  * in the form of an array of felts where each element represents a byte
  */
 export class AbiEncodePacked extends AbiBase {
