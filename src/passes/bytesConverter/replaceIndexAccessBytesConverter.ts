@@ -1,4 +1,12 @@
-import { FixedBytesType, generalizeType, TypeName, IndexAccess, Literal } from 'solc-typed-ast';
+import {
+  FixedBytesType,
+  generalizeType,
+  TypeName,
+  IndexAccess,
+  Literal,
+  IntType,
+  TypeNode,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
@@ -20,13 +28,13 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
       this.visitExpression(node, ast);
       return;
     }
-
     const baseTypeName = typeNameFromTypeNode(baseNodeType, ast);
 
+    const indexNodeType = safeGetNodeType(node.vIndexExpression, ast.inference);
     const indexTypeName =
       node.vIndexExpression instanceof Literal
         ? createUint256TypeName(ast)
-        : typeNameFromTypeNode(safeGetNodeType(node.vIndexExpression, ast.inference), ast);
+        : typeNameFromTypeNode(indexNodeType, ast);
 
     const stubParams: [string, TypeName][] = [
       ['base', baseTypeName],
@@ -41,7 +49,7 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
     const importedFunc = ast.registerImport(
       node,
       'warplib.maths.bytes_access',
-      selectWarplibFunction(baseTypeName, indexTypeName),
+      selectWarplibFunction(baseExprType, indexNodeType),
       stubParams,
       [['res', createUint8TypeName(ast)]],
     );
@@ -54,14 +62,18 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
   }
 }
 
-function selectWarplibFunction(baseTypeName: TypeName, indexTypeName: TypeName): string {
-  if (indexTypeName.typeString === 'uint256' && baseTypeName.typeString === 'bytes32') {
+function selectWarplibFunction(baseType: TypeNode, indexType: TypeNode): string {
+  const isIndexUint256 =
+    indexType instanceof IntType && indexType.signed === false && indexType.nBits === 256;
+  const isBaseBytes32 = baseType instanceof FixedBytesType && baseType.size === 32;
+
+  if (isIndexUint256 && isBaseBytes32) {
     return 'byte256_at_index_uint256';
   }
-  if (indexTypeName.typeString === 'uint256') {
+  if (isIndexUint256) {
     return 'byte_at_index_uint256';
   }
-  if (baseTypeName.typeString === 'bytes32') {
+  if (isBaseBytes32) {
     return 'byte256_at_index';
   }
   return 'byte_at_index';
