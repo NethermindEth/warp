@@ -74,11 +74,8 @@ jobs:
       - name: Setup warp_venv
         run: bin/warp install --python python --verbose
 
-      # - name: Test code compilations
-      #   run: make test_compilation
-
-      - name: Test code examples compilation
-        run: make test_examples_compilation
+      - name: Running compilation tests
+        run: make test_compilation
 
   build:
     # only runs on pull requests to the main and develop branches

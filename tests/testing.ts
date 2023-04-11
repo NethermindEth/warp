@@ -232,12 +232,13 @@ export function runTests(
   warpTestFolder: string,
   warpCompilationTestPath: string,
   contractsFolder: string,
+  filter: string | undefined = undefined,
+  preFilters: string[] | undefined = undefined, // this argument should be removed when all tests are passing
 ) {
   describe('Running compilation tests', function () {
     this.timeout(TIME_LIMIT);
 
     let onlyResults: boolean, unsafe: boolean, force: boolean, exact: boolean;
-    let filter: string | undefined;
 
     const results = new Map<string, ResultType>();
 
@@ -251,12 +252,19 @@ export function runTests(
       } else {
         if (!preTestChecks(warpTestFolder)) return;
       }
-      filter = process.env.FILTER;
     });
 
     describe(`Running warp compilation tests on ${contractsFolder} solidity files`, async function () {
       findSolSourceFilePaths(warpCompilationTestPath, true).forEach((file) => {
-        if (filter === undefined || file.includes(filter)) {
+        let complexFiltering = filter === undefined && preFilters === undefined;
+        // if FILTER argument is passed, then only run tests that include the filter
+        // and preFilters are ignored, otherwise run tests that are in preFilters
+        if (filter !== undefined) {
+          complexFiltering = file.includes(filter);
+        } else if (preFilters !== undefined) {
+          complexFiltering = preFilters.includes(file);
+        }
+        if (complexFiltering) {
           let compileResult: { result: ResultType; cairoProjects?: Set<string> };
           const expectedResult: ResultType | undefined = expectedResults.get(
             path.join(warpTest, file),

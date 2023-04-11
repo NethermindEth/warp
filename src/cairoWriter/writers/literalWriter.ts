@@ -12,6 +12,8 @@ export class LiteralWriter extends CairoASTNodeWriter {
             const [high, low] = divmod(BigInt(node.value), BigInt(Math.pow(2, 128)));
             return [`u256_from_felts( ${low}, ${high} )`];
           }
+          case 'ContractAddress':
+            return [`starknet::contract_address_const::<${node.value}>()`];
           case 'felt':
             return [node.value];
           default:
@@ -37,6 +39,8 @@ export class LiteralWriter extends CairoASTNodeWriter {
               `u256_from_felts( ${node.hexValue.slice(32, 64)}, ${node.hexValue.slice(0, 32)} )`,
             ];
           }
+          case 'ContractAddress':
+            return [`starknet::contract_address_const::<${node.hexValue}>()`];
           case 'felt':
             return [`0x${node.hexValue}`];
           default:
