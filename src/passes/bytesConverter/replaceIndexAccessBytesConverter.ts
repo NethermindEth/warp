@@ -1,4 +1,11 @@
-import { FixedBytesType, generalizeType, TypeName, IndexAccess, Literal } from 'solc-typed-ast';
+import {
+  FixedBytesType,
+  generalizeType,
+  TypeName,
+  IndexAccess,
+  Literal,
+  BytesType,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCallToFunction } from '../../utils/functionGeneration';
@@ -14,18 +21,14 @@ import { replaceBytesType } from './utils';
 
 export class ReplaceIndexAccessBytesConverter extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
-    const baseExprType = generalizeType(safeGetNodeType(node.vBaseExpression, ast.inference))[0];
+    const baseNodeType = safeGetNodeType(node.vBaseExpression, ast.inference);
+    const baseExprType = generalizeType(baseNodeType)[0];
     if (node.vIndexExpression === undefined || !(baseExprType instanceof FixedBytesType)) {
       this.visitExpression(node, ast);
       return;
     }
 
-    const baseTypeName = typeNameFromTypeNode(
-      safeGetNodeType(node.vBaseExpression, ast.inference),
-      ast,
-    );
-
-    const width: string = baseTypeName.typeString.slice('bytes'.length);
+    const baseTypeName = typeNameFromTypeNode(baseNodeType, ast);
 
     const indexTypeName =
       node.vIndexExpression instanceof Literal
@@ -37,9 +40,9 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
       ['index', indexTypeName],
     ];
     const callArgs = [node.vBaseExpression, node.vIndexExpression];
-    if (baseTypeName.typeString !== 'bytes32') {
+    if (baseExprType.size != 32) {
       stubParams.push(['width', createUint8TypeName(ast)]);
-      callArgs.push(createNumberLiteral(width, ast, 'uint8'));
+      callArgs.push(createNumberLiteral(baseExprType.size, ast, 'uint8'));
     }
 
     const importedFunc = ast.registerImport(
@@ -52,8 +55,8 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
 
     const call = createCallToFunction(importedFunc, callArgs, ast);
     ast.replaceNode(node, call, node.parent);
-    const typeNode = replaceBytesType(safeGetNodeType(call, ast.inference));
-    call.typeString = generateExpressionTypeString(typeNode);
+    const callNodeType = replaceBytesType(safeGetNodeType(call, ast.inference));
+    call.typeString = generateExpressionTypeString(callNodeType);
     this.commonVisit(call, ast);
   }
 }
