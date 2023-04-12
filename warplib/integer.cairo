@@ -13,3 +13,14 @@ fn get_u128_try_from_felt_result(value: felt252) -> u128 {
     return resp.unwrap();
 }
 
+/// Conversions.
+impl Felt252IntoBool of Into::<felt252, bool> {
+    fn into(self: felt252) -> bool {
+        self == 1
+    }
+}
+impl BoolIntoFelt252 of Into::<bool, felt252> {
+    fn into(self: bool) -> felt252 {
+        if self { return 1; } else { return 0; }
+    }
+}
