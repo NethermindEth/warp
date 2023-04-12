@@ -72,14 +72,14 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       .serialiseMembers('value')
       .map((name, index) => {
         if (cairoTypeToWrite instanceof CairoBool) {
-          functionsCalled.concat(this.requireImport(...BOOL_INTO_FELT252));
+          functionsCalled.push(this.requireImport(...BOOL_INTO_FELT252));
           return endent`
-            let intEncoded${index} = ::into(${name});
+            let intEncoded${index} = BoolIntoFelt252::into(${name});
             ${write(add('loc', index), `intEncoded${index}`)}
           `;
         }
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
-          functionsCalled.concat(this.requireImport(...U128_TO_FELT));
+          functionsCalled.push(this.requireImport(...U128_TO_FELT));
           name = `u128_to_felt252(${name})`;
         }
         return `  ${write(add('loc', index), name)}`;

@@ -66,7 +66,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const resultCairoType = typeToRead.toString();
 
     if (typeToRead instanceof CairoBool) {
-      functionsCalled.concat(this.requireImport(...FELT252_INTO_BOOL));
+      functionsCalled.push(this.requireImport(...FELT252_INTO_BOOL));
     }
 
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readId, readBool);

@@ -41,6 +41,8 @@ import {
   U32_FROM_FELT,
   U32_TO_FELT,
   CONTRACT_ADDRESS,
+  BOOL_INTO_FELT252,
+  FELT252_INTO_BOOL,
 } from './importPaths';
 
 export function createImport(
@@ -131,6 +133,8 @@ export function createImport(
     case encodePath(ARRAY_TRAIT):
     case encodePath(U32_FROM_FELT):
     case encodePath(U32_TO_FELT):
+    case encodePath(BOOL_INTO_FELT252):
+    case encodePath(FELT252_INTO_BOOL):
       return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
