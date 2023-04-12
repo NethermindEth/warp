@@ -8,32 +8,33 @@ import {
   WarpLocation,
 } from '../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../utils/errors';
+import { FELT252_INTO_BOOL } from '../utils/importPaths';
 
 export function serialiseReads(
   type: CairoType,
   readFelt: (offset: number) => string,
   readId: (offset: number) => string,
-  readBool: (offset: number) => string,
-): [reads: string[], pack: string] {
+): [reads: string[], pack: string, requiredImports: [string[], string][]] {
   const packExpression = producePackExpression(type);
   const reads: string[] = [];
+  const requiredImports: [string[], string][] = [];
   const packString: string = packExpression
     .map((elem: string | Read) => {
-      let readUsed: string;
       if (elem === Read.Felt) {
-        readUsed = readFelt(reads.length);
+        reads.push(readFelt(reads.length));
       } else if (elem === Read.Id) {
-        readUsed = readId(reads.length);
+        reads.push(readId(reads.length));
       } else if (elem === Read.Bool) {
-        readUsed = readBool(reads.length);
+        requiredImports.push(FELT252_INTO_BOOL);
+        reads.push(readFelt(reads.length));
+        reads.push(`let read${reads.length} = Felt252IntoBool::into(read${reads.length - 1});`);
       } else {
         return elem;
       }
-      reads.push(readUsed);
       return `read${reads.length - 1}`;
     })
     .join('');
-  return [reads, packString];
+  return [reads, packString, requiredImports];
 }
 
 enum Read {

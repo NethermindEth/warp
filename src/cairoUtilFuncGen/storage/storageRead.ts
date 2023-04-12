@@ -65,11 +65,13 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const funcName = `WS${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
 
-    if (typeToRead instanceof CairoBool) {
-      functionsCalled.push(this.requireImport(...FELT252_INTO_BOOL));
-    }
+    const [reads, pack, requiredImports] = serialiseReads(typeToRead, readFelt, readId);
 
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readId, readBool);
+    requiredImports.map((i) => {
+      const funcDef = this.requireImport(...i);
+      if (!functionsCalled.includes(funcDef)) functionsCalled.push(funcDef);
+    });
+
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
@@ -82,13 +84,6 @@ export class StorageReadGen extends StringIndexedFuncGen {
     };
     return funcInfo;
   }
-}
-
-function readBool(offset: number): string {
-  return endent`
-    let read${offset}_int = WARP_STORAGE::read(${add('loc', offset)});
-    let read${offset} = Felt252IntoBool::into(read${offset}_int);
-  `;
 }
 
 function readFelt(offset: number): string {

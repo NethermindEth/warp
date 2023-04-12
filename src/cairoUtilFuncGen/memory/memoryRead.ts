@@ -98,9 +98,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    // TODO: as last argument must be used a readBool that needs to be implemented once this script is upgraded to Cairo1
-    // Take a look at the one from storageRead ;)
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt, readFelt);
+    const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
