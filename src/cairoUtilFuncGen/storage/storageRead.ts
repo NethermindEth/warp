@@ -9,10 +9,9 @@ import {
   FunctionDefinition,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
-import { CairoBool, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { FELT252_INTO_BOOL } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
