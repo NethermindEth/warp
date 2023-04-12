@@ -7,6 +7,7 @@ import {
   FunctionStateMutability,
   TypeNode,
   TypeName,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { FELT252_INTO_BOOL } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
@@ -65,38 +67,34 @@ export class StorageReadGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
+    const functionsCalled: FunctionDefinition[] = [];
     const funcName = `WS${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    let funcBody: string;
+
     if (typeToRead instanceof CairoBool) {
-      const equivalentStoredType = new CairoFelt();
-      // Given that only 1 variable was generated, then, in `pack` is stored its name
-      const [reads, pack] = serialiseReads(equivalentStoredType, readFelt, readId);
-      assert(reads.length === 1, 'Storage read for Cairo Bools should generate only 1 variable');
-      // It's assumed here that `1` -> True and `0` -> False. With simplification purposes it´s
-      // infered that if is not `1` then it must be false.
-      funcBody = endent`
-        ${reads.map((s) => `  ${s}`).join('\n')}
-        ${pack} == 1
-      `;
-    } else {
-      const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
-      funcBody = endent`
-        ${reads.map((s) => `  ${s}`).join('\n')}
-        ${pack}
-      `;
+      functionsCalled.concat(this.requireImport(...FELT252_INTO_BOOL));
     }
+
+    const [reads, pack] = serialiseReads(typeToRead, readFelt, readId, readBool);
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
         fn ${funcName}(loc: felt252) -> ${resultCairoType}{
-          ${funcBody}
+          ${reads.map((s) => `  ${s}`).join('\n')}
+          ${pack}
         }
       `,
-      functionsCalled: [],
+      functionsCalled: functionsCalled,
     };
     return funcInfo;
   }
+}
+
+function readBool(offset: number): string {
+  return endent`
+    let read${offset}_int = WARP_STORAGE::read(${add('loc', offset)});
+    let read${offset} = Felt252IntoBool::into(read${offset}_int);
+  `;
 }
 
 function readFelt(offset: number): string {

@@ -1,4 +1,5 @@
 import {
+  CairoBool,
   CairoFelt,
   CairoStaticArray,
   CairoStruct,
@@ -12,20 +13,24 @@ export function serialiseReads(
   type: CairoType,
   readFelt: (offset: number) => string,
   readId: (offset: number) => string,
+  readBool: (offset: number) => string,
 ): [reads: string[], pack: string] {
   const packExpression = producePackExpression(type);
   const reads: string[] = [];
   const packString: string = packExpression
     .map((elem: string | Read) => {
+      let readUsed: string;
       if (elem === Read.Felt) {
-        reads.push(readFelt(reads.length));
-        return `read${reads.length - 1}`;
+        readUsed = readFelt(reads.length);
       } else if (elem === Read.Id) {
-        reads.push(readId(reads.length));
-        return `read${reads.length - 1}`;
+        readUsed = readId(reads.length);
+      } else if (elem === Read.Bool) {
+        readUsed = readBool(reads.length);
       } else {
         return elem;
       }
+      reads.push(readUsed);
+      return `read${reads.length - 1}`;
     })
     .join('');
   return [reads, packString];
@@ -34,11 +39,13 @@ export function serialiseReads(
 enum Read {
   Felt,
   Id,
+  Bool,
 }
 
 function producePackExpression(type: CairoType): (string | Read)[] {
   if (type instanceof WarpLocation) return [Read.Id];
   if (type instanceof CairoFelt) return [Read.Felt];
+  if (type instanceof CairoBool) return [Read.Bool];
   if (type instanceof CairoStaticArray) {
     return [
       '(',
