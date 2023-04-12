@@ -1,4 +1,3 @@
-import assert from 'assert';
 import endent from 'endent';
 import {
   Expression,
@@ -10,12 +9,7 @@ import {
   FunctionDefinition,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
-import {
-  CairoBool,
-  CairoFelt,
-  CairoType,
-  TypeConversionContext,
-} from '../../utils/cairoTypeSystem';
+import { CairoBool, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { FELT252_INTO_BOOL } from '../../utils/importPaths';
