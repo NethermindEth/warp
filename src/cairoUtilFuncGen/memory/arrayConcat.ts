@@ -104,6 +104,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return {
         name: funcName,
         code: [
+          `#[implicit(warp_memory)]`,
           `func ${funcName}() -> (res_loc : felt){`,
           `   alloc_locals;`,
           `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
@@ -147,6 +148,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     );
 
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(${cairoArgs}) -> (res_loc : felt){`,
       `    alloc_locals;`,
       `    // Get all sizes`,

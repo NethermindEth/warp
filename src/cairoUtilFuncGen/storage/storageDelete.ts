@@ -125,6 +125,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc: felt){`,
         ...mapRange(cairoType.width, (n) => `    WARP_STORAGE.write(${add('loc', n)}, 0);`),
         `    return ();`,
@@ -152,6 +153,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       : [`    ${auxDeleteFuncName}(elem_loc);`];
 
     const deleteFunc = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}_elem(loc : felt, index : Uint256, length : Uint256){`,
       `     alloc_locals;`,
       `     let (stop) = uint256_eq(index, length);`,
@@ -163,6 +165,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     let (next_index, _) = uint256_add(index, ${uint256(1)});`,
       `     return ${funcName}_elem(loc, next_index, length);`,
       `}`,
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(loc : felt){`,
       `   alloc_locals;`,
       `   let (length) = ${lengthName}.read(loc);`,
@@ -195,6 +198,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     );
 
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(loc: felt) {`,
       `   alloc_locals;`,
       ...deleteCode,
@@ -231,6 +235,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const nextLoc = add('loc', elementTWidth);
 
     const deleteFunc = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}_elem(loc : felt, index : felt){`,
       `     alloc_locals;`,
       `     if (index == ${length}){`,
@@ -240,6 +245,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       ...deleteCode,
       `     return ${funcName}_elem(${nextLoc}, next_index);`,
       `}`,
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(loc : felt){`,
       `   alloc_locals;`,
       `   return ${funcName}_elem(loc, 0);`,
@@ -269,6 +275,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     );
 
     const deleteFunc = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(loc : felt){`,
       `   alloc_locals;`,
       ...deleteCode,
@@ -285,7 +292,12 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [`func ${funcName}(loc: felt){`, `    return ();`, `}`].join('\n'),
+      code: [
+        `#[implicit(warp_memory)]`,
+        `func ${funcName}(loc: felt){`,
+        `    return ();`,
+        `}`,
+      ].join('\n'),
       functionsCalled: [],
     };
   }

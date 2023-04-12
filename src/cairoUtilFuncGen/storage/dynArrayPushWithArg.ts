@@ -153,6 +153,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc: felt, value: ${inputType}) -> (){`,
         `    alloc_locals;`,
         `    let (len) = ${lengthName}.read(loc);`,

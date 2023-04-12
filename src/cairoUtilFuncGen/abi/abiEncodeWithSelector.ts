@@ -74,6 +74,7 @@ export class AbiEncodeWithSelector extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,

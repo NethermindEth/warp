@@ -72,6 +72,7 @@ export class AbiEncodePacked extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
@@ -205,6 +206,7 @@ export class AbiEncodePacked extends AbiBase {
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,

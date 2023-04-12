@@ -160,6 +160,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
         `    alloc_locals;`,
         ...copyCode,
@@ -228,11 +229,13 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> (){`,
         ...stopRecursion,
         `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,
         `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1);`,
         `}`,
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt){`,
         `    ${funcName}_elem(to_elem_loc, from_elem_loc, 0);`,
         `    return (to_elem_loc,);`,
@@ -288,6 +291,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
@@ -307,6 +311,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ${funcName}_elem(to_loc, from_loc, index);`,
         `    }`,
         `}`,
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
         `    alloc_locals;`,
         `    let (from_length) = ${fromLengthMappingName}.read(from_loc);`,
@@ -374,6 +379,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == index.low){`,
@@ -395,6 +401,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
         `    }`,
         `}`,
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
         `    alloc_locals;`,
         `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};`,
@@ -460,6 +467,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
         `   alloc_locals;`,
         `   ${readFromCode}`,
@@ -512,6 +520,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
         `   alloc_locals;`,
         `   ${readFromCode}`,
@@ -534,6 +543,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
         `    alloc_locals;`,
         ...mapRange(width, copyAtOffset),

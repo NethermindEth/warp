@@ -205,6 +205,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
     const funcName = `memory_conversion_static_to_static${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}_copy(source : felt, target : felt, index : felt){`,
       `   alloc_locals;`,
       `   if (index == ${sourceType.size}){`,
@@ -216,6 +217,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `   return ${funcName}_copy(source, target, index + 1);`,
       `}`,
 
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(source : felt) -> (target : felt){`,
       `   alloc_locals;`,
       `   let (target) = wm_alloc(${uint256(allocSize)});`,
@@ -284,6 +286,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const funcName = `memory_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}_copy(source : felt, target : felt, index : Uint256, len : Uint256){`,
       `   alloc_locals;`,
       `   if (len.low == index.low and len.high == index.high){`,
@@ -295,6 +298,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `   let (next_index, _) = uint256_add(index, ${uint256(1)});`,
       `   return ${funcName}_copy(source, target, next_index, len);`,
       `}`,
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(source : felt) -> (target : felt){`,
       `   alloc_locals;`,
       `   let len = ${uint256(sourceType.size)};`,
@@ -359,6 +363,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const targetWidth = cairoTargetElementType.width;
     const funcName = `memory_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}_copy(source : felt, target : felt, index : Uint256, len : Uint256){`,
       `   alloc_locals;`,
       `   if (len.low == index.low and len.high == index.high){`,
@@ -371,6 +376,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `   return ${funcName}_copy(source, target, next_index, len);`,
       `}`,
 
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(source : felt) -> (target : felt){`,
       `   alloc_locals;`,
       `   let (len) = wm_dyn_array_length(source);`,

@@ -152,6 +152,7 @@ export class EventFunction extends StringIndexedFuncGen {
     );
     const suffix = `${node.name}_${this.ast.inference.signatureHash(node, ABIEncoderVersion.V2)}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${EMIT_PREFIX}${suffix}(${cairoParams}){`,
       `   alloc_locals;`,
       `   // keys arrays`,

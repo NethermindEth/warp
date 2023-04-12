@@ -62,6 +62,10 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       else decorators.push('#[external]');
     }
 
+    if (node.implicits.has('warp_memory')) {
+      decorators.push('#[implicit(warp_memory)]');
+    }
+
     return decorators;
   }
 

@@ -177,6 +177,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     ).toString();
     const funcName = `calldata_conversion_static_to_static${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(storage_loc: felt, arg: ${cairoSourceTypeName}){`,
       `alloc_locals;`,
       ...copyInstructions,
@@ -220,6 +221,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     ).toString();
     const funcName = `calldata_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(ref: felt, arg: ${cairoSourceTypeName}){`,
       `alloc_locals;`,
       `    ${optionalCode}`,
@@ -265,6 +267,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const funcName = `calldata_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
     const recursiveFuncName = `${funcName}_helper`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${recursiveFuncName}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
       `    alloc_locals;`,
       `    if (len == 0){`,
@@ -276,6 +279,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       `    return ${recursiveFuncName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
       `}`,
       ``,
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(ref: felt, source: ${cairoSourceType.toString()}){`,
       `     alloc_locals;`,
       `    ${dynArrayLength.name}.write(ref, Uint256(source.len, 0));`,

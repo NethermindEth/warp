@@ -84,6 +84,7 @@ export class AbiEncode extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
       `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
@@ -232,6 +233,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  bytes_index: felt,`,
       `  bytes_offset: felt,`,
@@ -302,6 +304,7 @@ export class AbiEncode extends AbiBase {
     );
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
@@ -353,6 +356,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
@@ -416,6 +420,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
@@ -477,6 +482,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_${def.name}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
@@ -550,6 +556,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_struct_${def.name}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,

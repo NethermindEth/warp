@@ -117,6 +117,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
@@ -162,6 +163,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let length = ${uint256(memoryType.width)};`,
@@ -204,6 +206,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(mem_start: felt, loc : felt, length: Uint256) -> (){`,
         `   alloc_locals;`,
         `   if (length.low == 0){`,
@@ -219,6 +222,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         )}, index);`,
         `}`,
 
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let length = ${uint256(length)};`,
@@ -262,6 +266,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
@@ -274,6 +279,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return ${funcName}_elem(storage_name, mem_start, index);`,
         `}`,
 
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt) -> (mem_loc : felt){`,
         `    alloc_locals;`,
         `    let (length: Uint256) = ${lengthMappingName}.read(loc);`,

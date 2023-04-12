@@ -72,6 +72,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(${
           input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'
         }) -> (arg: felt){`,

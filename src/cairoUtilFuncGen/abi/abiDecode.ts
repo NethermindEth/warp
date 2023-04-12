@@ -141,6 +141,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const returnValues = returnParams.map((r) => `${r.name} = ${r.name}`).join(',');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(mem_ptr : felt) -> (${returnCairoParams}){`,
       `  alloc_locals;`,
       `  let max_index_length: felt = ${indexLength};`,
@@ -353,6 +354,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
@@ -407,6 +409,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
@@ -492,6 +495,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_struct_${definition.name}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,

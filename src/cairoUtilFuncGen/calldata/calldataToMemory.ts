@@ -115,6 +115,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
         `    alloc_locals;`,
         `    if (length == 0){`,
@@ -123,6 +124,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         copyCode,
         `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1);`,
         `}`,
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (len256) = felt_to_uint256(calldata.len);`,
@@ -175,6 +177,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
@@ -234,6 +237,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(calldata : ${calldataType}) -> (mem_loc: felt){`,
         `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,

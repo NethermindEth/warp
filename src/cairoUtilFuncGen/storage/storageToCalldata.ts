@@ -97,6 +97,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const funcName = `ws_struct_${cairoStruct.toString()}_to_calldata`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
       `   alloc_locals;`,
       ...copyInstructions,
@@ -124,6 +125,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const funcName = `ws_static_array_to_calldata${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
       `    alloc_locals;`,
       ...copyInstructions,
@@ -161,6 +163,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
 
     const funcName = `ws_dynamic_array_to_calldata${this.generatedFunctionsDef.size}`;
     const code = [
+      `#[implicit(warp_memory)]`,
       `func ${funcName}_write(`,
       `   loc : felt,`,
       `   index : felt,`,
@@ -177,6 +180,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `   return ${funcName}_write(loc, index + 1, len, ptr);`,
       `}`,
 
+      `#[implicit(warp_memory)]`,
       `func ${funcName}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
       `   alloc_locals;`,
       `   let (len_uint256) = ${lenName}.read(loc);`,

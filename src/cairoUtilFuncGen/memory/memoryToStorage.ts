@@ -118,6 +118,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt, mem_loc: felt) -> (loc: felt){`,
         `    alloc_locals;`,
         ...copyInstructions,
@@ -147,6 +148,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt, mem_loc: felt) -> (loc: felt){`,
         `    alloc_locals;`,
         ...copyInstructions,
@@ -206,6 +208,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
         `    alloc_locals;`,
         `    if (length == 0){`,
@@ -219,6 +222,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         )}, index);`,
         `}`,
 
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt){`,
         `    alloc_locals;`,
         `    ${funcName}_elem(loc, mem_loc, ${length});`,
@@ -280,6 +284,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}_elem(storage_name: felt, mem_loc : felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
@@ -300,6 +305,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
 
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt){`,
         `    alloc_locals;`,
         `    let (length) = ${lengthMappingName}.read(loc);`,

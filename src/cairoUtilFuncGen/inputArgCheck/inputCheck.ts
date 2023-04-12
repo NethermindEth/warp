@@ -152,6 +152,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(arg : ${cairoType.toString()}) -> (){`,
         `alloc_locals;`,
         ...inputCheckCode,
@@ -177,6 +178,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(arg : ${cairoType.toString()}) -> (){`,
         `alloc_locals;`,
         ...mapRange(length, (index) => {
@@ -208,6 +210,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
         takesUint
           ? [
@@ -243,6 +246,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
         `    alloc_locals;`,
         `    if (len == 0){`,

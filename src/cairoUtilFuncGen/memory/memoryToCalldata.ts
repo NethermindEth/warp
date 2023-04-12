@@ -119,6 +119,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
         `    alloc_locals;`,
         ...code,
@@ -190,6 +191,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         dynArrayReaderInfo.code,
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
         `    alloc_locals;`,
         `    let (len_256) = wm_read_256(mem_loc);`,
@@ -240,6 +242,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
+        `#[implicit(warp_memory)]`,
         `func ${funcName}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
         `    alloc_locals;`,
         `    if (len == 0){`,
