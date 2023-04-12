@@ -88,7 +88,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     return [
       this.getConstructorStorageAllocation(node),
-      endent`let mut warp_memory: Array::<felt> = ArrayTrait::new();
+      endent`let mut warp_memory: WarpMemory = MemoryTrait::initialize();
       ${writer.write(node.vBody)}
       `,
     ]
