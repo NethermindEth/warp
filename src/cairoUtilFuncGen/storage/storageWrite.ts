@@ -1,5 +1,12 @@
 import endent from 'endent';
-import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
+import {
+  Expression,
+  FunctionCall,
+  TypeNode,
+  DataLocation,
+  PointerType,
+  FunctionDefinition,
+} from 'solc-typed-ast';
 import {
   CairoBool,
   CairoType,
@@ -8,7 +15,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { U128_TO_FELT } from '../../utils/importPaths';
+import { BOOL_INTO_FELT252, U128_TO_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -54,6 +61,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
+    const functionsCalled: FunctionDefinition[] = [];
     const cairoTypeToWrite = CairoType.fromSol(
       typeToWrite,
       this.ast,
@@ -64,18 +72,14 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       .serialiseMembers('value')
       .map((name, index) => {
         if (cairoTypeToWrite instanceof CairoBool) {
-          // It will store a felt corresponding to the bool value
-          // True -> `1`   False -> `0`
+          functionsCalled.concat(this.requireImport(...BOOL_INTO_FELT252));
           return endent`
-            if ${name} {
-              ${write(add('loc', index), `1`)}
-            }
-            else {
-              ${write(add('loc', index), `0`)}
-            }
+            let intEncoded${index} = ::into(${name});
+            ${write(add('loc', index), `intEncoded${index}`)}
           `;
         }
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
+          functionsCalled.concat(this.requireImport(...U128_TO_FELT));
           name = `u128_to_felt252(${name})`;
         }
         return `  ${write(add('loc', index), name)}`;
@@ -91,7 +95,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           return value;
         }
       `,
-      functionsCalled: [this.requireImport(...U128_TO_FELT)],
+      functionsCalled: functionsCalled,
     };
     return funcInfo;
   }

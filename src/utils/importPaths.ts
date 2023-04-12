@@ -49,6 +49,7 @@ export const GET_CONTRACT_ADDRESS: [string[], string] = [
 export const WARPLIB_MEMORY = ['warplib', 'memory'];
 export const WARPLIB_KECCAK = ['warplib', 'keccak'];
 export const WARPLIB_MATHS = ['warplib', 'maths'];
+export const WARPLIB_INTEGER = ['warplib', 'integer'];
 
 export const DYNAMIC_ARRAYS_UTIL = ['warplib', 'dynamic_arrays_util'];
 export const BYTES_CONVERSIONS = [...WARPLIB_MATHS, 'bytes_conversions'];
@@ -98,7 +99,9 @@ export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write
 
 export const ARRAY: [string[], string] = [['array'], 'Array'];
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
-export const U256_FROM_FELTS: [string[], string] = [['warplib', 'integer'], 'u256_from_felts'];
+export const U256_FROM_FELTS: [string[], string] = [[...WARPLIB_INTEGER], 'u256_from_felts'];
+export const FELT252_INTO_BOOL: [string[], string] = [[...WARPLIB_INTEGER], 'Felt252IntoBool'];
+export const BOOL_INTO_FELT252: [string[], string] = [[...WARPLIB_INTEGER], 'BoolIntoFelt252'];
 export const U128_FROM_FELT: [string[], string] = [['integer'], 'u128_from_felt252'];
 export const U128_TO_FELT: [string[], string] = [['integer'], 'u128_to_felt252'];
 export const U32_FROM_FELT: [string[], string] = [['integer'], 'u32_from_felt252'];
