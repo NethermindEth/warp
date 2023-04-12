@@ -17,7 +17,13 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { ARRAY, ARRAY_TRAIT, U32_TO_FELT } from '../../utils/importPaths';
+import {
+  ARRAY,
+  ARRAY_TRAIT,
+  MEMORY_TRAIT,
+  U32_TO_FELT,
+  WARP_MEMORY,
+} from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -28,7 +34,7 @@ import {
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import endent from 'endent';
 
 /*
@@ -124,29 +130,27 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
         .flat()
         .map(
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          (name, index) => `warp_memory.append(${name});`,
-          // `warp_memory.insert(
-          //   ${add(
-          //   'start',
-          //   dynamic ? index + 2 : index,
-          // )},
-          // ${name});`,
+          (name, index) => `warp_memory.insert(
+            ${add('start', dynamic ? index + 2 : index)},
+            ${name}
+          );`,
         ),
     ];
     return {
       name: funcName,
       code: endent`
         #[implicit(warp_memory)]
-        fn ${funcName}(${argString}) -> felt {
-          let start = warp_memory.len();
+        fn ${funcName}(${argString}) -> felt252 {
+          let start = warp_memory.pointer;
           ${writes.join('\n')}
-          return u32_to_felt252(start);
+          return start;
         }`,
       functionsCalled: [
         this.requireImport(...ARRAY),
         this.requireImport(...ARRAY_TRAIT),
         this.requireImport(...U32_TO_FELT),
+        this.requireImport(...WARP_MEMORY),
+        this.requireImport(...MEMORY_TRAIT),
       ],
     };
   }

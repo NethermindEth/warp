@@ -98,6 +98,8 @@ import {
   INTO,
   ARRAY,
   ARRAY_TRAIT,
+  WARP_MEMORY,
+  MEMORY_TRAIT,
   CONTRACT_ADDRESS,
 } from './importPaths';
 
@@ -247,6 +249,8 @@ export function createImport(
     case encodePath(U256_FROM_FELTS):
     case encodePath(ARRAY):
     case encodePath(ARRAY_TRAIT):
+    case encodePath(WARP_MEMORY):
+    case encodePath(MEMORY_TRAIT):
       return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
