@@ -60,7 +60,7 @@ yarn warplib
 6. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
-bin/warp transpile example_contracts/ERC20.sol
+bin/warp transpile exampleContracts/ERC20.sol
 ```
 
 ## First steps :feet:
