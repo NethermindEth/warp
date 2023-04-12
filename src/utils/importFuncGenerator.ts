@@ -40,6 +40,8 @@ import {
   ARRAY_TRAIT,
   U32_FROM_FELT,
   U32_TO_FELT,
+  WARP_MEMORY,
+  MEMORY_TRAIT,
   CONTRACT_ADDRESS,
   BOOL_INTO_FELT252,
   FELT252_INTO_BOOL,
@@ -135,6 +137,8 @@ export function createImport(
     case encodePath(U32_TO_FELT):
     case encodePath(BOOL_INTO_FELT252):
     case encodePath(FELT252_INTO_BOOL):
+    case encodePath(WARP_MEMORY):
+    case encodePath(MEMORY_TRAIT):
       return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
