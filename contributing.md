@@ -69,7 +69,7 @@ To look what features we are currently working on or tasks that are pending to d
 
 ## Developing tips :honey_pot:
 
-It can be tedious to manually recompile the project after every minor change. You can automate the process of recompiling by executing the following command:
+It can be tedious to manually recompile the project after every minor change. You can automate the process of recompiling by executing the following command in a separate terminal:
 
 ```bash
 yarn dev
