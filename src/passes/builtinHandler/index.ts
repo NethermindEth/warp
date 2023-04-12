@@ -7,6 +7,7 @@ import { ThisKeyword } from './thisKeyword';
 import { Ecrecover } from './ecrecover';
 import { Keccak } from './keccak';
 import { BlockMethods } from './blockMethods';
+import { ABIBuiltins } from './abiBuiltins';
 
 export class BuiltinHandler extends ASTMapper {
   // Function to add passes that should have been run before this pass
