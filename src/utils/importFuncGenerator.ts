@@ -24,6 +24,7 @@ import {
   CONTRACT_ADDRESS,
   MEMORY_TRAIT,
   WARP_MEMORY,
+  U8_TO_FELT,
 } from './importPaths';
 
 export function createImport(
@@ -80,6 +81,7 @@ export function createImport(
       encodePath(GET_CONTRACT_ADDRESS),
       encodePath(CONTRACT_ADDRESS),
       encodePath(INTO), // Import libraries from Cairo1
+      encodePath(U8_TO_FELT),
       encodePath(U128_TO_FELT),
       encodePath(U256_FROM_FELTS),
       encodePath(ARRAY),
