@@ -22,6 +22,8 @@ import {
   GET_CALLER_ADDRESS,
   GET_CONTRACT_ADDRESS,
   CONTRACT_ADDRESS,
+  MEMORY_TRAIT,
+  WARP_MEMORY,
 } from './importPaths';
 
 export function createImport(
@@ -84,6 +86,8 @@ export function createImport(
       encodePath(ARRAY_TRAIT),
       encodePath(U32_FROM_FELT),
       encodePath(U32_TO_FELT),
+      encodePath(WARP_MEMORY),
+      encodePath(MEMORY_TRAIT),
     ].includes(encodePath([path, name]))
   ) {
     return createFuncImport();
