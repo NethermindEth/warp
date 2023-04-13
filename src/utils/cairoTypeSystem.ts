@@ -92,11 +92,11 @@ export abstract class CairoType {
           return new WarpLocation();
       }
     } else if (tp instanceof FixedBytesType) {
-      return tp.size === 32 ? CairoUint256 : new CairoFelt();
+      return new CairoUint(tp.size * 8);
     } else if (tp instanceof FunctionType) {
       throw new NotSupportedYetError('Serialising FunctionType not supported yet');
     } else if (tp instanceof IntType) {
-      return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
+      return new CairoUint(tp.nBits);
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {
@@ -165,6 +165,26 @@ export class CairoFelt extends CairoType {
     return 1;
   }
   serialiseMembers(name: string): string[] {
+    return [name];
+  }
+}
+
+export class CairoUint extends CairoType {
+  constructor(public nBits: number = 256) {
+    super();
+  }
+  get fullStringRepresentation(): string {
+    return `[u${this.nBits}]`;
+  }
+  toString(): string {
+    return `u${this.nBits}`;
+  }
+  get width(): number {
+    if (this.nBits === 256) return 2;
+    return 1;
+  }
+  serialiseMembers(name: string): string[] {
+    if (this.nBits === 256) return [`${name}.low`, `${name}.high`];
     return [name];
   }
 }
@@ -292,13 +312,7 @@ export class WarpLocation extends CairoFelt {
 
 export class MemoryLocation extends CairoFelt {}
 
-export const CairoUint256 = new CairoStruct(
-  'u256',
-  new Map([
-    ['low', new CairoFelt()],
-    ['high', new CairoFelt()],
-  ]),
-);
+export const CairoUint256 = new CairoUint(256);
 
 const cd_dynarray_prefix = 'cd_dynarray_';
 export function generateCallDataDynArrayStructName(elementType: TypeNode, ast: AST): string {

@@ -81,22 +81,79 @@ export function divmod(x: bigint, y: bigint): [bigint, bigint] {
   return [div, rem];
 }
 
-export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' | 'ContractAddress' {
-  switch (typeString) {
-    case 'address':
-    case 'address payable':
-      return 'ContractAddress';
-    case 'uint':
-    case 'uint256':
-    case 'int':
-    case 'int256':
-      return 'Uint256';
-    case 'fixed':
-    case 'ufixed':
-      throw new NotSupportedYetError('Fixed types not implemented');
-    default:
-      return 'felt';
+const cairoPrimitiveIntTypes = [
+  'u8',
+  'u16',
+  'u24',
+  'u32',
+  'u40',
+  'u48',
+  'u56',
+  'u64',
+  'u72',
+  'u80',
+  'u88',
+  'u96',
+  'u104',
+  'u112',
+  'u120',
+  'u128',
+  'u136',
+  'u144',
+  'u152',
+  'u160',
+  'u168',
+  'u176',
+  'u184',
+  'u192',
+  'u200',
+  'u208',
+  'u216',
+  'u224',
+  'u232',
+  'u240',
+  'u248',
+  'u256',
+] as const;
+
+type CairoPrimitiveIntType = typeof cairoPrimitiveIntTypes[number];
+export const isCairoPrimitiveIntType = (x: string): x is CairoPrimitiveIntType => {
+  return cairoPrimitiveIntTypes.includes(x as CairoPrimitiveIntType);
+};
+
+export function primitiveTypeToCairo(
+  typeString: string,
+): CairoPrimitiveIntType | 'felt' | 'ContractAddress' {
+  if (typeString === 'address' || typeString === 'address payable') return 'ContractAddress';
+
+  if (typeString === 'uint' || typeString === 'int') return 'u256';
+
+  if (typeString === 'fixed' || typeString === 'ufixed') {
+    throw new NotSupportedYetError('Fixed types not implemented');
   }
+
+  // regex match if typeString is uintN or intN
+
+  const uintMatch = typeString.match(/^uint([0-9]+)$/);
+  const intMatch = typeString.match(/^int([0-9]+)$/);
+
+  if (uintMatch) {
+    const bits = BigInt(uintMatch[1]);
+    if (bits > 256) {
+      throw new NotSupportedYetError('uint types larger than 256 bits not supported');
+    }
+    return `u${bits}` as CairoPrimitiveIntType;
+  }
+
+  if (intMatch) {
+    const bits = BigInt(intMatch[1]);
+    if (bits > 256) {
+      throw new NotSupportedYetError('int types larger than 256 bits not supported');
+    }
+    return `u${bits}` as CairoPrimitiveIntType;
+  }
+
+  return 'felt';
 }
 
 export function union<T>(setA: Set<T>, setB: Set<T>) {
