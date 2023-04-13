@@ -24,6 +24,7 @@ export class BuiltinHandler extends ASTMapper {
     ast = ExplicitConversionToFunc.map(ast);
     ast = MathsOperationToFunction.map(ast);
     ast = ThisKeyword.map(ast);
+    ast = ABIBuiltins.map(ast);
     return ast;
   }
 }
