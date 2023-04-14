@@ -8,7 +8,7 @@ import { printNode } from '../utils/astPrinter';
 import { Implicits } from '../utils/implicits';
 import { union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
-import { parseImplicits } from '../utils/cairoParsing';
+import { getRawCairoFunctionInfo } from '../utils/cairoParsing';
 
 export class AnnotateImplicits extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -116,9 +116,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicits>) {
   const cairoCode = getDocString(node.documentation);
   assert(cairoCode !== undefined);
-  const funcSignature = cairoCode.match(/func .+\{(.+)\}/);
-  if (funcSignature === null) return;
+  const rawCairoFunctionInfo = getRawCairoFunctionInfo(cairoCode);
 
-  const implicits = parseImplicits(funcSignature[1]);
-  implicits.forEach((impl) => result.add(impl));
+  rawCairoFunctionInfo.implicits.forEach((impl) => result.add(impl));
 }
