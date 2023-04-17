@@ -134,6 +134,8 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       .filter((func, index, importFuncs) => func !== importFuncs[index - 1])
       .join('\n');
 
+    console.log(writtenImportFuncs, importFunctions);
+
     const writtenGeneratedFuncs = generatedFunctions
       .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
       .sort((funcA, funcB) => {
@@ -194,9 +196,10 @@ export class CairoContractWriter extends CairoASTNodeWriter {
         // remove all content between any two pairing curly braces
         .replace(/\{[^]*\}/g, '')
         .split('\n');
-      const funcLineIndex = resultLines.findIndex((line) => line.startsWith('func'));
+      const funcLineIndex = resultLines.findIndex((line) => line.startsWith('fn'));
       resultLines.splice(0, funcLineIndex);
-      return resultLines.join('\n') + '{\n}';
+      resultLines[0] = '#[external] ' + resultLines[0];
+      return resultLines.join('\n') + ';';
     });
     // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
     // Remove `@interface` to get the actual contract interface name
@@ -210,10 +213,9 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       : node.name;
 
     return [
-      [
-        documentation,
-        [`@contract_interface`, `namespace ${interfaceName}{`, ...functions, `}`].join('\n'),
-      ].join('\n'),
+      [documentation, [`#[abi]`, `trait ${interfaceName}{`, ...functions, `}`].join('\n')].join(
+        '\n',
+      ),
     ];
   }
 }

@@ -71,12 +71,16 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       return [
         [
           documentation,
-          `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)};`,
+          `let (${declarations.map((decl) => `mut ${decl}`).join(', ')}) = ${writer.write(
+            node.vInitialValue,
+          )};`,
         ].join('\n'),
       ];
     }
     return [
-      [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)};`].join('\n'),
+      [documentation, `let mut ${declarations[0]} = ${writer.write(node.vInitialValue)};`].join(
+        '\n',
+      ),
     ];
   }
 }

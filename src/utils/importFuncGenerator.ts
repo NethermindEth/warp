@@ -149,6 +149,10 @@ export function createImport(
     return createFuncImport(...warplibFunc);
   }
 
+  if (path[0] === 'super') {
+    return createStructImport();
+  }
+
   switch (encodePath([path, name])) {
     case encodePath(ALLOC):
       return createFuncImport();

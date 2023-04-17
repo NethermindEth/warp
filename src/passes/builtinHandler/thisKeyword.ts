@@ -52,7 +52,7 @@ export class ThisKeyword extends ASTMapper {
           (contract) => contract.name === getTemporaryInterfaceName(currentContract.name),
         );
         if (contractIndex === -1) {
-          const insertedInterface = genContractInterface(currentContract, sourceUnit, ast);
+          const insertedInterface = genContractInterface(node, currentContract, sourceUnit, ast);
           replaceInterfaceWithCairoContract(insertedInterface, ast);
         }
       }

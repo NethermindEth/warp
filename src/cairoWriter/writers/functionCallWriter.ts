@@ -55,9 +55,8 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
                 nodeType.definition.name,
                 node,
                 interfaceNameMappings,
-              )}.${(isDelegateCall ? 'library_call_' : '') + memberName}(${firstArg}${
-                args ? ', ' : ''
-              }${args})`,
+                isDelegateCall,
+              )}{contract_address: ${firstArg}}.${memberName}(${args})`,
             ];
           }
         } else if (
