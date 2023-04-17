@@ -113,9 +113,9 @@ export function createCairoGeneratedFunction(
   return funcDef;
 }
 
-export function createCairoImportFunctionDefintion(
+export function createCairoImportFunctionDefinition(
   funcName: string,
-  path: string,
+  path: string[],
   implicits: Set<Implicits>,
   params: ParameterInfo[],
   retParams: ParameterInfo[],
@@ -151,7 +151,7 @@ export function createCairoImportFunctionDefintion(
 
 export function createCairoImportStructDefinition(
   structName: string,
-  path: string,
+  path: string[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
 ): CairoImportFunctionDefinition {

@@ -17,6 +17,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { ALLOC, U128_FROM_FELT, WARP_UINT256 } from '../../utils/importPaths';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -147,7 +148,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     assert(structDef instanceof CairoDynArray);
 
     const storageReadFunc = this.storageReadGen.getOrCreateFuncDef(elementT);
-    const sturctDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
+    const structDynArray = this.externalDynArrayStructConstructor.getOrCreateFuncDef(arrayType);
     const [dynArray, dynArrayLength] = this.dynArrayGen.getOrCreateFuncDef(elementT);
 
     const arrayName = dynArray.name;
@@ -191,9 +192,9 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('warplib.maths.int_conversions', 'warp_uint256'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
+      this.requireImport(...WARP_UINT256),
+      this.requireImport(...U128_FROM_FELT),
+      this.requireImport(...ALLOC),
     ];
 
     const funcInfo: GeneratedFunctionInfo = {
@@ -201,7 +202,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       code: code,
       functionsCalled: [
         ...importedFuncs,
-        sturctDynArray,
+        structDynArray,
         dynArray,
         dynArrayLength,
         storageReadFunc,

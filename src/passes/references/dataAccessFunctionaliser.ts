@@ -42,6 +42,7 @@ import { CalldataToStorageGen } from '../../cairoUtilFuncGen/calldata/calldataTo
 import { StorageWriteGen } from '../../cairoUtilFuncGen/storage/storageWrite';
 import { MemoryToStorageGen } from '../../cairoUtilFuncGen/memory/memoryToStorage';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { WM_INDEX_DYN } from '../../utils/importPaths';
 
 /*
   Uses the analyses of ActualLocationAnalyser and ExpectedLocationAnalyser to
@@ -123,7 +124,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     }
 
     // Update the expected location of the node to be equal to its
-    // actual location, now that any discrepency has been handled
+    // actual location, now that any discrepancy has been handled
 
     if (copyFunc) {
       this.replace(node, copyFunc, parent, expectedLoc, expectedLoc, ast);
@@ -162,7 +163,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       } else if (fromLoc === DataLocation.Memory) {
         const [convert, result] = ast
           .getUtilFuncGen(node)
-          .memory.convert.genIfNecesary(
+          .memory.convert.genIfNecessary(
             node.vLeftHandSide,
             safeGetNodeType(node.vRightHandSide, ast.inference),
           );
@@ -327,8 +328,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
 
   const importedFunc = ast.registerImport(
     indexAccess,
-    'warplib.memory',
-    'wm_index_dyn',
+    ...WM_INDEX_DYN,
     [
       ['arrayLoc', arrayTypeName, DataLocation.Memory],
       ['index', createUint256TypeName(ast)],

@@ -49,7 +49,7 @@ export abstract class CairoUtilFuncGenBase {
   }
 
   protected requireImport(
-    location: string,
+    location: string[],
     name: string,
     inputs?: ParameterInfo[],
     outputs?: ParameterInfo[],

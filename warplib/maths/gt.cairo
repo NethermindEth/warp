@@ -1,15 +1,11 @@
-from starkware.cairo.common.math_cmp import is_le_felt
-from starkware.cairo.common.uint256 import Uint256, uint256_le
+use integer::u256_from_felt252;
 
-func warp_gt{range_check_ptr}(lhs: felt, rhs: felt) -> (res: felt) {
-    if (lhs == rhs) {
-        return (0,);
-    }
-    let res = is_le_felt(rhs, lhs);
-    return (res,);
+fn warp_gt(lhs: felt252, rhs: felt252) -> bool {
+    let lhs_u256 = u256_from_felt252(lhs);
+    let rhs_u256 = u256_from_felt252(rhs);
+    return warp_gt256(lhs_u256, rhs_u256);
 }
 
-func warp_gt256{range_check_ptr}(lhs: Uint256, rhs: Uint256) -> (res: felt) {
-    let (le) = uint256_le(lhs, rhs);
-    return (1 - le,);
+fn warp_gt256(op1: u256, op2: u256) -> bool {
+    return op1 > op2;
 }

@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - cairo-1.0
   pull_request:
 
 concurrency:
@@ -46,7 +47,40 @@ jobs:
           black starknet-testnet/ --check --verbose --diff --color
         # find warplib/ -iname *.cairo -exec cairo-format -c {} +
 
+  compilation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          cache: 'yarn'
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.9 # Cairo was tested with this version
+
+      - name: Install dependencies
+        run: |
+          make
+          make compile
+
+      - name: Build warplib
+        run: yarn warplib
+
+      - name: Setup warp_venv
+        run: bin/warp install --python python --verbose
+
+      - name: Running compilation tests
+        run: make test_compilation
+
   build:
+    # only runs on pull requests to the main and develop branches
+    if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'develop') }}
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -72,9 +106,6 @@ jobs:
 
       - name: Build warplib
         run: yarn warplib
-
-      - name: Test code compilation
-        run: make test_compilation
 
       - name: Test code execution
         run: |
@@ -103,6 +134,8 @@ jobs:
         run: |
           pip install -r requirements.txt 
           pip install cairo-lang=="$CAIRO_LANG_VERSION"
+          pip install web3==5.*
+          pip install typeguard==2.*
 
       - name: Setup source hash (push)
         if: ${{ github.event_name == 'push' }}

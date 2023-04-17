@@ -5,29 +5,20 @@ import {
   StructDefinition,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
-import { AST } from './ast/ast';
-import { makeStructTree, reorderStructs } from './passes/orderNestedStructs';
 
 /* 
   Library calls in solidity are delegate calls
   i.e  libraries can be seen as implicit base contracts of the contracts that use them
   The ReferencedLibraries pass converts external call to the library to internal call 
   to it. 
-  This pass is called before the ReferncedLibraries pass to inline free functions 
+  This pass is called before the ReferencedLibraries pass to inline free functions 
   into the contract if the free functions make library calls or if they call other free
   function which do that.
 */
 
-export function getStructsAndRemappings(
-  node: SourceUnit,
-  ast: AST,
-): [StructDefinition[], Map<number, string>] {
-  // Stores old FunctionDefinition and cloned FunctionDefinition
-  const remappings = new Map<number, string>();
-
+export function getStructs(node: SourceUnit): StructDefinition[] {
   const externalStructs = getDefinitionsToInline(node, node, new Set());
-
-  return [reorderStructs(...makeStructTree(externalStructs, ast)), remappings];
+  return Array.from(externalStructs.values());
 }
 
 // DFS a node for definitions in a free context.

@@ -18,6 +18,7 @@ import { CairoGeneratedFunctionDefinition } from '../../ast/cairoNodes';
 import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { U128_FROM_FELT, UINT256_ADD, UINT256_EQ, UINT256_SUB } from '../../utils/importPaths';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -36,7 +37,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   // }
   private creatingFunctions: Map<string, string>;
 
-  // Map to store unsolved function dependecies
+  // Map to store unsolved function dependencies
   // of generated functions
   private functionDependencies: Map<string, string[]>;
 
@@ -173,9 +174,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(...UINT256_EQ),
+      this.requireImport(...UINT256_ADD),
+      this.requireImport(...U128_FROM_FELT),
     ];
     return {
       name: funcName,
@@ -216,7 +217,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     this.creatingFunctions.set(generateKey(type), funcName);
 
     const elementT = generalizeType(type.elementT)[0];
-    const elementTWidht = CairoType.fromSol(
+    const elementTWidth = CairoType.fromSol(
       elementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
@@ -229,7 +230,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       ? [`   let (elem_id) = ${storageReadFunc.name}(loc);`, `   ${auxDeleteFuncName}(elem_id);`]
       : [`    ${auxDeleteFuncName}(loc);`];
     const length = narrowBigIntSafe(type.size);
-    const nextLoc = add('loc', elementTWidht);
+    const nextLoc = add('loc', elementTWidth);
 
     const deleteFunc = [
       `func ${funcName}_elem${IMPLICITS}(loc : felt, index : felt){`,
@@ -248,9 +249,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     ].join('\n');
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq'),
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+      this.requireImport(...UINT256_EQ),
+      this.requireImport(...UINT256_SUB),
+      this.requireImport(...U128_FROM_FELT),
     ];
 
     return {

@@ -33,6 +33,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit } from '../utils/utils';
+import { DEPLOY } from '../utils/importPaths';
 
 /** Pass that takes all expressions of the form:
  *
@@ -67,7 +68,7 @@ import { getContainingSourceUnit } from '../utils/utils';
 export class NewToDeploy extends ASTMapper {
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
-      'Ffi', // Define the `encoder` util function after the free funtion has been moved
+      'Ffi', // Define the `encoder` util function after the free function has been moved
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
@@ -142,8 +143,7 @@ export class NewToDeploy extends ASTMapper {
   ): FunctionCall {
     const deployFunc = ast.registerImport(
       node,
-      'starkware.starknet.common.syscalls',
-      'deploy',
+      ...DEPLOY,
       [
         ['class_hash', createAddressTypeName(false, ast)],
         ['contract_address_salt', createBytesNTypeName(31, ast)],

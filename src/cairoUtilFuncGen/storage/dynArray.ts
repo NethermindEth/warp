@@ -29,16 +29,17 @@ export class DynArrayGen extends StringIndexedFuncGen {
     return createCallToFunction(dynArrayLength, [node.vExpression], this.ast);
   }
 
+  // TODO: keep using storage vars as functions feels odd now
   public getOrCreateFuncDef(type: TypeNode): [CairoFunctionDefinition, CairoFunctionDefinition] {
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
 
     const key = cairoType.fullStringRepresentation;
-    const lenghtKey = key + '_LENGTH';
+    const lengthKey = key + '_LENGTH';
     const existing = this.generatedFunctionsDef.get(key);
     if (existing !== undefined) {
-      const exsitingLength = this.generatedFunctionsDef.get(lenghtKey);
-      assert(exsitingLength !== undefined);
-      return [existing, exsitingLength];
+      const existingLength = this.generatedFunctionsDef.get(lengthKey);
+      assert(existingLength !== undefined);
+      return [existing, existingLength];
     }
 
     const [arrayInfo, lengthInfo] = this.getOrCreate(cairoType);
@@ -70,7 +71,7 @@ export class DynArrayGen extends StringIndexedFuncGen {
     );
 
     this.generatedFunctionsDef.set(key, dynArray);
-    this.generatedFunctionsDef.set(lenghtKey, dynArrayLength);
+    this.generatedFunctionsDef.set(lengthKey, dynArrayLength);
     return [dynArray, dynArrayLength];
   }
 
@@ -78,21 +79,13 @@ export class DynArrayGen extends StringIndexedFuncGen {
     const mappingName = `WARP_DARRAY${this.generatedFunctionsDef.size}_${valueCairoType.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: mappingName,
-      code: [
-        `@storage_var`,
-        `func ${mappingName}(name: felt, index: Uint256) -> (res_loc : felt){`,
-        `}`,
-      ].join('\n'),
+      code: `${mappingName}: LegacyMap::<(felt252, u256), felt252>`,
       functionsCalled: [],
     };
 
     const lengthFuncInfo: GeneratedFunctionInfo = {
       name: `${mappingName}_LENGTH`,
-      code: [
-        `@storage_var`,
-        `func ${mappingName}_LENGTH(name: felt) -> (length: Uint256){`,
-        `}`,
-      ].join('\n'),
+      code: `${mappingName}_LENGTH: LegacyMap::<felt252, u256>`,
       functionsCalled: [],
     };
     return [funcInfo, lengthFuncInfo];
