@@ -4,8 +4,9 @@ import { ResultType, runTests } from '../testing';
 import path from 'path';
 
 const WARP_TEST = 'warpTest';
-const WARP_COMPILATION_TEST_PATH = 'tests/compilation';
+const WARP_COMPILATION_TEST_PATH = 'tests/compilation/contracts';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, WARP_COMPILATION_TEST_PATH);
+import { passingContracts } from './passingContracts';
 
 const expectedResults = new Map<string, ResultType>(
   [
@@ -222,5 +223,7 @@ describe('Compilation tests execution started', () =>
     WARP_TEST,
     WARP_TEST_FOLDER,
     WARP_COMPILATION_TEST_PATH,
-    'tests/compilation',
+    'tests/compilation/contracts',
+    process.env.FILTER,
+    passingContracts,
   ));

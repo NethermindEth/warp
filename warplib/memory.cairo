@@ -40,7 +40,162 @@ func wm_read_felt{warp_memory: DictAccess*}(loc: felt) -> (val: felt) {
     return (res,);
 }
 
-func wm_read_256{warp_memory: DictAccess*}(loc: felt) -> (val: Uint256) {
+func wm_read_8{warp_memory: DictAccess*}(loc: felt) -> (val: u8) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u8_from_felt(res),);
+}
+
+func wm_read_16{warp_memory: DictAccess*}(loc: felt) -> (val: u16) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u16_from_felt(res),);
+}
+
+func wm_read_24{warp_memory: DictAccess*}(loc: felt) -> (val: u24) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u24_from_felt(res),);
+}
+
+func wm_read_32{warp_memory: DictAccess*}(loc: felt) -> (val: u32) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u32_from_felt(res),);
+}
+
+func wm_read_40{warp_memory: DictAccess*}(loc: felt) -> (val: u40) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u40_from_felt(res),);
+}
+
+func wm_read_48{warp_memory: DictAccess*}(loc: felt) -> (val: u48) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u48_from_felt(res),);
+}
+
+func wm_read_56{warp_memory: DictAccess*}(loc: felt) -> (val: u56) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u56_from_felt(res),);
+}
+
+func wm_read_64{warp_memory: DictAccess*}(loc: felt) -> (val: u64) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u64_from_felt(res),);
+}
+
+func wm_read_72{warp_memory: DictAccess*}(loc: felt) -> (val: u72) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u72_from_felt(res),);
+}
+
+func wm_read_80{warp_memory: DictAccess*}(loc: felt) -> (val: u80) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u80_from_felt(res),);
+}
+
+func wm_read_88{warp_memory: DictAccess*}(loc: felt) -> (val: u88) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u88_from_felt(res),);
+}
+
+func wm_read_96{warp_memory: DictAccess*}(loc: felt) -> (val: u96) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u96_from_felt(res),);
+}
+
+func wm_read_104{warp_memory: DictAccess*}(loc: felt) -> (val: u104) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u104_from_felt(res),);
+}
+
+func wm_read_112{warp_memory: DictAccess*}(loc: felt) -> (val: u112) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u112_from_felt(res),);
+}
+
+func wm_read_120{warp_memory: DictAccess*}(loc: felt) -> (val: u120) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u120_from_felt(res),);
+}
+
+func wm_read_128{warp_memory: DictAccess*}(loc: felt) -> (val: u128) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u128_from_felt(res),);
+}
+
+func wm_read_136{warp_memory: DictAccess*}(loc: felt) -> (val: u136) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u136_from_felt(res),);
+}
+
+func wm_read_144{warp_memory: DictAccess*}(loc: felt) -> (val: u144) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u144_from_felt(res),);
+}
+
+func wm_read_152{warp_memory: DictAccess*}(loc: felt) -> (val: u152) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u152_from_felt(res),);
+}
+
+func wm_read_160{warp_memory: DictAccess*}(loc: felt) -> (val: u160) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u160_from_felt(res),);
+}
+
+func wm_read_168{warp_memory: DictAccess*}(loc: felt) -> (val: u168) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u168_from_felt(res),);
+}
+
+func wm_read_176{warp_memory: DictAccess*}(loc: felt) -> (val: u176) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u176_from_felt(res),);
+}
+
+func wm_read_184{warp_memory: DictAccess*}(loc: felt) -> (val: u184) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u184_from_felt(res),);
+}
+
+func wm_read_192{warp_memory: DictAccess*}(loc: felt) -> (val: u192) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u192_from_felt(res),);
+}
+
+func wm_read_200{warp_memory: DictAccess*}(loc: felt) -> (val: u200) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u200_from_felt(res),);
+}
+
+func wm_read_208{warp_memory: DictAccess*}(loc: felt) -> (val: u208) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u208_from_felt(res),);
+}
+
+func wm_read_216{warp_memory: DictAccess*}(loc: felt) -> (val: u216) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u216_from_felt(res),);
+}
+
+func wm_read_224{warp_memory: DictAccess*}(loc: felt) -> (val: u224) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u224_from_felt(res),);
+}
+
+func wm_read_232{warp_memory: DictAccess*}(loc: felt) -> (val: u232) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u232_from_felt(res),);
+}
+
+func wm_read_240{warp_memory: DictAccess*}(loc: felt) -> (val: u240) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u240_from_felt(res),);
+}
+
+func wm_read_248{warp_memory: DictAccess*}(loc: felt) -> (val: u248) {
+    let (res) = dict_read{dict_ptr=warp_memory}(loc);
+    return (u248_from_felt(res),);
+}
+
+func wm_read_256{warp_memory: DictAccess*}(loc: felt) -> (val: u256) {
     let (low) = dict_read{dict_ptr=warp_memory}(loc);
     let (high) = dict_read{dict_ptr=warp_memory}(loc + 1);
     return (Uint256(low, high),);
@@ -48,6 +203,163 @@ func wm_read_256{warp_memory: DictAccess*}(loc: felt) -> (val: Uint256) {
 
 func wm_write_felt{warp_memory: DictAccess*}(loc: felt, value: felt) -> (res: felt) {
     dict_write{dict_ptr=warp_memory}(loc, value);
+    return (value,);
+}
+
+
+func wm_write_8{warp_memory: DictAccess*}(loc: felt, value: u8) -> (res: u8) {
+    let (fvalue) = u8_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_16{warp_memory: DictAccess*}(loc: felt, value: u16) -> (res: u16) {
+    let (fvalue) = u16_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_24{warp_memory: DictAccess*}(loc: felt, value: u24) -> (res: u24) {
+    let (fvalue) = u24_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_32{warp_memory: DictAccess*}(loc: felt, value: u32) -> (res: u32) {
+    let (fvalue) = u32_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_40{warp_memory: DictAccess*}(loc: felt, value: u40) -> (res: u40) {
+    let (fvalue) = u40_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_48{warp_memory: DictAccess*}(loc: felt, value: u48) -> (res: u48) {
+    let (fvalue) = u48_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_56{warp_memory: DictAccess*}(loc: felt, value: u56) -> (res: u56) {
+    let (fvalue) = u56_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_64{warp_memory: DictAccess*}(loc: felt, value: u64) -> (res: u64) {
+    let (fvalue) = u64_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_72{warp_memory: DictAccess*}(loc: felt, value: u72) -> (res: u72) {
+    let (fvalue) = u72_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_80{warp_memory: DictAccess*}(loc: felt, value: u80) -> (res: u80) {
+    let (fvalue) = u80_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_88{warp_memory: DictAccess*}(loc: felt, value: u88) -> (res: u88) {
+    let (fvalue) = u88_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_96{warp_memory: DictAccess*}(loc: felt, value: u96) -> (res: u96) {
+    let (fvalue) = u96_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_104{warp_memory: DictAccess*}(loc: felt, value: u104) -> (res: u104) {
+    let (fvalue) = u104_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_112{warp_memory: DictAccess*}(loc: felt, value: u112) -> (res: u112) {
+    let (fvalue) = u112_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_120{warp_memory: DictAccess*}(loc: felt, value: u120) -> (res: u120) {
+    let (fvalue) = u120_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_128{warp_memory: DictAccess*}(loc: felt, value: u128) -> (res: u128) {
+    let (fvalue) = u128_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_136{warp_memory: DictAccess*}(loc: felt, value: u136) -> (res: u136) {
+    let (fvalue) = u136_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_144{warp_memory: DictAccess*}(loc: felt, value: u144) -> (res: u144) {
+    let (fvalue) = u144_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_152{warp_memory: DictAccess*}(loc: felt, value: u152) -> (res: u152) {
+    let (fvalue) = u152_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_160{warp_memory: DictAccess*}(loc: felt, value: u160) -> (res: u160) {
+    let (fvalue) = u160_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_168{warp_memory: DictAccess*}(loc: felt, value: u168) -> (res: u168) {
+    let (fvalue) = u168_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_176{warp_memory: DictAccess*}(loc: felt, value: u176) -> (res: u176) {
+    let (fvalue) = u176_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_184{warp_memory: DictAccess*}(loc: felt, value: u184) -> (res: u184) {
+    let (fvalue) = u184_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_192{warp_memory: DictAccess*}(loc: felt, value: u192) -> (res: u192) {
+    let (fvalue) = u192_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_200{warp_memory: DictAccess*}(loc: felt, value: u200) -> (res: u200) {
+    let (fvalue) = u200_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_208{warp_memory: DictAccess*}(loc: felt, value: u208) -> (res: u208) {
+    let (fvalue) = u208_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_216{warp_memory: DictAccess*}(loc: felt, value: u216) -> (res: u216) {
+    let (fvalue) = u216_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_224{warp_memory: DictAccess*}(loc: felt, value: u224) -> (res: u224) {
+    let (fvalue) = u224_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_232{warp_memory: DictAccess*}(loc: felt, value: u232) -> (res: u232) {
+    let (fvalue) = u232_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_240{warp_memory: DictAccess*}(loc: felt, value: u240) -> (res: u240) {
+    let (fvalue) = u240_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
+    return (value,);
+}
+func wm_write_248{warp_memory: DictAccess*}(loc: felt, value: u248) -> (res: u248) {
+    let (fvalue) = u248_to_felt(value);
+    dict_write{dict_ptr=warp_memory}(loc, fvalue);
     return (value,);
 }
 

@@ -1,3 +1,5 @@
+use traits::Default;
+
 extern type Nullable<T>;
 
 enum FromNullableResult<T> {
@@ -10,5 +12,12 @@ extern fn nullable_from_box<T>(value: Box<T>) -> Nullable<T> nopanic;
 extern fn match_nullable<T>(value: Nullable<T>) -> FromNullableResult<T> nopanic;
 
 // Impls for generic types
-impl NullableCopy<T, impl TCopy: Copy::<T>> of Copy::<Nullable<T>>;
-impl NullableDrop<T, impl TDrop: Drop::<T>> of Drop::<Nullable<T>>;
+impl NullableCopy<T, impl TCopy: Copy<T>> of Copy<Nullable<T>>;
+impl NullableDrop<T, impl TDrop: Drop<T>> of Drop<Nullable<T>>;
+
+impl NullableDefault<T> of Default<Nullable<T>> {
+    #[inline(always)]
+    fn default() -> Nullable<T> nopanic {
+        null()
+    }
+}
