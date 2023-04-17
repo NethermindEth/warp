@@ -101,6 +101,7 @@ import {
   WARP_MEMORY,
   MEMORY_TRAIT,
   CONTRACT_ADDRESS,
+  WM_NEW,
 } from './importPaths';
 
 export function createImport(
@@ -251,6 +252,7 @@ export function createImport(
     case encodePath(ARRAY_TRAIT):
     case encodePath(WARP_MEMORY):
     case encodePath(MEMORY_TRAIT):
+    case encodePath(WM_NEW):
       return createFuncImport();
     default:
       throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);

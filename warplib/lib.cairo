@@ -2,3 +2,4 @@
 mod integer;
 mod maths;
 mod warp_memory;
+mod memory;
