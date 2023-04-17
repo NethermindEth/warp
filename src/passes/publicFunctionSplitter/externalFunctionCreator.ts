@@ -8,7 +8,6 @@ import {
   Expression,
   FunctionKind,
   ContractKind,
-  // MemberAccess,
   Identifier,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -17,11 +16,7 @@ import { cloneASTNode } from '../../utils/cloning';
 import { TranspilationAbandonedError } from '../../utils/errors';
 import { INTERNAL_FUNCTION_SUFFIX } from '../../utils/nameModifiers';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
-import {
-  // getContractTypeString,
-  getFunctionTypeString,
-  getReturnTypeString,
-} from '../../utils/getTypeString';
+import { getFunctionTypeString, getReturnTypeString } from '../../utils/getTypeString';
 export class ExternalFunctionCreator extends ASTMapper {
   constructor(
     public internalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
