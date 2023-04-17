@@ -8,7 +8,7 @@ import {
   Expression,
   FunctionKind,
   ContractKind,
-  MemberAccess,
+  // MemberAccess,
   Identifier,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -18,7 +18,7 @@ import { TranspilationAbandonedError } from '../../utils/errors';
 import { INTERNAL_FUNCTION_SUFFIX } from '../../utils/nameModifiers';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 import {
-  getContractTypeString,
+  // getContractTypeString,
   getFunctionTypeString,
   getReturnTypeString,
 } from '../../utils/getTypeString';
@@ -118,17 +118,10 @@ function createCallToInternalFunction(
     );
   }
 
-  const memberAccess = new MemberAccess(
+  const functionIdentifier = new Identifier(
     ast.reserveId(),
     '',
     getFunctionTypeString(functionDef, ast.inference, nodeInSourceUnit),
-    new Identifier(
-      ast.reserveId(),
-      '',
-      getContractTypeString(contract),
-      contract.name,
-      contract.id,
-    ),
     functionDef.name,
     functionDef.id,
   );
@@ -138,7 +131,7 @@ function createCallToInternalFunction(
     '',
     getReturnTypeString(functionDef, ast, nodeInSourceUnit),
     FunctionCallKind.FunctionCall,
-    memberAccess,
+    functionIdentifier,
     argList,
   );
 }
