@@ -18,6 +18,7 @@ trait MemoryTrait {
     fn initialize() -> WarpMemory;
     fn insert(ref self: WarpMemory, position: felt252, value: felt252);
     fn append(ref self: WarpMemory, value: felt252);
+    fn get(ref self: WarpMemory, key: felt252) -> felt252;
 }
 
 
@@ -28,10 +29,14 @@ impl WarpMemoryImpl of MemoryTrait {
 
     fn insert(ref self: WarpMemory, position: felt252, value: felt252) {
         self.memory.insert(position, value);
-        self.pointer += 1;
     }
 
     fn append(ref self: WarpMemory, value: felt252) {
         self.insert(self.pointer, value);
+        self.pointer += 1;
+    }
+
+    fn get(ref self: WarpMemory, key: felt252) -> felt252 {
+        self.memory.get(key)
     }
 }
