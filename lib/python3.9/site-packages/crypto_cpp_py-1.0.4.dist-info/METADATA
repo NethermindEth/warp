@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: crypto-cpp-py
+Version: 1.0.4
+Summary: This is a packaged crypto-cpp program
+Home-page: https://github.com/software-mansion-labs/crypto-cpp-py.git
+Author: Wojciech Szymczyk
+Author-email: wojciech.szymczyk@swmansion.com
+Requires-Python: >=3.7.2
+Description-Content-Type: text/x-rst
+Requires-Dist: cairo-lang
+Provides-Extra: build
+Requires-Dist: cmake (>=3.22.4) ; extra == 'build'
+
+Crypto-cpp-py
+=============
+A python packaged `crypto-cpp <https://python-poetry.org/>`_ library, that can be used for hashing and signing messages in starknet.
+
+
+Dependencies
+------------
+- cairo-lang
+- cmake [optional, for building package from sdist; can be installed with `pip install crypto-cpp-py[build]`]

@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: varint
+Version: 1.0.2
+Summary: Simple python varint implementation
+Home-page: http://github.com/fmoo/python-varint
+Author: Peter Ruibal
+Author-email: ruibalp@gmail.com
+License: MIT
+Download-URL: https://github.com/fmoo/python-varint/1.0.2.tar.gz
+Keywords: encoder
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Topic :: Utilities
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+
+UNKNOWN
+

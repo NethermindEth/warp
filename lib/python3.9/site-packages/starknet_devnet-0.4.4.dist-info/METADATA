@@ -1,0 +1,53 @@
+Metadata-Version: 2.1
+Name: starknet-devnet
+Version: 0.4.4
+Summary: A local testnet for Starknet
+Home-page: https://github.com/Shard-Labs/starknet-devnet
+License: ISC
+Keywords: starknet,cairo,testnet,local,server
+Author: FabijanC
+Author-email: fabijan.corak@gmail.com
+Requires-Python: >=3.8,<3.10
+Classifier: License :: OSI Approved
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Requires-Dist: Flask[async] (>=2.0.3,<2.1.0)
+Requires-Dist: Werkzeug (>=2.0.3,<2.1.0)
+Requires-Dist: cairo-lang (==0.10.3)
+Requires-Dist: cloudpickle (>=2.1.0,<2.2.0)
+Requires-Dist: crypto-cpp-py (>=1.0.4,<1.1.0)
+Requires-Dist: flask-cors (>=3.0.10,<3.1.0)
+Requires-Dist: gunicorn (>=20.1.0,<20.2.0)
+Requires-Dist: marshmallow (>=3.17.0,<3.18.0)
+Requires-Dist: typing-extensions (>=4.3.0,<4.4.0)
+Project-URL: Repository, https://github.com/Shard-Labs/starknet-devnet
+Description-Content-Type: text/markdown
+
+<!-- logo / title -->
+<p align="center" style="margin-bottom: 0px !important">
+  <img width="200" src="https://user-images.githubusercontent.com/2848732/193076972-da6fa36e-11f7-4cb3-aa29-673224f8576d.png" alt="Devnet" align="center">
+</p>
+<h1 align="center" style="margin-top: 0px !important">StarkNet Devnet</h1>
+
+A Flask wrapper of StarkNet state. Similar in purpose to Ganache.
+
+Aims to mimic StarkNet's Alpha testnet, but with simplified functionality.
+
+## 🌐 Docs
+
+On the following links you can find the documentation of:
+
+- [the latest official release](https://shard-labs.github.io/starknet-devnet/)
+- [the latest master commit (not officially released)](https://github.com/Shard-Labs/starknet-devnet/tree/master/page/docs)
+
+## ✏️ Contributing
+
+We ❤️ and encourage all contributions!
+
+[Click here](https://shard-labs.github.io/starknet-devnet/docs/guide/development) for the development guide.
+
+## 🙌 Special Thanks
+
+Special thanks to all the [contributors](https://github.com/Shard-Labs/starknet-devnet/graphs/contributors)!
+

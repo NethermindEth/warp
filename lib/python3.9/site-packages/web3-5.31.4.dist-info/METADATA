@@ -1,0 +1,132 @@
+Metadata-Version: 2.1
+Name: web3
+Version: 5.31.4
+Summary: Web3.py
+Home-page: https://github.com/ethereum/web3.py
+Author: Piper Merriam
+Author-email: pipermerriam@gmail.com
+License: MIT
+Keywords: ethereum
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Requires-Python: >=3.6,<4
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp (<4,>=3.7.4.post0)
+Requires-Dist: eth-abi (<3.0.0,>=2.2.0)
+Requires-Dist: eth-account (<0.6.0,>=0.5.9)
+Requires-Dist: eth-hash[pycryptodome] (<1.0.0,>=0.2.0)
+Requires-Dist: eth-rlp (<0.3)
+Requires-Dist: eth-typing (<3.0.0,>=2.0.0)
+Requires-Dist: eth-utils (<2.0.0,>=1.9.5)
+Requires-Dist: hexbytes (<1.0.0,>=0.1.0)
+Requires-Dist: ipfshttpclient (==0.8.0a2)
+Requires-Dist: jsonschema (<5,>=3.2.0)
+Requires-Dist: lru-dict (<2.0.0,>=1.1.6)
+Requires-Dist: protobuf (==3.19.5)
+Requires-Dist: requests (<3.0.0,>=2.16.0)
+Requires-Dist: websockets (<10,>=9.1)
+Requires-Dist: pywin32 (>=223) ; platform_system == "Windows"
+Requires-Dist: typing-extensions (<5,>=3.7.4.1) ; python_version < "3.8"
+Provides-Extra: dev
+Requires-Dist: eth-tester[py-evm] (==v0.6.0-b.7) ; extra == 'dev'
+Requires-Dist: py-geth (<4,>=3.9.1) ; extra == 'dev'
+Requires-Dist: flake8 (==3.8.3) ; extra == 'dev'
+Requires-Dist: isort (<4.3.5,>=4.2.15) ; extra == 'dev'
+Requires-Dist: mypy (==0.910) ; extra == 'dev'
+Requires-Dist: types-setuptools (<58,>=57.4.4) ; extra == 'dev'
+Requires-Dist: types-requests (<3,>=2.26.1) ; extra == 'dev'
+Requires-Dist: types-protobuf (==3.19.13) ; extra == 'dev'
+Requires-Dist: mock ; extra == 'dev'
+Requires-Dist: sphinx-better-theme (>=0.1.4) ; extra == 'dev'
+Requires-Dist: click (>=5.1) ; extra == 'dev'
+Requires-Dist: configparser (==3.5.0) ; extra == 'dev'
+Requires-Dist: contextlib2 (>=0.5.4) ; extra == 'dev'
+Requires-Dist: py-solc (>=0.4.0) ; extra == 'dev'
+Requires-Dist: pytest (<5.0.0,>=4.4.0) ; extra == 'dev'
+Requires-Dist: sphinx (<4,>=3.0) ; extra == 'dev'
+Requires-Dist: sphinx-rtd-theme (>=0.1.9) ; extra == 'dev'
+Requires-Dist: toposort (>=1.4) ; extra == 'dev'
+Requires-Dist: towncrier (==18.5.0) ; extra == 'dev'
+Requires-Dist: urllib3 ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+Requires-Dist: Jinja2 (<=3.0.3) ; extra == 'dev'
+Requires-Dist: bumpversion ; extra == 'dev'
+Requires-Dist: flaky (<4,>=3.7.0) ; extra == 'dev'
+Requires-Dist: hypothesis (<6,>=3.31.2) ; extra == 'dev'
+Requires-Dist: importlib-metadata (<5.0) ; extra == 'dev'
+Requires-Dist: pytest-asyncio (<0.11,>=0.10.0) ; extra == 'dev'
+Requires-Dist: pytest-mock (<2,>=1.10) ; extra == 'dev'
+Requires-Dist: pytest-pythonpath (>=0.3) ; extra == 'dev'
+Requires-Dist: pytest-watch (<5,>=4.2) ; extra == 'dev'
+Requires-Dist: pytest-xdist (<2,>=1.29) ; extra == 'dev'
+Requires-Dist: setuptools (>=38.6.0) ; extra == 'dev'
+Requires-Dist: tox (>=3.18.0) ; extra == 'dev'
+Requires-Dist: tqdm (<5,>4.32) ; extra == 'dev'
+Requires-Dist: twine (<2,>=1.13) ; extra == 'dev'
+Requires-Dist: pluggy (==0.13.1) ; extra == 'dev'
+Requires-Dist: when-changed (<0.4,>=0.3.0) ; extra == 'dev'
+Provides-Extra: docs
+Requires-Dist: mock ; extra == 'docs'
+Requires-Dist: sphinx-better-theme (>=0.1.4) ; extra == 'docs'
+Requires-Dist: click (>=5.1) ; extra == 'docs'
+Requires-Dist: configparser (==3.5.0) ; extra == 'docs'
+Requires-Dist: contextlib2 (>=0.5.4) ; extra == 'docs'
+Requires-Dist: py-geth (<4,>=3.9.1) ; extra == 'docs'
+Requires-Dist: py-solc (>=0.4.0) ; extra == 'docs'
+Requires-Dist: pytest (<5.0.0,>=4.4.0) ; extra == 'docs'
+Requires-Dist: sphinx (<4,>=3.0) ; extra == 'docs'
+Requires-Dist: sphinx-rtd-theme (>=0.1.9) ; extra == 'docs'
+Requires-Dist: toposort (>=1.4) ; extra == 'docs'
+Requires-Dist: towncrier (==18.5.0) ; extra == 'docs'
+Requires-Dist: urllib3 ; extra == 'docs'
+Requires-Dist: wheel ; extra == 'docs'
+Requires-Dist: Jinja2 (<=3.0.3) ; extra == 'docs'
+Provides-Extra: linter
+Requires-Dist: flake8 (==3.8.3) ; extra == 'linter'
+Requires-Dist: isort (<4.3.5,>=4.2.15) ; extra == 'linter'
+Requires-Dist: mypy (==0.910) ; extra == 'linter'
+Requires-Dist: types-setuptools (<58,>=57.4.4) ; extra == 'linter'
+Requires-Dist: types-requests (<3,>=2.26.1) ; extra == 'linter'
+Requires-Dist: types-protobuf (==3.19.13) ; extra == 'linter'
+Provides-Extra: tester
+Requires-Dist: eth-tester[py-evm] (==v0.6.0-b.7) ; extra == 'tester'
+Requires-Dist: py-geth (<4,>=3.9.1) ; extra == 'tester'
+
+# Web3.py
+
+[![Documentation Status](https://readthedocs.org/projects/web3py/badge/?version=latest)](https://web3py.readthedocs.io/en/latest/?badge=latest)
+[![Discord](https://img.shields.io/discord/809793915578089484?color=blue&label=chat&logo=discord&logoColor=white)](https://discord.gg/GHryRvPB84)
+[![Build Status](https://circleci.com/gh/ethereum/web3.py.svg?style=shield)](https://circleci.com/gh/ethereum/web3.py)
+
+A Python library for interacting with Ethereum, inspired by [web3.js](https://github.com/ethereum/web3.js).
+
+* Python 3.6+ support
+
+---
+
+## Quickstart
+
+[Get started in 5 minutes](https://web3py.readthedocs.io/en/latest/quickstart.html) or
+[take a tour](https://web3py.readthedocs.io/en/latest/overview.html) of the library.
+
+## Documentation
+
+For additional guides, examples, and APIs, see the [documentation](https://web3py.readthedocs.io/en/latest/).
+
+## Want to help?
+
+Want to file a bug, contribute some code, or improve documentation? Excellent! Read up on our
+guidelines for [contributing](https://web3py.readthedocs.io/en/latest/contributing.html),
+then check out issues that are labeled
+[Good First Issue](https://github.com/ethereum/web3.py/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22).
+
+---
+#### Questions on implementation or usage? Join the conversation on [discord](https://discord.gg/GHryRvPB84).

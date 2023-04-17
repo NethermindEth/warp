@@ -16,6 +16,8 @@ import { catchExecSyncError, execSyncAndLog, runStarknetClassHash } from './util
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
+import { getPlatform } from './nethersolc';
+import { existsSync } from 'fs';
 
 // Options of StarkNet cli commands
 const GATEWAY_URL = 'gateway_url';
@@ -27,6 +29,14 @@ const NETWORK = 'network';
 const WALLET = 'wallet';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+const CAIRO1_COMPILE_BIN = path.resolve(
+  __dirname,
+  '..',
+  'cairo1',
+  getPlatform(),
+  'bin',
+  'starknet-compile',
+);
 
 interface CompileResult {
   success: boolean;
@@ -34,6 +44,44 @@ interface CompileResult {
   abiPath?: string;
   solAbiPath?: string;
   classHash?: string;
+}
+
+interface CompileCairo1Result {
+  success: boolean;
+  sierraResultPath?: string;
+  casmResultPath?: string;
+}
+
+export function compileCairo1(cairoProjectPath: string, debug = true): CompileCairo1Result {
+  // check existence of cairo project dir and project files
+  assert(existsSync(cairoProjectPath), `Cairo project does not exist at ${cairoProjectPath}`);
+  const libPath = path.join(cairoProjectPath, 'lib.cairo');
+  const tomlPath = path.join(cairoProjectPath, 'cairo_project.toml');
+  assert(existsSync(libPath), `lib.cairo does not exist at ${libPath}`);
+  assert(existsSync(tomlPath), `cairo_project.toml does not exist at ${tomlPath}`);
+
+  const sierraResultPath = `${cairoProjectPath}/temp.sierra`;
+  const casmResultPath = `${cairoProjectPath}/temp.casm`;
+
+  try {
+    if (debug) console.log(`Running cairo1 compile`);
+    execSync(
+      `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${cairoProjectPath} ${sierraResultPath} --replace-ids`,
+      { stdio: 'inherit' },
+    );
+    return { success: true, sierraResultPath: sierraResultPath, casmResultPath: casmResultPath };
+  } catch (e) {
+    if (e instanceof Error) {
+      logError('Compile failed');
+      return {
+        success: false,
+        sierraResultPath: undefined,
+        casmResultPath: undefined,
+      };
+    } else {
+      throw e;
+    }
+  }
 }
 
 export function compileCairo(
@@ -46,6 +94,7 @@ export function compileCairo(
   const resultPath = `${cairoPathRoot}_compiled.json`;
   const abiPath = `${cairoPathRoot}_abi.json`;
   const solAbiPath = `${cairoPathRoot}_sol_abi.json`;
+
   const parameters = new Map([
     ['output', resultPath],
     ['abi', abiPath],
@@ -57,7 +106,7 @@ export function compileCairo(
   const command = 'starknet-compile';
 
   try {
-    console.log(`Running starknet compile with cairoPath ${cairoPath}`);
+    console.log(`Running starknet compile on ${filePath}`);
     execSync(
       `${warpVenvPrefix} ${command} --disable_hint_validation ${debug} ${filePath} ${[
         ...parameters.entries(),

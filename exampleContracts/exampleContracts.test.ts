@@ -1,10 +1,23 @@
 import { describe } from 'mocha';
-import { runTests } from '../tests/testing';
+import { ResultType, runTests } from '../tests/testing';
 
-const TIME_LIMIT = 2 * 60 * 60 * 1000;
+import path from 'path';
 
-// Transpiling the solidity files using the `bin/warp transpile` CLI command.
-describe('Transpiling example contracts:', function () {
-  this.timeout(TIME_LIMIT);
-  runTests(false, false);
-});
+const WARP_TEST = 'warpTest';
+const WARP_COMPILATION_TEST_PATH = 'exampleContracts';
+const WARP_TEST_FOLDER = path.join(WARP_TEST, WARP_COMPILATION_TEST_PATH);
+
+const expectedResults = new Map<string, ResultType>(
+  [['ERC20.sol', 'Success']].map(([key, result]) => {
+    return [path.join(WARP_TEST_FOLDER, key), result] as [string, ResultType];
+  }),
+);
+
+describe('Compilation tests execution started', () =>
+  runTests(
+    expectedResults,
+    WARP_TEST,
+    WARP_TEST_FOLDER,
+    WARP_COMPILATION_TEST_PATH,
+    'exampleContracts',
+  ));

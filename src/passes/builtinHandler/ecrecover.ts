@@ -17,7 +17,7 @@ export class Ecrecover extends ASTMapper {
 
     const ecrecoverEth = ast.registerImport(
       node,
-      'warplib.ecrecover',
+      ['warplib', 'ecrecover'],
       'ecrecover_eth',
       [
         ['msg_hash', createUintNTypeName(256, ast)],

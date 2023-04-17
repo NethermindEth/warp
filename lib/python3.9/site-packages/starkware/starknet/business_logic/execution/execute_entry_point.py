@@ -1,0 +1,368 @@
+import asyncio
+import functools
+import logging
+from typing import List, Optional, Tuple, cast
+
+from starkware.cairo.common.cairo_function_runner import CairoFunctionRunner
+from starkware.cairo.lang.vm.cairo_pie import ExecutionResources
+from starkware.cairo.lang.vm.relocatable import RelocatableValue
+from starkware.cairo.lang.vm.security import SecurityError
+from starkware.cairo.lang.vm.utils import ResourcesError
+from starkware.cairo.lang.vm.vm_exceptions import HintException, VmException, VmExceptionBase
+from starkware.python.utils import to_bytes
+from starkware.starknet.business_logic.execution.execute_entry_point_base import (
+    ExecuteEntryPointBase,
+)
+from starkware.starknet.business_logic.execution.objects import (
+    CallInfo,
+    CallType,
+    TransactionExecutionContext,
+)
+from starkware.starknet.business_logic.fact_state.state import ExecutionResourcesManager
+from starkware.starknet.business_logic.state.state import StateSyncifier
+from starkware.starknet.business_logic.state.state_api import State, SyncState
+from starkware.starknet.business_logic.utils import (
+    get_deployed_class_hash_at_address,
+    get_return_values,
+    validate_contract_deployed,
+)
+from starkware.starknet.core.os import os_utils, syscall_utils
+from starkware.starknet.definitions import fields
+from starkware.starknet.definitions.error_codes import StarknetErrorCode
+from starkware.starknet.definitions.general_config import StarknetGeneralConfig
+from starkware.starknet.public import abi as starknet_abi
+from starkware.starknet.services.api.contract_class import (
+    ContractClass,
+    ContractEntryPoint,
+    EntryPointType,
+)
+from starkware.starkware_utils.error_handling import (
+    ErrorCode,
+    StarkException,
+    stark_assert,
+    wrap_with_stark_exception,
+)
+
+logger = logging.getLogger(__name__)
+
+FAULTY_CLASS_HASH = to_bytes(0x1A7820094FEAF82D53F53F214B81292D717E7BB9A92BB2488092CD306F3993F)
+
+
+class ExecuteEntryPoint(ExecuteEntryPointBase):
+    """
+    Represents a Cairo entry point execution of a StarkNet contract.
+    """
+
+    @classmethod
+    def create(
+        cls,
+        contract_address: int,
+        calldata: List[int],
+        entry_point_selector: int,
+        caller_address: int,
+        entry_point_type: EntryPointType,
+        call_type: Optional[CallType] = None,
+        class_hash: Optional[bytes] = None,
+    ):
+        return cls(
+            call_type=CallType.CALL if call_type is None else call_type,
+            contract_address=contract_address,
+            calldata=calldata,
+            code_address=None,
+            class_hash=class_hash,
+            entry_point_selector=entry_point_selector,
+            entry_point_type=entry_point_type,
+            caller_address=caller_address,
+        )
+
+    @classmethod
+    def create_for_testing(
+        cls,
+        contract_address: int,
+        calldata: List[int],
+        entry_point_selector: int,
+        entry_point_type: Optional[EntryPointType] = None,
+        caller_address: int = 0,
+        call_type: Optional[CallType] = None,
+        class_hash: Optional[bytes] = None,
+    ):
+        return cls.create(
+            call_type=call_type,
+            contract_address=contract_address,
+            class_hash=class_hash,
+            entry_point_selector=entry_point_selector,
+            entry_point_type=(
+                EntryPointType.EXTERNAL if entry_point_type is None else entry_point_type
+            ),
+            calldata=calldata,
+            caller_address=caller_address,
+        )
+
+    async def execute_for_testing(
+        self,
+        state: State,
+        general_config: StarknetGeneralConfig,
+        resources_manager: Optional[ExecutionResourcesManager] = None,
+        tx_execution_context: Optional[TransactionExecutionContext] = None,
+    ) -> CallInfo:
+        if tx_execution_context is None:
+            tx_execution_context = TransactionExecutionContext.create_for_testing(
+                n_steps=general_config.invoke_tx_max_n_steps
+            )
+
+        if resources_manager is None:
+            resources_manager = ExecutionResourcesManager.empty()
+
+        loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        sync_execute = functools.partial(
+            self.execute,
+            state=StateSyncifier(async_state=state, loop=loop),
+            resources_manager=resources_manager,
+            general_config=general_config,
+            tx_execution_context=tx_execution_context,
+        )
+
+        return await loop.run_in_executor(
+            executor=None,  # Runs on the default executor.
+            func=sync_execute,
+        )
+
+    def execute(
+        self,
+        state: SyncState,
+        resources_manager: ExecutionResourcesManager,
+        general_config: StarknetGeneralConfig,
+        tx_execution_context: TransactionExecutionContext,
+    ) -> CallInfo:
+        """
+        Executes the selected entry point with the given calldata in the specified contract.
+        The information collected from this run (number of steps required, modifications to the
+        contract storage, etc.) is saved on the resources manager.
+        Returns a CallInfo object that represents the execution.
+        """
+        previous_cairo_usage = resources_manager.cairo_usage
+
+        runner, syscall_handler = self._run(
+            state=state,
+            resources_manager=resources_manager,
+            general_config=general_config,
+            tx_execution_context=tx_execution_context,
+        )
+
+        # Update resources usage (for bouncer).
+        resources_manager.cairo_usage += runner.get_execution_resources()
+
+        # Build and return call info.
+        return self._build_call_info(
+            previous_cairo_usage=previous_cairo_usage,
+            syscall_handler=syscall_handler,
+            retdata=get_return_values(runner=runner),
+        )
+
+    def _run(
+        self,
+        state: SyncState,
+        resources_manager: ExecutionResourcesManager,
+        general_config: StarknetGeneralConfig,
+        tx_execution_context: TransactionExecutionContext,
+    ) -> Tuple[CairoFunctionRunner, syscall_utils.BusinessLogicSysCallHandler]:
+        """
+        Runs the selected entry point with the given calldata in the code of the contract deployed
+        at self.code_address.
+        The execution is done in the context (e.g., storage) of the contract at
+        self.contract_address.
+        Returns the corresponding CairoFunctionRunner and BusinessLogicSysCallHandler in order to
+        retrieve the execution information.
+        """
+        # Prepare input for Cairo function runner.
+        class_hash = self._get_code_class_hash(state=state)
+
+        # Hack to prevent version 0 attack on argent accounts.
+        if (tx_execution_context.version == 0) and (class_hash == FAULTY_CLASS_HASH):
+            raise StarkException(
+                code=StarknetErrorCode.TRANSACTION_FAILED, message="Fraud attempt blocked."
+            )
+
+        contract_class = state.get_contract_class(class_hash=class_hash)
+        contract_class.validate()
+
+        entry_point = self._get_selected_entry_point(
+            contract_class=contract_class, class_hash=class_hash
+        )
+
+        # Run the specified contract entry point with given calldata.
+        with wrap_with_stark_exception(code=StarknetErrorCode.SECURITY_ERROR):
+            runner = CairoFunctionRunner(program=contract_class.program, layout="all")
+        os_context = os_utils.prepare_os_context(runner=runner)
+
+        validate_contract_deployed(state=state, contract_address=self.contract_address)
+
+        initial_syscall_ptr = cast(RelocatableValue, os_context[starknet_abi.SYSCALL_PTR_OFFSET])
+        syscall_handler = syscall_utils.BusinessLogicSysCallHandler(
+            execute_entry_point_cls=ExecuteEntryPoint,
+            tx_execution_context=tx_execution_context,
+            state=state,
+            resources_manager=resources_manager,
+            caller_address=self.caller_address,
+            contract_address=self.contract_address,
+            general_config=general_config,
+            initial_syscall_ptr=initial_syscall_ptr,
+        )
+
+        # Positional arguments are passed to *args in the 'run_from_entrypoint' function.
+        entry_points_args = [
+            self.entry_point_selector,
+            os_context,
+            len(self.calldata),
+            # Allocate and mark the segment as read-only (to mark every input array as read-only).
+            syscall_handler._allocate_segment(segments=runner.segments, data=self.calldata),
+        ]
+
+        try:
+            runner.run_from_entrypoint(
+                entry_point.offset,
+                *entry_points_args,
+                hint_locals={
+                    "syscall_handler": syscall_handler,
+                },
+                static_locals={
+                    "__find_element_max_size": 2**20,
+                    "__squash_dict_max_size": 2**20,
+                    "__keccak_max_size": 2**20,
+                    "__usort_max_size": 2**20,
+                    "__chained_ec_op_max_len": 1000,
+                },
+                run_resources=tx_execution_context.run_resources,
+                verify_secure=True,
+            )
+        except VmException as exception:
+            code: ErrorCode = StarknetErrorCode.TRANSACTION_FAILED
+            if isinstance(exception.inner_exc, HintException):
+                hint_exception = exception.inner_exc
+
+                if isinstance(hint_exception.inner_exc, syscall_utils.HandlerException):
+                    stark_exception = hint_exception.inner_exc.stark_exception
+                    code = stark_exception.code
+                    called_contract_address = hint_exception.inner_exc.called_contract_address
+                    message_prefix = (
+                        f"Error in the called contract ({hex(called_contract_address)}):\n"
+                    )
+                    # Override python's traceback and keep the Cairo one of the inner exception.
+                    exception.notes = [message_prefix + str(stark_exception.message)]
+
+            if isinstance(exception.inner_exc, ResourcesError):
+                code = StarknetErrorCode.OUT_OF_RESOURCES
+
+            raise StarkException(code=code, message=str(exception)) from exception
+        except VmExceptionBase as exception:
+            raise StarkException(
+                code=StarknetErrorCode.TRANSACTION_FAILED, message=str(exception)
+            ) from exception
+        except SecurityError as exception:
+            raise StarkException(
+                code=StarknetErrorCode.SECURITY_ERROR, message=str(exception)
+            ) from exception
+        except Exception as exception:
+            logger.error("Got an unexpected exception.", exc_info=True)
+            raise StarkException(
+                code=StarknetErrorCode.UNEXPECTED_FAILURE,
+                message="Got an unexpected exception during the execution of the transaction.",
+            ) from exception
+
+        # Complete handler validations.
+        os_utils.validate_and_process_os_context(
+            runner=runner,
+            syscall_handler=syscall_handler,
+            initial_os_context=os_context,
+        )
+
+        # When execution starts the stack holds entry_points_args + [ret_fp, ret_pc].
+        args_ptr = runner.initial_fp - (len(entry_points_args) + 2)
+
+        # The arguments are touched by the OS and should not be counted as holes, mark them
+        # as accessed.
+        assert isinstance(args_ptr, RelocatableValue)  # Downcast.
+        runner.mark_as_accessed(address=args_ptr, size=len(entry_points_args))
+
+        return runner, syscall_handler
+
+    def _get_selected_entry_point(
+        self, contract_class: ContractClass, class_hash: bytes
+    ) -> ContractEntryPoint:
+        """
+        Returns the entry point with selector corresponding with self.entry_point_selector.
+        """
+        entry_points = contract_class.entry_points_by_type[self.entry_point_type]
+        filtered_entry_points = list(
+            filter(
+                lambda ep: ep.selector == self.entry_point_selector,
+                entry_points,
+            )
+        )
+
+        if len(filtered_entry_points) == 0 and len(entry_points) > 0:
+            first_entry_point = entry_points[0]
+            if first_entry_point.selector == starknet_abi.DEFAULT_ENTRY_POINT_SELECTOR:
+                return first_entry_point
+
+        selector_formatter = fields.EntryPointSelectorField.format
+        hash_formatter = fields.class_hash_from_bytes
+        # Non-unique entry points are not possible in a ContractClass object, thus
+        # len(filtered_entry_points) <= 1.
+        stark_assert(
+            len(filtered_entry_points) == 1,
+            code=StarknetErrorCode.ENTRY_POINT_NOT_FOUND_IN_CONTRACT,
+            message=(
+                f"Entry point {selector_formatter(self.entry_point_selector)} not found in contract"
+                f" with class hash {hash_formatter(class_hash)}."
+            ),
+        )
+
+        (entry_point,) = filtered_entry_points
+        return entry_point
+
+    def _build_call_info(
+        self,
+        previous_cairo_usage: ExecutionResources,
+        syscall_handler: syscall_utils.BusinessLogicSysCallHandler,
+        retdata: List[int],
+    ) -> CallInfo:
+        execution_resources = syscall_handler.resources_manager.cairo_usage - previous_cairo_usage
+        return CallInfo(
+            caller_address=self.caller_address,
+            call_type=self.call_type,
+            contract_address=self.contract_address,
+            code_address=self.code_address,
+            class_hash=self._get_code_class_hash(state=syscall_handler.sync_state),
+            entry_point_selector=self.entry_point_selector,
+            entry_point_type=self.entry_point_type,
+            calldata=self.calldata,
+            retdata=retdata,
+            execution_resources=execution_resources.filter_unused_builtins(),
+            events=syscall_handler.events,
+            l2_to_l1_messages=syscall_handler.l2_to_l1_messages,
+            storage_read_values=syscall_handler.starknet_storage.read_values,
+            accessed_storage_keys=syscall_handler.starknet_storage.accessed_keys,
+            internal_calls=syscall_handler.internal_calls,
+        )
+
+    def _get_code_class_hash(self, state: SyncState) -> bytes:
+        """
+        Returns the hash of the executed contract class.
+        """
+        if self.class_hash is not None:
+            # Library call.
+            assert self.call_type is CallType.DELEGATE
+            return self.class_hash
+
+        if self.call_type is CallType.CALL:
+            code_address = self.contract_address
+        elif self.call_type is CallType.DELEGATE:
+            # Delegate call (deprecated version).
+            assert self.code_address is not None
+            code_address = self.code_address
+        else:
+            raise NotImplementedError(f"Call type {self.call_type} not implemented.")
+
+        # Extract pre-fetched contract code from carried state.
+        return get_deployed_class_hash_at_address(state=state, contract_address=code_address)

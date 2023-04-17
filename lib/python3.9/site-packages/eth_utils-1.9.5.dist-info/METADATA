@@ -1,0 +1,154 @@
+Metadata-Version: 2.1
+Name: eth-utils
+Version: 1.9.5
+Summary: Common utility functions for ethereum codebases.
+Home-page: https://github.com/ethereum/eth_utils
+Author: Piper Merriam
+Author-email: pipermerriam@gmail.com
+License: MIT
+Keywords: ethereum
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Python: >=3.5,!=3.5.2,<4
+Description-Content-Type: text/markdown
+Requires-Dist: eth-hash (<1.0.0,>=0.1.0)
+Requires-Dist: eth-typing (<3.0.0,>=2.2.1)
+Requires-Dist: cytoolz (<1.0.0,>=0.10.1) ; implementation_name == "cpython"
+Requires-Dist: toolz (<1,>0.8.2) ; implementation_name == "pypy"
+Provides-Extra: deploy
+Requires-Dist: bumpversion (<1.0.0,>=0.5.3) ; extra == 'deploy'
+Requires-Dist: tox (<3.0.0,>=2.9.1) ; extra == 'deploy'
+Requires-Dist: wheel (<1.0.0,>=0.30.0) ; extra == 'deploy'
+Provides-Extra: dev
+Requires-Dist: twine (<2,>=1.13) ; extra == 'dev'
+Requires-Dist: Sphinx (<2,>=1.5.5) ; extra == 'dev'
+Requires-Dist: sphinx-rtd-theme (<2,>=0.1.9) ; extra == 'dev'
+Requires-Dist: towncrier (<20,>=19.2.0) ; extra == 'dev'
+Requires-Dist: black (<19,>=18.6b4) ; extra == 'dev'
+Requires-Dist: flake8 (<4.0.0,>=3.7.0) ; extra == 'dev'
+Requires-Dist: isort (==4.3.18) ; extra == 'dev'
+Requires-Dist: mypy (==0.720) ; extra == 'dev'
+Requires-Dist: pytest (<4.0.0,>=3.4.1) ; extra == 'dev'
+Requires-Dist: hypothesis (<5.0.0,>=4.43.0) ; extra == 'dev'
+Requires-Dist: pytest-pythonpath (<1.0,>=0.3) ; extra == 'dev'
+Requires-Dist: bumpversion (<1.0.0,>=0.5.3) ; extra == 'dev'
+Requires-Dist: tox (<3.0.0,>=2.9.1) ; extra == 'dev'
+Requires-Dist: wheel (<1.0.0,>=0.30.0) ; extra == 'dev'
+Provides-Extra: doc
+Requires-Dist: Sphinx (<2,>=1.5.5) ; extra == 'doc'
+Requires-Dist: sphinx-rtd-theme (<2,>=0.1.9) ; extra == 'doc'
+Requires-Dist: towncrier (<20,>=19.2.0) ; extra == 'doc'
+Provides-Extra: lint
+Requires-Dist: black (<19,>=18.6b4) ; extra == 'lint'
+Requires-Dist: flake8 (<4.0.0,>=3.7.0) ; extra == 'lint'
+Requires-Dist: isort (==4.3.18) ; extra == 'lint'
+Requires-Dist: mypy (==0.720) ; extra == 'lint'
+Requires-Dist: pytest (<4.0.0,>=3.4.1) ; extra == 'lint'
+Provides-Extra: test
+Requires-Dist: hypothesis (<5.0.0,>=4.43.0) ; extra == 'test'
+Requires-Dist: pytest (<4.0.0,>=3.4.1) ; extra == 'test'
+Requires-Dist: pytest-pythonpath (<1.0,>=0.3) ; extra == 'test'
+
+# Ethereum Utils
+
+[![Join the chat at https://gitter.im/ethereum/eth-utils](https://badges.gitter.im/ethereum/eth-utils.svg)](https://gitter.im/ethereum/eth-utils)
+
+[![Build Status](https://circleci.com/gh/ethereum/eth-utils.svg?style=shield)](https://circleci.com/gh/ethereum/eth-utils)
+
+[Documentation hosted by ReadTheDocs](https://eth-utils.readthedocs.io/en/latest/)
+
+Common utility functions for codebases which interact with ethereum.
+
+> This library and repository was previously located at https://github.com/pipermerriam/ethereum-utils.  It was transferred to the Ethereum foundation github in November 2017 and renamed to `eth-utils`.  The PyPi package was also renamed from `ethereum-utils` to `eth-utils`.
+
+
+## Installation
+
+```sh
+pip install eth-utils
+```
+
+## Development
+
+Clone the repository and then run:
+
+```sh
+pip install -e .[dev] eth-hash[pycryptodome]
+```
+
+## Documentation
+
+Building Sphinx docs locally:
+
+```sh
+pip install -e .[doc]
+cd docs
+make html
+```
+
+Docs are written in [reStructuredText](http://docutils.sourceforge.net/rst.html) and built using the [Sphinx](http://www.sphinx-doc.org/) documentation generator.
+
+
+### Running the tests
+
+You can run the tests with:
+
+```sh
+py.test tests
+```
+
+Or you can install `tox` to run the full test suite.
+
+
+### Releasing
+
+Pandoc is required for transforming the markdown README to the proper format to
+render correctly on pypi.
+
+For Debian-like systems:
+
+```
+apt install pandoc
+```
+
+Or on OSX:
+
+```sh
+brew install pandoc
+```
+
+To release a new version:
+
+```sh
+make release bump=$$VERSION_PART_TO_BUMP$$
+```
+To preview the upcoming release notes:
+
+```sh
+towncrier --draft
+```
+
+
+
+#### How to bumpversion
+
+The version format for this repo is `{major}.{minor}.{patch}` for stable, and
+`{major}.{minor}.{patch}-{stage}.{devnum}` for unstable (`stage` can be alpha or beta).
+
+To issue the next version in line, specify which part to bump,
+like `make release bump=minor` or `make release bump=devnum`.
+
+If you are in a beta version, `make release bump=stage` will switch to a stable.
+
+To issue an unstable version when the current version is stable, specify the
+new version explicitly, like `make release bump="--new-version 4.0.0-alpha.1 devnum"`
+
+

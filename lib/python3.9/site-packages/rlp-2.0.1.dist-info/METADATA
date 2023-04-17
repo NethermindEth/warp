@@ -1,0 +1,82 @@
+Metadata-Version: 2.1
+Name: rlp
+Version: 2.0.1
+Summary: A package for Recursive Length Prefix encoding and decoding
+Home-page: https://github.com/ethereum/pyrlp
+Author: jnnk
+Author-email: jnnknnj@gmail.com
+License: MIT
+Keywords: rlp ethereum
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Dist: eth-utils (<2,>=1.0.2)
+Provides-Extra: dev
+Requires-Dist: Sphinx (<2,>=1.6.5) ; extra == 'dev'
+Requires-Dist: bumpversion (<1,>=0.5.3) ; extra == 'dev'
+Requires-Dist: flake8 (==3.4.1) ; extra == 'dev'
+Requires-Dist: hypothesis (==5.19.0) ; extra == 'dev'
+Requires-Dist: ipython ; extra == 'dev'
+Requires-Dist: pytest-watch (<5,>=4.1.0) ; extra == 'dev'
+Requires-Dist: pytest-xdist ; extra == 'dev'
+Requires-Dist: pytest (==5.4.3) ; extra == 'dev'
+Requires-Dist: setuptools (>=36.2.0) ; extra == 'dev'
+Requires-Dist: sphinx-rtd-theme (>=0.1.9) ; extra == 'dev'
+Requires-Dist: tox (<3,>=2.9.1) ; extra == 'dev'
+Requires-Dist: twine ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+Provides-Extra: doc
+Requires-Dist: Sphinx (<2,>=1.6.5) ; extra == 'doc'
+Requires-Dist: sphinx-rtd-theme (>=0.1.9) ; extra == 'doc'
+Provides-Extra: lint
+Requires-Dist: flake8 (==3.4.1) ; extra == 'lint'
+Provides-Extra: rust-backend
+Requires-Dist: rusty-rlp (<0.2,>=0.1.15) ; extra == 'rust-backend'
+Provides-Extra: test
+Requires-Dist: hypothesis (==5.19.0) ; extra == 'test'
+Requires-Dist: pytest (==5.4.3) ; extra == 'test'
+Requires-Dist: tox (<3,>=2.9.1) ; extra == 'test'
+
+# pyrlp
+[![Build Status](https://travis-ci.org/ethereum/pyrlp.svg?branch=develop)](https://travis-ci.org/ethereum/pyrlp)
+[![Coverage Status](https://coveralls.io/repos/ethereum/pyrlp/badge.svg)](https://coveralls.io/r/ethereum/pyrlp)
+[![PyPI version](https://badge.fury.io/py/rlp.svg)](http://badge.fury.io/py/rlp)
+
+A Python implementation of Recursive Length Prefix encoding (RLP). You can find
+the specification of the standard in the
+[Ethereum wiki](https://github.com/ethereum/wiki/wiki/RLP) and the
+documentation of this package on
+[readthedocs](http://pyrlp.readthedocs.org/en/latest/).
+
+
+### Release setup
+
+For Debian-like systems:
+```
+apt install pandoc
+```
+
+To release a new version:
+
+```sh
+make release bump=$$VERSION_PART_TO_BUMP$$
+```
+
+#### How to bumpversion
+
+The version format for this repo is `{major}.{minor}.{patch}` for stable, and
+`{major}.{minor}.{patch}-{stage}.{devnum}` for unstable (`stage` can be alpha or beta).
+
+To issue the next version in line, specify which part to bump,
+like `make release bump=minor` or `make release bump=devnum`.
+
+If you are in a beta version, `make release bump=stage` will switch to a stable.
+
+To issue an unstable version when the current version is stable, specify the
+new version explicitly, like `make release bump="--new-version 4.0.0-alpha.1 devnum"`
+

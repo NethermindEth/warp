@@ -1,7 +1,9 @@
 import {
+  AddressType,
   ElementaryTypeName,
   IntType,
   Literal,
+  MemberAccess,
   SourceUnit,
   StructDefinition,
   UserDefinedType,
@@ -11,6 +13,14 @@ import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { createImport } from '../utils/importFuncGenerator';
+import {
+  ALLOC,
+  FINALIZE_KECCAK,
+  INTO,
+  U256_FROM_FELTS,
+  U128_FROM_FELT,
+  CONTRACT_ADDRESS,
+} from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 
@@ -31,22 +41,33 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
-    if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
+    const cairoType = primitiveTypeToCairo(node.name);
+    if (cairoType === 'u256') {
+      createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
+    } else if (cairoType === 'ContractAddress') {
+      createImport(...CONTRACT_ADDRESS, this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
+      createImport(...U256_FROM_FELTS, this.dummySourceUnit ?? node, ast);
+    }
+
+    if (type instanceof AddressType) {
+      createImport(...CONTRACT_ADDRESS, this.dummySourceUnit ?? node, ast);
     }
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const type = safeGetNodeType(node, ast.inference);
     if (type instanceof IntType && type.nBits > 251) {
-      createImport('starkware.cairo.common.uint256', 'Uint256', this.dummySourceUnit ?? node, ast);
+      createImport(...U128_FROM_FELT, this.dummySourceUnit ?? node, ast);
+    }
+
+    if (type instanceof AddressType) {
+      createImport(...CONTRACT_ADDRESS, this.dummySourceUnit ?? node, ast);
     }
 
     //  Patch to struct inlining
@@ -63,18 +84,18 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
-    if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
-      createImport('starkware.cairo.common.default_dict', 'default_dict_new', node, ast);
-      createImport('starkware.cairo.common.default_dict', 'default_dict_finalize', node, ast);
-      createImport('starkware.cairo.common.dict', 'dict_write', node, ast);
-    }
-
     if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
-      createImport('starkware.cairo.common.cairo_keccak.keccak', 'finalize_keccak', node, ast);
+      createImport(...FINALIZE_KECCAK, node, ast);
       // Required to create a keccak_ptr
-      createImport('starkware.cairo.common.alloc', 'alloc', node, ast);
+      createImport(...ALLOC, node, ast);
     }
 
     this.commonVisit(node, ast);
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    if (node.memberName === 'into') {
+      createImport(...INTO, node, ast);
+    }
   }
 }

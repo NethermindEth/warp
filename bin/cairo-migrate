@@ -1,0 +1,10 @@
+#!/home/esdras/Downloads/original/warp/bin/python
+
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../..'))
+from starkware.cairo.lang.migrators.migrator import main  # noqa
+
+if __name__ == '__main__':
+    sys.exit(main())

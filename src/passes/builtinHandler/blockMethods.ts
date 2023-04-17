@@ -24,7 +24,7 @@ export class BlockMethods extends ASTMapper {
         const replacementCall = createCallToFunction(
           ast.registerImport(
             node,
-            'warplib.block_methods',
+            ['warplib', 'block_methods'],
             'warp_block_number',
             [],
             [['block_num', createUint256TypeName(ast)]],
@@ -37,7 +37,7 @@ export class BlockMethods extends ASTMapper {
         const replacementCall = createCallToFunction(
           ast.registerImport(
             node,
-            'warplib.block_methods',
+            ['warplib', 'block_methods'],
             'warp_block_timestamp',
             [],
             [['block_timestamp', createUint256TypeName(ast)]],

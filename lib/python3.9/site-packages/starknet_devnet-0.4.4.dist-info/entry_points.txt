@@ -1,0 +1,3 @@
+[console_scripts]
+starknet-devnet=starknet_devnet.server:main
+

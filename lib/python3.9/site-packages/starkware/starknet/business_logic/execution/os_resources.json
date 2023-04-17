@@ -1,0 +1,141 @@
+{
+    "execute_syscalls": {
+        "call_contract": {
+            "builtin_instance_counter": {
+                "range_check_builtin": 17
+            },
+            "n_memory_holes": 0,
+            "n_steps": 545
+        },
+        "delegate_call": {
+            "builtin_instance_counter": {
+                "range_check_builtin": 17
+            },
+            "n_memory_holes": 0,
+            "n_steps": 567
+        },
+        "delegate_l1_handler": {
+            "builtin_instance_counter": {
+                "range_check_builtin": 13
+            },
+            "n_memory_holes": 0,
+            "n_steps": 546
+        },
+        "deploy": {
+            "builtin_instance_counter": {
+                "pedersen_builtin": 7,
+                "range_check_builtin": 16
+            },
+            "n_memory_holes": 0,
+            "n_steps": 800
+        },
+        "emit_event": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 18
+        },
+        "get_block_number": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 38
+        },
+        "get_block_timestamp": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 36
+        },
+        "get_caller_address": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 30
+        },
+        "get_contract_address": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 34
+        },
+        "get_sequencer_address": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 32
+        },
+        "get_tx_info": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 28
+        },
+        "get_tx_signature": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 43
+        },
+        "library_call": {
+            "builtin_instance_counter": {
+                "range_check_builtin": 17
+            },
+            "n_memory_holes": 0,
+            "n_steps": 535
+        },
+        "library_call_l1_handler": {
+            "builtin_instance_counter": {
+                "range_check_builtin": 13
+            },
+            "n_memory_holes": 0,
+            "n_steps": 514
+        },
+        "send_message_to_l1": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 81
+        },
+        "storage_read": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 42
+        },
+        "storage_write": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 44
+        }
+    },
+    "execute_txs_inner": {
+        "DECLARE": {
+            "builtin_instance_counter": {
+                "pedersen_builtin": 15,
+                "range_check_builtin": 57
+            },
+            "n_memory_holes": 0,
+            "n_steps": 2336
+        },
+        "DEPLOY": {
+            "builtin_instance_counter": {},
+            "n_memory_holes": 0,
+            "n_steps": 0
+        },
+        "DEPLOY_ACCOUNT": {
+            "builtin_instance_counter": {
+                "pedersen_builtin": 23,
+                "range_check_builtin": 74
+            },
+            "n_memory_holes": 0,
+            "n_steps": 3098
+        },
+        "INVOKE_FUNCTION": {
+            "builtin_instance_counter": {
+                "pedersen_builtin": 16,
+                "range_check_builtin": 70
+            },
+            "n_memory_holes": 0,
+            "n_steps": 2839
+        },
+        "L1_HANDLER": {
+            "builtin_instance_counter": {
+                "pedersen_builtin": 11,
+                "range_check_builtin": 13
+            },
+            "n_memory_holes": 0,
+            "n_steps": 877
+        }
+    }
+}

@@ -3,6 +3,7 @@ import { ArrayType, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-a
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { WM_INDEX_STATIC } from '../../utils/importPaths';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
@@ -26,8 +27,7 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
     );
 
     const importFunc = this.requireImport(
-      'warplib.memory',
-      'wm_index_static',
+      ...WM_INDEX_STATIC,
       [
         ['arr', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Memory],
         ['index', createUint256TypeName(this.ast)],

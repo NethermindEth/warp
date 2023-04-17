@@ -1,0 +1,7 @@
+setup.cfg
+setup.py
+varint.py
+varint.egg-info/PKG-INFO
+varint.egg-info/SOURCES.txt
+varint.egg-info/dependency_links.txt
+varint.egg-info/top_level.txt

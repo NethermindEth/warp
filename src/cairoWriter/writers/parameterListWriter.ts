@@ -1,12 +1,11 @@
 import {
   ASTWriter,
-  ContractDefinition,
   DataLocation,
   FunctionDefinition,
   ParameterList,
   SrcDesc,
 } from 'solc-typed-ast';
-import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
@@ -29,13 +28,11 @@ export class ParameterListWriter extends CairoASTNodeWriter {
         this.ast,
         varTypeConversionContext,
       );
-      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
-        return isExternallyVisible(node.parent) ||
-          node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
-          ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-          : `${value.name} : ${tp.toString()}`;
-      }
-      return `${value.name} : ${tp}`;
+      const isReturnParamList =
+        node.parent instanceof FunctionDefinition && node.parent.vReturnParameters === node;
+      // TODO: In the position of the type is written the typeString of the var. Needs to be checked the transformation
+      // of that typestring into de Cairo 1 syntax for that type (Eg: dynamic arrays of some variable)
+      return isReturnParamList ? tp : `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }

@@ -5,8 +5,6 @@ import {
   StructDefinition,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
-import { AST } from './ast/ast';
-import { makeStructTree, reorderStructs } from './passes/orderNestedStructs';
 
 /* 
   Library calls in solidity are delegate calls
@@ -18,16 +16,9 @@ import { makeStructTree, reorderStructs } from './passes/orderNestedStructs';
   function which do that.
 */
 
-export function getStructsAndRemappings(
-  node: SourceUnit,
-  ast: AST,
-): [StructDefinition[], Map<number, string>] {
-  // Stores old FunctionDefinition and cloned FunctionDefinition
-  const remappings = new Map<number, string>();
-
+export function getStructs(node: SourceUnit): StructDefinition[] {
   const externalStructs = getDefinitionsToInline(node, node, new Set());
-
-  return [reorderStructs(...makeStructTree(externalStructs, ast)), remappings];
+  return Array.from(externalStructs.values());
 }
 
 // DFS a node for definitions in a free context.

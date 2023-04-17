@@ -359,7 +359,7 @@ async function encodeConstructors(
   if (firstTest.signature.startsWith('constructor(')) {
     let signature: string = firstTest.signature;
     if (constructorSignature !== firstTest.signature && constructorSignature !== undefined) {
-      // If constructor Signature from AST does not match the constructor test signature in test_calldata.ts
+      // If constructor Signature from AST does not match the constructor test signature in testCalldata.ts
       // then we get the signature from the contract ABI (generated from solc )
       // for e.g tests/behaviour/solidity/test/libsolidity/semanticTests/array/constant_var_as_array_length.sol
       console.warn(

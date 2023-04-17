@@ -1,0 +1,153 @@
+Metadata-Version: 2.1
+Name: eth-rlp
+Version: 0.2.1
+Summary: eth-rlp: RLP definitions for common Ethereum objects in Python
+Home-page: https://github.com/ethereum/eth-rlp
+Author: The Ethereum Foundation
+Author-email: snakecharmers@ethereum.org
+License: MIT
+Keywords: ethereum
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Python: >=3.6, <4
+Description-Content-Type: text/markdown
+Requires-Dist: eth-utils (<2,>=1.0.1)
+Requires-Dist: hexbytes (<1,>=0.1.0)
+Requires-Dist: rlp (<3,>=0.6.0)
+Provides-Extra: dev
+Requires-Dist: Sphinx (<2,>=1.6.5) ; extra == 'dev'
+Requires-Dist: bumpversion (<1,>=0.5.3) ; extra == 'dev'
+Requires-Dist: eth-hash[pycryptodome] ; extra == 'dev'
+Requires-Dist: flake8 (==3.7.9) ; extra == 'dev'
+Requires-Dist: ipython ; extra == 'dev'
+Requires-Dist: isort (<5,>=4.2.15) ; extra == 'dev'
+Requires-Dist: mypy (==0.770) ; extra == 'dev'
+Requires-Dist: pydocstyle (<4,>=3.0.0) ; extra == 'dev'
+Requires-Dist: pytest-watch (<5,>=4.1.0) ; extra == 'dev'
+Requires-Dist: pytest-xdist ; extra == 'dev'
+Requires-Dist: pytest (==5.4.1) ; extra == 'dev'
+Requires-Dist: sphinx-rtd-theme (>=0.1.9) ; extra == 'dev'
+Requires-Dist: towncrier (<20,>=19.2.0) ; extra == 'dev'
+Requires-Dist: tox (==3.14.6) ; extra == 'dev'
+Requires-Dist: twine ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+Provides-Extra: doc
+Requires-Dist: Sphinx (<2,>=1.6.5) ; extra == 'doc'
+Requires-Dist: sphinx-rtd-theme (>=0.1.9) ; extra == 'doc'
+Requires-Dist: towncrier (<20,>=19.2.0) ; extra == 'doc'
+Provides-Extra: lint
+Requires-Dist: flake8 (==3.7.9) ; extra == 'lint'
+Requires-Dist: isort (<5,>=4.2.15) ; extra == 'lint'
+Requires-Dist: mypy (==0.770) ; extra == 'lint'
+Requires-Dist: pydocstyle (<4,>=3.0.0) ; extra == 'lint'
+Provides-Extra: test
+Requires-Dist: eth-hash[pycryptodome] ; extra == 'test'
+Requires-Dist: pytest-xdist ; extra == 'test'
+Requires-Dist: pytest (==5.4.1) ; extra == 'test'
+Requires-Dist: tox (==3.14.6) ; extra == 'test'
+
+# eth-rlp
+
+[![Join the chat at https://gitter.im/ethereum/eth-rlp](https://badges.gitter.im/ethereum/eth-rlp.svg)](https://gitter.im/ethereum/eth-rlp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://circleci.com/gh/ethereum/eth-rlp.svg?style=shield)](https://circleci.com/gh/ethereum/eth-rlp)
+[![PyPI version](https://badge.fury.io/py/eth-rlp.svg)](https://badge.fury.io/py/eth-rlp)
+[![Python versions](https://img.shields.io/pypi/pyversions/eth-rlp.svg)](https://pypi.python.org/pypi/eth-rlp)
+[![Docs build](https://readthedocs.org/projects/eth-rlp/badge/?version=latest)](http://eth-rlp.readthedocs.io/en/latest/?badge=latest)
+
+
+RLP definitions for common Ethereum objects in Python
+
+Read more in the [documentation on ReadTheDocs](http://eth-rlp.readthedocs.io/). [View the change log](http://eth-rlp.readthedocs.io/en/latest/release_notes.html).
+
+## Quickstart
+
+```sh
+pip install eth-rlp
+```
+
+## Developer Setup
+
+If you would like to hack on eth-rlp, please check out the [Snake Charmers
+Tactical Manual](https://github.com/ethereum/snake-charmers-tactical-manual)
+for information on how we do:
+
+- Testing
+- Pull Requests
+- Code Style
+- Documentation
+
+### Development Environment Setup
+
+You can set up your dev environment with:
+
+```sh
+git clone git@github.com:ethereum/eth-rlp.git
+cd eth-rlp
+virtualenv -p python3 venv
+. venv/bin/activate
+pip install -e .[dev]
+```
+
+### Testing Setup
+
+During development, you might like to have tests run on every file save.
+
+Show flake8 errors on file change:
+
+```sh
+# Test flake8
+when-changed -v -s -r -1 eth_rlp/ tests/ -c "clear; flake8 eth_rlp tests && echo 'flake8 success' || echo 'error'"
+```
+
+Run multi-process tests in one command, but without color:
+
+```sh
+# in the project root:
+pytest --numprocesses=4 --looponfail --maxfail=1
+# the same thing, succinctly:
+pytest -n 4 -f --maxfail=1
+```
+
+Run in one thread, with color and desktop notifications:
+
+```sh
+cd venv
+ptw --onfail "notify-send -t 5000 'Test failure ⚠⚠⚠⚠⚠' 'python 3 test on eth-rlp failed'" ../tests ../eth_rlp
+```
+
+### Release setup
+
+For Debian-like systems:
+```
+apt install pandoc
+```
+
+To release a new version:
+
+```sh
+make release bump=$$VERSION_PART_TO_BUMP$$
+```
+
+#### How to bumpversion
+
+The version format for this repo is `{major}.{minor}.{patch}` for stable, and
+`{major}.{minor}.{patch}-{stage}.{devnum}` for unstable (`stage` can be alpha or beta).
+
+To issue the next version in line, specify which part to bump,
+like `make release bump=minor` or `make release bump=devnum`. This is typically done from the
+master branch, except when releasing a beta (in which case the beta is released from master,
+and the previous stable branch is released from said branch).
+
+If you are in a beta version, `make release bump=stage` will switch to a stable.
+
+To issue an unstable version when the current version is stable, specify the
+new version explicitly, like `make release bump="--new-version 4.0.0-alpha.1 devnum"`
+
+

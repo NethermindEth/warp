@@ -1,10 +1,18 @@
+import endent from 'endent';
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import {
+  CairoType,
+  CairoUint,
+  CairoUint256,
+  TypeConversionContext,
+} from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import { U128_TO_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
+import { toFeltfromuXImport } from '../utils/uNselector';
 
 export class StorageWriteGen extends StringIndexedFuncGen {
   public gen(storageLocation: Expression, writeValue: Expression): FunctionCall {
@@ -14,7 +22,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
   }
 
   public getOrCreateFuncDef(typeToWrite: TypeNode) {
-    const key = `dynArrayPop(${typeToWrite.pp()})`;
+    const key = typeToWrite.pp();
     const value = this.generatedFunctionsDef.get(key);
     if (value !== undefined) {
       return value;
@@ -52,25 +60,37 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
-
     const cairoTypeString = cairoTypeToWrite.toString();
+    const fnsToImport: [string[], string][] = [];
+    const writeCode = cairoTypeToWrite
+      .serialiseMembers('value')
+      .map((name, index) => {
+        if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
+          name = `u128_to_felt252(${name})`;
+          fnsToImport.push(U128_TO_FELT);
+        } else if (cairoTypeToWrite instanceof CairoUint) {
+          name = `${cairoTypeString}_to_felt252(${name})`;
+          fnsToImport.push(toFeltfromuXImport(cairoTypeToWrite));
+        }
+        return `  ${write(add('loc', index), name)}`;
+      })
+      .join('\n');
+
     const funcName = `WS_WRITE${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
-        ...cairoTypeToWrite
-          .serialiseMembers('value')
-          .map((name, index) => `    ${write(add('loc', index), name)}`),
-        '    return (value,);',
-        '}',
-      ].join('\n'),
-      functionsCalled: [],
+      code: endent`
+        fn ${funcName}(loc: felt252, value: ${cairoTypeString}) -> ${cairoTypeString}{
+          ${writeCode}
+          return value;
+        }
+      `,
+      functionsCalled: [...fnsToImport.map((imp) => this.requireImport(...imp))],
     };
     return funcInfo;
   }
 }
 
 function write(offset: string, value: string): string {
-  return `WARP_STORAGE.write(${offset}, ${value});`;
+  return `WARP_STORAGE::write(${offset}, ${value});`;
 }
