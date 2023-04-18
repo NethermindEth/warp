@@ -14,7 +14,7 @@ import { AST } from '../../ast/ast';
 import { CairoFunctionDefinition } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { U128_FROM_FELT, UINT256_EQ, UINT256_SUB } from '../../utils/importPaths';
+import { U128_FROM_FELT, U256_FROM_FELTS, UINT256_EQ, UINT256_SUB } from '../../utils/importPaths';
 import {
   getElementType,
   isDynamicArray,
@@ -89,30 +89,26 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
         ? [
-            `let (elem_loc) = ${arrayName}.read(loc, newLen);`,
-            `let (elem_loc) = readId(elem_loc);`,
+            `let elem_loc = ${arrayName}::read((loc, newLen));`,
+            `let elem_loc = readId(elem_loc);`,
           ].join('\n')
-        : `let (elem_loc) = ${arrayName}.read(loc, newLen);`;
+        : `let elem_loc = ${arrayName}::read((loc, newLen));`;
 
     const funcName = `${arrayName}_POP`;
     return {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (){`,
-        `    alloc_locals;`,
-        `    let (len) = ${lengthName}.read(loc);`,
-        `    let (isEmpty) = uint256_eq(len, Uint256(0,0));`,
-        `    assert isEmpty = 0;`,
-        `    let (newLen) = uint256_sub(len, Uint256(1,0));`,
-        `    ${lengthName}.write(loc, newLen);`,
+        `fn ${funcName}(loc: felt252) {`,
+        `    let len = ${lengthName}::read(loc);`,
+        `    assert(len > u256_from_felts(0,0), 'Pop of empty list');`,
+        `    let newLen = len - u256_from_felts(1,0);`,
+        `    ${lengthName}::write(loc, newLen);`,
         `    ${getElemLoc}`,
         `    return ${deleteFunc.name}(elem_loc);`,
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...U128_FROM_FELT),
-        this.requireImport(...UINT256_EQ),
-        this.requireImport(...UINT256_SUB),
+        this.requireImport(...U256_FROM_FELTS),
         deleteFunc,
         dynArray,
         dynArrayLength,

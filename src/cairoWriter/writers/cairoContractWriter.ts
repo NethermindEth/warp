@@ -85,7 +85,7 @@ export class CairoContractWriter extends CairoASTNodeWriter {
         WARP_STORAGE: LegacyMap::<felt252, felt252>,
         WARP_USED_STORAGE: felt252,
         WARP_NAMEGEN: felt252,
-        ${otherStorageVars.map((v) => `${writer.write(v)}`).join('\n')}
+        ${otherStorageVars.map((v) => `${writer.write(v)},`).join('\n')}
       }
 
       fn readId(loc: felt252) -> felt252 {
