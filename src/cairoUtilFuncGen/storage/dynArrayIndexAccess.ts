@@ -72,14 +72,14 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        fn ${funcName}(ref: felt252, index: u256) -> felt252 {
-            let length = ${lengthName}::read(ref);
+        fn ${funcName}(reference: felt252, index: u256) -> felt252 {
+            let length = ${lengthName}::read(reference);
             assert(index < length, 'Index out of bounds');
-            let existing = ${arrayName}::read(ref, index);
+            let existing = ${arrayName}::read(reference, index);
             if (existing == 0) {
                 let used = WARP_USED_STORAGE::read();
                 WARP_USED_STORAGE::write(used + ${valueCairoType.width});
-                ${arrayName}::write((ref, index), used);
+                ${arrayName}::write((reference, index), used);
                 return used;
             } else {
                 return existing;
