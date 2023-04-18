@@ -113,9 +113,9 @@ function runTranspile(files: string[], options: CliOptions) {
 
   try {
     transpile(ast, options)
-      .map(([fname, cairo]) => {
-        outputResult(path.parse(fname).name, fname, cairo, options, ast);
-        return fname;
+      .map(([fileName, cairoCode]) => {
+        outputResult(path.parse(fileName).name, fileName, cairoCode, options, ast);
+        return fileName;
       })
       .map((file) =>
         postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
@@ -144,15 +144,21 @@ function runTranspile(files: string[], options: CliOptions) {
 }
 
 export function createCairoProject(filePath: string): void {
-  // create cairo_project.toml
-  const cairoProjectPath = path.join(path.dirname(filePath), 'cairo_project.toml');
-  const warplibRoot = path.join(PROJECT_ROOT, 'warplib');
+  const dirname = path.dirname(path.dirname(filePath));
+  const packageName = path.basename(dirname, '.sol');
+  const scarbConfigPath = path.join(dirname, 'Scarb.toml');
+  const warplib = path.join(PROJECT_ROOT, 'warplib');
   outputFileSync(
-    cairoProjectPath,
+    scarbConfigPath,
     endent`
-      [crate_roots]
-      root = "."
-      warplib = "${warplibRoot}"
+    [package]
+    name = "${packageName}"
+    version = "1.0.0"
+
+    [dependencies]
+    warplib = { path = "${warplib}" }
+
+    [[target.warp]]
     `,
   );
   // create lib.cairo

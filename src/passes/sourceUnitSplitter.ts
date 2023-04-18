@@ -58,7 +58,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
       '',
       '',
       0,
-      mangleContractFilePath(sourceUnit.absolutePath, contract.name),
+      mangleContractFilePath(sourceUnit.absolutePath, contract.name, '.cairo'),
       sourceUnit.exportedSymbols,
       [
         ...sourceUnit.vImportDirectives.map((iD) => cloneASTNode(iD, ast)),
@@ -109,12 +109,8 @@ export function mangleFreeFilePath(path: string): string {
   return join(path, FREE_FILE_NAME);
 }
 
-export function mangleContractFilePath(
-  path: string,
-  contractName: string,
-  suffix = '.cairo',
-): string {
-  return join(path, contractName + suffix);
+export function mangleContractFilePath(path: string, contractName: string, suffix: string): string {
+  return join(path, 'src', contractName + suffix);
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
