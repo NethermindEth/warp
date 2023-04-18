@@ -13,7 +13,7 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { U128_FROM_FELT, UINT256_ADD } from '../../utils/importPaths';
+import { U256_FROM_FELTS } from '../../utils/importPaths';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -72,29 +72,21 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (newElemLoc: felt){`,
-        `    alloc_locals;`,
-        `    let (len) = ${lengthName}.read(loc);`,
-        `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
-        `    assert carry = 0;`,
-        `    ${lengthName}.write(loc, newLen);`,
-        `    let (existing) = ${arrayName}.read(loc, len);`,
-        `    if ((existing) == 0){`,
-        `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(used + ${cairoElementType.width});`,
-        `        ${arrayName}.write(loc, len, used);`,
-        `        return (used,);`,
-        `    }else{`,
-        `        return (existing,);`,
+        `fn ${funcName}(loc: felt252) -> felt252 {`,
+        `    let len = ${lengthName}::read(loc);`,
+        `    ${lengthName}::write(loc, len + u256_from_felts(1,0));`,
+        `    let existing = ${arrayName}::read((loc, len));`,
+        `    if (existing == 0) {`,
+        `        let used = WARP_USED_STORAGE::read();`,
+        `        WARP_USED_STORAGE::write(used + ${cairoElementType.width});`,
+        `        ${arrayName}::write((loc, len), used);`,
+        `        return used;`,
+        `    } else {`,
+        `        return existing;`,
         `    }`,
         `}`,
       ].join('\n'),
-      functionsCalled: [
-        this.requireImport(...U128_FROM_FELT),
-        this.requireImport(...UINT256_ADD),
-        dynArray,
-        dynArrayLength,
-      ],
+      functionsCalled: [this.requireImport(...U256_FROM_FELTS), dynArray, dynArrayLength],
     };
   }
 }

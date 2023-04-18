@@ -10,7 +10,6 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { U128_FROM_FELT, UINT256_LT } from '../../utils/importPaths';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';

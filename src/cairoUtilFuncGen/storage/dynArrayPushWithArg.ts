@@ -29,7 +29,7 @@ import {
   specializeType,
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
-import { U128_FROM_FELT, UINT256_ADD } from '../../utils/importPaths';
+import { U256_FROM_FELTS } from '../../utils/importPaths';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   public constructor(
@@ -144,40 +144,33 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const arrayName = dynArray.name;
     const lengthName = dynArrayLength.name;
     const funcName = `${arrayName}_PUSHV${this.generatedFunctionsDef.size}`;
-    const implicits =
-      argLoc === DataLocation.Memory
-        ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
-        : '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, bitwise_ptr: BitwiseBuiltin*}';
+    const implicit = argLoc === DataLocation.Memory ? '#[implicit(warp_memory)]' : '';
 
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
-        ? [`let (elem_id) = readId(${cairoVar});`, `${elementWriteDef.name}(elem_id, value);`]
+        ? [`let elem_id = readId(${cairoVar});`, `${elementWriteDef.name}(elem_id, value);`]
         : [`${elementWriteDef.name}(${cairoVar}, value);`];
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc: felt, value: ${inputType}) -> (){`,
-        `    alloc_locals;`,
-        `    let (len) = ${lengthName}.read(loc);`,
-        `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
-        `    assert carry = 0;`,
-        `    ${lengthName}.write(loc, newLen);`,
-        `    let (existing) = ${arrayName}.read(loc, len);`,
-        `    if (existing == 0){`,
-        `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(used + ${allocationCairoType.width});`,
-        `        ${arrayName}.write(loc, len, used);`,
+        `${implicit}`,
+        `fn ${funcName}(loc: felt252, value: ${inputType}) {`,
+        `    let len = ${lengthName}::read(loc);`,
+        `    ${lengthName}::write(loc, len + u256_from_felts(1,0));`,
+        `    let existing = ${arrayName}::read((loc, len));`,
+        `    if (existing == 0) {`,
+        `        let used = WARP_USED_STORAGE::read();`,
+        `        WARP_USED_STORAGE::write(used + ${allocationCairoType.width});`,
+        `        ${arrayName}::write((loc, len), used);`,
         ...callWriteFunc('used'),
         `    }else{`,
         ...callWriteFunc('existing'),
         `    }`,
-        `    return ();`,
         `}`,
       ].join('\n'),
       functionsCalled: [
-        this.requireImport(...U128_FROM_FELT),
-        this.requireImport(...UINT256_ADD),
+        this.requireImport(...U256_FROM_FELTS),
         elementWriteDef,
         dynArray,
         dynArrayLength,
