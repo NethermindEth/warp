@@ -145,6 +145,8 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const lengthName = dynArrayLength.name;
     const funcName = `${arrayName}_PUSHV${this.generatedFunctionsDef.size}`;
 
+    const implicit = argLoc === DataLocation.Memory ? '#[implicit(warp_memory)]' : '';
+
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
         ? [`let (elem_id) = readId(${cairoVar});`, `${elementWriteDef.name}(elem_id, value);`]
@@ -153,7 +155,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `#[implicit(warp_memory)]`,
+        implicit,
         `func ${funcName}(loc: felt, value: ${inputType}) -> (){`,
         `    alloc_locals;`,
         `    let (len) = ${lengthName}.read(loc);`,
