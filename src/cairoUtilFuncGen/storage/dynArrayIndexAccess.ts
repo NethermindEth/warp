@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   DataLocation,
   FunctionCall,
@@ -70,21 +71,21 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const funcName = `${arrayName}_IDX`;
     return {
       name: funcName,
-      code: [
-        `fn ${funcName}(ref: felt252, index: u256) -> felt252 {`,
-        `    let length = ${lengthName}::read(ref);`,
-        `    assert(index < length, 'Index out of bounds');`,
-        `    let existing = ${arrayName}::read(ref, index);`,
-        `    if (existing == 0) {`,
-        `        let used = WARP_USED_STORAGE::read();`,
-        `        WARP_USED_STORAGE::write(used + ${valueCairoType.width});`,
-        `        ${arrayName}::write((ref, index), used);`,
-        `        return used;`,
-        `    } else {`,
-        `        return existing;`,
-        `    }`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(ref: felt252, index: u256) -> felt252 {
+            let length = ${lengthName}::read(ref);
+            assert(index < length, 'Index out of bounds');
+            let existing = ${arrayName}::read(ref, index);
+            if (existing == 0) {
+                let used = WARP_USED_STORAGE::read();
+                WARP_USED_STORAGE::write(used + ${valueCairoType.width});
+                ${arrayName}::write((ref, index), used);
+                return used;
+            } else {
+                return existing;
+            }
+        }
+        `,
       functionsCalled: [arrayDef, arrayLength],
     };
   }

@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ArrayType,
   BytesType,
@@ -88,25 +89,25 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
 
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
-        ? [
-            `let elem_loc = ${arrayName}::read((loc, newLen));`,
-            `let elem_loc = readId(elem_loc);`,
-          ].join('\n')
+        ? endent`
+            let elem_loc = ${arrayName}::read((loc, newLen));
+            let elem_loc = readId(elem_loc);
+            `
         : `let elem_loc = ${arrayName}::read((loc, newLen));`;
 
     const funcName = `${arrayName}_POP`;
     return {
       name: funcName,
-      code: [
-        `fn ${funcName}(loc: felt252) {`,
-        `    let len = ${lengthName}::read(loc);`,
-        `    assert(len > u256_from_felts(0,0), 'Pop of empty list');`,
-        `    let newLen = len - u256_from_felts(1,0);`,
-        `    ${lengthName}::write(loc, newLen);`,
-        `    ${getElemLoc}`,
-        `    return ${deleteFunc.name}(elem_loc);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(loc: felt252) {
+            let len = ${lengthName}::read(loc);
+            assert(len > u256_from_felts(0,0), 'Pop of empty list');
+            let newLen = len - u256_from_felts(1,0);
+            ${lengthName}::write(loc, newLen);
+            ${getElemLoc}
+            return ${deleteFunc.name}(elem_loc);
+        }
+        `,
       functionsCalled: [
         this.requireImport(...U256_FROM_FELTS),
         deleteFunc,

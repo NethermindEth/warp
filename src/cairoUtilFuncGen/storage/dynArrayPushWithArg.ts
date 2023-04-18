@@ -30,6 +30,7 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
 import { U256_FROM_FELTS } from '../../utils/importPaths';
+import endent from 'endent';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   public constructor(
@@ -148,27 +149,28 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
 
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
-        ? [`let elem_id = readId(${cairoVar});`, `${elementWriteDef.name}(elem_id, value);`]
-        : [`${elementWriteDef.name}(${cairoVar}, value);`];
+        ? endent`
+          let elem_id = readId(${cairoVar});
+          ${elementWriteDef.name}(elem_id, value);`
+        : `${elementWriteDef.name}(${cairoVar}, value);`;
 
     return {
       name: funcName,
-      code: [
-        `${implicit}`,
-        `fn ${funcName}(loc: felt252, value: ${inputType}) {`,
-        `    let len = ${lengthName}::read(loc);`,
-        `    ${lengthName}::write(loc, len + u256_from_felts(1,0));`,
-        `    let existing = ${arrayName}::read((loc, len));`,
-        `    if (existing == 0) {`,
-        `        let used = WARP_USED_STORAGE::read();`,
-        `        WARP_USED_STORAGE::write(used + ${allocationCairoType.width});`,
-        `        ${arrayName}::write((loc, len), used);`,
-        ...callWriteFunc('used'),
-        `    }else{`,
-        ...callWriteFunc('existing'),
-        `    }`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        ${implicit}
+        fn ${funcName}(loc: felt252, value: ${inputType}) {
+            let len = ${lengthName}::read(loc);
+            ${lengthName}::write(loc, len + u256_from_felts(1,0));
+            let existing = ${arrayName}::read((loc, len));
+            if (existing == 0) {
+                let used = WARP_USED_STORAGE::read();
+                WARP_USED_STORAGE::write(used + ${allocationCairoType.width});
+                ${arrayName}::write((loc, len), used);
+                ${callWriteFunc('used')}
+            } else {
+                ${callWriteFunc('existing')}
+            }
+        }`,
       functionsCalled: [
         this.requireImport(...U256_FROM_FELTS),
         elementWriteDef,

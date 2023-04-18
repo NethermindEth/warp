@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ArrayType,
   BytesType,
@@ -126,11 +127,13 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const cairoType = CairoType.fromSol(type, this.ast);
     return {
       name: funcName,
-      code: [
-        `fn ${funcName}(loc: felt252){`,
-        ...mapRange(cairoType.width, (n) => `    WARP_STORAGE::write(${add('loc', n)}, 0);`),
-        `}`,
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(loc: felt252){
+            ${mapRange(cairoType.width, (n) => `WARP_STORAGE::write(${add('loc', n)}, 0);`).join(
+              '\n',
+            )}
+        }
+        `,
       functionsCalled: [],
     };
   }

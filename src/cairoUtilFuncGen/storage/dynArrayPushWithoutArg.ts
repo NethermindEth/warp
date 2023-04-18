@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ArrayType,
   BytesType,
@@ -71,21 +72,21 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
     const funcName = `${arrayName}_PUSH`;
     return {
       name: funcName,
-      code: [
-        `fn ${funcName}(loc: felt252) -> felt252 {`,
-        `    let len = ${lengthName}::read(loc);`,
-        `    ${lengthName}::write(loc, len + u256_from_felts(1,0));`,
-        `    let existing = ${arrayName}::read((loc, len));`,
-        `    if (existing == 0) {`,
-        `        let used = WARP_USED_STORAGE::read();`,
-        `        WARP_USED_STORAGE::write(used + ${cairoElementType.width});`,
-        `        ${arrayName}::write((loc, len), used);`,
-        `        return used;`,
-        `    } else {`,
-        `        return existing;`,
-        `    }`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(loc: felt252) -> felt252 {
+            let len = ${lengthName}::read(loc);
+            ${lengthName}::write(loc, len + u256_from_felts(1,0));
+            let existing = ${arrayName}::read((loc, len));
+            if (existing == 0) {
+                let used = WARP_USED_STORAGE::read();
+                WARP_USED_STORAGE::write(used + ${cairoElementType.width});
+                ${arrayName}::write((loc, len), used);
+                return used;
+            } else {
+                return existing;
+            }
+        }
+        `,
       functionsCalled: [this.requireImport(...U256_FROM_FELTS), dynArray, dynArrayLength],
     };
   }
