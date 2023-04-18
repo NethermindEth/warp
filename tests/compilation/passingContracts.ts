@@ -121,7 +121,7 @@ export const passingContracts = [
   // 'tests/compilation/contracts/mutableReferences/scalarStorage.sol',
   // 'tests/compilation/contracts/namedArgs/constructor.sol',
   // 'tests/compilation/contracts/namedArgs/eventsAndErrors.sol',
-  // 'tests/compilation/contracts/namedArgs/function.sol',
+  'tests/compilation/contracts/namedArgs/function.sol',
   // 'tests/compilation/contracts/nestedStaticArrayStruct.sol',
   // 'tests/compilation/contracts/nestedStructStaticArray.sol',
   'tests/compilation/contracts/nestedStructs.sol',
