@@ -70,7 +70,7 @@ const warplibFunctions: WarplibFunctionInfo[] = [
 warplibFunctions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc));
 
 const mathsContent: string = glob
-  .sync('warplib/maths/*.cairo')
+  .sync('warplib/src/maths/*.cairo')
   .map((pathToFile) => {
     const fileName = path.basename(pathToFile, '.cairo');
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
@@ -86,7 +86,7 @@ const mathsContent: string = glob
   .join('\n\n');
 
 fs.writeFileSync(
-  path.join('.', 'warplib', 'maths.cairo'),
+  path.join('.', 'warplib', 'src', 'maths.cairo'),
   endent`
     // AUTO-GENERATED
     ${mathsContent}

@@ -61,7 +61,7 @@ export function msbAndNext(width: number): string {
 // const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
 export function generateFile(warpFunc: WarplibFunctionInfo): void {
-  const pathToFile = path.join('.', 'warplib', 'maths', `${warpFunc.fileName}.cairo`);
+  const pathToFile = path.join('.', 'warplib', 'src', 'maths', `${warpFunc.fileName}.cairo`);
 
   fs.writeFileSync(
     pathToFile,
