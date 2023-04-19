@@ -145,7 +145,7 @@ function runTranspile(files: string[], options: CliOptions) {
 
 export function createCairoProject(filePath: string): void {
   const dirname = path.dirname(path.dirname(filePath));
-  const packageName = path.basename(dirname, '.sol');
+  const packageName = path.basename(dirname, '.sol').replace('-', '_');
   const scarbConfigPath = path.join(dirname, 'Scarb.toml');
   const warplib = path.join(PROJECT_ROOT, 'warplib');
   outputFileSync(
