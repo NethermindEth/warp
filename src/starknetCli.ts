@@ -29,14 +29,7 @@ const NETWORK = 'network';
 const WALLET = 'wallet';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-const CAIRO1_COMPILE_BIN = path.resolve(
-  __dirname,
-  '..',
-  'cairo1',
-  getPlatform(),
-  'bin',
-  'starknet-compile',
-);
+const CAIRO1_COMPILE_BIN = path.resolve(__dirname, '..', 'cairo1', getPlatform(), 'bin', 'warp');
 
 interface CompileResult {
   success: boolean;
@@ -48,35 +41,27 @@ interface CompileResult {
 
 interface CompileCairo1Result {
   success: boolean;
-  sierraResultPath?: string;
-  casmResultPath?: string;
+  outputDir?: string;
 }
 
 export function compileCairo1(cairoProjectPath: string, debug = true): CompileCairo1Result {
   // check existence of cairo project dir and project files
   assert(existsSync(cairoProjectPath), `Cairo project does not exist at ${cairoProjectPath}`);
-  const libPath = path.join(cairoProjectPath, 'lib.cairo');
-  const tomlPath = path.join(cairoProjectPath, 'cairo_project.toml');
-  assert(existsSync(libPath), `lib.cairo does not exist at ${libPath}`);
-  assert(existsSync(tomlPath), `cairo_project.toml does not exist at ${tomlPath}`);
-
-  const sierraResultPath = `${cairoProjectPath}/temp.sierra`;
-  const casmResultPath = `${cairoProjectPath}/temp.casm`;
+  const scarbToml = path.join(cairoProjectPath, 'Scarb.toml');
+  assert(existsSync(scarbToml), `Scarb.toml does not exist at ${scarbToml}`);
 
   try {
     if (debug) console.log(`Running cairo1 compile`);
-    execSync(
-      `${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} ${cairoProjectPath} ${sierraResultPath} --replace-ids`,
-      { stdio: 'inherit' },
-    );
-    return { success: true, sierraResultPath: sierraResultPath, casmResultPath: casmResultPath };
+    execSync(`${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} build ${cairoProjectPath}`, {
+      stdio: 'inherit',
+    });
+    return { success: true, outputDir: path.join(cairoProjectPath, 'target') };
   } catch (e) {
     if (e instanceof Error) {
       logError('Compile failed');
       return {
         success: false,
-        sierraResultPath: undefined,
-        casmResultPath: undefined,
+        outputDir: undefined,
       };
     } else {
       throw e;
