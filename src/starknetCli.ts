@@ -52,7 +52,7 @@ export function compileCairo1(cairoProjectPath: string, debug = true): CompileCa
 
   try {
     if (debug) console.log(`Running cairo1 compile`);
-    execSync(`${warpVenvPrefix} ${CAIRO1_COMPILE_BIN} build ${cairoProjectPath}`, {
+    execSync(`${CAIRO1_COMPILE_BIN} build ${cairoProjectPath}`, {
       stdio: 'inherit',
     });
     return { success: true, outputDir: path.join(cairoProjectPath, 'target') };
