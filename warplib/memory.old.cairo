@@ -1,3 +1,7 @@
+// TODO This script holds the old cairo0 definition of memory util functions. Functions
+// that are needed from here should be added in `memory.cairo` and translated.
+// This file should be removed once we finish the transition to Cairo1
+
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
