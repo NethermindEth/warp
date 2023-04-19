@@ -10,6 +10,7 @@ export const warplibImportInfo = glob
 
     let importPath = pathToFile
       .split('/')
+      // We need to remove the `src` folder where scarb store the contracts
       .filter((dir) => dir !== 'src')
       .join('.');
     importPath = importPath.slice(0, importPath.length - '.cairo'.length);
