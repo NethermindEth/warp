@@ -2,19 +2,13 @@ import fs from 'fs';
 import { Implicits } from '../utils/implicits';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { glob } from 'glob';
-import path from 'path';
 
 export const warplibImportInfo = glob
-  .sync('warplib/**/*.cairo')
+  .sync('warplib/src/**/*.cairo')
   .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
-    // Normalize the path to '/' and then remove the src folder
-    let importPath = pathToFile
-      .split(path.sep)
-      .join('/')
-      .replace(/\/src\//, '/');
-    importPath = importPath.slice(0, importPath.length - '.cairo'.length);
+    const importPath = 'warplib/' + pathToFile.slice('warplib/src/'.length, -'.cairo'.length);
 
     const fileMap: Map<string, Implicits[]> =
       warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
