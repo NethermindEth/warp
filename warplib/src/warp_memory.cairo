@@ -30,6 +30,9 @@ trait WarpMemoryTrait {
     fn insert(ref self: WarpMemory, index: felt252, value: felt252);
     fn append(ref self: WarpMemory, value: felt252);
     fn read(ref self: WarpMemory, index: felt252) -> felt252;
+
+    /// Given a certain size, it allocates the space for writing
+    fn alloc(ref self: WarpMemory, size: felt252) -> felt252;
 }
 
 
@@ -50,5 +53,12 @@ impl WarpMemoryImpl of WarpMemoryTrait {
 
     fn read(ref self: WarpMemory, index: felt252) -> felt252 {
         self.memory.get(index)
+    }
+
+    fn alloc(ref self: WarpMemory, size: felt252) -> felt252 {
+        let reserved_pointer = self.pointer;
+        self.pointer += size;
+        
+        reserved_pointer
     }
 }
