@@ -6,6 +6,7 @@ import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
+  BASE_PATH,
   compileCairo,
   runStarknetCallOrInvoke,
   runStarknetCompile,
@@ -57,8 +58,6 @@ type CliOptions = CompilationOptions &
   PrintOptions &
   OutputOptions &
   IOptionalDebugInfo;
-
-const PROJECT_ROOT = path.dirname(__dirname);
 
 export const program = new Command();
 
@@ -125,7 +124,7 @@ function runTranspile(files: string[], options: CliOptions) {
         if (options.compileCairo) {
           const { success, resultPath, abiPath } = compileCairo(
             path.join(options.outputDir, file),
-            PROJECT_ROOT,
+            BASE_PATH,
             options,
           );
           if (!success) {
@@ -144,10 +143,10 @@ function runTranspile(files: string[], options: CliOptions) {
 }
 
 export function createCairoProject(filePath: string): void {
-  const dirname = path.dirname(path.dirname(filePath));
-  const packageName = path.basename(dirname, '.sol').replace('-', '_');
-  const scarbConfigPath = path.join(dirname, 'Scarb.toml');
-  const warplib = path.join(PROJECT_ROOT, 'warplib');
+  const outputRoot = path.dirname(path.dirname(filePath));
+  const packageName = path.basename(outputRoot, '.sol').replace('-', '_');
+  const scarbConfigPath = path.join(outputRoot, 'Scarb.toml');
+  const warplib = path.join(BASE_PATH, 'warplib');
   outputFileSync(
     scarbConfigPath,
     endent`

@@ -105,12 +105,12 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
   return nodes;
 }
 
-export function mangleFreeFilePath(path: string): string {
+function mangleFreeFilePath(path: string): string {
   return join(path, FREE_FILE_NAME);
 }
 
-export function mangleContractFilePath(path: string, contractName: string, suffix: string): string {
-  return join(path, 'src', contractName + suffix);
+function mangleContractFilePath(path: string, contractName: string, extension: string): string {
+  return join(path, 'src', contractName + extension);
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {

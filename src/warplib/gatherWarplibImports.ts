@@ -2,6 +2,7 @@ import fs from 'fs';
 import { Implicits } from '../utils/implicits';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { glob } from 'glob';
+import path from 'path';
 
 export const warplibImportInfo = glob
   .sync('warplib/**/*.cairo')
@@ -9,10 +10,9 @@ export const warplibImportInfo = glob
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
     let importPath = pathToFile
-      .split('/')
-      // We need to remove the `src` folder where scarb store the contracts
-      .filter((dir) => dir !== 'src')
-      .join('.');
+      .split(path.sep)
+      .join('/')
+      .replace(/\/src\//, '/');
     importPath = importPath.slice(0, importPath.length - '.cairo'.length);
 
     const fileMap: Map<string, Implicits[]> =

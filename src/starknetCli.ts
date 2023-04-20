@@ -28,8 +28,9 @@ const MAX_FEE = 'max_fee';
 const NETWORK = 'network';
 const WALLET = 'wallet';
 
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-const CAIRO1_COMPILE_BIN = path.resolve(__dirname, '..', 'cairo1', getPlatform(), 'bin', 'warp');
+export const BASE_PATH = path.dirname(__dirname);
+const warpVenvPrefix = `PATH=${path.resolve(BASE_PATH, 'warp_venv', 'bin')}:$PATH`;
+const CAIRO1_COMPILE_BIN = path.resolve(BASE_PATH, 'cairo1', getPlatform(), 'bin', 'warp');
 
 interface CompileResult {
   success: boolean;

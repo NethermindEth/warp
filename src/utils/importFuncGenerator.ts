@@ -269,5 +269,5 @@ function findExistingImport(
 }
 
 function encodePath(path: (string | string[])[]): string {
-  return path.flat().join('.');
+  return path.flat().join('/');
 }
