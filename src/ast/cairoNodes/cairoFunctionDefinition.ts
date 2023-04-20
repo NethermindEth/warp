@@ -26,6 +26,7 @@ export enum FunctionStubKind {
   FunctionDefStub,
   StorageDefStub,
   StructDefStub,
+  SuperStructDefStub,
 }
 
 export class CairoFunctionDefinition extends FunctionDefinition {

@@ -4,6 +4,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { isExternallyVisible } from '../../utils/utils';
+import { CairoImportFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 
 export class FunctionRemover extends ASTMapper {
   private functionGraph: Map<number, FunctionDefinition[]>;
@@ -22,6 +23,13 @@ export class FunctionRemover extends ASTMapper {
 
     node.vFunctions
       .filter((func) => !this.reachableFunctions.has(func.id))
+      .filter(
+        (func) =>
+          !(
+            func instanceof CairoImportFunctionDefinition &&
+            func.functionStubKind === FunctionStubKind.SuperStructDefStub
+          ),
+      )
       .forEach((func) => node.removeChild(func));
   }
 
@@ -32,6 +40,13 @@ export class FunctionRemover extends ASTMapper {
     // Remove unreachable functions
     node.vFunctions
       .filter((func) => !this.reachableFunctions.has(func.id))
+      .filter(
+        (func) =>
+          !(
+            func instanceof CairoImportFunctionDefinition &&
+            func.functionStubKind === FunctionStubKind.SuperStructDefStub
+          ),
+      )
       .forEach((func) => node.removeChild(func));
   }
 

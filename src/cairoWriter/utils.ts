@@ -20,6 +20,7 @@ export function getInterfaceNameForContract(
   nodeInSourceUnit: ASTNode,
   interfaceNameMappings: Map<SourceUnit, Map<string, string>>,
   isDelegateCall = false,
+  dispatcherSuffix = true,
 ): string {
   const sourceUnit =
     nodeInSourceUnit instanceof SourceUnit
@@ -37,5 +38,7 @@ export function getInterfaceNameForContract(
     `An error occurred during name substitution for the interface ${contractName}`,
   );
 
-  return interfaceName + (isDelegateCall ? 'LibraryDispatcher' : 'Dispatcher');
+  return (
+    interfaceName + (dispatcherSuffix ? (isDelegateCall ? 'LibraryDispatcher' : 'Dispatcher') : '')
+  );
 }

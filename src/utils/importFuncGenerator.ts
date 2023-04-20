@@ -1,5 +1,5 @@
 import { ASTNode, SourceUnit } from 'solc-typed-ast';
-import { CairoImportFunctionDefinition } from '../ast/cairoNodes';
+import { CairoImportFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { AST } from '../ast/ast';
 import { TranspileFailedError } from '../utils/errors';
 import { warplibImportInfo } from '../warplib/gatherWarplibImports';
@@ -142,7 +142,12 @@ export function createImport(
       sourceUnit,
       options,
     );
-  const createStructImport = () => createCairoImportStructDefinition(name, path, ast, sourceUnit);
+  const createStructImport = (superStructFunc = false) =>
+    createCairoImportStructDefinition(name, path, ast, sourceUnit, {
+      stubKind: superStructFunc
+        ? FunctionStubKind.SuperStructDefStub
+        : FunctionStubKind.StructDefStub,
+    });
 
   const warplibFunc = warplibImportInfo.get(encodePath(path))?.get(name);
   if (warplibFunc !== undefined) {
@@ -150,7 +155,7 @@ export function createImport(
   }
 
   if (path[0] === 'super') {
-    return createStructImport();
+    return createStructImport(true);
   }
 
   switch (encodePath([path, name])) {
