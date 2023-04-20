@@ -118,17 +118,17 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const funcName = `wm_to_calldata${this.generatedFunctionsDef.size}_struct_${structDef.name}`;
     return {
       name: funcName,
-      code: [
-        `#[implicit(warp_memory)]`,
-        `func ${funcName}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
-        `    alloc_locals;`,
-        ...code,
-        `    return (${outputType.toString()}(${mapRange(
-          structDef.vMembers.length,
-          (n) => `member${n}`,
-        )}),);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        func ${funcName}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){
+          alloc_locals;
+          ${code.join('\n')}
+          return (${outputType.toString()}(${mapRange(
+        structDef.vMembers.length,
+        (n) => `member${n}`,
+      )}),);
+        }
+      `,
       functionsCalled: funcCalls,
     };
   }
@@ -189,18 +189,18 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const funcName = `wm_to_calldata_dynamic_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        dynArrayReaderInfo.code,
-        `#[implicit(warp_memory)]`,
-        `func ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
-        `    let (len_256) = wm_read_256(mem_loc);`,
-        `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
-        `    let (len_felt) = narrow_safe(len_256);`,
-        `    ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);`,
-        `    return (${calldataDynArrayStruct.name}(len=len_felt, ptr=ptr),);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        ${dynArrayReaderInfo.code}
+        #[implicit(warp_memory)]
+        func ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}){
+            alloc_locals;
+            let (len_256) = wm_read_256(mem_loc);
+            let (ptr : ${outputType.vPtr.toString()}) = alloc();
+            let (len_felt) = narrow_safe(len_256);
+            ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);
+            return (${calldataDynArrayStruct.name}(len=len_felt, ptr=ptr),);
+        }
+        `,
       functionsCalled: [
         this.requireImport(...ALLOC),
         this.requireImport(...NARROW_SAFE),
@@ -241,18 +241,18 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [
-        `#[implicit(warp_memory)]`,
-        `func ${funcName}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
-        `    alloc_locals;`,
-        `    if (len == 0){`,
-        `         return ();`,
-        `    }`,
-        ...code,
-        `    ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth});`,
-        `    return ();`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        func ${funcName}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){
+            alloc_locals;
+            if (len == 0){
+                 return ();
+            }
+            ${code.join('\n')}
+            ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth});
+            return ();
+        }
+      `,
       functionsCalled: funcCalls,
     };
   }

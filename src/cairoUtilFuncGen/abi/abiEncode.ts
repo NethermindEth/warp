@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ArrayType,
   generalizeType,
@@ -83,20 +84,20 @@ export class AbiEncode extends AbiBase {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
-      `  let bytes_index : felt = 0;`,
-      `  let bytes_offset : felt = ${initialOffset};`,
-      `  let (bytes_array : felt*) = alloc();`,
-      ...encodings,
-      `  let (max_length256) = felt_to_uint256(bytes_offset);`,
-      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)});`,
-      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);`,
-      `  return (mem_ptr,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(${cairoParams}) -> (result_ptr : felt){
+        alloc_locals;
+        let bytes_index : felt = 0;
+        let bytes_offset : felt = ${initialOffset};
+        let (bytes_array : felt*) = alloc();
+        ${encodings.join('\n')}
+        let (max_length256) = felt_to_uint256(bytes_offset);
+        let (mem_ptr) = wm_new(max_length256, ${uint256(1)});
+        felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);
+        return (mem_ptr,);
+      }
+      `;
 
     const importedFuncs = [
       this.requireImport(...ALLOC),
@@ -163,15 +164,15 @@ export class AbiEncode extends AbiBase {
     const func = this.getOrCreateEncoding(type);
     if (isDynamicallySized(type, this.ast.inference) || isStruct(type)) {
       return [
-        [
-          `let (${newIndexVar}, ${newOffsetVar}) = ${func.name}(`,
-          `  bytes_index,`,
-          `  bytes_offset,`,
-          `  bytes_array,`,
-          `  ${elementOffset},`,
-          `  ${varToEncode}`,
-          `);`,
-        ].join('\n'),
+        endent`
+          let (${newIndexVar}, ${newOffsetVar}) = ${func.name}(
+            bytes_index,
+            bytes_offset,
+            bytes_array,
+            ${elementOffset}
+            ${varToEncode}
+          );
+        `,
         [func],
       ];
     }
@@ -180,17 +181,17 @@ export class AbiEncode extends AbiBase {
     if (type instanceof ArrayType) {
       assert(type.size !== undefined);
       return [
-        [
-          `let (${newIndexVar}, ${newOffsetVar}) = ${func.name}(`,
-          `  bytes_index,`,
-          `  bytes_offset,`,
-          `  bytes_array,`,
-          `  ${elementOffset},`,
-          `  0,`,
-          `  ${type.size},`,
-          `  ${varToEncode},`,
-          `);`,
-        ].join('\n'),
+        endent`
+          let (${newIndexVar}, ${newOffsetVar}) = ${func.name}(
+            bytes_index,
+            bytes_offset,
+            bytes_array,
+            ${elementOffset},
+            0,
+            ${type.size},
+            ${varToEncode},
+          );
+        `,
         [func],
       ];
     }
@@ -232,42 +233,42 @@ export class AbiEncode extends AbiBase {
     const valueEncoding = this.createValueTypeHeadEncoding();
 
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${name}(`,
-      `  bytes_index: felt,`,
-      `  bytes_offset: felt,`,
-      `  bytes_array: felt*,`,
-      `  element_offset: felt,`,
-      `  mem_ptr : felt`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
-      `  // Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
-      `  ${valueEncoding.name}(bytes_index, bytes_array, 0, bytes_offset256);`,
-      `  let new_index = bytes_index + 32;`,
-      `  // Storing the length`,
-      `  let (length256) = wm_dyn_array_length(mem_ptr);`,
-      `  ${valueEncoding.name}(bytes_offset, bytes_array, 0, length256);`,
-      `  let bytes_offset = bytes_offset + 32;`,
-      `  // Storing the data`,
-      `  let (length) = narrow_safe(length256);`,
-      `  let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)};`,
-      `  let (extended_offset) = ${tailEncoding.name}(`,
-      `    bytes_offset,`,
-      `    bytes_offset_offset,`,
-      `    bytes_array,`,
-      `    bytes_offset,`,
-      `    0,`,
-      `    length,`,
-      `    mem_ptr`,
-      `  );`,
-      `  return (`,
-      `    final_bytes_index=new_index,`,
-      `    final_bytes_offset=extended_offset`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index: felt,
+        bytes_offset: felt,
+        bytes_array: felt*,
+        element_offset: felt,
+        mem_ptr : felt
+      ) -> (final_bytes_index : felt, final_bytes_offset : felt){
+        alloc_locals;
+        // Storing pointer to data
+        let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);
+        ${valueEncoding.name}(bytes_index, bytes_array, 0, bytes_offset256);
+        let new_index = bytes_index + 32;
+        // Storing the length
+        let (length256) = wm_dyn_array_length(mem_ptr);
+        ${valueEncoding.name}(bytes_offset, bytes_array, 0, length256);
+        let bytes_offset = bytes_offset + 32;
+        // Storing the data
+        let (length) = narrow_safe(length256);
+        let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)};
+        let (extended_offset) = ${tailEncoding.name}(
+          bytes_offset,
+          bytes_offset_offset,
+          bytes_array,
+          bytes_offset,
+          0,
+          length,
+          mem_ptr
+        );
+        return (
+          final_bytes_index=new_index,
+          final_bytes_offset=extended_offset
+        );
+      }
+      `;
 
     const importedFuncs = [
       this.requireImport(...WM_DYN_ARRAY_LENGTH),
@@ -303,28 +304,28 @@ export class AbiEncode extends AbiBase {
       'elem',
     );
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${name}(`,
-      `  bytes_index : felt,`,
-      `  bytes_offset : felt,`,
-      `  bytes_array : felt*,`,
-      `  element_offset : felt,`,
-      `  index : felt,`,
-      `  length : felt,`,
-      `  mem_ptr : felt`,
-      `) -> (final_offset : felt){`,
-      `  alloc_locals;`,
-      `  if (index == length){`,
-      `     return (final_offset=bytes_offset);`,
-      `  }`,
-      `  let (index256) = felt_to_uint256(index);`,
-      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});`,
-      `  let (elem) = ${readElement};`,
-      `  ${headEncodingCode}`,
-      `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, element_offset, index + 1, length, mem_ptr);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_offset : felt,
+        bytes_array : felt*,
+        element_offset : felt,
+        index : felt,
+        length : felt,
+        mem_ptr : felt
+      ) -> (final_offset : felt){
+        alloc_locals;
+        if (index == length){
+           return (final_offset=bytes_offset);
+        }
+        let (index256) = felt_to_uint256(index);
+        let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});
+        let (elem) = ${readElement};
+        ${headEncodingCode}
+        return ${name}(new_bytes_index, new_bytes_offset, bytes_array, element_offset, index + 1, length, mem_ptr);
+      }
+      `;
 
     const importedFuncs = [
       this.requireImport(...WM_INDEX_DYN),
@@ -355,38 +356,37 @@ export class AbiEncode extends AbiBase {
     const valueEncoding = this.createValueTypeHeadEncoding();
 
     const name = `${this.functionName}_head_static_array${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${name}(`,
-      `  bytes_index : felt,`,
-      `  bytes_offset : felt,`,
-      `  bytes_array : felt*,`,
-      `  element_offset : felt,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
-      `  // Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
-      `  ${valueEncoding.name}(bytes_index, bytes_array, 0, bytes_offset256);`,
-      `  let new_bytes_index = bytes_index + 32;`,
-      `  // Storing the data`,
-      `  let length = ${type.size};`,
-      `  let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)};`,
-      `  let (_, extended_offset) = ${inlineEncoding.name}(`,
-      `    bytes_offset,`,
-      `    bytes_offset_offset,`,
-      `    bytes_array,`,
-      `    bytes_offset,`,
-      `    0,`,
-      `    length,`,
-      `    mem_ptr`,
-      `  );`,
-      `  return (`,
-      `    final_bytes_index=new_bytes_index,`,
-      `    final_bytes_offset=extended_offset`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_offset : felt,
+        bytes_array : felt*,
+        element_offset : felt,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt, final_bytes_offset : felt){
+        alloc_locals;
+        // Storing pointer to data
+        let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);
+        ${valueEncoding.name}(bytes_index, bytes_array, 0, bytes_offset256);
+        let new_bytes_index = bytes_index + 32;
+        // Storing the data
+        let length = ${type.size};
+        let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)};
+        let (_, extended_offset) = ${inlineEncoding.name}(
+          bytes_offset,
+          bytes_offset_offset,
+          bytes_array,
+          bytes_offset,
+          0,
+          length,
+          mem_ptr
+        );
+        return (
+          final_bytes_index=new_bytes_index,
+          final_bytes_offset=extended_offset
+        );
+      `;
 
     const importedFunc = this.requireImport(...FELT_TO_UINT256);
 
@@ -419,35 +419,35 @@ export class AbiEncode extends AbiBase {
     );
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${name}(`,
-      `  bytes_index : felt,`,
-      `  bytes_offset : felt,`,
-      `  bytes_array : felt*,`,
-      `  element_offset : felt,`,
-      `  mem_index : felt,`,
-      `  mem_length : felt,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
-      `  if (mem_index == mem_length){`,
-      `     return (final_bytes_index=bytes_index, final_bytes_offset=bytes_offset);`,
-      `  }`,
-      `  let elem_loc = mem_ptr + ${mul('mem_index', elementTWidth)};`,
-      `  let (elem) = ${readElement};`,
-      `  ${headEncodingCode}`,
-      `  return ${name}(`,
-      `     new_bytes_index,`,
-      `     new_bytes_offset,`,
-      `     bytes_array,`,
-      `     element_offset,`,
-      `     mem_index + 1,`,
-      `     mem_length,`,
-      `     mem_ptr`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_offset : felt,
+        bytes_array : felt*,
+        element_offset : felt,
+        mem_index : felt,
+        mem_length : felt,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt, final_bytes_offset : felt){
+        alloc_locals;
+        if (mem_index == mem_length){
+           return (final_bytes_index=bytes_index, final_bytes_offset=bytes_offset);
+        }
+        let elem_loc = mem_ptr + ${mul('mem_index', elementTWidth)};
+        let (elem) = ${readElement};
+        ${headEncodingCode}
+        return ${name}(
+           new_bytes_index,
+           new_bytes_offset,
+           bytes_array,
+           element_offset,
+           mem_index + 1,
+           mem_length,
+           mem_ptr
+        );
+      }
+      `;
 
     const genFuncInfo = { name, code, functionsCalled: [...functionsCalled, readFunc] };
     const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);
@@ -481,32 +481,32 @@ export class AbiEncode extends AbiBase {
     const valueEncoding = this.createValueTypeHeadEncoding();
 
     const name = `${this.functionName}_head_${def.name}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${name}(`,
-      `  bytes_index : felt,`,
-      `  bytes_offset : felt,`,
-      `  bytes_array : felt*,`,
-      `  element_offset : felt,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
-      `  // Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
-      `  ${valueEncoding.name}(bytes_index, bytes_array, 0, bytes_offset256);`,
-      `  let new_bytes_index = bytes_index + 32;`,
-      `  // Storing the data`,
-      `  let bytes_offset_offset = bytes_offset + ${typeByteSize};`,
-      `  let (_, new_bytes_offset) = ${inlineEncoding.name}(`,
-      `    bytes_offset,`,
-      `    bytes_offset_offset,`,
-      `    bytes_array,`,
-      `    bytes_offset,`,
-      `    mem_ptr`,
-      `);`,
-      `  return (new_bytes_index, new_bytes_offset);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_offset : felt,
+        bytes_array : felt*,
+        element_offset : felt,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt, final_bytes_offset : felt){
+        alloc_locals;
+        // Storing pointer to data
+        let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);
+        ${valueEncoding.name}(bytes_index, bytes_array, 0, bytes_offset256);
+        let new_bytes_index = bytes_index + 32;
+        // Storing the data
+        let bytes_offset_offset = bytes_offset + ${typeByteSize};
+        let (_, new_bytes_offset) = ${inlineEncoding.name}(
+          bytes_offset,
+          bytes_offset_offset,
+          bytes_array,
+          bytes_offset,
+          mem_ptr
+      );
+        return (new_bytes_index, new_bytes_offset);
+      }
+      `;
 
     const genFuncInfo = {
       name,
@@ -540,12 +540,12 @@ export class AbiEncode extends AbiBase {
           `elem${index}`,
         );
         return [
-          [
-            `// Encoding member ${member.name}`,
-            `let (elem${index}) = ${readElement};`,
-            `${encoding}`,
-            `let mem_ptr = mem_ptr + ${elemWidth};`,
-          ].join('\n'),
+          endent`
+            // Encoding member ${member.name}
+            let (elem${index}) = ${readElement};
+            ${encoding}
+            let mem_ptr = mem_ptr + ${elemWidth};
+          `,
           [...funcsCalled, readFunc],
         ];
       },
@@ -555,20 +555,20 @@ export class AbiEncode extends AbiBase {
     const functionsCalled = decodingInfo.flatMap((info) => info[1]);
 
     const name = `${this.functionName}_inline_struct_${def.name}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${name}(`,
-      `  bytes_index : felt,`,
-      `  bytes_offset : felt,`,
-      `  bytes_array : felt*,`,
-      `  element_offset : felt,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
-      `  alloc_locals;`,
-      ...instructions,
-      `  return (bytes_index, bytes_offset);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_offset : felt,
+        bytes_array : felt*,
+        element_offset : felt,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt, final_bytes_offset : felt){
+        alloc_locals;
+        ${instructions.join('\n')}
+        return (bytes_index, bytes_offset);
+      }
+      `;
 
     const genFuncInfo = { name, code, functionsCalled };
     const auxFunc = this.createAuxiliarGeneratedFunction(genFuncInfo);

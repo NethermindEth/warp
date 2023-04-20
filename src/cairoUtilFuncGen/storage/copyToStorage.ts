@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ArrayType,
   BytesType,
@@ -159,13 +160,13 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const funcName = `WS_COPY_STRUCT_${def.name}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
-        ...copyCode,
-        `    return (to_loc,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){
+            alloc_locals;
+            ${copyCode.join('\n')}
+            return (to_loc,);
+        }
+      `,
       functionsCalled: funcsCalled,
     };
   }
@@ -227,18 +228,20 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [
-        `func ${funcName}_elem(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> (){`,
-        ...stopRecursion,
-        `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1);`,
-        `}`,
+      code: endent`
+        func ${funcName}_elem(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> (){
+        ${stopRecursion.join('\n')}
+            ${copyCode('to_elem_loc', 'from_elem_loc')}
+            return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${
+        fromElemType.width
+      }, index + 1)
+        }
 
-        `func ${funcName}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt){`,
-        `    ${funcName}_elem(to_elem_loc, from_elem_loc, 0);`,
-        `    return (to_elem_loc,);`,
-        `}`,
-      ].join('\n'),
+        func ${funcName}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt){
+            ${funcName}_elem(to_elem_loc, from_elem_loc, 0);
+            return (to_elem_loc,);
+        }
+        `,
       functionsCalled: [elementCopyFunc, ...optionalCalls],
     };
   }
@@ -288,42 +291,42 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const funcName = `WS_COPY_DYNAMIC_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}_elem(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
-        `    alloc_locals;`,
-        `    if (length.low == 0 and length.high == 0){`,
-        `        return ();`,
-        `    }`,
-        `    let (index) = uint256_sub(length, Uint256(1,0));`,
-        `    let (from_elem_loc) = ${fromElementMappingName}.read(from_loc, index);`,
-        `    let (to_elem_loc) = ${toElementMappingName}.read(to_loc, index);`,
-        `    if (to_elem_loc == 0){`,
-        `        let (to_elem_loc) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});`,
-        `        ${toElementMappingName}.write(to_loc, index, to_elem_loc);`,
-        `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_loc, index);`,
-        `    }else{`,
-        `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_loc, index);`,
-        `    }`,
-        `}`,
+      code: endent`
+        func ${funcName}_elem(to_loc: felt, from_loc: felt, length: Uint256) -> (){
+            alloc_locals;
+            if (length.low == 0 and length.high == 0){
+                return ();
+            }
+            let (index) = uint256_sub(length, Uint256(1,0));
+            let (from_elem_loc) = ${fromElementMappingName}.read(from_loc, index);
+            let (to_elem_loc) = ${toElementMappingName}.read(to_loc, index);
+            if (to_elem_loc == 0){
+                let (to_elem_loc) = WARP_USED_STORAGE.read();
+                WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});
+                ${toElementMappingName}.write(to_loc, index, to_elem_loc);
+                ${copyCode('to_elem_loc', 'from_elem_loc')}
+                return ${funcName}_elem(to_loc, from_loc, index);
+            }else{
+                ${copyCode('to_elem_loc', 'from_elem_loc')}
+                return ${funcName}_elem(to_loc, from_loc, index);
+            }
+        }
 
-        `func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
-        `    let (from_length) = ${fromLengthMappingName}.read(from_loc);`,
-        `    let (to_length) = ${toLengthMappingName}.read(to_loc);`,
-        `    ${toLengthMappingName}.write(to_loc, from_length);`,
-        `    ${funcName}_elem(to_loc, from_loc, from_length);`,
-        `    let (lesser) = uint256_lt(from_length, to_length);`,
-        `    if (lesser == 1){`,
-        `       ${deleteRemainingCode};`,
-        `       return (to_loc,);`,
-        `    }else{`,
-        `       return (to_loc,);`,
-        `    }`,
-        `}`,
-      ].join('\n'),
+        func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){
+            alloc_locals;
+            let (from_length) = ${fromLengthMappingName}.read(from_loc);
+            let (to_length) = ${toLengthMappingName}.read(to_loc);
+            ${toLengthMappingName}.write(to_loc, from_length);
+            ${funcName}_elem(to_loc, from_loc, from_length);
+            let (lesser) = uint256_lt(from_length, to_length);
+            if (lesser == 1){
+               ${deleteRemainingCode};
+               return (to_loc,);
+            }else{
+               return (to_loc,);
+            }
+        }
+      `,
       functionsCalled: [
         this.requireImport(...U128_FROM_FELT),
         this.requireImport(...UINT256_SUB),
@@ -375,44 +378,48 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const funcName = `WS_COPY_STATIC_TO_DYNAMIC_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}_elem(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
-        `    alloc_locals;`,
-        `    if (length.low == index.low){`,
-        `        if (length.high == index.high){`,
-        `            return ();`,
-        `        }`,
-        `    }`,
-        `    let (to_elem_loc) = ${toElementMappingName}.read(to_loc, index);`,
-        `    let (next_index, carry) = uint256_add(index, Uint256(1,0));`,
-        `    assert carry = 0;`,
-        `    if (to_elem_loc == 0){`,
-        `        let (to_elem_loc) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});`,
-        `        ${toElementMappingName}.write(to_loc, index, to_elem_loc);`,
-        `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
-        `    }else{`,
-        `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
-        `    }`,
-        `}`,
+      code: endent`
+        func ${funcName}_elem(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){
+            alloc_locals;
+            if (length.low == index.low){
+                if (length.high == index.high){
+                    return ();
+                }
+            }
+            let (to_elem_loc) = ${toElementMappingName}.read(to_loc, index);
+            let (next_index, carry) = uint256_add(index, Uint256(1,0));
+            assert carry = 0;
+            if (to_elem_loc == 0){
+                let (to_elem_loc) = WARP_USED_STORAGE.read();
+                WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});
+                ${toElementMappingName}.write(to_loc, index, to_elem_loc);
+                ${copyCode('to_elem_loc', 'from_elem_loc')}
+                return ${funcName}_elem(to_loc, from_elem_loc + ${
+        fromElementCairoType.width
+      }, length, next_index);
+            }else{
+                ${copyCode('to_elem_loc', 'from_elem_loc')}
+                return ${funcName}_elem(to_loc, from_elem_loc + ${
+        fromElementCairoType.width
+      }, length, next_index);
+            }
+        }
 
-        `func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
-        `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};`,
-        `    let (to_length) = ${toLengthMappingName}.read(to_loc);`,
-        `    ${toLengthMappingName}.write(to_loc, from_length);`,
-        `    ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0));`,
-        `    let (lesser) = uint256_lt(from_length, to_length);`,
-        `    if (lesser == 1){`,
-        `       ${deleteRemainingCode};`,
-        `       return (to_loc,);`,
-        `    }else{`,
-        `       return (to_loc,);`,
-        `    }`,
-        `}`,
-      ].join('\n'),
+        func ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt){
+            alloc_locals;
+            let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};
+            let (to_length) = ${toLengthMappingName}.read(to_loc);
+            ${toLengthMappingName}.write(to_loc, from_length);
+            ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0));
+            let (lesser) = uint256_lt(from_length, to_length);
+            if (lesser == 1){
+               ${deleteRemainingCode};
+               return (to_loc,);
+            }else{
+               return (to_loc,);
+            }
+        }
+      `,
       functionsCalled: [
         this.requireImport(...U128_FROM_FELT),
         this.requireImport(...UINT256_ADD),
@@ -434,11 +441,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     // Read changes depending if From is 256 bits or less
     const readFromCode =
       fromType.nBits === 256
-        ? [
-            'let (from_low) = WARP_STORAGE.read(from_loc);',
-            'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
-            'tempvar from_elem = Uint256(from_low, from_high);',
-          ].join('\n')
+        ? endent`
+            let (from_low) = WARP_STORAGE.read(from_loc);
+            let (from_high) = WARP_STORAGE.read(from_loc + 1);
+            tempvar from_elem = Uint256(from_low, from_high);
+          `
         : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
     // Scaling for ints is different than for uints
@@ -453,24 +460,24 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     // Copy changes depending if To is 256 bits or less
     const copyToCode =
       toType.nBits === 256
-        ? [
-            'WARP_STORAGE.write(to_loc, to_elem.low);',
-            'WARP_STORAGE.write(to_loc + 1, to_elem.high);',
-          ].join('\n')
+        ? endent`
+            WARP_STORAGE.write(to_loc, to_elem.low);
+            WARP_STORAGE.write(to_loc + 1, to_elem.high);
+          `
         : 'WARP_STORAGE.write(to_loc, to_elem);';
 
     const funcName = `WS_COPY_INTEGER_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `   alloc_locals;`,
-        `   ${readFromCode}`,
-        `   ${scalingCode}`,
-        `   ${copyToCode}`,
-        `   return (to_loc,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){
+           alloc_locals;
+           ${readFromCode}
+           ${scalingCode}
+           ${copyToCode}
+           return (to_loc,);
+        }
+        `,
       functionsCalled: [
         this.requireImport(...U128_FROM_FELT),
         toType.signed
@@ -491,11 +498,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     const readFromCode =
       fromType.size === 32
-        ? [
-            'let (from_low) = WARP_STORAGE.read(from_loc);',
-            'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
-            'tempvar from_elem = Uint256(from_low, from_high);',
-          ].join('\n')
+        ? endent`
+            let (from_low) = WARP_STORAGE.read(from_loc);
+            let (from_high) = WARP_STORAGE.read(from_loc + 1);
+            tempvar from_elem = Uint256(from_low, from_high);
+          `
         : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
     const scalingCode =
@@ -505,24 +512,24 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     const copyToCode =
       toType.size === 32
-        ? [
-            'WARP_STORAGE.write(to_loc, to_elem.low);',
-            'WARP_STORAGE.write(to_loc + 1, to_elem.high);',
-          ].join('\n')
+        ? endent`
+            WARP_STORAGE.write(to_loc, to_elem.low);
+            WARP_STORAGE.write(to_loc + 1, to_elem.high);
+          `
         : 'WARP_STORAGE.write(to_loc, to_elem);';
 
     const funcName = `WS_COPY_FIXED_BYTES_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `   alloc_locals;`,
-        `   ${readFromCode}`,
-        `   ${scalingCode}`,
-        `   ${copyToCode}`,
-        `   return (to_loc,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){
+           alloc_locals;
+           ${readFromCode}
+           ${scalingCode}
+           ${copyToCode}
+           return (to_loc,);
+        }
+      `,
       functionsCalled: [
         this.requireImport(BYTES_CONVERSIONS, conversionFunc),
         this.requireImport(...U128_FROM_FELT),
@@ -536,23 +543,23 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const funcName = `WS_COPY_VALUE_${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `    alloc_locals;`,
-        ...mapRange(width, copyAtOffset),
-        `    return (to_loc,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){
+            alloc_locals;
+            ${mapRange(width, copyAtOffset).join('\n')}
+            return (to_loc,);
+        }
+      `,
       functionsCalled: [],
     };
   }
 }
 
 function copyAtOffset(n: number): string {
-  return [
-    `let (copy) = WARP_STORAGE.read(${add('from_loc', n)});`,
-    `WARP_STORAGE.write(${add('to_loc', n)}, copy);`,
-  ].join('\n');
+  return endent`
+    let (copy) = WARP_STORAGE.read(${add('from_loc', n)});
+    WARP_STORAGE.write(${add('to_loc', n)}, copy);
+  `;
 }
 
 // TODO: There is a bunch of `readId` here!
@@ -565,26 +572,27 @@ function createElementCopy(
   if (fromElementCairoType instanceof WarpLocation) {
     if (toElementCairoType instanceof WarpLocation) {
       return (to: string, from: string): string =>
-        [
-          `let (from_elem_id) = readId(${from});`,
-          `let (to_elem_id) = readId(${to});`,
-          `${elementCopyFunc}(to_elem_id, from_elem_id);`,
-        ].join('\n');
+        endent`
+          let (from_elem_id) = readId(${from});
+          let (to_elem_id) = readId(${to});
+          ${elementCopyFunc}(to_elem_id, from_elem_id);
+        `;
     } else {
       return (to: string, from: string): string =>
-        [`let (from_elem_id) = readId(${from});`, `${elementCopyFunc}(${to}, from_elem_id);`].join(
-          '\n',
-        );
+        endent`
+          let (from_elem_id) = readId(${from});
+          ${elementCopyFunc}(${to}, from_elem_id);
+        `;
     }
   } else {
     if (toElementCairoType instanceof WarpLocation) {
       return (to: string, from: string): string =>
-        [`let (to_elem_id) = readId(${to});`, `${elementCopyFunc}(to_elem_id, ${from});`].join(
-          '\n',
-        );
+        endent`
+          let (to_elem_id) = readId(${to});
+          ${elementCopyFunc}(to_elem_id, ${from});
+        `;
     } else {
-      return (to: string, from: string): string =>
-        [`${elementCopyFunc}(${to}, ${from});`].join('\n');
+      return (to: string, from: string): string => `${elementCopyFunc}(${to}, ${from});`;
     }
   }
 }

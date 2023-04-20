@@ -34,6 +34,7 @@ import {
   WM_INDEX_DYN,
   WM_NEW,
 } from '../../utils/importPaths';
+import endent from 'endent';
 
 /**
  * Given any data type produces the same output of solidity abi.encodePacked
@@ -71,19 +72,19 @@ export class AbiEncodePacked extends AbiBase {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
-      `  let bytes_index : felt = 0;`,
-      `  let (bytes_array : felt*) = alloc();`,
-      ...encodings,
-      `  let (max_length256) = felt_to_uint256(bytes_index);`,
-      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)});`,
-      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_index);`,
-      `  return (mem_ptr,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(${cairoParams}) -> (result_ptr : felt){
+        alloc_locals;
+        let bytes_index : felt = 0;
+        let (bytes_array : felt*) = alloc();
+        ${encodings.join('\n')}
+        let (max_length256) = felt_to_uint256(bytes_index);
+        let (mem_ptr) = wm_new(max_length256, ${uint256(1)});
+        felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_index);
+        return (mem_ptr,);
+      }
+      `;
 
     const importedFuncs = [
       this.requireImport(...U128_FROM_FELT),
@@ -124,11 +125,11 @@ export class AbiEncodePacked extends AbiBase {
     // It was decided to store them fully before just a part
     if (isAddressType(type)) {
       return [
-        [
-          `let (${varToEncode}256) = felt_to_uint256(${varToEncode});`,
-          `fixed_bytes256_to_felt_dynamic_array(bytes_index, bytes_array, 0, ${varToEncode}256);`,
-          `let ${newIndexVar} = bytes_index +  32;`,
-        ].join('\n'),
+        endent`
+          let (${varToEncode}256) = felt_to_uint256(${varToEncode});
+          fixed_bytes256_to_felt_dynamic_array(bytes_index, bytes_array, 0, ${varToEncode}256);
+          let ${newIndexVar} = bytes_index +  32;
+        `,
         [
           this.requireImport(...FELT_TO_UINT256),
           this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY),
@@ -140,11 +141,11 @@ export class AbiEncodePacked extends AbiBase {
 
     if (isDynamicArray(type)) {
       return [
-        [
-          `let (length256) = wm_dyn_array_length(${varToEncode});`,
-          `let (length) = narrow_safe(length256);`,
-          `let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});`,
-        ].join('\n'),
+        endent`
+          let (length256) = wm_dyn_array_length(${varToEncode});
+          let (length) = narrow_safe(length256);
+          let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});
+        `,
         [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE), func],
       ];
     }
@@ -163,10 +164,10 @@ export class AbiEncodePacked extends AbiBase {
     if (packedByteSize < 32) args.push(`${packedByteSize}`);
 
     return [
-      [
-        `${func.name}(${args.join(',')});`,
-        `let ${newIndexVar} = bytes_index +  ${packedByteSize};`,
-      ].join('\n'),
+      endent`
+        ${func.name}(${args.join(',')});
+        let ${newIndexVar} = bytes_index +  ${packedByteSize};
+      `,
       [func],
     ];
   }
@@ -189,10 +190,10 @@ export class AbiEncodePacked extends AbiBase {
     // Obtaining the location differs from static and dynamic arrays
     const elementTSize256 = uint256(cairoElementT.width);
     const getElemLoc = isDynamicArray(type)
-      ? [
-          `let (mem_index256) = felt_to_uint256(mem_index);`,
-          `let (elem_loc : felt) = wm_index_dyn(mem_ptr, mem_index256, ${elementTSize256});`,
-        ].join('\n')
+      ? endent`
+          let (mem_index256) = felt_to_uint256(mem_index);
+          let (elem_loc : felt) = wm_index_dyn(mem_ptr, mem_index256, ${elementTSize256});
+        `
       : `let elem_loc : felt = mem_ptr + ${mul('mem_index', cairoElementT.width)};`;
 
     const readFunc = this.memoryRead.getOrCreateFuncDef(elementT);
@@ -205,31 +206,31 @@ export class AbiEncodePacked extends AbiBase {
     );
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${name}(`,
-      `  bytes_index : felt,`,
-      `  bytes_array : felt*,`,
-      `  mem_index : felt,`,
-      `  mem_length : felt,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
-      `  if (mem_index == mem_length){`,
-      `     return (final_bytes_index=bytes_index);`,
-      `  }`,
-      `  ${getElemLoc}`,
-      `  ${readCode}`,
-      `  ${encodingCode}`,
-      `  return ${name}(`,
-      `     new_bytes_index,`,
-      `     bytes_array,`,
-      `     mem_index + 1,`,
-      `     mem_length,`,
-      `     mem_ptr`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_array : felt*,
+        mem_index : felt,
+        mem_length : felt,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt){
+        alloc_locals;
+        if (mem_index == mem_length){
+           return (final_bytes_index=bytes_index);
+        }
+        ${getElemLoc}
+        ${readCode}
+        ${encodingCode}
+        return ${name}(
+           new_bytes_index,
+           bytes_array,
+           mem_index + 1,
+           mem_length,
+           mem_ptr
+        );
+      }
+      `;
 
     const importedFuncs = isDynamicArray(type)
       ? [this.requireImport(...WM_INDEX_DYN), this.requireImport(...FELT_TO_UINT256)]

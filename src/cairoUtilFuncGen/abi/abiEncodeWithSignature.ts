@@ -1,3 +1,4 @@
+import endent from 'endent';
 import {
   DataLocation,
   Expression,
@@ -81,18 +82,18 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
       [
         [{ name: 'signature', type: 'felt' }],
         [
-          [
-            'let (signature_hash) = warp_keccak(signature);',
-            'let (byte0) = byte256_at_index(signature_hash, 0);',
-            'let (byte1) = byte256_at_index(signature_hash, 1);',
-            'let (byte2) = byte256_at_index(signature_hash, 2);',
-            'let (byte3) = byte256_at_index(signature_hash, 3);',
-            'assert bytes_array[bytes_index] = byte0;',
-            'assert bytes_array[bytes_index + 1] = byte1;',
-            'assert bytes_array[bytes_index + 2] = byte2;',
-            'assert bytes_array[bytes_index + 3] = byte3;',
-            'let bytes_index = bytes_index + 4;',
-          ].join('\n'),
+          endent`
+            let (signature_hash) = warp_keccak(signature);
+            let (byte0) = byte256_at_index(signature_hash, 0);
+            let (byte1) = byte256_at_index(signature_hash, 1);
+            let (byte2) = byte256_at_index(signature_hash, 2);
+            let (byte3) = byte256_at_index(signature_hash, 3);
+            assert bytes_array[bytes_index] = byte0;
+            assert bytes_array[bytes_index + 1] = byte1;
+            assert bytes_array[bytes_index + 2] = byte2;
+            assert bytes_array[bytes_index + 3] = byte3;
+            let bytes_index = bytes_index + 4;
+          `,
         ],
         new Array<CairoFunctionDefinition>(),
       ],
@@ -105,20 +106,20 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${funcName}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
-      `  let bytes_index : felt = 0;`,
-      `  let bytes_offset : felt = ${initialOffset};`,
-      `  let (bytes_array : felt*) = alloc();`,
-      ...encodings,
-      `  let (max_length256) = felt_to_uint256(bytes_offset);`,
-      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)});`,
-      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);`,
-      `  return (mem_ptr,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(${cairoParams}) -> (result_ptr : felt){
+        alloc_locals;
+        let bytes_index : felt = 0;
+        let bytes_offset : felt = ${initialOffset};
+        let (bytes_array : felt*) = alloc();
+        ${encodings.join('\n')}
+        let (max_length256) = felt_to_uint256(bytes_offset);
+        let (mem_ptr) = wm_new(max_length256, ${uint256(1)});
+        felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);
+        return (mem_ptr,);
+      }
+      `;
 
     const importedFuncs = [
       this.requireImport(...U128_FROM_FELT),

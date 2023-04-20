@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   BytesType,
   DataLocation,
@@ -103,14 +104,14 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (argAmount === 0) {
       return {
         name: funcName,
-        code: [
-          `#[implicit(warp_memory)]`,
-          `func ${funcName}() -> (res_loc : felt){`,
-          `   alloc_locals;`,
-          `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
-          `   return (res_loc,);`,
-          `}`,
-        ].join('\n'),
+        code: endent`
+          #[implicit(warp_memory)]
+          func ${funcName}() -> (res_loc : felt){
+             alloc_locals;
+             let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});
+             return (res_loc,);
+          }
+        `,
         functionsCalled: [this.requireImport(...U128_FROM_FELT), this.requireImport(...WM_NEW)],
       };
     }
@@ -147,21 +148,21 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       [new Array<string>(), new Array<CairoImportFunctionDefinition>()],
     );
 
-    const code = [
-      `#[implicit(warp_memory)]`,
-      `func ${funcName}(${cairoArgs}) -> (res_loc : felt){`,
-      `    alloc_locals;`,
-      `    // Get all sizes`,
-      argSizes,
-      `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};`,
-      `    let (total_length256) = felt_to_uint256(total_length);`,
-      `    let (res_loc) = wm_new(total_length256, ${uint256(1)});`,
-      `    // Copy values`,
-      `    let start_loc = 0;`,
-      ...concatCode,
-      `    return (res_loc,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(${cairoArgs}) -> (res_loc : felt){
+          alloc_locals;
+          // Get all sizes
+          ${argSizes}
+          let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};
+          let (total_length256) = felt_to_uint256(total_length);
+          let (res_loc) = wm_new(total_length256, ${uint256(1)});
+          // Copy values
+          let start_loc = 0;
+          ${concatCode.join('\n')}
+          return (res_loc,);
+      }
+      `;
 
     return {
       name: funcName,
@@ -179,10 +180,10 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   private getSize(type: TypeNode, index: number): [string, CairoImportFunctionDefinition[]] {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
-        [
-          `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
-          `let (size_${index}) = narrow_safe(size256_${index});`,
-        ].join('\n'),
+        endent`
+          let (size256_${index}) = wm_dyn_array_length(arg_${index});
+          let (size_${index}) = narrow_safe(size256_${index});
+        `,
         [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
       ];
     }
