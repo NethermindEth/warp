@@ -228,4 +228,7 @@ export const CONTRACT_ADDRESS: [string[], string] = [['starknet'], 'ContractAddr
 export const INTO: [string[], string] = [['traits'], 'Into'];
 
 export const WARP_MEMORY: [string[], string] = [['warplib', 'warp_memory'], 'WarpMemory'];
-export const MEMORY_TRAIT: [string[], string] = [['warplib', 'warp_memory'], 'MemoryTrait'];
+export const WARP_MEMORY_TRAIT: [string[], string] = [
+  ['warplib', 'warp_memory'],
+  'WarpMemoryTrait',
+];
