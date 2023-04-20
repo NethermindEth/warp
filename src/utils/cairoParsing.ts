@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Implicits } from './implicits';
+import { Implicits } from './utils';
 
 export type RawCairoFunctionInfo = {
   name: string;

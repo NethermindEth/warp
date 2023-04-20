@@ -10,7 +10,7 @@ import {
   ParameterList,
   StructuredDocumentation,
 } from 'solc-typed-ast';
-import { Implicits } from '../../utils/implicits';
+import { Implicits } from '../../utils/utils';
 
 /*
  An extension of FunctionDefinition to track which implicit arguments are used (This is no 
