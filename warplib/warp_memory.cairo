@@ -10,7 +10,7 @@ use write::WarpMemoryWriteTrait;
 mod arrays;
 use arrays::WarpMemoryArraysTrait;
 
-mod bytes:
+mod bytes;
 use bytes::WarpMemoryBytesTrait;
 
 struct WarpMemory {
