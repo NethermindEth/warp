@@ -9,6 +9,7 @@ export const warplibImportInfo = glob
   .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
+    // Normalize the path to '/' and then remove the src folder
     let importPath = pathToFile
       .split(path.sep)
       .join('/')
