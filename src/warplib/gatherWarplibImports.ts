@@ -2,16 +2,19 @@ import fs from 'fs';
 import { Implicits } from '../utils/implicits';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { glob } from 'glob';
+import path from 'path';
 
 export const warplibImportInfo = glob
-  .sync('warplib/**/*.cairo')
+  .sync('warplib/src/**/*.cairo')
   .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
-    const importPath = pathToFile
-      .split('/')
-      .join('.')
-      .slice(0, pathToFile.length - '.cairo'.length);
+    // TODO: Add encodePath here. Importing encodePath cause circular
+    // dependency error. Suggested solution is to relocate the import files
+    const importPath = [
+      'warplib',
+      ...pathToFile.slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
+    ].join('/');
 
     const fileMap: Map<string, Implicits[]> =
       warplibMap.get(importPath) ?? new Map<string, Implicits[]>();

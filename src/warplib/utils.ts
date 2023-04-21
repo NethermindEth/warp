@@ -18,6 +18,8 @@ import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import path from 'path';
 import { WARPLIB_MATHS } from '../utils/importPaths';
 
+export const PATH_TO_WARPLIB = path.join('.', 'warplib', 'src');
+
 export type WarplibFunctionInfo = {
   fileName: string;
   imports: string[];
@@ -61,7 +63,7 @@ export function msbAndNext(width: number): string {
 // const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
 export function generateFile(warpFunc: WarplibFunctionInfo): void {
-  const pathToFile = path.join('.', 'warplib', 'maths', `${warpFunc.fileName}.cairo`);
+  const pathToFile = path.join(PATH_TO_WARPLIB, 'maths', `${warpFunc.fileName}.cairo`);
 
   fs.writeFileSync(
     pathToFile,
