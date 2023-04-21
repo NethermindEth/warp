@@ -30,7 +30,7 @@ const WALLET = 'wallet';
 
 export const BASE_PATH = path.dirname(__dirname);
 const warpVenvPrefix = `PATH=${path.join(BASE_PATH, 'warp_venv', 'bin')}:$PATH`;
-const CAIRO1_COMPILE_BIN = path.resolve(BASE_PATH, 'cairo1', getPlatform(), 'bin', 'warp');
+const CAIRO1_COMPILE_BIN = path.join(BASE_PATH, 'cairo1', getPlatform(), 'bin', 'warp');
 
 interface CompileResult {
   success: boolean;
