@@ -11,7 +11,7 @@ export const warplibImportInfo = glob
 
     const importPath = [
       'warplib',
-      pathToFile.slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
+      ...pathToFile.slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
     ].join('/');
 
     const fileMap: Map<string, Implicits[]> =
