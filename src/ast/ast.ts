@@ -158,13 +158,6 @@ export class AST {
     return scope.id;
   }
 
-  getImplicitsAt(node: Statement): Set<Implicits> {
-    const containingFunction = node.getClosestParentByType(CairoFunctionDefinition);
-    if (containingFunction === undefined) return new Set();
-
-    return containingFunction.implicits;
-  }
-
   getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {
     const sourceUnit = node instanceof SourceUnit ? node : getContainingSourceUnit(node);
     const gen = this.cairoUtilFuncGen.get(sourceUnit.id);
