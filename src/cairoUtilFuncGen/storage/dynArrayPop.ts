@@ -90,8 +90,8 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
         ? endent`
-            let elem_loc = ${arrayName}::read((loc, newLen));
-            let elem_loc = readId(elem_loc);
+            let elem_loc_id = ${arrayName}::read((loc, newLen));
+            let elem_loc = readId(elem_loc_id);
             `
         : `let elem_loc = ${arrayName}::read((loc, newLen));`;
 
