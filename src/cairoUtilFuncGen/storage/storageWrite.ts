@@ -70,7 +70,6 @@ export class StorageWriteGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
     const cairoTypeString = cairoTypeToWrite.toString();
-    const fnsToImport: [string[], string][] = [];
     const writeCode = cairoTypeToWrite
       .serialiseMembers('value')
       .map((name, index) => {
@@ -84,10 +83,9 @@ export class StorageWriteGen extends StringIndexedFuncGen {
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
           functionsCalled.push(this.requireImport(...U128_TO_FELT));
           name = `u128_to_felt252(${name})`;
-          fnsToImport.push(U128_TO_FELT);
         } else if (cairoTypeToWrite instanceof CairoUint) {
           name = `${cairoTypeString}_to_felt252(${name})`;
-          fnsToImport.push(toFeltfromuXImport(cairoTypeToWrite));
+          functionsCalled.push(this.requireImport(...toFeltfromuXImport(cairoTypeToWrite)));
         }
         return `  ${write(add('loc', index), name)}`;
       })
@@ -102,7 +100,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           return value;
         }
       `,
-      functionsCalled: [...fnsToImport.map((imp) => this.requireImport(...imp))],
+      functionsCalled: functionsCalled,
     };
     return funcInfo;
   }
