@@ -55,7 +55,7 @@ function getStarknetLangDirective(): string[] {
 
 function getForwarderInterface(abi: AbiType): string[] {
   return [
-    '@#[abi]',
+    '#[abi]',
     'namespace Forwarder {',
     ...abi.map((item: AbiItemType) => {
       if (item.type === 'function' && item.name !== '__default__') {

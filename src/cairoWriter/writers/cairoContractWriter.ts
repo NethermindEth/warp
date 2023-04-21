@@ -160,8 +160,11 @@ export class CairoContractWriter extends CairoASTNodeWriter {
 
     const contractHeader = '#[contract] \n' + `mod ${node.name} {`;
 
+    const globalImports = ['use starknet::ContractAddress;'].join('\n');
+
     return [
       [
+        globalImports,
         contractHeader,
         documentation,
         writtenImportFuncs,
