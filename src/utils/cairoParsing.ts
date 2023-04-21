@@ -12,7 +12,7 @@ export type RawCairoFunctionInfo = {
  *  @returns A list of each function information
  */
 export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFunctionInfo[] {
-  const functions = [...rawFunctions.matchAll(/fn (\w+)/gis)];
+  const functions = [...rawFunctions.matchAll(/#\[implicit\((.+)\)\](\s+)fn (\w+)|fn (\w+)/gis)];
 
   return [...functions].map((func) => getRawCairoFunctionInfo(func[0]));
 }
