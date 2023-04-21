@@ -27,7 +27,7 @@ export class FunctionRemover extends ASTMapper {
         (func) =>
           !(
             func instanceof CairoImportFunctionDefinition &&
-            func.functionStubKind === FunctionStubKind.SuperStructDefStub
+            func.functionStubKind === FunctionStubKind.TraitStructDefStub
           ),
       )
       .forEach((func) => node.removeChild(func));
@@ -44,7 +44,7 @@ export class FunctionRemover extends ASTMapper {
         (func) =>
           !(
             func instanceof CairoImportFunctionDefinition &&
-            func.functionStubKind === FunctionStubKind.SuperStructDefStub
+            func.functionStubKind === FunctionStubKind.TraitStructDefStub
           ),
       )
       .forEach((func) => node.removeChild(func));

@@ -150,18 +150,33 @@ export function genContractInterface(
     `${contract.name}_warped_interfaceDispatcherTrait`,
     getContainingSourceUnit(node),
     ast,
+    [],
+    [],
+    {
+      isTrait: true,
+    },
   );
   createImport(
     ['super'],
     `${contract.name}_warped_interfaceDispatcher`,
     getContainingSourceUnit(node),
     ast,
+    [],
+    [],
+    {
+      isTrait: true,
+    },
   );
   createImport(
     ['super'],
     `${contract.name}_warped_interfaceLibraryDispatcher`,
     getContainingSourceUnit(node),
     ast,
+    [],
+    [],
+    {
+      isTrait: true,
+    },
   );
   return contractInterface;
 }

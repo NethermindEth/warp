@@ -137,7 +137,7 @@ export abstract class CairoType {
           );
         }
       } else if (tp.definition instanceof ContractDefinition) {
-        return new CairoFelt();
+        return new CairoContractAddress();
       } else if (tp.definition instanceof UserDefinedValueTypeDefinition) {
         return CairoType.fromSol(
           safeGetNodeType(tp.definition.underlyingType, ast.inference),

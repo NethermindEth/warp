@@ -101,6 +101,7 @@ import {
   WARP_MEMORY,
   MEMORY_TRAIT,
   CONTRACT_ADDRESS,
+  CONTRACT_ADDRESS_FROM_FELT,
 } from './importPaths';
 
 export function createImport(
@@ -110,7 +111,7 @@ export function createImport(
   ast: AST,
   inputs?: ParameterInfo[],
   outputs?: ParameterInfo[],
-  options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean },
+  options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean; isTrait?: boolean },
 ) {
   const sourceUnit = getContainingSourceUnit(nodeInSourceUnit);
 
@@ -142,10 +143,10 @@ export function createImport(
       sourceUnit,
       options,
     );
-  const createStructImport = (superStructFunc = false) =>
+  const createStructImport = () =>
     createCairoImportStructDefinition(name, path, ast, sourceUnit, {
-      stubKind: superStructFunc
-        ? FunctionStubKind.SuperStructDefStub
+      stubKind: options?.isTrait
+        ? FunctionStubKind.TraitStructDefStub
         : FunctionStubKind.StructDefStub,
     });
 
@@ -154,8 +155,8 @@ export function createImport(
     return createFuncImport(...warplibFunc);
   }
 
-  if (path[0] === 'super') {
-    return createStructImport(true);
+  if (options?.isTrait) {
+    return createStructImport();
   }
 
   switch (encodePath([path, name])) {
@@ -224,6 +225,7 @@ export function createImport(
     // Import libraries from Cairo1
     case encodePath(INTO):
     case encodePath(CONTRACT_ADDRESS):
+    case encodePath(CONTRACT_ADDRESS_FROM_FELT):
     case encodePath(U8_TO_FELT):
     case encodePath(U16_TO_FELT):
     case encodePath(U24_TO_FELT):
