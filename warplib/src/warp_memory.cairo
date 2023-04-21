@@ -27,8 +27,8 @@ impl DestructWarpMemory of Destruct::<WarpMemory> {
 
 trait WarpMemoryTrait {
     fn initialize() -> WarpMemory;
-    fn insert(ref self: WarpMemory, index: felt252, value: felt252);
-    fn append(ref self: WarpMemory, value: felt252);
+    fn unsafe_write(ref self: WarpMemory, index: felt252, value: felt252);
+    fn write(ref self: WarpMemory, index: felt252, value: felt252);
     fn read(ref self: WarpMemory, index: felt252) -> felt252;
 
     /// Given a certain size, it allocates the space for writing
@@ -41,14 +41,15 @@ impl WarpMemoryImpl of WarpMemoryTrait {
         return WarpMemory {memory: Felt252DictTrait::new(), pointer: 0};
     }
 
-    fn insert(ref self: WarpMemory, position: felt252, value: felt252) {
+    fn unsafe_write(ref self WarpMemory, position: felt252, value: felt252){
         self.memory.insert(position, value);
-        self.pointer += 1;
     }
 
-    fn append(ref self: WarpMemory, value: felt252) {
-        self.memory.insert(self.pointer, value);
-        self.pointer += 1;
+    fn write(ref self WarpMemory, position: felt252, value: felt252){
+        if position >= self.pointer {
+            panic('Writing on unreserved position');
+        }
+        self.memory.insert(position, value);
     }
 
     fn read(ref self: WarpMemory, index: felt252) -> felt252 {
