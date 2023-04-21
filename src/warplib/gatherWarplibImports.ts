@@ -9,6 +9,8 @@ export const warplibImportInfo = glob
   .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
+    // TODO: Add encodePath here. Importing encodePath cause circular
+    // dependency error. Suggested solution is to relocate the import files
     const importPath = [
       'warplib',
       ...pathToFile.slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
