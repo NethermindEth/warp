@@ -41,7 +41,7 @@ export const passingContracts = [
   // 'tests/compilation/contracts/expressionSplitter/assignSimple.sol',
   // 'tests/compilation/contracts/expressionSplitter/funcCallSimple.sol',
   // 'tests/compilation/contracts/expressionSplitter/tupleAssign.sol',
-  // 'tests/compilation/contracts/externalFunction.sol',
+  'tests/compilation/contracts/externalFunction.sol',
   // 'tests/compilation/contracts/fallbackWithArgs.sol',
   // 'tests/compilation/contracts/fallbackWithoutArgs.sol',
   'tests/compilation/contracts/fileWithMinusSignIncluded-.sol',

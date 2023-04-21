@@ -15,7 +15,7 @@ export function serialiseReads(
   readFelt: (offset: number) => string,
   readId: (offset: number) => string,
   readAddress: (offset: number) => string,
-  uNread: (nBits: number, offset: number) => string,
+  uNread: (offset: number, nBits: number) => string,
 ): [reads: string[], pack: string] {
   const packExpression = producePackExpression(type);
   const reads: string[] = [];
@@ -32,97 +32,97 @@ export function serialiseReads(
           reads.push(readAddress(reads.length));
           return `read${reads.length - 1}`;
         case Read.U8:
-          reads.push(uNread(elem, 8));
+          reads.push(uNread(reads.length, 8));
           return `read${reads.length - 1}`;
         case Read.U16:
-          reads.push(uNread(elem, 16));
+          reads.push(uNread(reads.length, 16));
           return `read${reads.length - 1}`;
         case Read.U24:
-          reads.push(uNread(elem, 24));
+          reads.push(uNread(reads.length, 24));
           return `read${reads.length - 1}`;
         case Read.U32:
-          reads.push(uNread(elem, 32));
+          reads.push(uNread(reads.length, 32));
           return `read${reads.length - 1}`;
         case Read.U40:
-          reads.push(uNread(elem, 40));
+          reads.push(uNread(reads.length, 40));
           return `read${reads.length - 1}`;
         case Read.U48:
-          reads.push(uNread(elem, 48));
+          reads.push(uNread(reads.length, 48));
           return `read${reads.length - 1}`;
         case Read.U56:
-          reads.push(uNread(elem, 56));
+          reads.push(uNread(reads.length, 56));
           return `read${reads.length - 1}`;
         case Read.U64:
-          reads.push(uNread(elem, 64));
+          reads.push(uNread(reads.length, 64));
           return `read${reads.length - 1}`;
         case Read.U72:
-          reads.push(uNread(elem, 72));
+          reads.push(uNread(reads.length, 72));
           return `read${reads.length - 1}`;
         case Read.U80:
-          reads.push(uNread(elem, 80));
+          reads.push(uNread(reads.length, 80));
           return `read${reads.length - 1}`;
         case Read.U88:
-          reads.push(uNread(elem, 88));
+          reads.push(uNread(reads.length, 88));
           return `read${reads.length - 1}`;
         case Read.U96:
-          reads.push(uNread(elem, 96));
+          reads.push(uNread(reads.length, 96));
           return `read${reads.length - 1}`;
         case Read.U104:
-          reads.push(uNread(elem, 104));
+          reads.push(uNread(reads.length, 104));
           return `read${reads.length - 1}`;
         case Read.U112:
-          reads.push(uNread(elem, 112));
+          reads.push(uNread(reads.length, 112));
           return `read${reads.length - 1}`;
         case Read.U120:
-          reads.push(uNread(elem, 120));
+          reads.push(uNread(reads.length, 120));
           return `read${reads.length - 1}`;
         case Read.U128:
-          reads.push(uNread(elem, 128));
+          reads.push(uNread(reads.length, 128));
           return `read${reads.length - 1}`;
         case Read.U136:
-          reads.push(uNread(elem, 136));
+          reads.push(uNread(reads.length, 136));
           return `read${reads.length - 1}`;
         case Read.U144:
-          reads.push(uNread(elem, 144));
+          reads.push(uNread(reads.length, 144));
           return `read${reads.length - 1}`;
         case Read.U152:
-          reads.push(uNread(elem, 152));
+          reads.push(uNread(reads.length, 152));
           return `read${reads.length - 1}`;
         case Read.U160:
-          reads.push(uNread(elem, 160));
+          reads.push(uNread(reads.length, 160));
           return `read${reads.length - 1}`;
         case Read.U168:
-          reads.push(uNread(elem, 168));
+          reads.push(uNread(reads.length, 168));
           return `read${reads.length - 1}`;
         case Read.U176:
-          reads.push(uNread(elem, 176));
+          reads.push(uNread(reads.length, 176));
           return `read${reads.length - 1}`;
         case Read.U184:
-          reads.push(uNread(elem, 184));
+          reads.push(uNread(reads.length, 184));
           return `read${reads.length - 1}`;
         case Read.U192:
-          reads.push(uNread(elem, 192));
+          reads.push(uNread(reads.length, 192));
           return `read${reads.length - 1}`;
         case Read.U200:
-          reads.push(uNread(elem, 200));
+          reads.push(uNread(reads.length, 200));
           return `read${reads.length - 1}`;
         case Read.U208:
-          reads.push(uNread(elem, 208));
+          reads.push(uNread(reads.length, 208));
           return `read${reads.length - 1}`;
         case Read.U216:
-          reads.push(uNread(elem, 216));
+          reads.push(uNread(reads.length, 216));
           return `read${reads.length - 1}`;
         case Read.U224:
-          reads.push(uNread(elem, 224));
+          reads.push(uNread(reads.length, 224));
           return `read${reads.length - 1}`;
         case Read.U232:
-          reads.push(uNread(elem, 232));
+          reads.push(uNread(reads.length, 232));
           return `read${reads.length - 1}`;
         case Read.U240:
-          reads.push(uNread(elem, 240));
+          reads.push(uNread(reads.length, 240));
           return `read${reads.length - 1}`;
         case Read.U248:
-          reads.push(uNread(elem, 248));
+          reads.push(uNread(reads.length, 248));
           return `read${reads.length - 1}`;
 
         default:
