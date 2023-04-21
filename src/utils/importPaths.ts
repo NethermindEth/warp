@@ -95,8 +95,8 @@ export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write
 export const ARRAY: [string[], string] = [['array'], 'Array'];
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
 export const U256_FROM_FELTS: [string[], string] = [[...WARPLIB_INTEGER], 'u256_from_felts'];
-export const FELT252_INTO_BOOL: [string[], string] = [[...WARPLIB_INTEGER], 'Felt252IntoBool'];
-export const BOOL_INTO_FELT252: [string[], string] = [[...WARPLIB_INTEGER], 'BoolIntoFelt252'];
+export const FELT252_INTO_BOOL: [string[], string] = [[...WARPLIB_INTEGER], 'felt252_into_bool'];
+export const BOOL_INTO_FELT252: [string[], string] = [[...WARPLIB_INTEGER], 'bool_into_felt252'];
 
 /**  cairo1 uX <-> felt conversions */
 

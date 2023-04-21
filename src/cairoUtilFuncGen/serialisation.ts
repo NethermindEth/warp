@@ -28,7 +28,7 @@ export function serialiseReads(
       } else if (elem === Read.Bool) {
         requiredImports.push(FELT252_INTO_BOOL);
         reads.push(readFelt(reads.length));
-        reads.push(`let read${reads.length} = Felt252IntoBool::into(read${reads.length - 1});`);
+        reads.push(`let read${reads.length} = felt252_into_bool(read${reads.length - 1});`);
       } else {
         return elem;
       }

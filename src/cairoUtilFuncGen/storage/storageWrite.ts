@@ -77,7 +77,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
         if (cairoTypeToWrite instanceof CairoBool) {
           functionsCalled.push(this.requireImport(...BOOL_INTO_FELT252));
           return endent`
-            let intEncoded${index} = BoolIntoFelt252::into(${name});
+            let intEncoded${index} = bool_into_felt252(${name});
             ${write(add('loc', index), `intEncoded${index}`)}
           `;
         }

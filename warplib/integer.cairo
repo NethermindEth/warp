@@ -1,5 +1,8 @@
 use integer::u128_try_from_felt252;
+use serde::BoolSerde;
+use array::ArrayImpl;
 use option::OptionTrait;
+use option::OptionTraitImpl;
 
 fn u256_from_felts(low_felt: felt252, high_felt: felt252) -> u256 {
     let low_u128: u128 = get_u128_try_from_felt_result(low_felt);
@@ -14,13 +17,19 @@ fn get_u128_try_from_felt_result(value: felt252) -> u128 {
 }
 
 /// Conversions.
-impl Felt252IntoBool of Into::<felt252, bool> {
-    fn into(self: felt252) -> bool {
-        self == 1
-    }
+fn felt252_into_bool(val: felt252) -> bool {
+    let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
+    ArrayImpl::<felt252>::append(ref serialization_array, val);
+    let mut span_serialization_array = ArrayImpl::<felt252>::span(@serialization_array);
+    let resp_option = BoolSerde::deserialize(ref span_serialization_array);
+    let resp = OptionTraitImpl::<bool>::unwrap(resp_option);
+    resp
 }
-impl BoolIntoFelt252 of Into::<bool, felt252> {
-    fn into(self: bool) -> felt252 {
-        if self { return 1; } else { return 0; }
-    }
+
+fn bool_into_felt252(val: bool) -> felt252 {
+    let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
+    BoolSerde::serialize(ref serialization_array, val);
+    let resp_option = ArrayImpl::pop_front(ref serialization_array);
+    let resp = OptionTraitImpl::<felt252>::unwrap(resp_option);
+    resp
 }
