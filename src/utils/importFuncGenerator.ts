@@ -268,6 +268,6 @@ function findExistingImport(
   return found[0];
 }
 
-function encodePath(path: (string | string[])[]): string {
+export function encodePath(path: (string | string[])[]): string {
   return path.flat().join('/');
 }
