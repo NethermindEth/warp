@@ -41,11 +41,11 @@ impl WarpMemoryImpl of WarpMemoryTrait {
         return WarpMemory {memory: Felt252DictTrait::new(), pointer: 0};
     }
 
-    fn unsafe_write(ref self WarpMemory, position: felt252, value: felt252){
+    fn unsafe_write(ref self: WarpMemory, position: felt252, value: felt252){
         self.memory.insert(position, value);
     }
 
-    fn write(ref self WarpMemory, position: felt252, value: felt252){
+    fn write(ref self: WarpMemory, position: felt252, value: felt252){
         if position >= self.pointer {
             panic('Writing on unreserved position');
         }

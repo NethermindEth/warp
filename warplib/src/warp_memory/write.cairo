@@ -7,6 +7,6 @@ trait WarpMemoryWriteTrait {
 
 impl WarpMemoryWriteImpl of WarpMemoryWriteTrait {
     fn write_felt(ref self: WarpMemory, index: felt252 , value: felt252) {
-        self.insert(index, value)
+        self.write(index, value)
     }
 }
