@@ -125,13 +125,15 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     this.creatingFunctions.set(generateKey(type), funcName);
 
     const cairoType = CairoType.fromSol(type, this.ast);
+    const setToZeroInstructions = mapRange(
+      cairoType.width,
+      (n) => `WARP_STORAGE::write(${add('loc', n)}, 0);`,
+    ).join('\n');
     return {
       name: funcName,
       code: endent`
         fn ${funcName}(loc: felt252){
-            ${mapRange(cairoType.width, (n) => `WARP_STORAGE::write(${add('loc', n)}, 0);`).join(
-              '\n',
-            )}
+            ${setToZeroInstructions}
         }
         `,
       functionsCalled: [],
