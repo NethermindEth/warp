@@ -133,7 +133,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
         fn ${funcName}(loc: felt252){
             ${setToZeroInstructions}
         }
-        `,
+      `,
       functionsCalled: [],
     };
   }
