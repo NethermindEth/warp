@@ -1,6 +1,14 @@
 import endent from 'endent';
-import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
 import {
+  Expression,
+  FunctionCall,
+  TypeNode,
+  DataLocation,
+  PointerType,
+  FunctionDefinition,
+} from 'solc-typed-ast';
+import {
+  CairoBool,
   CairoType,
   CairoUint,
   CairoUint256,
@@ -8,7 +16,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { U128_TO_FELT } from '../../utils/importPaths';
+import { BOOL_INTO_FELT252, U128_TO_FELT } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -55,28 +63,35 @@ export class StorageWriteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
+    const functionsCalled: FunctionDefinition[] = [];
     const cairoTypeToWrite = CairoType.fromSol(
       typeToWrite,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
     const cairoTypeString = cairoTypeToWrite.toString();
-    const fnsToImport: [string[], string][] = [];
     const writeCode = cairoTypeToWrite
       .serialiseMembers('value')
       .map((name, index) => {
+        if (cairoTypeToWrite instanceof CairoBool) {
+          functionsCalled.push(this.requireImport(...BOOL_INTO_FELT252));
+          return endent`
+            let intEncoded${index} = bool_into_felt252(${name});
+            ${write(add('loc', index), `intEncoded${index}`)}
+          `;
+        }
         if (cairoTypeToWrite.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
+          functionsCalled.push(this.requireImport(...U128_TO_FELT));
           name = `u128_to_felt252(${name})`;
-          fnsToImport.push(U128_TO_FELT);
         } else if (cairoTypeToWrite instanceof CairoUint) {
           name = `${cairoTypeString}_to_felt252(${name})`;
-          fnsToImport.push(toFeltfromuXImport(cairoTypeToWrite));
+          functionsCalled.push(this.requireImport(...toFeltfromuXImport(cairoTypeToWrite)));
         }
         return `  ${write(add('loc', index), name)}`;
       })
       .join('\n');
 
-    const funcName = `WS_WRITE${this.generatedFunctionsDef.size}`;
+    const funcName = `WS${this.generatedFunctionsDef.size}_WRITE_${cairoTypeToWrite.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
@@ -85,7 +100,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
           return value;
         }
       `,
-      functionsCalled: [...fnsToImport.map((imp) => this.requireImport(...imp))],
+      functionsCalled: functionsCalled,
     };
     return funcInfo;
   }

@@ -27,8 +27,6 @@ import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen }
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
-const IMPLICITS = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-
 export class StorageDeleteGen extends StringIndexedFuncGen {
   // Map to store functions being created to
   // avoid infinite recursion when deleting
@@ -157,25 +155,26 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       ? [`   let (elem_id) = ${readFunc.name}(elem_loc);`, `   ${auxDeleteFuncName}(elem_id);`]
       : [`    ${auxDeleteFuncName}(elem_loc);`];
 
-    const deleteFunc = [
-      `func ${funcName}_elem${IMPLICITS}(loc : felt, index : Uint256, length : Uint256){`,
-      `     alloc_locals;`,
-      `     let (stop) = uint256_eq(index, length);`,
-      `     if (stop == 1){`,
-      `        return ();`,
-      `     }`,
-      `     let (elem_loc) = ${arrayName}.read(loc, index);`,
-      ...deleteCode,
-      `     let (next_index, _) = uint256_add(index, ${uint256(1)});`,
-      `     return ${funcName}_elem(loc, next_index, length);`,
-      `}`,
-      `func ${funcName}${IMPLICITS}(loc : felt){`,
-      `   alloc_locals;`,
-      `   let (length) = ${lengthName}.read(loc);`,
-      `   ${lengthName}.write(loc, ${uint256(0)});`,
-      `   return ${funcName}_elem(loc, ${uint256(0)}, length);`,
-      `}`,
-    ].join('\n');
+    const deleteFunc = endent`
+      func ${funcName}_elem(loc : felt, index : Uint256, length : Uint256){
+        alloc_locals;
+        let (stop) = uint256_eq(index, length);
+        if (stop == 1){
+          return ();
+        }
+        let (elem_loc) = ${arrayName}.read(loc, index);
+        ${deleteCode.join('\n')}
+        let (next_index, _) = uint256_add(index, ${uint256(1)});
+        return ${funcName}_elem(loc, next_index, length);
+      }
+
+      func ${funcName}(loc : felt){
+        alloc_locals;
+        let (length) = ${lengthName}.read(loc);
+        ${lengthName}.write(loc, ${uint256(0)});
+        return ${funcName}_elem(loc, ${uint256(0)}, length);
+      }
+    `;
 
     const importedFuncs = [
       this.requireImport(...UINT256_EQ),
@@ -200,13 +199,13 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       narrowBigIntSafe(type.size),
     );
 
-    const code = [
-      `func ${funcName}${IMPLICITS}(loc: felt) {`,
-      `   alloc_locals;`,
-      ...deleteCode,
-      `   return ();`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      func ${funcName}(loc: felt) {
+        alloc_locals;
+        ${deleteCode.join('\n')}
+        return ();
+      }
+    `;
 
     return {
       name: funcName,
@@ -236,21 +235,21 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidth);
 
-    const deleteFunc = [
-      `func ${funcName}_elem${IMPLICITS}(loc : felt, index : felt){`,
-      `     alloc_locals;`,
-      `     if (index == ${length}){`,
-      `        return ();`,
-      `     }`,
-      `     let next_index = index + 1;`,
-      ...deleteCode,
-      `     return ${funcName}_elem(${nextLoc}, next_index);`,
-      `}`,
-      `func ${funcName}${IMPLICITS}(loc : felt){`,
-      `   alloc_locals;`,
-      `   return ${funcName}_elem(loc, 0);`,
-      `}`,
-    ].join('\n');
+    const deleteFunc = endent`
+      func ${funcName}_elem(loc : felt, index : felt){
+        alloc_locals;
+        if (index == ${length}){
+          return ();
+        }
+        let next_index = index + 1;
+        ${deleteCode.join('\n')}
+        return ${funcName}_elem(${nextLoc}, next_index);
+      }
+      func ${funcName}(loc : felt){
+        alloc_locals;
+        return ${funcName}_elem(loc, 0);
+      }
+    `;
 
     const importedFuncs = [
       this.requireImport(...UINT256_EQ),
@@ -274,13 +273,13 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.inference)),
     );
 
-    const deleteFunc = [
-      `func ${funcName}${IMPLICITS}(loc : felt){`,
-      `   alloc_locals;`,
-      ...deleteCode,
-      `   return ();`,
-      `}`,
-    ].join('\n');
+    const deleteFunc = endent`
+      func ${funcName}(loc : felt){
+        alloc_locals;
+        ${deleteCode.join('\n')}
+        return ();
+      }
+    `;
 
     return { name: funcName, code: deleteFunc, functionsCalled: funcCalls };
   }
@@ -291,7 +290,11 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [`func ${funcName}${IMPLICITS}(loc: felt){`, `    return ();`, `}`].join('\n'),
+      code: endent`
+        func ${funcName}(loc: felt){
+          return ();
+        }
+        `,
       functionsCalled: [],
     };
   }

@@ -44,7 +44,6 @@ import {
   Require,
   ReturnInserter,
   ReturnVariableInitializer,
-  ShortCircuitToConditional,
   SourceUnitPathFixer,
   SourceUnitSplitter,
   StaticArrayIndexer,
@@ -129,7 +128,6 @@ function applyPasses(
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
     ['Ifr', IdentityFunctionRemover],
-    ['Sc', ShortCircuitToConditional],
     ['U', UnloadingAssignment],
     ['Cos', ConditionalSplitter],
     ['V', VariableDeclarationInitialiser],
@@ -167,7 +165,7 @@ function applyPasses(
   printAST(ast, options);
 
   // Fix absolutePath in source unit
-  ast = SourceUnitPathFixer.map_(ast, options.includePaths || []);
+  ast = SourceUnitPathFixer.map_(ast, options.includePaths ?? []);
   // Reject code that contains identifiers starting with certain patterns
   RejectPrefix.map(ast);
 

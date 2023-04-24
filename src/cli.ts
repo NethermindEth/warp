@@ -6,6 +6,7 @@ import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
+  BASE_PATH,
   compileCairo,
   runStarknetCallOrInvoke,
   runStarknetCompile,
@@ -57,8 +58,6 @@ type CliOptions = CompilationOptions &
   PrintOptions &
   OutputOptions &
   IOptionalDebugInfo;
-
-const PROJECT_ROOT = path.dirname(__dirname);
 
 export const program = new Command();
 
@@ -113,9 +112,9 @@ function runTranspile(files: string[], options: CliOptions) {
 
   try {
     transpile(ast, options)
-      .map(([fname, cairo]) => {
-        outputResult(path.parse(fname).name, fname, cairo, options, ast);
-        return fname;
+      .map(([fileName, cairoCode]) => {
+        outputResult(path.parse(fileName).name, fileName, cairoCode, options, ast);
+        return fileName;
       })
       .map((file) =>
         postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
@@ -125,7 +124,7 @@ function runTranspile(files: string[], options: CliOptions) {
         if (options.compileCairo) {
           const { success, resultPath, abiPath } = compileCairo(
             path.join(options.outputDir, file),
-            PROJECT_ROOT,
+            BASE_PATH,
             options,
           );
           if (!success) {
@@ -144,15 +143,21 @@ function runTranspile(files: string[], options: CliOptions) {
 }
 
 export function createCairoProject(filePath: string): void {
-  // create cairo_project.toml
-  const cairoProjectPath = path.join(path.dirname(filePath), 'cairo_project.toml');
-  const warplibRoot = path.join(PROJECT_ROOT, 'warplib');
+  const outputRoot = path.dirname(path.dirname(filePath));
+  const packageName = path.basename(outputRoot, '.sol').replace('-', '_');
+  const scarbConfigPath = path.join(outputRoot, 'Scarb.toml');
+  const warplib = path.join(BASE_PATH, 'warplib');
   outputFileSync(
-    cairoProjectPath,
+    scarbConfigPath,
     endent`
-      [crate_roots]
-      root = "."
-      warplib = "${warplibRoot}"
+    [package]
+    name = "${packageName}"
+    version = "1.0.0"
+
+    [dependencies]
+    warplib = { path = "${warplib}" }
+
+    [[target.warp]]
     `,
   );
   // create lib.cairo

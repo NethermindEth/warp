@@ -68,12 +68,15 @@ export function runSolFileTest(
 ): { cairoProjects: Set<string>; result: ResultType } {
   const mangledPath = path.join(warpTest, file);
   const cairoProjects: Set<string> = new Set();
+
   try {
     transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
-      ([file, cairo]) => {
-        outputFileSync(path.join(warpTest, file), cairo);
-        createCairoProject(path.join(warpTest, file));
-        const baseDir = path.dirname(path.join(warpTest, file));
+      ([fileName, cairoCode]) => {
+        const testLocation = path.join(warpTest, fileName);
+        outputFileSync(testLocation, cairoCode);
+        createCairoProject(testLocation);
+
+        const baseDir = path.dirname(path.dirname(testLocation));
         cairoProjects.add(baseDir);
       },
     );
@@ -88,7 +91,7 @@ export function runSolFileTest(
       results.set(mangledPath, 'SolCompileFailed');
       return {
         cairoProjects: cairoProjects,
-        result: 'SolCompileFailed',
+        result: `SolCompileFailed`,
       };
     } else if (e instanceof TranspilationAbandonedError) {
       if (!onlyResults) console.log(`Transpilation abandoned ${e.message}`);
