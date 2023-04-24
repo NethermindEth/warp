@@ -77,13 +77,13 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
             let len = ${lengthName}::read(loc);
             ${lengthName}::write(loc, len + u256_from_felts(1,0));
             let existing = ${arrayName}::read((loc, len));
-            if (existing == 0) {
+            if existing == 0 {
                 let used = WARP_USED_STORAGE::read();
                 WARP_USED_STORAGE::write(used + ${cairoElementType.width});
                 ${arrayName}::write((loc, len), used);
-                return used;
+                used;
             } else {
-                return existing;
+                existing;
             }
         }
         `,

@@ -76,13 +76,13 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
             let length = ${lengthName}::read(warp_storage_array_ptr);
             assert(index < length, 'Index out of bounds');
             let existing = ${arrayName}::read(warp_storage_array_ptr, index);
-            if (existing == 0) {
+            if existing == 0 {
                 let used = WARP_USED_STORAGE::read();
                 WARP_USED_STORAGE::write(used + ${valueCairoType.width});
                 ${arrayName}::write((warp_storage_array_ptr, index), used);
-                return used;
+                used
             } else {
-                return existing;
+                existing
             }
         }
         `,
