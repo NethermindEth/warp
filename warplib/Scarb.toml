@@ -1,0 +1,4 @@
+[package]
+name = "warplib"
+version = "0.1.0"
+description = "The Warp core library"

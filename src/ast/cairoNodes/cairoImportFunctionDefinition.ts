@@ -5,7 +5,7 @@ import {
   ParameterList,
 } from 'solc-typed-ast';
 import { CairoFunctionDefinition, FunctionStubKind } from './cairoFunctionDefinition';
-import { Implicits } from '../../utils/implicits';
+import { Implicits } from '../../utils/utils';
 
 export class CairoImportFunctionDefinition extends CairoFunctionDefinition {
   path: string[];

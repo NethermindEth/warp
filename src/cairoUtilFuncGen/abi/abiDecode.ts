@@ -47,9 +47,7 @@ import {
   WM_NEW,
   WM_ALLOC,
 } from '../../utils/importPaths';
-
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+import endent from 'endent';
 
 export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
   protected functionName = 'abi_decode';
@@ -143,16 +141,17 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const returnCairoParams = returnParams.map((r) => `${r.name} : ${r.type}`).join(',');
     const returnValues = returnParams.map((r) => `${r.name} = ${r.name}`).join(',');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}${IMPLICITS}(mem_ptr : felt) -> (${returnCairoParams}){`,
-      `  alloc_locals;`,
-      `  let max_index_length: felt = ${indexLength};`,
-      `  let mem_index: felt = 0;`,
-      ...decodings,
-      `  assert max_index_length - mem_index = 0;`,
-      ` return (${returnValues});`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(mem_ptr : felt) -> (${returnCairoParams}){
+        alloc_locals;
+        let max_index_length: felt = ${indexLength};
+        let mem_index: felt = 0;
+        ${decodings}
+        assert max_index_length - mem_index = 0;
+        return (${returnValues});
+      }
+      `;
 
     return { name: funcName, code: code, functionsCalled: functionsCalled };
   }
@@ -198,10 +197,10 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     if (isAddressType(type)) {
       const func = this.createValueTypeDecoding(31);
       return [
-        [
-          `let (${decodeResult} : felt) = ${func.name}(mem_index, mem_index + 32, mem_ptr, 0);`,
-          `let ${newIndexVar} = mem_index + 32;`,
-        ].join('\n'),
+        endent`
+          let (${decodeResult} : felt) = ${func.name}(mem_index, mem_index + 32, mem_ptr, 0);
+          let ${newIndexVar} = mem_index + 32;
+        `,
         [func],
       ];
     }
@@ -297,11 +296,11 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       }
 
       return [
-        [
-          ...initInstructions,
-          ...callInstructions,
-          `let ${newIndexVar} = mem_index + ${getByteSize(type, this.ast.inference)};`,
-        ].join('\n'),
+        endent`
+          ${initInstructions.join('\n')}
+          ${callInstructions.join('\n')}
+          let ${newIndexVar} = mem_index + ${getByteSize(type, this.ast.inference)};
+        `,
         [...importedFuncs, auxFunc],
       ];
     }
@@ -322,10 +321,10 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const decodeType = byteSize === 32 ? 'Uint256' : 'felt';
 
     return [
-      [
-        `let (${decodeResult} : ${decodeType}) = ${auxFunc.name}(${args.join(',')});`,
-        `let ${newIndexVar} = mem_index + 32;`,
-      ].join('\n'),
+      endent`
+        let (${decodeResult} : ${decodeType}) = ${auxFunc.name}(${args.join(',')});
+        let ${newIndexVar} = mem_index + 32;
+      `,
       [...importedFuncs, auxFunc],
     ];
   }
@@ -355,24 +354,25 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const writeToMemCode = `${writeToMemFunc.name}(write_to_mem_location, element);`;
 
     const name = `${this.functionName}_static_array${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  mem_index: felt,`,
-      `  mem_ptr: felt,`,
-      `  array_index: felt,`,
-      `  array_length: felt,`,
-      `  array_ptr: felt,`,
-      `){`,
-      `  alloc_locals;`,
-      `  if (array_index == array_length) {`,
-      `    return ();`,
-      `  }`,
-      `  ${decodingCode}`,
-      `  ${getMemLocCode}`,
-      `  ${writeToMemCode}`,
-      `  return ${name}(next_mem_index, mem_ptr, array_index + 1, array_length, array_ptr);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        mem_index: felt,
+        mem_ptr: felt,
+        array_index: felt,
+        array_length: felt,
+        array_ptr: felt,
+      ){
+        alloc_locals;
+        if (array_index == array_length) {
+          return ();
+        }
+        ${decodingCode}
+        ${getMemLocCode}
+        ${writeToMemCode}
+        return ${name}(next_mem_index, mem_ptr, array_index + 1, array_length, array_ptr);
+      }
+      `;
 
     const funcInfo = {
       name,
@@ -399,40 +399,41 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       'element',
       '32 * dyn_array_index',
     );
-    const getMemLocCode = [
-      `let (dyn_array_index256) = felt_to_uint256(dyn_array_index);`,
-      `let (write_to_mem_location) = wm_index_dyn(dyn_array_ptr, dyn_array_index256, ${uint256(
+    const getMemLocCode = endent`
+      let (dyn_array_index256) = felt_to_uint256(dyn_array_index);
+      let (write_to_mem_location) = wm_index_dyn(dyn_array_ptr, dyn_array_index256, ${uint256(
         elemenTWidth,
-      )});`,
-    ].join('\n');
+      )});
+    `;
     const writeToMemFunc = this.memoryWrite.getOrCreateFuncDef(elementT);
     const writeToMemCode = `${writeToMemFunc.name}(write_to_mem_location, element);`;
 
     const name = `${this.functionName}_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  mem_index: felt,`,
-      `  mem_ptr: felt,`,
-      `  dyn_array_index: felt,`,
-      `  dyn_array_length: felt,`,
-      `  dyn_array_ptr: felt`,
-      `){`,
-      `  alloc_locals;`,
-      `  if (dyn_array_index == dyn_array_length){`,
-      `    return ();`,
-      `  }`,
-      `  ${decodingCode}`,
-      `  ${getMemLocCode}`,
-      `  ${writeToMemCode}`,
-      `  return ${name}(`,
-      `    next_mem_index,`,
-      `    mem_ptr,`,
-      `    dyn_array_index + 1,`,
-      `    dyn_array_length,`,
-      `    dyn_array_ptr`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        mem_index: felt,
+        mem_ptr: felt,
+        dyn_array_index: felt,
+        dyn_array_length: felt,
+        dyn_array_ptr: felt
+      ){
+        alloc_locals;
+        if (dyn_array_index == dyn_array_length){
+          return ();
+        }
+        ${decodingCode}
+        ${getMemLocCode}
+        ${writeToMemCode}
+        return ${name}(
+          next_mem_index,
+          mem_ptr,
+          dyn_array_index + 1,
+          dyn_array_length,
+          dyn_array_ptr
+        );
+      }
+      `;
 
     const importedFuncs = [
       this.requireImport(...U128_FROM_FELT),
@@ -479,12 +480,12 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         const writeMemLocFunc = this.memoryWrite.getOrCreateFuncDef(type);
         const writeMemLocCode = `${writeMemLocFunc.name}(mem_to_write_loc, member${index});`;
         return [
-          [
-            `// Decoding member ${member.name}`,
-            `${decodingCode}`,
-            `${getMemLocCode}`,
-            `${writeMemLocCode}`,
-          ].join('\n'),
+          endent`
+            // Decoding member ${member.name}
+            ${decodingCode}
+            ${getMemLocCode}
+            ${writeMemLocCode}
+          `,
           [...functionsCalled, writeMemLocFunc],
         ];
       },
@@ -494,17 +495,18 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const functionsCalled = decodingInfo.flatMap((info) => info[1]);
 
     const name = `${this.functionName}_struct_${definition.name}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  mem_index: felt,`,
-      `  mem_ptr: felt,`,
-      `  struct_ptr: felt`,
-      `){`,
-      `  alloc_locals;`,
-      ...instructions,
-      `  return ();`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        mem_index: felt,
+        mem_ptr: felt,
+        struct_ptr: felt
+      ){
+        alloc_locals;
+        ${instructions}
+        return ();
+      }
+      `;
 
     const importedFuncs = [this.requireImport(...FELT_TO_UINT256)];
     const genFuncInfo = {

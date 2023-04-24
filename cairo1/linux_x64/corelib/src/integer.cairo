@@ -7,8 +7,13 @@ use traits::Into;
 use traits::TryInto;
 use traits::Default;
 
+// TODO(spapini): Add method for const creation from Integer.
+trait NumericLiteral<T>;
+impl NumericLiteralfelt252 of NumericLiteral<felt252>;
+
 #[derive(Copy, Drop)]
 extern type u128;
+impl NumericLiteralu128 of NumericLiteral<u128>;
 extern fn u128_const<value>() -> u128 nopanic;
 
 enum U128sFromFelt252Result {
@@ -210,6 +215,7 @@ extern fn u128_is_zero(a: u128) -> IsZeroResult<u128> implicits() nopanic;
 
 #[derive(Copy, Drop)]
 extern type u8;
+impl NumericLiteralu8 of NumericLiteral<u8>;
 extern fn u8_const<value>() -> u8 nopanic;
 extern fn u8_to_felt252(a: u8) -> felt252 nopanic;
 
@@ -357,6 +363,7 @@ impl U8RemEq of RemEq<u8> {
 
 #[derive(Copy, Drop)]
 extern type u16;
+impl NumericLiteralu16 of NumericLiteral<u16>;
 extern fn u16_const<value>() -> u16 nopanic;
 extern fn u16_to_felt252(a: u16) -> felt252 nopanic;
 
@@ -505,6 +512,7 @@ impl U16RemEq of RemEq<u16> {
 
 #[derive(Copy, Drop)]
 extern type u32;
+impl NumericLiteralu32 of NumericLiteral<u32>;
 extern fn u32_const<value>() -> u32 nopanic;
 extern fn u32_to_felt252(a: u32) -> felt252 nopanic;
 
@@ -653,6 +661,7 @@ impl U32RemEq of RemEq<u32> {
 
 #[derive(Copy, Drop)]
 extern type u64;
+impl NumericLiteralu64 of NumericLiteral<u64>;
 extern fn u64_const<value>() -> u64 nopanic;
 extern fn u64_to_felt252(a: u64) -> felt252 nopanic;
 
@@ -969,6 +978,44 @@ fn u256_from_felt252(a: felt252) -> u256 implicits(RangeCheck) nopanic {
     }
 }
 
+extern fn u256_is_zero(a: u256) -> IsZeroResult<u256> implicits() nopanic;
+extern fn u256_safe_divmod(a: u256, b: NonZero<u256>) -> (u256, u256) implicits(RangeCheck) nopanic;
+
+#[panic_with('u256 is 0', u256_as_non_zero)]
+fn u256_try_as_non_zero(a: u256) -> Option<NonZero<u256>> implicits() nopanic {
+    match u256_is_zero(a) {
+        IsZeroResult::Zero(()) => Option::None(()),
+        IsZeroResult::NonZero(x) => Option::Some(x),
+    }
+}
+
+impl U256Div of Div<u256> {
+    fn div(a: u256, b: u256) -> u256 {
+        let (q, r) = u256_safe_divmod(a, u256_as_non_zero(b));
+        q
+    }
+}
+impl U256DivEq of DivEq<u256> {
+    #[inline(always)]
+    fn div_eq(ref self: u256, other: u256) {
+        self = Div::div(self, other);
+    }
+}
+
+impl U256Rem of Rem<u256> {
+    fn rem(a: u256, b: u256) -> u256 {
+        let (q, r) = u256_safe_divmod(a, u256_as_non_zero(b));
+        r
+    }
+}
+impl U256RemEq of RemEq<u256> {
+    #[inline(always)]
+    fn rem_eq(ref self: u256, other: u256) {
+        self = Rem::rem(self, other);
+    }
+}
+
+
 /// Bounded
 trait BoundedInt<T> {
     fn min() -> T nopanic;
@@ -1132,7 +1179,7 @@ extern fn upcast<FromType, ToType>(x: FromType) -> ToType nopanic;
 
 // TODO(lior): Restrict the function (using traits) in the high-level compiler so that wrong types
 //   will not lead to Sierra errors.
-extern fn downcast<FromType, ToType>(x: FromType) -> Option::<ToType> implicits(RangeCheck) nopanic;
+extern fn downcast<FromType, ToType>(x: FromType) -> Option<ToType> implicits(RangeCheck) nopanic;
 
 /// Default values
 impl U8Default of Default<u8> {

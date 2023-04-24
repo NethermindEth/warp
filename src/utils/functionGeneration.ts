@@ -23,7 +23,7 @@ import { AST } from '../ast/ast';
 import { CairoImportFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
-import { Implicits } from './implicits';
+import { Implicits } from './utils';
 import { createIdentifier, createParameterList } from './nodeTemplates';
 import { isDynamicArray, safeGetNodeTypeInCtx } from './nodeTypeProcessing';
 import { toSingleExpression } from './utils';

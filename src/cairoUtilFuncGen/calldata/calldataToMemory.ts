@@ -33,9 +33,7 @@ import {
   WM_ALLOC,
   WM_NEW,
 } from '../../utils/importPaths';
-
-const IMPLICITS =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+import endent from 'endent';
 
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
   public gen(node: Expression): FunctionCall {
@@ -97,17 +95,17 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     let auxFunc: CairoFunctionDefinition;
     if (isReferenceType(elementT)) {
       const recursiveFunc = this.getOrCreateFuncDef(elementT);
-      copyCode = [
-        `let cdElem = calldata[0];`,
-        `let (mElem) = ${recursiveFunc.name}(cdElem);`,
-        `dict_write{dict_ptr=warp_memory}(mem_start, mElem);`,
-      ].join('\n');
+      copyCode = endent`
+        let cdElem = calldata[0];
+        let (mElem) = ${recursiveFunc.name}(cdElem);
+        dict_write{dict_ptr=warp_memory}(mem_start, mElem);
+      `;
       auxFunc = recursiveFunc;
     } else if (memoryElementWidth === 2) {
-      copyCode = [
-        `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low);`,
-        `dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high);`,
-      ].join('\n');
+      copyCode = endent`
+        dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low);
+        dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high);
+      `;
       auxFunc = this.requireImport(...DICT_WRITE);
     } else {
       copyCode = `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0]);`;
@@ -117,23 +115,27 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     const funcName = `cd_to_memory_dynamic_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}_elem${IMPLICITS}(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
-        `    alloc_locals;`,
-        `    if (length == 0){`,
-        `        return ();`,
-        `    }`,
-        copyCode,
-        `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1);`,
-        `}`,
-        `func ${funcName}${IMPLICITS}(calldata : ${callDataType}) -> (mem_loc: felt){`,
-        `    alloc_locals;`,
-        `    let (len256) = felt_to_uint256(calldata.len);`,
-        `    let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)});`,
-        `    ${funcName}_elem(calldata.ptr, mem_start + 2, calldata.len);`,
-        `    return (mem_start,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        func ${funcName}_elem(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){
+            alloc_locals;
+            if (length == 0){
+                return ();
+            }
+            ${copyCode}
+            return ${funcName}_elem(calldata + ${
+        callDataType.vPtr.to.width
+      }, mem_start + ${memoryElementWidth}, length - 1);
+        }
+        #[implicit(warp_memory)]
+        func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){
+            alloc_locals;
+            let (len256) = felt_to_uint256(calldata.len);
+            let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)});
+            ${funcName}_elem(calldata.ptr, mem_start + 2, calldata.len);
+            return (mem_start,);
+        }
+      `,
       functionsCalled: [
         this.requireImport(...U128_FROM_FELT),
         this.requireImport(...WM_NEW),
@@ -158,18 +160,18 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     if (isReferenceType(type.elementT)) {
       const recursiveFunc = this.getOrCreateFuncDef(type.elementT);
       copyCode = (index) =>
-        [
-          `let cdElem = calldata[${index}];`,
-          `let (mElem) = ${recursiveFunc.name}(cdElem);`,
-          `dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem);`,
-        ].join('\n');
+        endent`
+          let cdElem = calldata[${index}];
+          let (mElem) = ${recursiveFunc.name}(cdElem);
+          dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem);
+        `;
       funcCalls = [recursiveFunc];
     } else if (memoryElementWidth === 2) {
       copyCode = (index) =>
-        [
-          `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}].low);`,
-          `dict_write{dict_ptr=warp_memory}(${loc(index)} + 1, calldata[${index}].high);`,
-        ].join('\n');
+        endent`
+          dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}].low);
+          dict_write{dict_ptr=warp_memory}(${loc(index)} + 1, calldata[${index}].high);
+        `;
     } else {
       copyCode = (index) => `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}]);`;
     }
@@ -177,14 +179,15 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     const funcName = `cd_to_memory_static_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(calldata : ${callDataType}) -> (mem_loc: felt){`,
-        `    alloc_locals;`,
-        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
-        ...mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)),
-        `    return (mem_start,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){
+            alloc_locals;
+            let (mem_start) = wm_alloc(${uint256(memoryType.width)});
+            ${mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)).join('\n')}
+            return (mem_start,);
+        }
+      `,
       functionsCalled: [
         this.requireImport(...WM_ALLOC),
         this.requireImport(...U128_FROM_FELT),
@@ -236,14 +239,15 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     const funcName = `cd_to_memory_struct_${structDef.name}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(calldata : ${calldataType}) -> (mem_loc: felt){`,
-        `    alloc_locals;`,
-        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
-        ...copyCode,
-        `    return (mem_start,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        func ${funcName}(calldata : ${calldataType}) -> (mem_loc: felt){
+            alloc_locals;
+            let (mem_start) = wm_alloc(${uint256(memoryType.width)});
+            ${copyCode.join('\n')}
+            return (mem_start,
+        }
+      `,
       functionsCalled: [
         this.requireImport(...DICT_WRITE),
         this.requireImport(...U128_FROM_FELT),
