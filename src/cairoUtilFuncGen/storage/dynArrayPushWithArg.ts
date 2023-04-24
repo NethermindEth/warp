@@ -145,7 +145,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const arrayName = dynArray.name;
     const lengthName = dynArrayLength.name;
     const funcName = `${arrayName}_PUSHV${this.generatedFunctionsDef.size}`;
-    const implicit = argLoc === DataLocation.Memory ? '#[implicit(warp_memory)]' : '';
+    const implicit = argLoc === DataLocation.Memory ? '#[implicit(warp_memory: WarpMemory)]' : '';
 
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType

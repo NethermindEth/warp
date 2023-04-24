@@ -28,7 +28,7 @@ use warplib::warp_memory::WarpMemoryImpl;
 
 // -----------------Scalars-----------------
 
-#[implicit(warp_memory)]
+#[implicit(warp_memory: WarpMemory)]
 fn wm_read_256(loc: felt252) -> u256 {
     // TODO Clean this warp_memory initialization once plugin is supported
     let mut warp_memory: WarpMemory = WarpMemoryImpl::initialize(); 
@@ -38,7 +38,7 @@ fn wm_read_256(loc: felt252) -> u256 {
     u256_from_felts(low, high)
 }
 
-#[implicit(warp_memory)]
+#[implicit(warp_memory: WarpMemory)]
 fn wm_write_256(loc: felt252, value: u256) -> u256 {
     // TODO Clean this warp_memory initialization once plugin is supported
     let mut warp_memory: WarpMemory = WarpMemoryImpl::initialize(); 
@@ -50,7 +50,7 @@ fn wm_write_256(loc: felt252, value: u256) -> u256 {
 
 // -----------------Arrays-----------------
 
-#[implicit(warp_memory)]
+#[implicit(warp_memory: WarpMemory)]
 fn wm_index_dyn(arrayLoc: felt252, index: u256, width: u256) -> felt252 {
     // TODO Clean this warp_memory initialization once plugin is supported
     let mut warp_memory: WarpMemory = WarpMemoryImpl::initialize(); 
@@ -66,7 +66,7 @@ fn wm_index_dyn(arrayLoc: felt252, index: u256, width: u256) -> felt252 {
     loc
 }
 
-#[implicit(warp_memory)]
+#[implicit(warp_memory: WarpMemory)]
 fn wm_new(len: u256, elemWidth: u256) -> felt252 {
     // TODO Clean this warp_memory initialization once plugin is supported
     let mut warp_memory: WarpMemory = WarpMemoryImpl::initialize(); 
@@ -82,7 +82,7 @@ fn wm_new(len: u256, elemWidth: u256) -> felt252 {
     empty_memory_start
 }
 
-#[implicit(warp_memory)]
+#[implicit(warp_memory: WarpMemory)]
 fn wm_dyn_array_length(arrayLoc: felt252) -> u256 {
     // TODO Clean this warp_memory initialization once plugin is supported
     let mut warp_memory: WarpMemory = WarpMemoryImpl::initialize(); 
@@ -98,7 +98,7 @@ fn wm_dyn_array_length(arrayLoc: felt252) -> u256 {
 
 // Moves the free-memory pointer to allocate the given number of cells, and returns the index
 // of the start of the allocated space
-#[implicit(warp_memory)]
+#[implicit(warp_memory: WarpMemory)]
 fn wm_alloc(space: u256) -> felt252 {
     // TODO Clean this warp_memory initialization once warp-memory plugin is supported
     let mut warp_memory: WarpMemory = WarpMemoryImpl::initialize(); 
