@@ -59,6 +59,18 @@ impl U8PrintImpl of PrintTrait<u8> {
     }
 }
 
+impl U16PrintImpl of PrintTrait<u16> {
+    fn print(self: u16) {
+        self.into().print();
+    }
+}
+
+impl U32PrintImpl of PrintTrait<u32> {
+    fn print(self: u32) {
+        self.into().print();
+    }
+}
+
 impl U64PrintImpl of PrintTrait<u64> {
     fn print(self: u64) {
         self.into().print();
@@ -79,7 +91,7 @@ impl U256PrintImpl of PrintTrait<u256> {
 }
 
 impl ArrayGenericPrintImpl of PrintTrait<Array<felt252>> {
-    fn print(mut self: Array::<felt252>) {
+    fn print(mut self: Array<felt252>) {
         print(self);
     }
 }

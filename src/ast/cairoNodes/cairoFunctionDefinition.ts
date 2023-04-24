@@ -10,10 +10,13 @@ import {
   ParameterList,
   StructuredDocumentation,
 } from 'solc-typed-ast';
-import { Implicits } from '../../utils/implicits';
+import { Implicits } from '../../utils/utils';
 
 /*
- An extension of FunctionDefinition to track which implicit arguments are used.
+ An extension of FunctionDefinition to track which implicit arguments are used (This is no 
+ longer supported in Cairo1, compiler itself will infer what is needed. We still need to 
+ use warp-memory so the structure is kept for now to trace if it's used 'warp-memory' 
+ in the function).
  Additionally we often use function stubs for instances where we want to be able
  to insert function during transpilation where it wouldn't make sense to include
  their body in the AST. For example, stubs are used for warplib functions, and
