@@ -138,6 +138,8 @@ export function createImport(
     Paths.ARRAY_TRAIT,
     Paths.WARP_MEMORY,
     Paths.MEMORY_TRAIT,
+    Paths.BOOL_INTO_FELT252,
+    Paths.FELT252_INTO_BOOL,
   ];
   if (pathsForFunctionImport.some((i) => encodePath([path, name]) === encodePath(i))) {
     return createFuncImport();
