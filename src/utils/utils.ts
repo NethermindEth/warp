@@ -73,6 +73,8 @@ import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeT
 import { Class } from './typeConstructs';
 import { TranspilationOptions } from '../cli';
 
+export type Implicits = 'warp_memory';
+
 const uint128 = BigInt('0x100000000000000000000000000000000');
 
 export function divmod(x: bigint, y: bigint): [bigint, bigint] {

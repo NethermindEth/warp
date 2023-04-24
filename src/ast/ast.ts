@@ -23,12 +23,11 @@ import { CairoUtilFuncGen } from '../cairoUtilFuncGen';
 import { SolcOutput } from '../solCompile';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
-import { Implicits } from '../utils/implicits';
 import { createBlock } from '../utils/nodeTemplates';
 import { createImport } from '../utils/importFuncGenerator';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternalCall } from '../utils/utils';
-import { CairoFunctionDefinition, CairoImportFunctionDefinition } from './cairoNodes';
+import { CairoImportFunctionDefinition } from './cairoNodes';
 import { ParameterInfo } from '../export';
 
 /*
@@ -156,13 +155,6 @@ export class AST {
       return -1;
     }
     return scope.id;
-  }
-
-  getImplicitsAt(node: Statement): Set<Implicits> {
-    const containingFunction = node.getClosestParentByType(CairoFunctionDefinition);
-    if (containingFunction === undefined) return new Set();
-
-    return containingFunction.implicits;
   }
 
   getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {

@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ArrayType,
   BytesType,
@@ -95,15 +96,14 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       'member',
     );
 
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_struct_${cairoStruct.toString()}_to_calldata`;
-    const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
-      `   alloc_locals;`,
-      ...copyInstructions,
-      `   return (${cairoStruct.toString()}(${members.join(', ')}),);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      func ${funcName}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){
+        alloc_locals;
+        ${copyInstructions.join('\n')}
+        return (${cairoStruct.toString()}(${members.join(', ')}),);
+      }
+    `;
 
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
@@ -123,15 +123,14 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       'elem',
     );
 
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_static_array_to_calldata${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
-      `    alloc_locals;`,
-      ...copyInstructions,
-      `    return ((${members.join(', ')}),);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      func ${funcName}(loc : felt) -> (static_array : ${cairoType.toString()}){
+        alloc_locals;
+        ${copyInstructions.join('\n')}
+        return ((${members.join(', ')}),);
+      }
+    `;
 
     return {
       name: funcName,
@@ -160,36 +159,34 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     );
 
     const ptrType = `${cairoElementType.toString()}*`;
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const funcName = `ws_dynamic_array_to_calldata${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}_write${implicits}(`,
-      `   loc : felt,`,
-      `   index : felt,`,
-      `   len : felt,`,
-      `   ptr : ${ptrType}) -> (ptr : ${ptrType}){`,
-      `   alloc_locals;`,
-      `   if (len == index){`,
-      `       return (ptr,);`,
-      `   }`,
-      `   let (index_uint256) = warp_uint256(index);`,
-      `   let (elem_loc) = ${arrayName}.read(loc, index_uint256);`, // elem_loc should never be zero
-      `   let (elem) = ${storageReadFunc.name}(elem_loc);`,
-      `   assert ptr[index] = elem;`,
-      `   return ${funcName}_write(loc, index + 1, len, ptr);`,
-      `}`,
-
-      `func ${funcName}${implicits}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
-      `   alloc_locals;`,
-      `   let (len_uint256) = ${lenName}.read(loc);`,
-      `   let len = len_uint256.low + len_uint256.high*128;`,
-      `   let (ptr : ${ptrType}) = alloc();`,
-      `   let (ptr : ${ptrType}) = ${funcName}_write(loc, 0, len, ptr);`,
-      `   let dyn_array_struct = ${structDef.name}(len, ptr);`,
-      `   return (dyn_array_struct,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      func ${funcName}_write(
+         loc : felt,
+         index : felt,
+         len : felt,
+         ptr : ${ptrType}) -> (ptr : ${ptrType}){
+         alloc_locals;
+         if (len == index){
+             return (ptr,);
+         }
+         let (index_uint256) = warp_uint256(index);
+         let (elem_loc) = ${arrayName}.read(loc, index_uint256); // elem_loc should never be zero
+         let (elem) = ${storageReadFunc.name}(elem_loc);
+         assert ptr[index] = elem;
+         return ${funcName}_write(loc, index + 1, len, ptr);
+      }
+      func ${funcName}(loc : felt) -> (dyn_array_struct : ${structDef.name}){
+         alloc_locals;
+         let (len_uint256) = ${lenName}.read(loc);
+         let len = len_uint256.low + len_uint256.high*128;
+         let (ptr : ${ptrType}) = alloc();
+         let (ptr : ${ptrType}) = ${funcName}_write(loc, 0, len, ptr);
+         let dyn_array_struct = ${structDef.name}(len, ptr);
+         return (dyn_array_struct,);
+      }
+    `;
 
     const importedFuncs = [
       this.requireImport(...WARP_UINT256),

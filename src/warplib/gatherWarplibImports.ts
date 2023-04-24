@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Implicits } from '../utils/implicits';
+import { Implicits } from '../utils/utils';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { glob } from 'glob';
 import path from 'path';
