@@ -1,6 +1,10 @@
 use warplib::warp_memory::WarpMemory;
 use warplib::warp_memory::WarpMemoryTrait;
 use warplib::warp_memory::WarpMemoryImpl;
+use integer::u256_from_felt252;
+use integer::u128_try_from_felt252;
+use integer::Into;
+use option::OptionTrait;
 
 trait WarpMemoryArraysTrait {
     /// reads the pointer of an array. If it does not exists, it creates a new one
@@ -23,6 +27,7 @@ trait WarpMemoryArraysTrait {
     fn lenght_dyn(ref self: WarpMemory, array_ptr: felt252) -> felt252;
 }
 
+
 impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
     fn read_id(ref self: WarpMemory, location: felt252, size: felt252) -> felt252{
         // Get the id at the location
@@ -40,7 +45,18 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
     fn new_dynamic_array(ref self: WarpMemory, len: felt252, elem_width: felt252) -> felt252 {
         // The max space needed for the array in memory
         // plus one to store the length
-        let max_size = len * elem_width + 1;
+        let len_256 = u256_from_felt252(len);
+        let elem_width_256 = u256{low: u128_try_from_felt252(elem_width).unwrap(), high: 0_u128};
+        let one_256 = u256{low: 1_u128, high: 0_u128};
+
+        let max_size_256 = len_256 * elem_width_256 + one_256;
+
+        let MAX_FELT_256 = u256_from_felt252(-1);
+        if max_size_256 > MAX_FELT_256 {
+           panic_with_felt252('Overflow in new_dynamic_array');
+        }
+
+        let max_size: felt252 =  len * elem_width + 1;
 
         let array_ptr = self.alloc(max_size);
         self.unsafe_write(array_ptr, len);
@@ -49,8 +65,11 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
 
     fn index_dyn(ref self: WarpMemory, array_ptr: felt252, index: felt252, elem_width: felt252) -> felt252 {
         let length = self.read(array_ptr);
-        if index >= length {
-            panic('Index out of range');
+
+        let index_256 = u256_from_felt252(index);
+        let length_256 = u256_from_felt252(length);
+        if index_256 >= length_256 {
+            panic_with_felt252('Index out of range');
         } 
 
         let index_location = array_ptr + 1 + index * elem_width;
@@ -58,8 +77,10 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
     }
 
     fn index_static(ref self: WarpMemory, array_ptr: felt252, index: felt252, elem_width: felt252, length: felt252) -> felt252 {
-        if index >= length {
-            panic('Index out of range');
+        let index_256 = u256_from_felt252(index);
+        let length_256 = u256_from_felt252(length);
+        if index_256 >= length_256 {
+             panic_with_felt252('Index out of range');
         } 
 
         let index_location = array_ptr + index * elem_width;
