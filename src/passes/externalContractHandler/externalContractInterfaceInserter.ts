@@ -21,6 +21,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternallyVisible } from '../../utils/utils';
 import { createImport } from '../../utils/importFuncGenerator';
+import { SUPER } from '../../utils/importPaths';
 
 export class ExternalContractInterfaceInserter extends ASTMapper {
   /*
@@ -146,7 +147,7 @@ export function genContractInterface(
   sourceUnit.appendChild(contractInterface);
   ast.registerChild(contractInterface, sourceUnit);
   createImport(
-    ['super'],
+    SUPER,
     `${contract.name}_warped_interfaceDispatcherTrait`,
     getContainingSourceUnit(node),
     ast,
@@ -157,7 +158,7 @@ export function genContractInterface(
     },
   );
   createImport(
-    ['super'],
+    SUPER,
     `${contract.name}_warped_interfaceDispatcher`,
     getContainingSourceUnit(node),
     ast,
@@ -168,7 +169,7 @@ export function genContractInterface(
     },
   );
   createImport(
-    ['super'],
+    SUPER,
     `${contract.name}_warped_interfaceLibraryDispatcher`,
     getContainingSourceUnit(node),
     ast,

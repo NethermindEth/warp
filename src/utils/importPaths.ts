@@ -237,3 +237,5 @@ export const OPTION_TRAIT: [string[], string] = [['option'], 'OptionTrait'];
 
 export const WARP_MEMORY: [string[], string] = [['warplib', 'warp_memory'], 'WarpMemory'];
 export const MEMORY_TRAIT: [string[], string] = [['warplib', 'warp_memory'], 'MemoryTrait'];
+
+export const SUPER: string[] = ['super'];

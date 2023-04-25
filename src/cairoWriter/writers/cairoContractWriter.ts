@@ -134,8 +134,6 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       .filter((func, index, importFuncs) => func !== importFuncs[index - 1])
       .join('\n');
 
-    // console.log(writtenImportFuncs, importFunctions);
-
     const writtenGeneratedFuncs = generatedFunctions
       .sort((funcA, funcB) => funcA.name.localeCompare(funcB.name))
       .sort((funcA, funcB) => {
@@ -218,9 +216,10 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       : node.name;
 
     return [
-      [documentation, [`#[abi]`, `trait ${interfaceName}{`, ...functions, `}`].join('\n')].join(
-        '\n',
-      ),
+      [
+        documentation,
+        [endent`#[abi]`, endent`trait ${interfaceName}{`, ...functions, `}`].join('\n'),
+      ].join('\n'),
     ];
   }
 }
