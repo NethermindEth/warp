@@ -6,6 +6,7 @@ import {
   FunctionStateMutability,
   TypeNode,
   TypeName,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -59,9 +60,17 @@ export class StorageReadGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
+    const functionsCalled: FunctionDefinition[] = [];
     const funcName = `WS${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
+
+    const [reads, pack, requiredImports] = serialiseReads(typeToRead, readFelt, readId);
+
+    requiredImports.map((i) => {
+      const funcDef = this.requireImport(...i);
+      if (!functionsCalled.includes(funcDef)) functionsCalled.push(funcDef);
+    });
+
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
@@ -70,7 +79,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
           ${pack}
         }
       `,
-      functionsCalled: [],
+      functionsCalled: functionsCalled,
     };
     return funcInfo;
   }

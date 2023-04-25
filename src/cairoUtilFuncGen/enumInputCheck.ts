@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ASTNode,
   DataLocation,
@@ -68,25 +69,22 @@ export class EnumInputCheck extends StringIndexedFuncGen {
       imports.push(this.requireImport(...NARROW_SAFE), this.requireImport(...U128_FROM_FELT));
     }
 
-    const implicits = '{range_check_ptr : felt}';
     const nMembers = enumDef.vMembers.length;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}${implicits}(${
-          input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'
-        }) -> (arg: felt){`,
-        '    alloc_locals;',
-        input256Bits ? ['    let (arg) = narrow_safe(arg_Uint256);'].join('\n') : ``,
-        `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
-        `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
-          nMembers - 1
-        }]."){`,
-        `        assert 1 = inRange;`,
-        `    }`,
-        `    return (arg,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(${input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'}) -> (arg: felt){
+            alloc_locals;
+            ${input256Bits ? 'let (arg) = narrow_safe(arg_Uint256);' : ``}
+            let inRange : felt = is_le_felt(arg, ${nMembers - 1});
+            with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
+              nMembers - 1
+            }]."){
+                assert 1 = inRange;
+            }
+            return (arg,);
+        }
+      `,
       functionsCalled: imports,
     };
     return funcInfo;
