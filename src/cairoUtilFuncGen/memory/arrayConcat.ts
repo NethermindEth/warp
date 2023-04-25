@@ -60,8 +60,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const key = argTypes
       // TODO: Wouldn't type.pp() work here?
       .map((type) => {
-        if (isReferenceType(type)) return 'A';
-        return `B${getIntOrFixedByteBitWidth(type)}`;
+        isReferenceType(type) ? 'A' : `B${getIntOrFixedByteBitWidth(type)}`;
       })
       .join('');
     const value = this.generatedFunctionsDef.get(key);

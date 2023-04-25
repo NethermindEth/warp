@@ -33,7 +33,6 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { uint256 } from '../../warplib/utils';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import endent from 'endent';
 
@@ -96,11 +95,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     }
 
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
-    const funcInfo = this.getOrCreate(
-      baseType,
-      size,
-      isDynamicArray(type) || type instanceof StringLiteralType,
-    );
+    const funcInfo = this.getOrCreate(baseType, size);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       mapRange(size, (n) => [
@@ -116,34 +111,40 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(type: TypeNode, size: number, dynamic: boolean): GeneratedFunctionInfo {
-    const elementCairoType = CairoType.fromSol(type, this.ast);
-    const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
+  private getOrCreate(array_type: TypeNode, array_size: number): GeneratedFunctionInfo {
+    const elementCairoType = CairoType.fromSol(array_type, this.ast);
+    const dynamic = isDynamicArray(array_type) || array_type instanceof StringLiteralType;
 
-    const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
+    const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
+    const argString = mapRange(array_size, (n) => `e${n}: ${elementCairoType.toString()}`).join(
+      ', ',
+    );
 
     // If it's dynamic we need to include the length at the start
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
+    const alloc_len = dynamic
+      ? array_size * elementCairoType.width + 2
+      : array_size * elementCairoType.width;
     const writes = [
-      ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`] : []),
-      ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
+      dynamic ? `warp_memory.write(start, ${array_size});` : '',
+      ...mapRange(array_size, (n) => elementCairoType.serialiseMembers(`e${n}`))
         .flat()
         .map(
-          (name, index) => `warp_memory.insert(
-            ${add('start', dynamic ? index + 2 : index)},
+          (name, index) => `warp_memory.write(
+            ${add('start', index)},
             ${name}
           );`,
         ),
     ];
+
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
+        #[implicit(warp_memory: WarpMemory)]
         fn ${funcName}(${argString}) -> felt252 {
-          let start = warp_memory.pointer;
+          let start = warp_memory.unsafe_alloc(${alloc_len});
           ${writes.join('\n')}
-          return start;
+          start
         }`,
       functionsCalled: [
         this.requireImport(...ARRAY),
