@@ -3,7 +3,7 @@ use dict::Felt252DictTrait;
 use array::Array;
 use array::ArrayTrait;
 use serde::Serde;
-
+use option::OptionTrait;
 
 struct WarpMemory {
     pointer: felt252,
