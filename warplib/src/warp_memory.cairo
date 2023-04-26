@@ -5,6 +5,7 @@ use array::ArrayTrait;
 use serde::Serde;
 use option::OptionTrait;
 
+
 struct WarpMemory {
     pointer: felt252,
     memory: Felt252Dict::<felt252>
@@ -21,10 +22,10 @@ trait MemoryTrait {
     fn initialize() -> WarpMemory;
     fn insert(ref self: WarpMemory, position: felt252, value: felt252);
     fn append(ref self: WarpMemory, value: felt252);
-    fn append_array(ref self: WarpMemory, ref value: Array::<felt252>);
-    fn to_mem<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, value: T);
-    fn raw(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> Array::<felt252>;
-    fn from_mem<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> T;
+    fn store_raw_array(ref self: WarpMemory, ref value: Array::<felt252>);
+    fn store<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, value: T);
+    fn retrieve_raw(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> Array::<felt252>;
+    fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> T;
 }
 
 
@@ -65,7 +66,7 @@ impl WarpMemoryImpl of MemoryTrait {
                 break();
             }
             array.append(self.memory.get(index));
-            index+=1;
+            index += 1;
         };
         array
     }
