@@ -1,3 +1,4 @@
+import endent from 'endent';
 import {
   Expression,
   TypeName,
@@ -17,18 +18,17 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { DICT_READ, WARPLIB_MEMORY, WM_READ_FELT, WM_READ_ID } from '../../utils/importPaths';
+import { MEMORY_TRAIT, WARPLIB_MEMORY, WM_READ_FELT, WM_READ_ID } from '../../utils/importPaths';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
-import { serialiseReads } from '../serialisation';
+import { GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 
 /*
   Produces functions that when given a start location in warp_memory, deserialise all necessary
   felts to produce a full value. For example, a function to read a Uint256 reads the given location
   and the next one, and combines them into a Uint256 struct
 */
-
+// TODO: Replace the whole class with a call to warp_memory.retrieve?
 export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression): FunctionCall {
     const valueType = generalizeType(safeGetNodeType(memoryRef, this.ast.inference))[0];
@@ -102,23 +102,13 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
-    const resultCairoType = typeToRead.toString();
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}){`,
-        `    alloc_locals;`,
-        ...reads.map((s) => `    ${s}`),
-        `    return (${pack},);`,
-        '}',
-      ].join('\n'),
-      functionsCalled: [this.requireImport(...DICT_READ)],
+      code: endent`fn ${funcName}(loc: felt) -> ${typeToRead.toString()}{
+        warp_memory.retrieve(loc, loc + ${typeToRead.width})
+      }`,
+      functionsCalled: [this.requireImport(...MEMORY_TRAIT)],
     };
     return funcInfo;
   }
-}
-
-function readFelt(offset: number): string {
-  return `let (read${offset}) = dict_read{dict_ptr=warp_memory}(${add('loc', offset)});`;
 }
