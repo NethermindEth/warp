@@ -17,13 +17,7 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  ARRAY,
-  ARRAY_TRAIT,
-  MEMORY_TRAIT,
-  U32_TO_FELT,
-  WARP_MEMORY,
-} from '../../utils/importPaths';
+import { ARRAY, ARRAY_TRAIT, U32_TO_FELT, WARP_MEMORY } from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,
