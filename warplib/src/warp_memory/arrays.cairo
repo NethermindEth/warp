@@ -24,7 +24,7 @@ trait WarpMemoryArraysTrait {
     fn index_static(ref self: WarpMemory, array_ptr: felt252, index: felt252, elem_width: felt252, length: felt252) -> felt252;
 
     /// Given the pointer to a dynamic array, it returns it's length
-    fn lenght_dyn(ref self: WarpMemory, array_ptr: felt252) -> felt252;
+    fn length_dyn(ref self: WarpMemory, array_ptr: felt252) -> felt252;
 }
 
 
@@ -87,7 +87,7 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
         self.read(index_location) 
     }
 
-    fn lenght_dyn(ref self: WarpMemory, array_ptr: felt252) -> felt252 {
+    fn length_dyn(ref self: WarpMemory, array_ptr: felt252) -> felt252 {
         self.read(array_ptr)
     }
 }
