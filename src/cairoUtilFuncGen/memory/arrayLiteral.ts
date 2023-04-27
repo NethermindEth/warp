@@ -150,7 +150,8 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         this.requireImport(...ARRAY_TRAIT),
         this.requireImport(...U32_TO_FELT),
         this.requireImport(...WARP_MEMORY),
-        this.requireImport(...MEMORY_TRAIT),
+        // TODO: remove me once the function starts using high level memory interface
+        this.requireImport(['warplib', 'warp_memory'], 'LowLevelMemoryAccess'),
       ],
     };
   }
