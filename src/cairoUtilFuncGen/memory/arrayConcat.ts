@@ -32,7 +32,7 @@ import {
 } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
-import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
+import { getIntOrFixedByteBitWidth } from '../../warplib/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayConcat extends StringIndexedFuncGen {
