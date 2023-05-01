@@ -121,9 +121,8 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     );
 
     // If it's dynamic we need to include the length at the start
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const alloc_len = dynamic
-      ? array_size * elementCairoType.width + 2
+      ? array_size * elementCairoType.width + 1
       : array_size * elementCairoType.width;
     const writes = [
       dynamic ? `warp_memory.write(start, ${array_size});` : '',
