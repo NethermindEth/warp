@@ -2,8 +2,11 @@ use array::Array;
 use array::ArrayTrait;
 use serde::Serde;
 use option::OptionTrait;
-use integer::u256_from_felt252;
 use integer::u32_to_felt252;
+
+use warplib::warp_memory::WarpMemory;
+use warplib::warp_memory::WarpMemoryTrait;
+use warplib::warp_memory::WarpMemoryImpl;
 
 
 trait WarpMemoryAccesssorTrait {

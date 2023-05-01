@@ -1,5 +1,6 @@
 use dict::Felt252Dict;
 use dict::Felt252DictTrait;
+use integer::u256_from_felt252;
 
 mod read;
 use read::WarpMemoryReadTrait;
