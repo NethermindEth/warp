@@ -1,9 +1,21 @@
 use dict::Felt252Dict;
 use dict::Felt252DictTrait;
-use array::Array;
-use array::ArrayTrait;
-use serde::Serde;
-use option::OptionTrait;
+
+mod read;
+use read::WarpMemoryReadTrait;
+
+mod write;
+use write::WarpMemoryWriteTrait;
+
+mod arrays;
+use arrays::WarpMemoryArraysTrait;
+
+mod bytes;
+use bytes::WarpMemoryBytesTrait;
+
+mod accessors;
+use accessors::WarpMemoryCellAccessor;
+use accessors::WarpMemoryAccesssor;
 
 
 struct WarpMemory {
@@ -14,72 +26,5 @@ struct WarpMemory {
 impl DestructWarpMemory of Destruct::<WarpMemory> {
     fn destruct(self: WarpMemory) nopanic {
         self.memory.squash();
-    }
-}
-
-trait LowLevelMemoryAccess {
-    fn insert(ref self: WarpMemory, position: felt252, value: felt252);
-    fn append(ref self: WarpMemory, value: felt252);
-    fn store_raw_array(ref self: WarpMemory, ref value: Array::<felt252>);
-    fn retrieve_raw(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> Array::<felt252>;
-}
-
-trait MemoryTrait {
-    fn initialize() -> WarpMemory;
-    fn store<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, value: T);
-    fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> T;
-}
-
-
-
-impl WarpMemoryLowLevelAccess of LowLevelMemoryAccess {
-    fn insert(ref self: WarpMemory, position: felt252, value: felt252) {
-        self.memory.insert(position, value);
-        self.pointer += 1;
-    }
-
-    fn append(ref self: WarpMemory, value: felt252) {
-        self.insert(self.pointer, value);
-    }
-
-    fn store_raw_array(ref self: WarpMemory, ref value: Array::<felt252>) {
-        loop {
-            if value.len() == 0 {
-                break();
-            }
-            self.append(value.pop_front().unwrap());
-        }
-    }
-
-    fn retrieve_raw(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> Array::<felt252> {
-        let mut index = start_pos;
-        let mut array: Array<felt252> = ArrayImpl::<felt252>::new();
-        loop {
-            if index == end_pos {
-                break();
-            }
-            array.append(self.memory.get(index));
-            index += 1;
-        };
-        array
-    }
-}
-
-impl WarpMemoryImpl of MemoryTrait {
-    fn initialize() -> WarpMemory {
-        return WarpMemory {memory: Felt252DictTrait::new(), pointer: 0};
-    }
-
-    fn store<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, value: T) {
-        let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
-        TSerde::serialize(ref serialization_array, value);
-        self.store_raw_array(ref serialization_array);
-    }
-
-    fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, start_pos: felt252, end_pos: felt252) -> T {
-        let serialization_array: Array<felt252> = self.retrieve_raw(start_pos, end_pos);
-        let mut span = ArrayImpl::<felt252>::span(@serialization_array);
-        let value = TSerde::deserialize(ref span);
-        value.unwrap()
     }
 }

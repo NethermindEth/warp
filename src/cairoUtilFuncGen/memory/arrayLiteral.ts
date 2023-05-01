@@ -17,7 +17,13 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { ARRAY, ARRAY_TRAIT, U32_TO_FELT, WARP_MEMORY } from '../../utils/importPaths';
+import {
+  ARRAY,
+  ARRAY_TRAIT,
+  CELL_ACCESSOR_TRAIT,
+  U32_TO_FELT,
+  CELL_ACCESSOR,
+} from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
   getElementType,
@@ -124,7 +130,8 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
         .flat()
         .map(
-          (name, index) => `warp_memory.insert(
+          // TODO: use create from WarpMemoryAccessor instead
+          (name, index) => `warp_memory.insert(start,
             ${add('start', dynamic ? index + 2 : index)},
             ${name}
           );`,
@@ -136,6 +143,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         #[implicit(warp_memory)]
         fn ${funcName}(${argString}) -> felt252 {
           let start = warp_memory.pointer;
+          warp_memory.alloc(${alloc_len})
           ${writes.join('\n')}
           return start;
         }`,
@@ -143,9 +151,8 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         this.requireImport(...ARRAY),
         this.requireImport(...ARRAY_TRAIT),
         this.requireImport(...U32_TO_FELT),
-        this.requireImport(...WARP_MEMORY),
-        // TODO: remove me once the function starts using high level memory interface
-        this.requireImport(['warplib', 'warp_memory'], 'LowLevelMemoryAccess'),
+        this.requireImport(...CELL_ACCESSOR),
+        this.requireImport(...CELL_ACCESSOR_TRAIT),
       ],
     };
   }
