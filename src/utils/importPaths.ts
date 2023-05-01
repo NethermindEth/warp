@@ -230,11 +230,8 @@ export const GET_CALLER_ADDRESS: [string[], string] = [['starknet'], 'get_caller
 export const CONTRACT_ADDRESS: [string[], string] = [['starknet'], 'ContractAddress'];
 export const INTO: [string[], string] = [['traits'], 'Into'];
 
-export const CELL_ACCESSOR: [string[], string] = [
-  ['warplib', 'warp_memory'],
-  'WarpMemoryCellAccessor',
-];
-export const CELL_ACCESSOR_TRAIT: [string[], string] = [
-  ['warplib', 'warp_memory'],
-  'WarpMemoryCellAccessorTrait',
-];
+export const WARP_MEMORY = ['warplib', 'warp_memory'];
+export const CELL_ACCESSOR: [string[], string] = [WARP_MEMORY, 'WarpMemoryCellAccessor'];
+export const CELL_ACCESSOR_TRAIT: [string[], string] = [WARP_MEMORY, 'WarpMemoryCellAccessorTrait'];
+export const ACCESSOR: [string[], string] = [WARP_MEMORY, 'WarpMemoryAccesssor'];
+export const ACCESSOR_TRAIT: [string[], string] = [WARP_MEMORY, 'WarpMemoryAccesssorTrait'];

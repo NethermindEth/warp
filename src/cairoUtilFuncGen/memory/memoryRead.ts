@@ -18,7 +18,13 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { MEMORY_TRAIT, WARPLIB_MEMORY, WM_READ_FELT, WM_READ_ID } from '../../utils/importPaths';
+import {
+  ACCESSOR,
+  ACCESSOR_TRAIT,
+  WARPLIB_MEMORY,
+  WM_READ_FELT,
+  WM_READ_ID,
+} from '../../utils/importPaths';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
@@ -107,7 +113,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       code: endent`fn ${funcName}(loc: felt) -> ${typeToRead.toString()}{
         warp_memory.retrieve(loc, loc + ${typeToRead.width})
       }`,
-      functionsCalled: [this.requireImport(...MEMORY_TRAIT)],
+      functionsCalled: [this.requireImport(...ACCESSOR), this.requireImport(...ACCESSOR_TRAIT)],
     };
     return funcInfo;
   }
