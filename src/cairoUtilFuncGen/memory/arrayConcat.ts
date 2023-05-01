@@ -104,11 +104,9 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return {
         name: funcName,
         code: endent`
-          #[implicit(warp_memory)]
-          func ${funcName}() -> (res_loc : felt){
-             alloc_locals;
-             let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});
-             return (res_loc,);
+          #[implicit(warp_memory: WarpMemory)]
+          fn ${funcName}() -> felt{
+              warp_memory.new_dynamic_array(0, 1)
           }
         `,
         functionsCalled: [this.requireImport(...U128_FROM_FELT), this.requireImport(...WM_NEW)],
@@ -148,18 +146,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     );
 
     const code = endent`
-      #[implicit(warp_memory)]
-      func ${funcName}(${cairoArgs}) -> (res_loc : felt){
-          alloc_locals;
+      #[implicit(warp_memory: WarpMemory)]
+      fn ${funcName}(${cairoArgs}) -> (res_loc : felt){
           // Get all sizes
           ${argSizes}
           let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};
-          let (total_length256) = felt_to_uint256(total_length);
-          let (res_loc) = wm_new(total_length256, ${uint256(1)});
+          let res_loc = warp_memory.new_dynamic_array(total_length, 1);
           // Copy values
           let start_loc = 0;
           ${concatCode.join('\n')}
-          return (res_loc,);
+          res_loc
       }
       `;
 
@@ -180,8 +176,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
         endent`
-          let (size256_${index}) = wm_dyn_array_length(arg_${index});
-          let (size_${index}) = narrow_safe(size256_${index});
+          let size_${index} = warp_memory.read(arg_${index});
         `,
         [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
       ];
@@ -196,10 +191,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     }
 
     throw new TranspileFailedError(
-      `Attempted to get size for unexpected type ${printTypeNode(type)} in concat`,
+      `Attempted to get size for unexpected type ${printTypeNode(type)} during concat`,
     );
   }
 
+  // TODO: Implmenet utils
   private getCopyFunctionCall(
     type: TypeNode,
     index: number,
