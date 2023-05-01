@@ -136,8 +136,8 @@ export function createImport(
     Paths.U256_FROM_FELTS,
     Paths.ARRAY,
     Paths.ARRAY_TRAIT,
-    Paths.CELL_ACCESSOR,
-    Paths.CELL_ACCESSOR_TRAIT,
+    Paths.WARP_MEMORY,
+    Paths.WARP_MEMORY_TRAIT,
     Paths.BOOL_INTO_FELT252,
     Paths.FELT252_INTO_BOOL,
   ];
