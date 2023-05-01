@@ -38,7 +38,7 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait{
             if index == end_pos {
                 break();
             }
-            array.append(self.memory.get(index));
+            array.append(self.read(index));
             index += 1;
         };
         array
