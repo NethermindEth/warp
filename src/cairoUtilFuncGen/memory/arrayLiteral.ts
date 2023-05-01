@@ -141,7 +141,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
+        #[implicits(warp_memory: WarpMemory)]
         fn ${funcName}(${argString}) -> felt252 {
           let start = warp_memory.pointer;
           warp_memory.alloc(${alloc_len})
