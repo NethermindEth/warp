@@ -14,6 +14,11 @@ use arrays::WarpMemoryArraysTrait;
 mod bytes;
 use bytes::WarpMemoryBytesTrait;
 
+mod accessors;
+use accessors::WarpMemoryAccesssor;
+use accessors::WarpMemoryAccesssorTrait;
+
+
 struct WarpMemory {
     pointer: felt252,
     memory: Felt252Dict::<felt252>
