@@ -110,7 +110,8 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: endent`fn ${funcName}(loc: felt) -> ${typeToRead.toString()}{
+      code: endent`#[implicits(warp_memory: WarpMemory)]
+      fn ${funcName}(loc: felt) -> ${typeToRead.toString()}{
         warp_memory.retrieve(loc, loc + ${typeToRead.width})
       }`,
       functionsCalled: [this.requireImport(...ACCESSOR), this.requireImport(...ACCESSOR_TRAIT)],
