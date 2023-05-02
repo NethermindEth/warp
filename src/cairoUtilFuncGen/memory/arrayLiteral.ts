@@ -23,6 +23,7 @@ import {
   WARP_MEMORY_TRAIT,
   U32_TO_FELT,
   WARP_MEMORY,
+  WARP_MEMORY_IMPL,
 } from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
@@ -130,7 +131,8 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
         .flat()
         .map(
-          (name, index) => `warp_memory.insert(
+          // TODO: use create from WarpMemoryAccessor instead
+          (name, index) => `warp_memory.insert(start,
             ${add('start', dynamic ? index + 2 : index)},
             ${name}
           );`,
@@ -139,9 +141,10 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
+        #[implicits(warp_memory: WarpMemory)]
         fn ${funcName}(${argString}) -> felt252 {
           let start = warp_memory.pointer;
+          warp_memory.alloc(${alloc_len})
           ${writes.join('\n')}
           return start;
         }`,
@@ -151,6 +154,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         this.requireImport(...U32_TO_FELT),
         this.requireImport(...WARP_MEMORY),
         this.requireImport(...WARP_MEMORY_TRAIT),
+        this.requireImport(...WARP_MEMORY_IMPL),
       ],
     };
   }
