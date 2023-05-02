@@ -7,7 +7,7 @@ use integer::Into;
 use option::OptionTrait;
 
 trait WarpMemoryArraysTrait {
-    /// reads the pointer of an array. If it does not exists, it creates a new one
+    /// Reads the pointer of an array. If it does not exist, it creates a new one
     fn read_id(ref self: WarpMemory, location: felt252, size: felt252) -> felt252;
 
     /// Given the length and the felt size of an element, allocates the space

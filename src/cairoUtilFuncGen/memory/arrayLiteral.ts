@@ -132,7 +132,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         .flat()
         .map(
           // TODO: use create from WarpMemoryAccessor instead
-          (name, index) => `warp_memory.insert(start,
+          (name, index) => `warp_memory.write(start,
             ${add('start', dynamic ? index + 2 : index)},
             ${name}
           );`,
