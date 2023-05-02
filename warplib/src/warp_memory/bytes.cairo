@@ -7,7 +7,7 @@ use warplib::warp_memory::WarpMemoryTrait;
 
 trait WarpMemoryBytesTrait{
     fn bytes_to_fixed_bytes32(ref self: WarpMemory, location: felt252) -> u256;
-    fn wm_bytes_to_fixed_bytesN(self: WarpMemory, bytesLoc: felt252, width: felt252) -> felt252 ;
+    fn bytes_to_fixed_bytesN(self: WarpMemory, bytesLoc: felt252, width: felt252) -> felt252 ;
 }
 
 impl WarpMemoryBytesImpl of WarpMemoryBytesTrait{
@@ -37,7 +37,7 @@ impl WarpMemoryBytesImpl of WarpMemoryBytesTrait{
     }
 
     // TODO This function will convert to fixed but store it in a felt, so will only be saved the last 31 bytes. Is this the approach we want??
-    fn wm_bytes_to_fixed_bytesN(self: WarpMemory, bytesLoc: felt252, width: felt252) -> felt252 {
+    fn bytes_to_fixed_bytesN(self: WarpMemory, bytesLoc: felt252, width: felt252) -> felt252 {
         let data_len = self.read_u256(bytesLoc);
         if data_len >= u256_from_felt252(width) {
             self._bytes_to_fixed_recursive(bytesLoc + 2, width, width, 0)
