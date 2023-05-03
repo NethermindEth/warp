@@ -1,5 +1,6 @@
 import {
   CairoContractAddress,
+  CairoBool,
   CairoFelt,
   CairoStaticArray,
   CairoStruct,
@@ -9,37 +10,54 @@ import {
   WarpLocation,
 } from '../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../utils/errors';
+import { CONTRACT_ADDRESS, FELT252_INTO_BOOL, OPTION_TRAIT } from '../utils/importPaths';
 
 export function serialiseReads(
   type: CairoType,
   readFelt: (offset: number) => string,
   readId: (offset: number) => string,
-  readAddress: (offset: number) => string,
-  uNread: (offset: number, nBits: number) => string,
-): [reads: string[], pack: string] {
+): [
+  reads: string[],
+  pack: string,
+  requiredImports: { import: [string[], string]; isTrait?: boolean }[],
+] {
   const packExpression = producePackExpression(type);
   const reads: string[] = [];
+  const requiredImports: { import: [string[], string]; isTrait?: boolean }[] = [];
   const packString: string = packExpression
     .map((elem: string | Read | (string | Read)[]) => {
       if (elem instanceof Array) {
-        reads.push(uNread(reads.length, Number(elem[1] as string)));
+        reads.push(readFelt(reads.length));
+        reads.push(
+          `let read${reads.length} = core::integer::u${elem[1]}_from_felt252(read${
+            reads.length - 1
+          });`,
+        );
+      } else if (elem === Read.Address) {
+        requiredImports.push({ import: OPTION_TRAIT, isTrait: true });
+        requiredImports.push({ import: CONTRACT_ADDRESS });
+        reads.push(readFelt(reads.length));
+        reads.push(
+          `let read${reads.length} =  starknet::contract_address_try_from_felt252(read${
+            reads.length - 1
+          }).unwrap();`,
+        );
       }
-      switch (elem) {
-        case Read.Felt:
-          reads.push(readFelt(reads.length));
-          return `read${reads.length - 1}`;
-        case Read.Id:
-          reads.push(readId(reads.length));
-          return `read${reads.length - 1}`;
-        case Read.Address:
-          reads.push(readAddress(reads.length));
-          return `read${reads.length - 1}`;
-        default:
-          return elem;
+      if (elem === Read.Felt) {
+        reads.push(readFelt(reads.length));
+      } else if (elem === Read.Id) {
+        reads.push(readId(reads.length));
+      } else if (elem === Read.Bool) {
+        requiredImports.push({ import: FELT252_INTO_BOOL });
+        reads.push(readFelt(reads.length));
+        reads.push(`let read${reads.length} = felt252_into_bool(read${reads.length - 1});`);
+      } else {
+        return elem;
       }
+      return `read${reads.length - 1}`;
     })
     .join('');
-  return [reads, packString];
+  return [reads, packString, requiredImports];
 }
 
 enum Read {
@@ -47,12 +65,14 @@ enum Read {
   Id,
   Address,
   UN,
+  Bool,
 }
 
 function producePackExpression(type: CairoType): (string | Read | (string | Read)[])[] {
   if (type instanceof WarpLocation) return [Read.Id];
   if (type instanceof CairoFelt) return [Read.Felt];
   if (type instanceof CairoContractAddress) return [Read.Address];
+  if (type instanceof CairoBool) return [Read.Bool];
   if (type instanceof CairoStaticArray) {
     return [
       '(',

@@ -10,7 +10,6 @@ import {
 } from 'solc-typed-ast';
 import { CairoFunctionDefinition, typeNameFromTypeNode } from '../../export';
 import {
-  CairoContractAddress,
   CairoFelt,
   CairoType,
   CairoUint,
@@ -19,20 +18,11 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  CONTRACT_ADDRESS,
-  CONTRACT_ADDRESS_FROM_FELT,
-  DICT_READ,
-  OPTION_TRAIT,
-  WARPLIB_MEMORY,
-  WM_READ_FELT,
-  WM_READ_ID,
-} from '../../utils/importPaths';
+import { DICT_READ, WARPLIB_MEMORY, WM_READ_FELT, WM_READ_ID } from '../../utils/importPaths';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
-import { createImport } from '../../utils/importFuncGenerator';
 
 /*
   Produces functions that when given a start location in warp_memory, deserialise all necessary
@@ -114,18 +104,14 @@ export class MemoryReadGen extends StringIndexedFuncGen {
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const functionsCalled: FunctionDefinition[] = [this.requireImport(...DICT_READ)];
 
-    // register require imports
-    if (typeToRead instanceof CairoContractAddress) {
-      createImport(...OPTION_TRAIT, this.sourceUnit, this.ast, [], [], {
-        isTrait: true,
-      });
-      createImport(...CONTRACT_ADDRESS, this.sourceUnit, this.ast);
-      functionsCalled.push(createImport(...CONTRACT_ADDRESS_FROM_FELT, this.sourceUnit, this.ast));
-    }
-
     const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt, readAddress, uNread);
+    const [reads, pack, requiredImports] = serialiseReads(typeToRead, readFelt, readFelt);
+
+    requiredImports.map((i) => {
+      functionsCalled.push(this.requireImport(...i.import, [], [], { isTrait: i.isTrait }));
+    });
+
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -143,18 +129,4 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
 function readFelt(offset: number): string {
   return `let (read${offset}) = dict_read{dict_ptr=warp_memory}(${add('loc', offset)});`;
-}
-
-function readAddress(offset: number): string {
-  return `let read${offset} =  contract_address_try_from_felt252(dict_read{dict_ptr=warp_memory}(${add(
-    'loc',
-    offset,
-  )})).unwrap();`;
-}
-
-function uNread(offset: number, nBits: number) {
-  return `let read${offset} = core::integer::u${nBits}_from_felt252(dict_read{dict_ptr=warp_memory}(${add(
-    'loc',
-    offset,
-  )}));`;
 }

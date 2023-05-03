@@ -24,7 +24,7 @@ export class LiteralWriter extends CairoASTNodeWriter {
         }
 
       case LiteralKind.Bool:
-        return [node.value === 'true' ? '1' : '0'];
+        return [node.value];
       case LiteralKind.String:
       case LiteralKind.UnicodeString: {
         if (
