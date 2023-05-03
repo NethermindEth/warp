@@ -18,13 +18,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  ACCESSOR,
-  ACCESSOR_TRAIT,
-  WARPLIB_MEMORY,
-  WM_READ_FELT,
-  WM_READ_ID,
-} from '../../utils/importPaths';
+import { WM_READ, WM_GET_ID, WM_RETRIEVE } from '../../utils/importPaths';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
@@ -86,16 +80,11 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
     let funcDef: CairoFunctionDefinition;
     if (resultCairoType instanceof MemoryLocation) {
-      funcDef = this.requireImport(...WM_READ_ID, inputs, outputs);
+      funcDef = this.requireImport(...WM_GET_ID, inputs, outputs);
     } else if (resultCairoType instanceof CairoFelt) {
-      funcDef = this.requireImport(...WM_READ_FELT, inputs, outputs);
+      funcDef = this.requireImport(...WM_READ, inputs, outputs);
     } else if (resultCairoType instanceof CairoUint) {
-      funcDef = this.requireImport(
-        [...WARPLIB_MEMORY],
-        `wm_read_${resultCairoType.nBits}`,
-        inputs,
-        outputs,
-      );
+      funcDef = this.requireImport(...WM_RETRIEVE, inputs, outputs);
     } else {
       const funcInfo = this.getOrCreate(resultCairoType);
       funcDef = createCairoGeneratedFunction(funcInfo, inputs, outputs, this.ast, this.sourceUnit, {
@@ -114,7 +103,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       fn ${funcName}(loc: felt) -> ${typeToRead.toString()}{
         warp_memory.retrieve(loc, loc + ${typeToRead.width})
       }`,
-      functionsCalled: [this.requireImport(...ACCESSOR), this.requireImport(...ACCESSOR_TRAIT)],
+      functionsCalled: [this.requireImport(...WM_RETRIEVE)],
     };
     return funcInfo;
   }

@@ -20,11 +20,11 @@ import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cai
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
-  ALLOC,
+  ARRAY_TRAIT,
   NARROW_SAFE,
   U128_FROM_FELT,
   U32_FROM_FELT,
-  WARPLIB_MEMORY,
+  WM_READ,
 } from '../../utils/importPaths';
 import {
   getElementType,
@@ -158,7 +158,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
+        #[implicit(warp_memory: WarpMemory)]
         fn ${funcName}(mem_loc : felt) -> ${outputType.toString()} {
           ${copyCode.join('\n')}
           return (${mapRange(length, (n) => `member${n}`)});
@@ -191,20 +191,18 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         ${dynArrayReaderInfo.code}
-        #[implicit(warp_memory)]
-        func ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}){
-            alloc_locals;
-            let (len_256) = wm_read_256(mem_loc);
-            let (ptr : ${outputType.vPtr.toString()}) = alloc();
-            let (len_felt) = narrow_safe(len_256);
-            ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);
-            return (${calldataDynArrayStruct.name}(len=len_felt, ptr=ptr),);
+        #[implicit(warp_memory: WarpMemory)]
+        func ${funcName}(mem_loc: felt) -> (ret_data: ${outputType.toString()}){
+            let lenght = warp_memory.read(mem_loc);
+            let result: Array<${outputType.vPtr.toString()}> = ArrayTrait::new();
+            ${dynArrayReaderInfo.name}(length, result, mem_loc + 1);
+            result
         }
         `,
       functionsCalled: [
-        this.requireImport(...ALLOC),
+        this.requireImport(...ARRAY_TRAIT),
         this.requireImport(...NARROW_SAFE),
-        this.requireImport([...WARPLIB_MEMORY], 'wm_read_256'),
+        this.requireImport(...WM_READ),
         calldataDynArrayStruct,
         ...dynArrayReaderInfo.functionsCalled,
       ],

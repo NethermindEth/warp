@@ -20,9 +20,10 @@ import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/
 import {
   ARRAY,
   ARRAY_TRAIT,
-  WARP_MEMORY_TRAIT,
   U32_TO_FELT,
   WARP_MEMORY,
+  WM_WRITE,
+  WM_UNSAFE_ALLOC,
 } from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
@@ -150,7 +151,8 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         this.requireImport(...ARRAY_TRAIT),
         this.requireImport(...U32_TO_FELT),
         this.requireImport(...WARP_MEMORY),
-        this.requireImport(...WARP_MEMORY_TRAIT),
+        this.requireImport(...WM_WRITE),
+        this.requireImport(...WM_UNSAFE_ALLOC),
       ],
     };
   }

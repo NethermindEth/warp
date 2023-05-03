@@ -1,7 +1,6 @@
 import { DataLocation, FixedBytesType, FunctionCall } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { createCallToFunction, ParameterInfo } from '../../../utils/functionGeneration';
-import { WARPLIB_MEMORY } from '../../../utils/importPaths';
 import {
   createBytesTypeName,
   createNumberLiteral,
@@ -23,7 +22,7 @@ export function functionaliseBytesToFixedBytes(
         ['width', createUint8TypeName(ast)],
       ];
 
-  const importedFunc = ast.registerImport(node, WARPLIB_MEMORY, funcName, args, [
+  const importedFunc = ast.registerImport(node, ['this needs to be set'], funcName, args, [
     ['res', typeNameFromTypeNode(targetType, ast)],
   ]);
 
