@@ -20,14 +20,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  DICT_READ,
-  WM_DYN_ARRAY_LENGTH,
-  NARROW_SAFE,
-  U128_FROM_FELT,
-  UINT256_LT,
-  UINT256_SUB,
-} from '../../utils/importPaths';
+import { DICT_READ, WM_DYN_ARRAY_LENGTH, U128_FROM_FELT } from '../../utils/importPaths';
 import {
   getElementType,
   isDynamicArray,
@@ -36,7 +29,6 @@ import {
   isStruct,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from '../storage/dynArray';
 import { StorageDeleteGen } from '../storage/storageDelete';
@@ -119,11 +111,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}(loc : felt, mem_loc: felt) -> (loc: felt){
-            alloc_locals;
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(loc : felt, mem_loc: felt) -> felt {
             ${copyInstructions}
-            return (loc,);
+            loc
         }
       `,
       functionsCalled: funcsCalled,
@@ -149,11 +140,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}(loc : felt, mem_loc: felt) -> (loc: felt){
-            alloc_locals;
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(loc : felt, mem_loc: felt) -> felt {
             ${copyInstructions}
-            return (loc,);
+            loc
         }
         `,
       functionsCalled: funcsCalled,
@@ -180,8 +170,8 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       const readFunc = this.memoryReadGen.getOrCreateFuncDef(type.elementT);
       const auxFunc = this.getOrCreateFuncDef(type.elementT);
       copyCode = endent`
-          let (storage_id) = readId(storage_loc);
-          let (memory_id) = ${readFunc.name}(mem_loc, ${uint256(2)});
+          let storage_id = readId(storage_loc);
+          let memory_id = ${readFunc.name}(mem_loc, 1);
           ${auxFunc.name}(storage_id, memory_id);
       `;
       calledFuncs = [readFunc, auxFunc];
@@ -189,9 +179,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       const readFunc = this.memoryReadGen.getOrCreateFuncDef(type.elementT);
       const auxFunc = this.getOrCreateFuncDef(type.elementT);
       copyCode = endent`
-        let (memory_id) = ${readFunc.name}{dict_ptr=warp_memory}(mem_loc, ${uint256(
-        elementMemoryWidth,
-      )});
+        let memory_id = ${readFunc.name}(mem_loc, ${elementMemoryWidth});
         ${auxFunc.name}(storage_loc, memory_id);
       `;
       calledFuncs = [readFunc, auxFunc];
@@ -200,36 +188,33 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         elementStorageWidth,
         (n) =>
           endent`
-            let (copy) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', n)});
-            WARP_STORAGE.write(${add('storage_loc', n)}, copy);
+            let copy = warp_memory.unsafe_read(${add('mem_loc', n)});
+            WARP_STORAGE::write(${add('storage_loc', n)}, copy);
         `,
       ).join('\n');
       calledFuncs = [this.requireImport(...DICT_READ)];
     }
 
     const funcName = `wm_to_storage_static_array_${this.generatedFunctionsDef.size}`;
+    const storageOffset = add('storage_loc', elementStorageWidth);
+    const memoryOffset = add('mem_loc', elementMemoryWidth);
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}_elem(storage_loc: felt, mem_loc : felt, length: felt) -> (){
-          alloc_locals;
-          if (length == 0){
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}_elem(storage_loc: felt, mem_loc : felt, length: felt) {
+          if length == 0 {
               return ();
           }
           let index = length - 1;
           ${copyCode}
-          return ${funcName}_elem(${add('storage_loc', elementStorageWidth)}, ${add(
-        'mem_loc',
-        elementMemoryWidth,
-      )}, index);
+          ${funcName}_elem(${storageOffset}, ${memoryOffset}, index);
         }
 
-        #[implicit(warp_memory)]
-        func ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt){
-            alloc_locals;
-            ${funcName}_elem(loc, mem_loc, ${length});
-            return (loc,);
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(storage_loc : felt, mem_loc : felt) -> felt {
+            ${funcName}_elem(storage_loc, mem_loc, ${length});
+            stroage_loc
         }
       `,
       functionsCalled: calledFuncs,
@@ -260,12 +245,12 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       const auxFunc = this.getOrCreateFuncDef(elementT);
       copyCode = isDynamicArray(elementT)
         ? endent`
-            let (storage_id) = readId(storage_loc);
-            let (read) = ${readFunc.name}(mem_loc, ${uint256(2)});
+            let storage_id = readId(storage_loc);
+            let read = ${readFunc.name}(mem_loc, 1);
             ${auxFunc.name}(storage_id, read);
           `
         : endent`
-            let (read) = ${readFunc.name}(mem_loc, ${uint256(elementMemoryWidth)});
+            let read = ${readFunc.name}(mem_loc, ${elementMemoryWidth});
             ${auxFunc.name}(storage_loc, read);
           `;
       funcCalls = [readFunc, auxFunc];
@@ -274,8 +259,8 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         elementStorageWidth,
         (n) =>
           endent`
-          let (copy) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', n)});
-          WARP_STORAGE.write(${add('storage_loc', n)}, copy);
+          let copy = warp_memory.unsafe_read(${add('mem_loc', n)});
+          WARP_STORAGE::write(${add('storage_loc', n)}, copy);
         `,
       ).join('\n');
       funcCalls = [this.requireImport(...DICT_READ)];
@@ -289,48 +274,43 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}_elem(storage_name: felt, mem_loc : felt, length: Uint256) -> (){
-            alloc_locals;
-            if (length.low == 0 and length.high == 0){
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}_elem(storage_id: felt252, mem_loc: felt252, length: felt252) -> (){
+            if length == 0 {
                 return ();
             }
-            let (index) = uint256_sub(length, Uint256(1,0));
-            let (storage_loc) = ${elemMappingName}.read(storage_name, index);
+            let index = length - 1;
+            let storage_loc = ${elemMappingName}.read(storage_id, index);
             let mem_loc = mem_loc - ${elementMemoryWidth};
             if (storage_loc == 0){
                 let (storage_loc) = WARP_USED_STORAGE.read();
-                WARP_USED_STORAGE.write(storage_loc + ${elementStorageWidth});
-                ${elemMappingName}.write(storage_name, index, storage_loc);
+                WARP_USED_STORAGE::write(storage_loc + ${elementStorageWidth});
+                ${elemMappingName}::write(storage_id, index, storage_loc);
                 ${copyCode}
-            return ${funcName}_elem(storage_name, mem_loc, index);
+                ${funcName}_elem(storage_id, mem_loc, index);
             }else{
                 ${copyCode}
-            return ${funcName}_elem(storage_name, mem_loc, index);
+                ${funcName}_elem(storage_id, mem_loc, index);
             }
         }
 
-        #[implicit(warp_memory)]
-        func ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt){
-            alloc_locals;
-            let (length) = ${lengthMappingName}.read(loc);
-            let (mem_length) = wm_dyn_array_length(mem_loc);
-            ${lengthMappingName}.write(loc, mem_length);
-            let (narrowedLength) = narrow_safe(mem_length);
-            ${funcName}_elem(loc, mem_loc + 2 + ${elementMemoryWidth} * narrowedLength, mem_length);
-            let (lesser) = uint256_lt(mem_length, length);
-            if (lesser == 1){
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(storage_id: felt, mem_loc: felt) -> felt {
+            let length = ${lengthMappingName}::read(loc);
+            let mem_length = warp_memory.dyn_array_length(mem_loc);
+            ${lengthMappingName}.write(storage_id, mem_length);
+
+            ${funcName}_elem(storage_id, mem_loc + 1 + ${elementMemoryWidth} * mem_length, mem_length);
+
+            if (u256_from_felt252(length) < u256_from_felt252(mem_length)){
                ${deleteRemainingCode}
-               return (loc,);
+               loc
             }else{
-               return (loc,);
+               loc
             }
         }
       `,
       functionsCalled: [
-        this.requireImport(...NARROW_SAFE),
-        this.requireImport(...UINT256_LT),
-        this.requireImport(...UINT256_SUB),
         this.requireImport(...WM_DYN_ARRAY_LENGTH),
         ...funcCalls,
         dynArray,
@@ -350,14 +330,14 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
           const auxFunc = this.getOrCreateFuncDef(type);
           const copyCode = isDynamicArray(type)
             ? [
-                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', memOffset)}, ${uint256(2)});`,
-                `let (storage_dyn_array_loc) = readId(${add('loc', storageOffset)});`,
+                `let ${elemLoc} = ${readFunc.name}(${add('mem_loc', memOffset)}, 1);`,
+                `let storage_dyn_array_loc = readId(${add('loc', storageOffset)});`,
                 `${auxFunc.name}(storage_dyn_array_loc, ${elemLoc});`,
               ]
             : [
-                `let (${elemLoc}) = ${readFunc.name}(${add('mem_loc', memOffset)}, ${uint256(
-                  CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width,
-                )});`,
+                `let ${elemLoc} = ${readFunc.name}(${add('mem_loc', memOffset)}, ${
+                  CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width
+                });`,
                 `${auxFunc.name}(${add('loc', storageOffset)}, ${elemLoc});`,
               ];
           return [
@@ -374,11 +354,8 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               typeFeltWidth,
               (n) =>
                 endent`
-                let (${elemLoc}_prt_${n}) = dict_read{dict_ptr=warp_memory}(${add(
-                  'mem_loc',
-                  memOffset + n,
-                )});
-                WARP_STORAGE.write(${add('loc', storageOffset + n)}, ${elemLoc}_prt_${n});
+                let ${elemLoc}_prt_${n} = warp_memory.unsafe_read(${add('mem_loc', memOffset + n)});
+                WARP_STORAGE::write(${add('loc', storageOffset + n)}, ${elemLoc}_prt_${n});
               `,
             ),
           ],
