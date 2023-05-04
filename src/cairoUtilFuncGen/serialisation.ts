@@ -42,8 +42,7 @@ export function serialiseReads(
             reads.length - 1
           }).unwrap();`,
         );
-      }
-      if (elem === Read.Felt) {
+      } else if (elem === Read.Felt) {
         reads.push(readFelt(reads.length));
       } else if (elem === Read.Id) {
         reads.push(readId(reads.length));
