@@ -16,12 +16,8 @@ export class FunctionRemover extends ASTMapper {
     this.reachableFunctions = new Set();
   }
 
-  visitSourceUnit(node: SourceUnit, ast: AST): void {
-    node.vFunctions.filter((func) => isExternallyVisible(func)).forEach((func) => this.dfs(func));
-
-    node.vContracts.forEach((c) => this.visitContractDefinition(c, ast));
-
-    node.vFunctions
+  importFuncFilter = (funcs: readonly FunctionDefinition[]) =>
+    funcs
       .filter((func) => !this.reachableFunctions.has(func.id))
       .filter(
         (func) =>
@@ -29,8 +25,14 @@ export class FunctionRemover extends ASTMapper {
             func instanceof CairoImportFunctionDefinition &&
             func.functionStubKind === FunctionStubKind.TraitStructDefStub
           ),
-      )
-      .forEach((func) => node.removeChild(func));
+      );
+
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    node.vFunctions.filter((func) => isExternallyVisible(func)).forEach((func) => this.dfs(func));
+
+    node.vContracts.forEach((c) => this.visitContractDefinition(c, ast));
+
+    this.importFuncFilter(node.vFunctions).forEach((func) => node.removeChild(func));
   }
 
   visitContractDefinition(node: ContractDefinition, _ast: AST) {
@@ -38,16 +40,7 @@ export class FunctionRemover extends ASTMapper {
     node.vFunctions.filter((func) => isExternallyVisible(func)).forEach((func) => this.dfs(func));
 
     // Remove unreachable functions
-    node.vFunctions
-      .filter((func) => !this.reachableFunctions.has(func.id))
-      .filter(
-        (func) =>
-          !(
-            func instanceof CairoImportFunctionDefinition &&
-            func.functionStubKind === FunctionStubKind.TraitStructDefStub
-          ),
-      )
-      .forEach((func) => node.removeChild(func));
+    this.importFuncFilter(node.vFunctions).forEach((func) => node.removeChild(func));
   }
 
   dfs(f: FunctionDefinition): void {
