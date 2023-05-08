@@ -21,7 +21,7 @@ import endent from 'endent';
 import { glob } from 'glob';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 
-const warplibFunctions: WarplibFunctionInfo[] = [
+const mathWarplibFunctions: WarplibFunctionInfo[] = [
   add(),
   add_unsafe(),
   add_signed(),
@@ -61,34 +61,47 @@ const warplibFunctions: WarplibFunctionInfo[] = [
   // bitwise_and - handwritten
   // bitwise_or - handwritten
   bitwise_not(),
-  // ---conversions---
-  int_conversions(),
   // ---external_input_checks---
   external_input_check_ints(),
   // external_input_check_address - handwritten
 ];
-warplibFunctions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc));
+const conversionWarplibFunctions: WarplibFunctionInfo[] = [int_conversions()];
 
-const mathsContent: string = glob
-  .sync(path.join(PATH_TO_WARPLIB, 'maths', '*.cairo'))
-  .map((pathToFile) => {
-    const fileName = path.basename(pathToFile, '.cairo');
-    const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
-    const funcNames = parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
-    return { fileName, funcNames };
-  })
-  // TODO: Remove this filter once all warplib modules use cairo1
-  .filter(({ funcNames }) => funcNames.length > 0)
-  .map(({ fileName, funcNames }) => {
-    const useFuncNames = funcNames.map((name) => `use ${fileName}::${name};`).join('\n');
-    return `mod ${fileName};\n${useFuncNames}`;
-  })
-  .join('\n\n');
+generateWarplibFor('maths', mathWarplibFunctions);
+generateWarplibFor('conversions', conversionWarplibFunctions);
 
-fs.writeFileSync(
-  path.join(PATH_TO_WARPLIB, 'maths.cairo'),
-  endent`
-    // AUTO-GENERATED
-    ${mathsContent}
-  `,
-);
+function generateWarplibFor(folderName: string, functions: WarplibFunctionInfo[]) {
+  functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
+  const mathsContent: string = folderContent(folderName);
+  writeExportedFunctions(`${folderName}.cairo`, mathsContent);
+}
+
+function folderContent(folderName: string): string {
+  return (
+    glob
+      .sync(path.join(PATH_TO_WARPLIB, folderName, '*.cairo'))
+      .map((pathToFile) => {
+        const fileName = path.basename(pathToFile, '.cairo');
+        const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
+        const funcNames = parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
+        return { fileName, funcNames };
+      })
+      // TODO: Remove this filter once all warplib modules use cairo1
+      .filter(({ funcNames }) => funcNames.length > 0)
+      .map(({ fileName, funcNames }) => {
+        const useFuncNames = funcNames.map((name) => `use ${fileName}::${name};`).join('\n');
+        return `mod ${fileName};\n${useFuncNames}`;
+      })
+      .join('\n\n')
+  );
+}
+
+function writeExportedFunctions(fileToWrite: string, folderContent: string) {
+  fs.writeFileSync(
+    path.join(PATH_TO_WARPLIB, fileToWrite),
+    endent`
+      // AUTO-GENERATED
+      ${folderContent}
+    `,
+  );
+}

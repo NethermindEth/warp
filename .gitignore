@@ -206,7 +206,7 @@ warplib/src/maths/lt_signed.cairo
 warplib/src/maths/bitwise_not.cairo
 
 # ---conversions---
-warplib/src/maths/int_conversions.cairo
+warplib/src/conversions/int_conversions.cairo
 
 # ---external-input-input-checks---
 warplib/src/maths/external_input_check_ints.cairo
