@@ -25,15 +25,15 @@ export function serialiseReads(
   const reads: string[] = [];
   const requiredImports: { import: [string[], string]; isTrait?: boolean }[] = [];
   const packString: string = packExpression
-    .map((elem: string | Read | (string | Read)[]) => {
-      if (elem instanceof Array) {
+    .map((elem: packExpReturnType) => {
+      if (elem.dataOrDataType === Read.UN) {
         reads.push(readFelt(reads.length));
         reads.push(
-          `let read${reads.length} = core::integer::u${elem[1]}_from_felt252(read${
+          `let read${reads.length} = core::integer::u${elem.metadata.nBits}_from_felt252(read${
             reads.length - 1
           });`,
         );
-      } else if (elem === Read.Address) {
+      } else if (elem.dataOrDataType === Read.Address) {
         requiredImports.push({ import: OPTION_TRAIT, isTrait: true });
         requiredImports.push({ import: CONTRACT_ADDRESS });
         reads.push(readFelt(reads.length));
@@ -42,16 +42,16 @@ export function serialiseReads(
             reads.length - 1
           }).unwrap();`,
         );
-      } else if (elem === Read.Felt) {
+      } else if (elem.dataOrDataType === Read.Felt) {
         reads.push(readFelt(reads.length));
-      } else if (elem === Read.Id) {
+      } else if (elem.dataOrDataType === Read.Id) {
         reads.push(readId(reads.length));
-      } else if (elem === Read.Bool) {
+      } else if (elem.dataOrDataType === Read.Bool) {
         requiredImports.push({ import: FELT252_INTO_BOOL });
         reads.push(readFelt(reads.length));
         reads.push(`let read${reads.length} = felt252_into_bool(read${reads.length - 1});`);
       } else {
-        return elem;
+        return elem.dataOrDataType;
       }
       return `read${reads.length - 1}`;
     })
@@ -67,11 +67,18 @@ enum Read {
   Bool,
 }
 
-function producePackExpression(type: CairoType): (string | Read | (string | Read)[])[] {
-  if (type instanceof WarpLocation) return [Read.Id];
-  if (type instanceof CairoFelt) return [Read.Felt];
-  if (type instanceof CairoContractAddress) return [Read.Address];
-  if (type instanceof CairoBool) return [Read.Bool];
+interface packExpReturnType {
+  dataOrDataType: string | Read;
+  metadata: {
+    nBits?: number;
+  };
+}
+
+function producePackExpression(type: CairoType): packExpReturnType[] {
+  if (type instanceof WarpLocation) return [{ dataOrDataType: Read.Id, metadata: {} }];
+  if (type instanceof CairoFelt) return [{ dataOrDataType: Read.Felt, metadata: {} }];
+  if (type instanceof CairoContractAddress) return [{ dataOrDataType: Read.Address, metadata: {} }];
+  if (type instanceof CairoBool) return [{ dataOrDataType: Read.Bool, metadata: {} }];
   if (type instanceof CairoStaticArray) {
     return [
       '(',
@@ -85,38 +92,38 @@ function producePackExpression(type: CairoType): (string | Read | (string | Read
   if (type instanceof CairoUint) {
     if (type.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
       return [
-        type.toString(),
-        '{',
+        { dataOrDataType: type.toString(), metadata: {} } as packExpReturnType,
+        { dataOrDataType: '{', metadata: {} } as packExpReturnType,
         ...[
           ['low', new CairoUint(128)],
           ['high', new CairoUint(128)],
         ]
           .flatMap(([memberName, memberType]) => [
-            memberName as string,
-            ':',
+            { dataOrDataType: memberName as string, metadata: {} } as packExpReturnType,
+            { dataOrDataType: ':', metadata: {} } as packExpReturnType,
             ...producePackExpression(memberType as CairoType),
-            ',',
+            { dataOrDataType: ',', metadata: {} } as packExpReturnType,
           ])
           .slice(0, -1),
-        '}',
+        { dataOrDataType: '}', metadata: {} } as packExpReturnType,
       ];
     }
-    return [[Read.UN, type.nBits]];
+    return [{ dataOrDataType: Read.UN, metadata: { nBits: type.nBits } }];
   }
 
   if (type instanceof CairoStruct) {
     return [
-      type.name,
-      '{',
+      { dataOrDataType: type.name, metadata: {} } as packExpReturnType,
+      { dataOrDataType: '{', metadata: {} } as packExpReturnType,
       ...[...type.members.entries()]
         .flatMap(([memberName, memberType]) => [
-          memberName,
-          ':',
+          { dataOrDataType: memberName as string, metadata: {} } as packExpReturnType,
+          { dataOrDataType: ':', metadata: {} } as packExpReturnType,
           ...producePackExpression(memberType),
-          ',',
+          { dataOrDataType: ',', metadata: {} } as packExpReturnType,
         ])
         .slice(0, -1),
-      '}',
+      { dataOrDataType: '}', metadata: {} } as packExpReturnType,
     ];
   }
 

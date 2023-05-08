@@ -61,7 +61,6 @@ export class StorageReadGen extends StringIndexedFuncGen {
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
     const functionsCalled: FunctionDefinition[] = [];
-    this.requireImport;
     const funcName = `WS${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
 
