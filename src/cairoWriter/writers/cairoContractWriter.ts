@@ -216,13 +216,11 @@ export class CairoContractWriter extends CairoASTNodeWriter {
       : node.name;
 
     return [
-      [
-        documentation,
-        endent`#[abi]
+      endent`#[abi]
+        ${documentation}
         trait ${interfaceName}{
           ${functions.join('\n')}
           }`,
-      ].join('\n'),
     ];
   }
 }
