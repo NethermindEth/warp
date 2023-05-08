@@ -62,17 +62,19 @@ jobs:
         uses: actions/setup-python@v2.2.2
         with:
           python-version: 3.9 # Cairo was tested with this version
-
       - name: Install dependencies
         run: |
           make
           make compile
 
+      - name: Setup warp_venv
+        run: bin/warp install --python python --verbose
+
       - name: Build warplib
         run: yarn warplib
 
-      - name: Setup warp_venv
-        run: bin/warp install --python python --verbose
+      - name: Test warplib
+        run: yarn test:lib
 
       - name: Running compilation tests
         run: make test_compilation

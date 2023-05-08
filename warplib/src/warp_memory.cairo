@@ -9,8 +9,8 @@ mod bytes;
 use bytes::WarpMemoryBytesTrait;
 
 mod accessors;
-use accessors::WarpMemoryAccesssor;
 use accessors::WarpMemoryAccesssorTrait;
+use accessors::WarpMemoryMultiCellAccessorTrait;
 
 
 struct WarpMemory {
