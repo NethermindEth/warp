@@ -109,7 +109,11 @@ function mangleFreeFilePath(path: string): string {
   return join(path, FREE_FILE_NAME);
 }
 
-function mangleContractFilePath(path: string, contractName: string, extension: string): string {
+export function mangleContractFilePath(
+  path: string,
+  contractName: string,
+  extension: string,
+): string {
   return join(path, 'src', contractName + extension);
 }
 

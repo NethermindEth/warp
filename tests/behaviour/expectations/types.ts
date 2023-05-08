@@ -21,7 +21,7 @@ export class AsyncTest {
   get cairo() {
     return path.join(
       `${OUTPUT_DIR}`,
-      `${mangleContractFilePath(this.name + '.sol', this.contract)}`,
+      `${mangleContractFilePath(this.name + '.sol', this.contract, '.cairo')}`,
     );
   }
   get compiled() {
