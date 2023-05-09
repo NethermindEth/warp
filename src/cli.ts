@@ -8,6 +8,7 @@ import { analyseSol } from './utils/analyseSol';
 import {
   BASE_PATH,
   compileCairo,
+  compileCairo1,
   runStarknetCallOrInvoke,
   runStarknetCompile,
   runStarknetDeclare,
@@ -122,18 +123,18 @@ function runTranspile(files: string[], options: CliOptions) {
       .forEach((file: string) => {
         createCairoProject(path.join(options.outputDir, file));
         if (options.compileCairo) {
-          const { success, resultPath, abiPath } = compileCairo(
-            path.join(options.outputDir, file),
-            BASE_PATH,
-            options,
+          const { success, outputDir /*abiPath*/ } = compileCairo1(
+            path.dirname(path.dirname(path.join(options.outputDir, file))),
+            // BASE_PATH,
+            //options,
           );
           if (!success) {
-            if (resultPath !== undefined) {
-              fs.unlinkSync(resultPath);
+            if (outputDir !== undefined) {
+              fs.unlinkSync(outputDir);
             }
-            if (abiPath !== undefined) {
-              fs.unlinkSync(abiPath);
-            }
+            //if (abiPath !== undefined) {
+            //  fs.unlinkSync(abiPath);
+            //}
           }
         }
       });
