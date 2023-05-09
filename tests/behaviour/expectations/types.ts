@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import assert from 'assert';
 import path from 'path';
 import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
@@ -21,14 +23,22 @@ export class AsyncTest {
   get cairo() {
     return path.join(
       `${OUTPUT_DIR}`,
-      `${mangleContractFilePath(this.name + '.sol', this.contract)}`,
+      `${mangleContractFilePath(this.name + '.sol', this.contract, '.cairo')}`,
     );
   }
   get compiled() {
     return path.join(
       `${OUTPUT_DIR}`,
-      `${mangleContractFilePath(this.name + '.sol', this.contract, '.json')}`,
+      `${path.join(
+        this.name + '.sol',
+        'target',
+        'dev',
+        this.name.split(path.sep).pop() + '_' + this.contract + '.json',
+      )}`,
     );
+  }
+  get projectRoot() {
+    return path.join(OUTPUT_DIR, this.name + '.sol');
   }
 
   static fromSync(test: File): AsyncTest {
