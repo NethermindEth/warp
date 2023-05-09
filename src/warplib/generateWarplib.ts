@@ -61,14 +61,16 @@ const mathWarplibFunctions: WarplibFunctionInfo[] = [
   // bitwise_and - handwritten
   // bitwise_or - handwritten
   bitwise_not(),
-  // ---external_input_checks---
+];
+const conversionWarplibFunctions: WarplibFunctionInfo[] = [int_conversions()];
+const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
   external_input_check_ints(),
   // external_input_check_address - handwritten
 ];
-const conversionWarplibFunctions: WarplibFunctionInfo[] = [int_conversions()];
 
 generateWarplibFor('maths', mathWarplibFunctions);
 generateWarplibFor('conversions', conversionWarplibFunctions);
+generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
 
 function generateWarplibFor(folderName: string, functions: WarplibFunctionInfo[]) {
   functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));

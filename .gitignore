@@ -209,7 +209,7 @@ warplib/src/maths/bitwise_not.cairo
 warplib/src/conversions/int_conversions.cairo
 
 # ---external-input-input-checks---
-warplib/src/maths/external_input_check_ints.cairo
+warplib/src/external_input_check/external_input_check_ints.cairo
 # external_input_check_address.cairo - handwritten
 # external_input_check_bool.cairo - handwritten
 
