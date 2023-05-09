@@ -153,6 +153,8 @@ warp_venv
 # ignored files if the ignore is not in the root
 
 warplib/src/maths.cairo
+warplib/src/external_input_check.cairo
+warplib/src/conversions.cairo
 
 warplib/src/maths/add.cairo
 warplib/src/maths/add_unsafe.cairo
