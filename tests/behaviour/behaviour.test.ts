@@ -10,7 +10,7 @@ import {
   compileCluster,
   removeOutputDir,
 } from '../util';
-import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
+import { deploy, ensureTestnetContactable, invoke, starknetCliCall } from '../testnetInterface';
 
 import { describe } from 'mocha';
 import { expect } from 'chai';
@@ -22,6 +22,7 @@ import { EventItem } from '../../src/utils/event';
 import { BASE_PATH, compileCairo1 } from '../../src/starknetCli';
 import path from 'path';
 import { execSync } from 'child_process';
+import { DEVNET_URL } from '../../src/config';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -36,17 +37,13 @@ fs.writeFileSync(
   path.join(BASE_PATH, '.starknet_accounts_devnet', 'starknet_open_zeppelin_accounts.json'),
   '{}',
 );
-const address = execSync(
-  `starknet new_account --gateway_url http://devnet:5050 --feeder_gateway_url http://devnet:5050 | awk 'NR==1 {printf $3}'`,
-);
+const address = execSync(`${starknetCliCall('new_account', '')} | awk 'NR==1 {printf $3}'`);
 console.log(`New address: ${address}`);
-const addFunds = `curl devnet:5050/mint -H "Content-Type: application/json" -d '{"address": "${address}", "amount": 1000000000000000000}'`;
+const addFunds = `curl ${DEVNET_URL}/mint -H "Content-Type: application/json" -d '{"address": "${address}", "amount": 1000000000000000000}'`;
 console.log(addFunds);
 console.log(execSync(addFunds).toString());
 console.log('Deploying account:');
-const account_deployed = execSync(
-  'starknet deploy_account --gateway_url http://devnet:5050 --feeder_gateway_url http://devnet:5050',
-);
+const account_deployed = execSync(starknetCliCall('deploy_account', ''));
 console.log(account_deployed.toString());
 
 // Transpiling the solidity files using the `bin/warp transpile` CLI command.
