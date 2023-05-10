@@ -74,8 +74,8 @@ generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
 
 function generateWarplibFor(folderName: string, functions: WarplibFunctionInfo[]) {
   functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
-  const mathsContent: string = folderContent(folderName);
-  writeExportedFunctions(`${folderName}.cairo`, mathsContent);
+  const content: string = folderContent(folderName);
+  writeExportedFunctions(`${folderName}.cairo`, content);
 }
 
 function folderContent(folderName: string): string {
