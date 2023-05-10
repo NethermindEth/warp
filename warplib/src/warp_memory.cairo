@@ -2,12 +2,6 @@ use dict::Felt252Dict;
 use dict::Felt252DictTrait;
 use integer::u256_from_felt252;
 
-mod read;
-use read::WarpMemoryReadTrait;
-
-mod write;
-use write::WarpMemoryWriteTrait;
-
 mod arrays;
 use arrays::WarpMemoryArraysTrait;
 
@@ -15,8 +9,8 @@ mod bytes;
 use bytes::WarpMemoryBytesTrait;
 
 mod accessors;
-use accessors::WarpMemoryAccesssor;
 use accessors::WarpMemoryAccesssorTrait;
+use accessors::WarpMemoryMultiCellAccessorTrait;
 
 
 struct WarpMemory {
@@ -83,6 +77,7 @@ impl WarpMemoryImpl of WarpMemoryTrait {
         
         reserved_pointer
     }
+
     fn alloc(ref self: WarpMemory, size: felt252) -> felt252 {
         let pointer_256 = u256_from_felt252(self.pointer);
         let size_256 = u256_from_felt252(size);
@@ -92,7 +87,7 @@ impl WarpMemoryImpl of WarpMemoryTrait {
             panic_with_felt252('Maximum memory size exceded');
         }
 
-        let reserved_pointer= self.pointer;
+        let reserved_pointer = self.pointer;
         self.pointer += size;
         reserved_pointer
     }

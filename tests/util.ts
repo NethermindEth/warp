@@ -6,6 +6,7 @@ import { expect } from 'chai';
 import { hashFilename } from '../src/utils/postCairoWrite';
 import { declare } from './testnetInterface';
 import { AsyncTest, OUTPUT_DIR } from './behaviour/expectations/types';
+import { getPlatform } from '../src/nethersolc';
 
 interface AsyncTestCluster {
   asyncTest: AsyncTest;
@@ -47,6 +48,11 @@ export function starknetCompile(
   return sh(
     `${warpVenvPrefix} starknet-compile --cairo_path ${OUTPUT_DIR} ${cairoPath} --output ${jsonOutputPath}`,
   );
+}
+
+export function cairoTest(cairoProjectPath: string): Promise<{ stdout: string; stderr: string }> {
+  const cairoTestBin = path.resolve(__dirname, '..', 'cairo1', getPlatform(), 'bin', 'cairo-test');
+  return sh(`${cairoTestBin} ${cairoProjectPath}`);
 }
 
 export function batchPromises<In, Out>(
