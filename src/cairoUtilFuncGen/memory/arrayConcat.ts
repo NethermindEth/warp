@@ -25,7 +25,7 @@ import {
 import {
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
-  NARROW_SAFE,
+  U256_TO_FELT252,
   U128_FROM_FELT,
   WM_DYN_ARRAY_LENGTH,
   WM_NEW,
@@ -178,7 +178,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
         endent`
           let size_${index} = warp_memory.read(arg_${index});
         `,
-        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
+        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...U256_TO_FELT252)],
       ];
     }
 

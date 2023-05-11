@@ -4,6 +4,7 @@ import {
   BytesType,
   DataLocation,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   Literal,
   LiteralKind,
@@ -14,7 +15,7 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
-import { CairoType } from '../../utils/cairoTypeSystem';
+import { CairoFelt, CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
@@ -24,6 +25,7 @@ import {
   WARP_MEMORY,
   WM_WRITE,
   WM_UNSAFE_ALLOC,
+  WM_STORE,
 } from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
@@ -112,30 +114,37 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(array_type: TypeNode, array_size: number): GeneratedFunctionInfo {
-    const elementCairoType = CairoType.fromSol(array_type, this.ast);
-    const dynamic = isDynamicArray(array_type) || array_type instanceof StringLiteralType;
+  private getOrCreate(elementType: TypeNode, arraySize: number): GeneratedFunctionInfo {
+    const elementCairoType = CairoType.fromSol(elementType, this.ast);
+    const dynamic = isDynamicArray(elementType) || elementType instanceof StringLiteralType;
 
     const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
-    const argString = mapRange(array_size, (n) => `e${n}: ${elementCairoType.toString()}`).join(
+    const argString = mapRange(arraySize, (n) => `e${n}: ${elementCairoType.toString()}`).join(
       ', ',
     );
 
-    // If it's dynamic we need to include the length at the start
-    const alloc_len = dynamic
-      ? array_size * elementCairoType.width + 1
-      : array_size * elementCairoType.width;
+    const alloc_len: number = dynamic
+      ? arraySize * elementCairoType.width + 1
+      : arraySize * elementCairoType.width;
+
+    const funcCall =
+      elementCairoType instanceof CairoFelt
+        ? this.requireImport(...WM_WRITE)
+        : this.requireImport(...WM_STORE);
     const writes = [
-      dynamic ? `warp_memory.write(start, ${array_size});` : '',
-      ...mapRange(array_size, (n) => elementCairoType.serialiseMembers(`e${n}`))
+      dynamic ? `warp_memory.write(start, ${arraySize});` : '',
+      ...mapRange(arraySize, (n) => elementCairoType.serialiseMembers(`e${n}`))
         .flat()
         .map(
-          (name, index) => `warp_memory.write(
+          (name, index) => `warp_memory.store(
             ${add('start', index)},
             ${name}
           );`,
         ),
     ];
+    const calledFuncs: FunctionDefinition[] = dynamic
+      ? [this.requireImport(...WM_WRITE), funcCall]
+      : [funcCall];
 
     return {
       name: funcName,
@@ -149,10 +158,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       functionsCalled: [
         this.requireImport(...ARRAY),
         this.requireImport(...ARRAY_TRAIT),
-        this.requireImport(...U32_TO_FELT),
         this.requireImport(...WARP_MEMORY),
-        this.requireImport(...WM_WRITE),
         this.requireImport(...WM_UNSAFE_ALLOC),
+        ...calledFuncs,
       ],
     };
   }
