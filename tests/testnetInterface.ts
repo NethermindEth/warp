@@ -152,7 +152,7 @@ export async function invoke(
     };
   }
   const transactionAsBuffer = await execSync(
-    `starknet get_transaction_trace --gateway_url http://devnet:5050 --feeder_gateway_url http://devnet:5050 --hash ${matches[1]}`,
+    starknetCliCall('get_transaction_trace', `--hash ${matches[1]}`),
   );
   const transaction = JSON.parse(transactionAsBuffer.toString());
 
@@ -168,18 +168,18 @@ export async function invoke(
 
 export async function ensureTestnetContactable(timeout: number): Promise<boolean> {
   return Promise.resolve(true);
-  let keepGoing = true;
-  setTimeout(() => (keepGoing = false), timeout);
-  const axiosInstance = axios.create({
-    validateStatus: null,
-  });
-  while (keepGoing) {
-    try {
-      const response = await axiosInstance.get('http://127.0.0.1:5000/ping');
-      if (response.status >= 200 && response.status < 300) break;
-    } catch (e) {
-      // We purposefully catch and discard any errors and try again until timeout
-    }
-  }
-  return keepGoing;
+  // let keepGoing = true;
+  // setTimeout(() => (keepGoing = false), timeout);
+  // const axiosInstance = axios.create({
+  //   validateStatus: null,
+  // });
+  // while (keepGoing) {
+  //   try {
+  //     const response = await axiosInstance.get('http://127.0.0.1:5000/ping');
+  //     if (response.status >= 200 && response.status < 300) break;
+  //   } catch (e) {
+  //     // We purposefully catch and discard any errors and try again until timeout
+  //   }
+  // }
+  // return keepGoing;
 }
