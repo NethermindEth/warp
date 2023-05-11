@@ -125,7 +125,7 @@ export const isCairoPrimitiveIntType = (x: string): x is CairoPrimitiveIntType =
 
 export function primitiveTypeToCairo(
   typeString: string,
-): CairoPrimitiveIntType | 'felt' | 'ContractAddress' {
+): CairoPrimitiveIntType | 'felt252' | 'ContractAddress' {
   if (typeString === 'address' || typeString === 'address payable') return 'ContractAddress';
 
   if (typeString === 'uint' || typeString === 'int') return 'u256';
@@ -141,6 +141,10 @@ export function primitiveTypeToCairo(
 
   if (uintMatch) {
     const bits = BigInt(uintMatch[1]);
+    if (bits === 252n) {
+      return 'felt252';
+    }
+
     if (bits > 256) {
       throw new NotSupportedYetError('uint types larger than 256 bits not supported');
     }
@@ -155,7 +159,7 @@ export function primitiveTypeToCairo(
     return `u${bits}` as CairoPrimitiveIntType;
   }
 
-  return 'felt';
+  throw new Error(`Unknown translation for cairo type: ${typeString}`);
 }
 
 export function union<T>(setA: Set<T>, setB: Set<T>) {
@@ -376,7 +380,7 @@ export function narrowBigIntSafe(n: bigint, errorMessage?: string): number {
 export function isCairoConstant(node: VariableDeclaration): boolean {
   if (node.mutability === Mutability.Constant && node.vValue instanceof Literal) {
     if (node.vType instanceof ElementaryTypeName) {
-      return primitiveTypeToCairo(node.vType.name) === 'felt';
+      return primitiveTypeToCairo(node.vType.name) === 'felt252';
     }
   }
   return false;

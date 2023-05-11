@@ -261,6 +261,12 @@ export function createUint8TypeName(ast: AST): ElementaryTypeName {
   return typeName;
 }
 
+export function createFeltTypeName(ast: AST): ElementaryTypeName {
+  const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint252', 'uint252');
+  ast.setContextRecursive(typeName);
+  return typeName;
+}
+
 // prettier-ignore
 type UintN = 8 | 16 | 24 | 32 | 40 | 48 | 56 | 64 | 72 | 80 | 88 | 96 | 104 | 112 | 120 | 128 | 136 | 144 | 152 | 160 | 168 | 176 | 184 | 192 | 200 | 208 | 216 | 224 | 232 | 240 | 248 | 256;
 

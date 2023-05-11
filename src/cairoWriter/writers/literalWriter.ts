@@ -17,7 +17,7 @@ export class LiteralWriter extends CairoASTNodeWriter {
           return [`${node.value}_${type}`];
         } else if (type === 'ContractAddress') {
           return [`starknet::contract_address_const::<${node.value}>()`];
-        } else if (type === 'felt') {
+        } else if (type === 'felt252') {
           return [node.value];
         } else {
           throw new TranspileFailedError(`Attempted to write unexpected cairo type: ${type}`);
@@ -46,7 +46,7 @@ export class LiteralWriter extends CairoASTNodeWriter {
           return [`0x${node.hexValue}_${type}`];
         } else if (type === 'ContractAddress') {
           return [`starknet::contract_address_const::<${node.hexValue}>()`];
-        } else if (type === 'felt') {
+        } else if (type === 'felt252') {
           return [`0x${node.hexValue}`];
         } else {
           throw new TranspileFailedError('Attempted to write unexpected cairo type');

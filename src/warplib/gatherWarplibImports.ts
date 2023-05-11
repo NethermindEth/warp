@@ -14,18 +14,30 @@ export const warplibImportInfo = glob
     const importPath = [
       'warplib',
       ...pathToFile.slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
-    ].join('/');
+    ];
+    if (isSubmodule(pathToFile)) {
+      importPath.pop();
+    }
 
-    const fileMap: Map<string, Implicits[]> =
-      warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
-
-    if (!warplibMap.has(importPath)) {
-      warplibMap.set(importPath, fileMap);
+    const key = importPath.join('/');
+    const fileMap: Map<string, Implicits[]> = warplibMap.get(key) ?? new Map<string, Implicits[]>();
+    if (!warplibMap.has(key)) {
+      warplibMap.set(key, fileMap);
     }
 
     parseMultipleRawCairoFunctions(rawCairoCode).forEach((cairoFunc) =>
       fileMap.set(cairoFunc.name, cairoFunc.implicits),
     );
-
     return warplibMap;
   }, new Map<string, Map<string, Implicits[]>>());
+
+// returns true if a file is part of a cairo module. e.g:
+//  warplib/src/maths/utils.cairo is a submodule of
+//  warplib/src/maths.cairo
+function isSubmodule(pathToFile: string): boolean {
+  const parentDir = path.dirname(pathToFile);
+  const parentDirName = path.basename(parentDir);
+
+  const parentParentDir = path.dirname(parentDir);
+  return fs.existsSync([parentParentDir, `${parentDirName}.cairo`].join(path.sep));
+}
