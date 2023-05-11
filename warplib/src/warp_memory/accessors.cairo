@@ -1,9 +1,10 @@
 use array::Array;
 use array::ArrayTrait;
-use serde::Serde;
-use option::OptionTrait;
 use integer::u32_to_felt252;
 use integer::u256_from_felt252;
+use option::OptionTrait;
+use serde::Serde;
+use traits::Into;
 
 use warplib::warp_memory::WarpMemory;
 use warplib::warp_memory::WarpMemoryTrait;
@@ -103,7 +104,7 @@ impl WarpMemoryAccesssor of WarpMemoryAccesssorTrait {
         let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
         TSerde::serialize(ref serialization_array, value);
 
-        let position = self.alloc(u32_to_felt252(serialization_array.len()));
+        let position = self.alloc(serialization_array.len().into());
         self.write_multiple(position, ref serialization_array);
     }
 
