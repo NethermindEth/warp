@@ -5,24 +5,23 @@ use warplib::warp_memory::WarpMemoryImpl;
 // ==================== Basic Functions ====================
 
 #[test]
-fn test_init(){
+fn test_alloc(){
     let mut warp_memory = WarpMemoryTrait::initialize();
-    assert(warp_memory.pointer == 0, 'Pointer is not 0');
+    assert(warp_memory.pointer == 0, 'Pointer should be 0');
 
     warp_memory.unsafe_alloc(5);
-    assert(warp_memory.pointer == 5, 'Pointer is not 5');
+    assert(warp_memory.pointer == 5, 'Pointer should be 5');
 
     warp_memory.alloc(10);
-    assert(warp_memory.pointer == 15, 'Pointer is not 15');
+    assert(warp_memory.pointer == 15, 'Pointer should be 15');
 }
 
 #[test]
 #[should_panic]
-fn test_alloc(){
+fn test_alloc_overflow(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     warp_memory.alloc(10);
-    assert(warp_memory.pointer == 10, 'Pointer is not 10');
 
     // this should crash due to pointer overflow
     warp_memory.alloc(-1);
@@ -36,7 +35,7 @@ fn test_unsafe_access() {
     
     let read_from_unallocated = warp_memory.unsafe_read(3);
     assert(read_from_unallocated == 5, 'Invalid read value');
-    assert(warp_memory.pointer == 0, 'Pointer is not 0');
+    assert(warp_memory.pointer == 0, 'Pointer should be 0');
 }
 
 #[test] 
@@ -198,6 +197,7 @@ use array::ArrayTrait;
 use integer::u32_to_felt252;
 use option::OptionTrait;
 use warplib::warp_memory::WarpMemoryMultiCellAccessorTrait;
+use warplib::warp_memory::WarpMemoryAccesssorTrait;
 
 #[test]
 #[available_gas(1000000)]
@@ -278,4 +278,30 @@ fn test_read_multiple_unallocated() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     let pointer = warp_memory.unsafe_alloc(2);
     warp_memory.read_multiple(pointer, 3);
+}
+
+#[test]
+#[available_gas(1000000)]
+fn test_store_retrieve() {
+    let mut warp_memory = WarpMemoryTrait::initialize();
+    let pointer = warp_memory.unsafe_alloc(5);
+    
+    // Store u256
+    let val1 = u256{low: 2, high: 0};
+    warp_memory.store(pointer, val1);
+    let val2 = u256{low: 4, high: 0};
+    warp_memory.store(pointer + 2, val2);
+
+    // Store u128
+    let val3 = 105_u128;
+    warp_memory.store(pointer + 4, val3);
+
+    let readVal1: u256 = warp_memory.retrieve(pointer,  2);
+    assert(readVal1 == val1, 'Incorrect value 1');
+
+    let readVal2: u256 = warp_memory.retrieve(pointer + 2, 2);
+    assert(readVal2 == val2, 'Incorrect value 2');
+
+    let readVal3: u128 = warp_memory.retrieve(pointer + 4, 1);
+    assert(readVal3 == val3, 'Incorrect value 3');
 }
