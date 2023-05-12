@@ -74,38 +74,43 @@ interface packExpReturnType {
   };
 }
 
+function createPackExpReturnType(dataOrDataType: string | Read): packExpReturnType {
+  return { dataOrDataType, metadata: {} };
+}
+
 function producePackExpression(type: CairoType): packExpReturnType[] {
-  if (type instanceof WarpLocation) return [{ dataOrDataType: Read.Id, metadata: {} }];
-  if (type instanceof CairoFelt) return [{ dataOrDataType: Read.Felt, metadata: {} }];
-  if (type instanceof CairoContractAddress) return [{ dataOrDataType: Read.Address, metadata: {} }];
-  if (type instanceof CairoBool) return [{ dataOrDataType: Read.Bool, metadata: {} }];
+  if (type instanceof WarpLocation) return [createPackExpReturnType(Read.Id)];
+  if (type instanceof CairoFelt) return [createPackExpReturnType(Read.Felt)];
+  if (type instanceof CairoContractAddress) return [createPackExpReturnType(Read.Address)];
+  if (type instanceof CairoBool) return [createPackExpReturnType(Read.Bool)];
   if (type instanceof CairoStaticArray) {
     return [
-      '(',
+      createPackExpReturnType('('),
       ...Array(type.size)
         .fill([...producePackExpression(type.type), ','])
-        .flat(),
-      ')',
+        .flat()
+        .map(createPackExpReturnType),
+      createPackExpReturnType(')'),
     ];
   }
 
   if (type instanceof CairoUint) {
     if (type.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
       return [
-        { dataOrDataType: type.toString(), metadata: {} } as packExpReturnType,
-        { dataOrDataType: '{', metadata: {} } as packExpReturnType,
+        createPackExpReturnType(type.toString()),
+        createPackExpReturnType('{'),
         ...[
           ['low', new CairoUint(128)],
           ['high', new CairoUint(128)],
         ]
           .flatMap(([memberName, memberType]) => [
-            { dataOrDataType: memberName as string, metadata: {} } as packExpReturnType,
-            { dataOrDataType: ':', metadata: {} } as packExpReturnType,
+            createPackExpReturnType(memberName as string),
+            createPackExpReturnType(':'),
             ...producePackExpression(memberType as CairoType),
-            { dataOrDataType: ',', metadata: {} } as packExpReturnType,
+            createPackExpReturnType(','),
           ])
           .slice(0, -1),
-        { dataOrDataType: '}', metadata: {} } as packExpReturnType,
+        createPackExpReturnType('}'),
       ];
     }
     return [{ dataOrDataType: Read.UN, metadata: { nBits: type.nBits } }];
@@ -113,17 +118,17 @@ function producePackExpression(type: CairoType): packExpReturnType[] {
 
   if (type instanceof CairoStruct) {
     return [
-      { dataOrDataType: type.name, metadata: {} } as packExpReturnType,
-      { dataOrDataType: '{', metadata: {} } as packExpReturnType,
+      createPackExpReturnType(type.name),
+      createPackExpReturnType('{'),
       ...[...type.members.entries()]
         .flatMap(([memberName, memberType]) => [
-          { dataOrDataType: memberName as string, metadata: {} } as packExpReturnType,
-          { dataOrDataType: ':', metadata: {} } as packExpReturnType,
+          createPackExpReturnType(memberName),
+          createPackExpReturnType(':'),
           ...producePackExpression(memberType),
-          { dataOrDataType: ',', metadata: {} } as packExpReturnType,
+          createPackExpReturnType(','),
         ])
         .slice(0, -1),
-      { dataOrDataType: '}', metadata: {} } as packExpReturnType,
+      createPackExpReturnType('}'),
     ];
   }
 
