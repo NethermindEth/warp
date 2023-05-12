@@ -22,7 +22,7 @@ import { EventItem } from '../../src/utils/event';
 import { BASE_PATH, compileCairo1 } from '../../src/starknetCli';
 import path from 'path';
 import { execSync } from 'child_process';
-import { DEVNET_URL } from '../../src/config';
+import { DEVNET_URL } from '../config';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;

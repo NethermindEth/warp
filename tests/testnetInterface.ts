@@ -5,7 +5,7 @@ import { EventItem } from '../src/export';
 import axios from 'axios';
 import { execSync } from 'child_process';
 
-import { DEVNET_URL } from '../src/config';
+import { DEVNET_URL } from './config';
 
 export function starknetCliCall(command: string, args: string): string {
   return `starknet ${command} --gateway_url ${DEVNET_URL} --feeder_gateway_url ${DEVNET_URL} ${args}`;
