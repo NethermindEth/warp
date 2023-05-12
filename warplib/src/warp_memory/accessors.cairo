@@ -34,7 +34,7 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
             panic_with_felt252('Multiple writing overflow');
         }
 
-        let pointer_256 = u256_from_felt252(self.pointer);
+        let pointer_256 = u256_from_felt252(self.free_space_pointer);
         if final_location_256 > pointer_256 {
             panic_with_felt252('MWriting on unreserved position')
         }
@@ -65,7 +65,7 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
             panic_with_felt252('Multiple reading overflow');
         }
 
-        let pointer_256 = u256_from_felt252(self.pointer);
+        let pointer_256 = u256_from_felt252(self.free_space_pointer);
         if final_location_256 > pointer_256 {
             panic_with_felt252('MReading on unreserved position')
         }

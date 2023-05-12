@@ -2,29 +2,30 @@ use warplib::warp_memory::WarpMemory;
 use warplib::warp_memory::WarpMemoryTrait;
 use warplib::warp_memory::WarpMemoryImpl;
 
-// ==================== Basic Functions ====================
+const MAX_FELT: felt252 = 3618502788666131213697322783095070105623107215331596699973092056135872020480;
 
+// ==================== Basic Functions ====================
 #[test]
 fn test_alloc(){
     let mut warp_memory = WarpMemoryTrait::initialize();
-    assert(warp_memory.pointer == 0, 'Pointer should be 0');
+    assert(warp_memory.free_space_pointer == 0, 'Pointer should be 0');
 
     warp_memory.unsafe_alloc(5);
-    assert(warp_memory.pointer == 5, 'Pointer should be 5');
+    assert(warp_memory.free_space_pointer == 5, 'Pointer should be 5');
 
     warp_memory.alloc(10);
-    assert(warp_memory.pointer == 15, 'Pointer should be 15');
+    assert(warp_memory.free_space_pointer == 15, 'Pointer should be 15');
 }
 
 #[test]
 #[should_panic]
-fn test_alloc_overflow(){
+fn test_alloc_overflow_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     warp_memory.alloc(10);
 
     // this should crash due to pointer overflow
-    warp_memory.alloc(-1);
+    warp_memory.alloc(MAX_FELT);
 
 }
 
@@ -35,19 +36,19 @@ fn test_unsafe_access() {
     
     let read_from_unallocated = warp_memory.unsafe_read(3);
     assert(read_from_unallocated == 5, 'Invalid read value');
-    assert(warp_memory.pointer == 0, 'Pointer should be 0');
+    assert(warp_memory.free_space_pointer == 0, 'Pointer should be 0');
 }
 
 #[test] 
 #[should_panic]
-fn test_unallocated_write() {
+fn test_unallocated_write_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     warp_memory.write(3, 5); 
 }
 
 #[test] 
 #[should_panic]
-fn test_unallocated_read() {
+fn test_unallocated_read_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     warp_memory.read(3); 
 }
@@ -57,24 +58,24 @@ fn test_access(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     let ptr1 = warp_memory.unsafe_alloc(2);
-    assert(ptr1 == 0, 'Pointer is not 0');
-    assert(warp_memory.pointer == 2, 'Pointer is not 2');
+    assert(ptr1 == 0, 'Pointer should be 0');
+    assert(warp_memory.free_space_pointer == 2, 'Pointer should be 2');
 
     warp_memory.write(ptr1, 2); 
     warp_memory.write(ptr1 + 1, 3); 
-    assert(warp_memory.read(ptr1) == 2, 'Invalid read value');
-    assert(warp_memory.read(ptr1 + 1) == 3, 'Invalid read value');
+    assert(warp_memory.read(ptr1) == 2, 'Invalid read value on pos 0');
+    assert(warp_memory.read(ptr1 + 1) == 3, 'Invalid read value on pos 1');
 
     let ptr2 = warp_memory.unsafe_alloc(3);
-    assert(ptr2 == 2, 'Pointer is not 2');
-    assert(warp_memory.pointer == 5, 'Pointer is not 5');
+    assert(ptr2 == 2, 'Pointer should be 2');
+    assert(warp_memory.free_space_pointer == 5, 'Pointer should be 5');
 
     warp_memory.write(ptr2, 4); 
     warp_memory.write(ptr2 + 1, 5); 
     warp_memory.write(ptr2 + 2, 6); 
-    assert(warp_memory.read(ptr2) == 4, 'Invalid read value');
-    assert(warp_memory.read(ptr2 + 1) == 5, 'Invalid read value');
-    assert(warp_memory.read(ptr2 + 2) == 6, 'Invalid read value');
+    assert(warp_memory.read(ptr2) == 4, 'Invalid read value on pos 2');
+    assert(warp_memory.read(ptr2 + 1) == 5, 'Invalid read value on pos 3');
+    assert(warp_memory.read(ptr2 + 2) == 6, 'Invalid read value on pos 4');
 }
 
 // ==================== Complex Functions ====================
@@ -92,7 +93,7 @@ fn test_get_or_create_id(){
 
     let read_id2 = warp_memory.get_or_create_id(ptr1 + 1, 10);
     assert(read_id2 == 2, 'Invalid read id value');
-    assert(warp_memory.pointer == 12, 'Invalid pointer value');
+    assert(warp_memory.free_space_pointer == 12, 'Invalid pointer value');
 }
 
 #[test]
@@ -100,31 +101,31 @@ fn test_new_dynamic_array(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     let dyn_array = warp_memory.new_dynamic_array(-2, 1);
-    assert(warp_memory.pointer == -1, 'Invalid pointer value');
+    assert(warp_memory.free_space_pointer == -1, 'Invalid pointer value');
     assert(warp_memory.read(dyn_array) == -2, 'Invalid length value');
 }
 
 #[test]
 #[should_panic]
-fn test_new_dynamic_array_overflow_1(){
+fn test_new_dynamic_array_overflow_1_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
-    let dyn_array = warp_memory.new_dynamic_array(-1, 1);
+    let dyn_array = warp_memory.new_dynamic_array(MAX_FELT, 1);
 }
 
 #[test]
 #[should_panic]
-fn test_new_dynamic_array_overflow_2(){
+fn test_new_dynamic_array_overflow_2_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
-    let dyn_array = warp_memory.new_dynamic_array(-2, 2);
+    let dyn_array = warp_memory.new_dynamic_array(MAX_FELT - 1, 2);
 }
 
 #[test]
 fn test_index_dyn(){
     let mut warp_memory = WarpMemoryTrait::initialize();
     let dyn_array = warp_memory.new_dynamic_array(5, 2);
-    assert(warp_memory.pointer == 11, 'Invalid pointer value');
+    assert(warp_memory.free_space_pointer == 11, 'Invalid pointer value');
 
     warp_memory.unsafe_write(1, 2);
     warp_memory.unsafe_write(3, 3);
@@ -146,7 +147,7 @@ fn test_index_dyn(){
 
 #[test]
 #[should_panic]
-fn test_index_dyn_out_of_range(){
+fn test_index_dyn_out_of_range_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
     let dyn_array = warp_memory.new_dynamic_array(5, 2);
 
@@ -175,7 +176,7 @@ fn test_index_static(){
 
 #[test]
 #[should_panic]
-fn test_index_static_out_of_range(){
+fn test_index_static_out_of_range_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
     let length = 10;
     let static_array = warp_memory.unsafe_alloc(length);
@@ -189,7 +190,7 @@ fn test_dyn_length() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     let dyn_array = warp_memory.new_dynamic_array(5, 3);
 
-    assert(warp_memory.length_dyn(dyn_array) == 16, 'Invalid lenght');
+    assert(warp_memory.length_dyn(dyn_array) == 16, 'Invalid length');
 }
 
 // ==================== Accessor Functions ====================
@@ -233,7 +234,7 @@ fn test_access_multiple() {
 #[test]
 #[available_gas(1000000)]
 #[should_panic]
-fn test_write_multiple_overflow() {
+fn test_write_multiple_overflow_should_panic() {
 
     let mut values = ArrayTrait::new();
     values.append(2);
@@ -241,7 +242,7 @@ fn test_write_multiple_overflow() {
     values.append(5);
 
     let mut warp_memory = WarpMemoryTrait::initialize();
-    warp_memory.unsafe_alloc(-1);
+    warp_memory.unsafe_alloc(MAX_FELT);
     
     warp_memory.write_multiple(-3, ref values);
 }
@@ -249,7 +250,7 @@ fn test_write_multiple_overflow() {
 #[test]
 #[available_gas(1000000)]
 #[should_panic]
-fn test_write_multiple_unallocated() {
+fn test_write_multiple_unallocated_should_panic() {
 
     let mut values = ArrayTrait::new();
     values.append(2);
@@ -265,16 +266,16 @@ fn test_write_multiple_unallocated() {
 #[test]
 #[available_gas(1000000)]
 #[should_panic]
-fn test_read_multiple_overflow() {
+fn test_read_multiple_overflow_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
-    warp_memory.unsafe_alloc(-1);
+    warp_memory.unsafe_alloc(MAX_FELT);
     warp_memory.read_multiple(-3, 3);
 }
 
 #[test]
 #[available_gas(1000000)]
 #[should_panic]
-fn test_read_multiple_unallocated() {
+fn test_read_multiple_unallocated_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     let pointer = warp_memory.unsafe_alloc(2);
     warp_memory.read_multiple(pointer, 3);
