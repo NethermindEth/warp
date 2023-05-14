@@ -27,7 +27,7 @@ function HomepageHeader() {
               id="homepage.documentation.linkLabel"
               description="The label for the link to documentation"
             >
-              Documentation 📜
+              QuickStart 📜
             </Translate>
           </Link>
         </div>
