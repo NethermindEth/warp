@@ -8,7 +8,7 @@
     "description": "Description of Warp at homepage"
   },
   "homepage.documentation.linkLabel": {
-    "message": "QuickStart 📜",
+    "message": "Documentation 📜",
     "description": "The label for the link to documentation"
   },
   "Welcome to Warp": {
