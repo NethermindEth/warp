@@ -6,6 +6,7 @@ import {
   FunctionStateMutability,
   generalizeType,
   TypeNode,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { CairoFunctionDefinition, typeNameFromTypeNode } from '../../export';
 import {
@@ -101,9 +102,16 @@ export class MemoryReadGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
+    const functionsCalled: FunctionDefinition[] = [this.requireImport(...DICT_READ)];
+
     const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
+    const [reads, pack, requiredImports] = serialiseReads(typeToRead, readFelt, readFelt);
+
+    requiredImports.map((i) => {
+      functionsCalled.push(this.requireImport(...i.import, [], [], { isTrait: i.isTrait }));
+    });
+
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
       code: [
@@ -113,7 +121,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
         `    return (${pack},);`,
         '}',
       ].join('\n'),
-      functionsCalled: [this.requireImport(...DICT_READ)],
+      functionsCalled: functionsCalled,
     };
     return funcInfo;
   }

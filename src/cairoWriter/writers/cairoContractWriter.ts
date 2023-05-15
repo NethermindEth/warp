@@ -158,8 +158,11 @@ export class CairoContractWriter extends CairoASTNodeWriter {
 
     const contractHeader = '#[contract] \n' + `mod ${node.name} {`;
 
+    const globalImports = ['use starknet::ContractAddress;'].join('\n');
+
     return [
       [
+        globalImports,
         contractHeader,
         documentation,
         writtenImportFuncs,
@@ -194,9 +197,10 @@ export class CairoContractWriter extends CairoASTNodeWriter {
         // remove all content between any two pairing curly braces
         .replace(/\{[^]*\}/g, '')
         .split('\n');
-      const funcLineIndex = resultLines.findIndex((line) => line.startsWith('func'));
+      const funcLineIndex = resultLines.findIndex((line) => line.startsWith('fn'));
       resultLines.splice(0, funcLineIndex);
-      return resultLines.join('\n') + '{\n}';
+      resultLines[0] = '#[external] ' + resultLines[0];
+      return resultLines.join('\n') + ';';
     });
     // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
     // Remove `@interface` to get the actual contract interface name
@@ -206,14 +210,17 @@ export class CairoContractWriter extends CairoASTNodeWriter {
           node.name.replace(TEMP_INTERFACE_SUFFIX, ''),
           node,
           interfaceNameMappings,
+          false,
+          false,
         )
       : node.name;
 
     return [
-      [
-        documentation,
-        [`@contract_interface`, `namespace ${interfaceName}{`, ...functions, `}`].join('\n'),
-      ].join('\n'),
+      endent`#[abi]
+        ${documentation}
+        trait ${interfaceName}{
+          ${functions.join('\n')}
+          }`,
     ];
   }
 }

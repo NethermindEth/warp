@@ -15,6 +15,7 @@ import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing'
 import { isExternalCall } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
+import endent from 'endent';
 
 export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
   gapVarCounter = 0;
@@ -69,14 +70,15 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     });
     if (declarations.length > 1) {
       return [
-        [
-          documentation,
-          `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)};`,
-        ].join('\n'),
+        endent`${documentation}
+          let (${declarations.map((decl) => `mut ${decl}`).join(', ')}) = ${writer.write(
+          node.vInitialValue,
+        )};`,
       ];
     }
     return [
-      [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)};`].join('\n'),
+      endent`${documentation}
+      let mut ${declarations[0]} = ${writer.write(node.vInitialValue)};`,
     ];
   }
 }
