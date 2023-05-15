@@ -13,13 +13,13 @@ use warplib::warp_memory::WarpMemoryImpl;
 
 trait WarpMemoryAccesssorTrait {
     fn store<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, value: T);
-    fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, start_pos: felt252, size: felt252) -> T;
+    fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, size: felt252) -> T;
     fn create<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, value: T);
 }
 
 trait WarpMemoryMultiCellAccessorTrait {
     fn write_multiple(ref self: WarpMemory, position: felt252, ref value: Array::<felt252>);
-    fn read_multiple(ref self: WarpMemory, start_pos: felt252, size: felt252) -> Array::<felt252>;
+    fn read_multiple(ref self: WarpMemory, position: felt252, size: felt252) -> Array::<felt252>;
 }
 
 
@@ -55,8 +55,8 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
         }
     }
 
-    fn read_multiple(ref self: WarpMemory, start_pos: felt252, size: felt252) -> Array::<felt252> {
-        let start_256 = u256_from_felt252(start_pos);
+    fn read_multiple(ref self: WarpMemory, position: felt252, size: felt252) -> Array::<felt252> {
+        let start_256 = u256_from_felt252(position);
         let size_256 = u256_from_felt252(size);
         let final_location_256 = start_256 + size_256;
 
@@ -70,9 +70,9 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
             panic_with_felt252('MReading on unreserved position')
         }
 
-        let mut index = start_pos;
+        let mut index = position;
         let mut array: Array<felt252> = ArrayImpl::<felt252>::new();
-        let final_location = start_pos + size;
+        let final_location = position + size;
         loop {
             match gas::withdraw_gas() {
                Option::Some(_) => {},
@@ -108,8 +108,8 @@ impl WarpMemoryAccesssor of WarpMemoryAccesssorTrait {
         self.write_multiple(position, ref serialization_array);
     }
 
-    fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, start_pos: felt252, size: felt252) -> T {
-        let serialization_array: Array<felt252> = self.read_multiple(start_pos, size);
+    fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, size: felt252) -> T {
+        let serialization_array: Array<felt252> = self.read_multiple(position, size);
         let mut span = ArrayImpl::<felt252>::span(@serialization_array);
         let value = TSerde::deserialize(ref span);
 

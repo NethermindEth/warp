@@ -36,7 +36,7 @@ fn test_unsafe_access() {
     
     let read_from_unallocated = warp_memory.unsafe_read(3);
     assert(read_from_unallocated == 5, 'Invalid read value');
-    assert(warp_memory.free_space_pointer == 0, 'Pointer should be 0');
+    assert(warp_memory.free_space_pointer == 0, 'Free space pointer should be 0');
 }
 
 #[test] 
@@ -58,8 +58,8 @@ fn test_access(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     let ptr1 = warp_memory.unsafe_alloc(2);
-    assert(ptr1 == 0, 'Pointer should be 0');
-    assert(warp_memory.free_space_pointer == 2, 'Pointer should be 2');
+    assert(ptr1 == 0, 'Allocated mem ptr should be 0');
+    assert(warp_memory.free_space_pointer == 2, 'Free space pointer should be 2');
 
     warp_memory.write(ptr1, 2); 
     warp_memory.write(ptr1 + 1, 3); 
@@ -67,8 +67,8 @@ fn test_access(){
     assert(warp_memory.read(ptr1 + 1) == 3, 'Invalid read value on pos 1');
 
     let ptr2 = warp_memory.unsafe_alloc(3);
-    assert(ptr2 == 2, 'Pointer should be 2');
-    assert(warp_memory.free_space_pointer == 5, 'Pointer should be 5');
+    assert(ptr2 == 2, 'Allocated mem ptr should be 2');
+    assert(warp_memory.free_space_pointer == 5, 'Free space pointer should be 5');
 
     warp_memory.write(ptr2, 4); 
     warp_memory.write(ptr2 + 1, 5); 
@@ -185,12 +185,11 @@ fn test_index_static_out_of_range_should_panic(){
 }
 
 #[test]
-#[should_panic]
 fn test_dyn_length() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     let dyn_array = warp_memory.new_dynamic_array(5, 3);
 
-    assert(warp_memory.length_dyn(dyn_array) == 16, 'Invalid length');
+    assert(warp_memory.length_dyn(dyn_array) == 5, 'Expected array with length 5');
 }
 
 // ==================== Accessor Functions ====================
