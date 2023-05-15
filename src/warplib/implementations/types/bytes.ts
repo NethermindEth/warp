@@ -1,6 +1,9 @@
 import endent from 'endent';
-import { TranspileFailedError } from '../../../export';
-import { forAllWidths, WarplibFunctionInfo } from '../../utils';
+import {
+  forAllWidths,
+  necessary_width_to_store_nlen_bytes,
+  WarplibFunctionInfo,
+} from '../../utils';
 
 export function fixed_bytes_types(): WarplibFunctionInfo {
   const fixed_bytes_trait = endent`
@@ -27,7 +30,7 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
 
   const fixed_bytes_types = forAllWidths((width) => {
     const length = width / 8;
-    const max_width = width_to_store_nlen_bytes(length);
+    const max_width = necessary_width_to_store_nlen_bytes(length);
     return endent`
       #[derive(Copy, Drop)]
       struct bytes${length} {
@@ -84,22 +87,4 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
     imports: [],
     functions: [fixed_bytes_trait, fixed_bytes_types],
   };
-}
-
-function width_to_store_nlen_bytes(length: number) {
-  if (length == 1) {
-    return 8;
-  } else if (length == 2) {
-    return 16;
-  } else if (length <= 4) {
-    return 32;
-  } else if (length <= 8) {
-    return 64;
-  } else if (length <= 16) {
-    return 128;
-  } else if (length <= 32) {
-    return 256;
-  } else {
-    throw new TranspileFailedError('Bytes length is too big for any uN variable');
-  }
 }

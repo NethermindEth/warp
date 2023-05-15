@@ -1,5 +1,9 @@
 import endent from 'endent';
-import { forAllWidths, WarplibFunctionInfo } from '../../utils';
+import {
+  forAllWidths,
+  necessary_width_to_store_nlen_bytes,
+  WarplibFunctionInfo,
+} from '../../utils';
 
 export function warp_memory_fixed_bytes(): WarplibFunctionInfo {
   const trait_def = endent`
@@ -27,6 +31,7 @@ export function warp_memory_fixed_bytes(): WarplibFunctionInfo {
     impl WarpMemoryBytesImpl of WarpMemoryBytesTrait{
       ${forAllWidths((width) => {
         const length = width / 8;
+        const max_width = necessary_width_to_store_nlen_bytes(length);
         if (length === 32) {
           return endent`
             fn bytes_to_fixed_bytes32(ref self: WarpMemory, location: felt252) -> bytes32 {
@@ -54,7 +59,12 @@ export function warp_memory_fixed_bytes(): WarplibFunctionInfo {
         return endent`
           fn bytes_to_fixed_bytes${length}(ref self: WarpMemory, bytes_loc: felt252) -> bytes${length} {
             let data_len = self.read(bytes_loc);
-            _bytes_to_fixed_recursive(ref self, bytes_loc + 1, ${length}, data_len, 0)
+            let value_felt = _bytes_to_fixed_recursive(ref self, bytes_loc + 1, ${length}, data_len, 0);
+            ${
+              max_width === 256
+                ? `bytes${length} { value: u256_from_felt252(value_felt) }`
+                : `bytes${length} { value: u${max_width}_try_from_felt252(value_felt).unwrap() }`
+            }
           }
         `;
       }).join('\n')}
@@ -63,10 +73,23 @@ export function warp_memory_fixed_bytes(): WarplibFunctionInfo {
 
   return {
     fileName: 'bytes',
-    imports: forAllWidths((width) => {
-      const length = width / 8;
-      return `use warplib::types::fixed_bytes::bytes${length}`;
-    }),
+    imports: [
+      'use integer::u128_to_felt252;',
+      'use integer::u8_try_from_felt252;',
+      'use integer::u16_try_from_felt252;',
+      'use integer::u32_try_from_felt252;',
+      'use integer::u64_try_from_felt252;',
+      'use integer::u128_try_from_felt252;',
+      'use integer::u256_from_felt252;',
+      'use option::OptionTrait;',
+      'use warplib::conversions::integer_conversions::u256_from_felts;',
+      'use warplib::warp_memory::WarpMemory;',
+      'use warplib::warp_memory::WarpMemoryTrait;',
+      ...forAllWidths((width) => {
+        const length = width / 8;
+        return `use warplib::types::fixed_bytes::bytes${length};`;
+      }),
+    ],
     functions: [trait_def, recursive_converter, trait_impl],
   };
 }

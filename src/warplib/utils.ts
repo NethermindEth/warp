@@ -16,6 +16,7 @@ import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import path from 'path';
 import { WARPLIB_MATHS } from '../utils/importPaths';
+import { TranspileFailedError } from '../export';
 
 export const PATH_TO_WARPLIB = path.join('.', 'warplib', 'src');
 
@@ -27,6 +28,24 @@ export type WarplibFunctionInfo = {
 
 export function forAllWidths<T>(funcGen: (width: number) => T): T[] {
   return mapRange(32, (n) => 8 * (n + 1)).map(funcGen);
+}
+
+export function necessary_width_to_store_nlen_bytes(length: number) {
+  if (length == 1) {
+    return 8;
+  } else if (length == 2) {
+    return 16;
+  } else if (length <= 4) {
+    return 32;
+  } else if (length <= 8) {
+    return 64;
+  } else if (length <= 16) {
+    return 128;
+  } else if (length <= 32) {
+    return 256;
+  } else {
+    throw new TranspileFailedError('Bytes length is too big for any uN variable');
+  }
 }
 
 export function pow2(n: number): bigint {
