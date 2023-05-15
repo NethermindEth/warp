@@ -21,6 +21,7 @@ import endent from 'endent';
 import { glob } from 'glob';
 import { parseCairoTraitsAndStructs, parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { fixed_bytes_types } from './implementations/types/bytes';
+import { warp_memory_fixed_bytes } from './implementations/warp_memory/bytes';
 
 const mathWarplibFunctions: WarplibFunctionInfo[] = [
   add(),
@@ -69,16 +70,24 @@ const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
   // external_input_check_address - handwritten
 ];
 const warplibTypes: WarplibFunctionInfo[] = [fixed_bytes_types()];
+const warp_memory: WarplibFunctionInfo[] = [warp_memory_fixed_bytes()];
 
-generateWarplibFor('maths', mathWarplibFunctions);
-generateWarplibFor('conversions', conversionWarplibFunctions);
-generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
-generateWarplibFor('types', warplibTypes);
+generateWarplibFor('maths', mathWarplibFunctions, true);
+generateWarplibFor('conversions', conversionWarplibFunctions, true);
+generateWarplibFor('external_input_check', inputCheckWarplibFunctions, true);
+generateWarplibFor('types', warplibTypes, true);
+generateWarplibFor('warp_memory', warp_memory, false);
 
-function generateWarplibFor(folderName: string, functions: WarplibFunctionInfo[]) {
+function generateWarplibFor(
+  folderName: string,
+  functions: WarplibFunctionInfo[],
+  writeExportFile: boolean,
+) {
   functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
-  const content: string = folderContent(folderName);
-  writeExportedFunctions(`${folderName}.cairo`, content);
+  if (writeExportFile) {
+    const content: string = folderContent(folderName);
+    writeExportedFunctions(`${folderName}.cairo`, content);
+  }
 }
 
 function folderContent(folderName: string): string {

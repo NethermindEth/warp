@@ -218,8 +218,9 @@ warplib/src/external_input_check/external_input_check_ints.cairo
 
 # ---types---
 warplib/src/types/fixed_bytes.cairo
-# external_input_check_address.cairo - handwritten
-# external_input_check_bool.cairo - handwritten
+
+# ---warp_memory---
+warplib/src/warp_memory/bytes.cairo
 
 tests/cli/starknet_open_zeppelin_accounts.json
 tests/cli/starknet_open_zeppelin_accounts.json.backup
