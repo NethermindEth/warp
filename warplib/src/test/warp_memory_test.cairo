@@ -67,8 +67,8 @@ fn test_access(){
     assert(warp_memory.read(ptr1 + 1) == 3, 'Invalid read value on pos 1');
 
     let ptr2 = warp_memory.unsafe_alloc(3);
-    assert(ptr2 == 2, 'Pointer should be 2');
-    assert(warp_memory.free_space_pointer == 5, 'Pointer should be 5');
+    assert(ptr2 == 2, 'Pointer to allocated memory should be 2');
+    assert(warp_memory.free_space_pointer == 5, 'Free space pointer should be 5');
 
     warp_memory.write(ptr2, 4); 
     warp_memory.write(ptr2 + 1, 5); 
