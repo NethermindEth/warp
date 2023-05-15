@@ -15,9 +15,11 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
       fn greater_or_equal_comparison(self: T, other: T) -> bool; // a >= b
       fn greater_comparison(self: T, other: T) -> bool; // a > b
       // Bitwise
-      fn and_bitwise(self: T, other: T) -> bool; // a & b
-      fn or_bitwise(self: T, other: T) -> bool; // a | b
-      fn exclusive_or_bitwise(self: T, other: T) -> bool; // a ^ b
+      // TODO: Bitwise is not natively supported for all uN types. We can convert them into the ones that
+      // implement the operation and go back to the original type (this will not work with 256)
+      // fn and_bitwise(self: T, other: T) -> T; // a & b
+      // fn or_bitwise(self: T, other: T) -> T; // a | b
+      // fn exclusive_or_bitwise(self: T, other: T) -> T; // a ^ b
       // Bitwise negation is not currently supported
       // Shift operators are not currently supported
     }
@@ -32,12 +34,11 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
         value: u${max_width},
       }
 
-      impl Bytes${length}Impl of BytesTrait<bytes${length}>{
+      impl FixedBytes${length}Impl of FixedBytesTrait<bytes${length}>{
         fn atIndex(self: bytes${length}, index: u8) -> bytes1 {
           assert(index < self.length(), 'Index out of range');
           //let mask = 0xFF_u${max_width};
           //let bits_wanted = mask * 0x10_u${max_width} * U8IntoU16::into(index);
-          TODO
           bytes1{ value: 0_u8 }
         }
         fn length(self: bytes${length}) -> u8 {
@@ -63,15 +64,15 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
           self.value > other.value
         }
         // Bitwise
-        fn and_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-          bytes${length}{ value: self.value & other.value }
-        }
-        fn or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-          bytes${length}{ value: self.value | other.value }
-        }
-        fn exclusive_or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-          bytes${length}{ value: self.value ^ other.value }
-        }
+        //fn and_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
+        //  bytes${length}{ value: self.value & other.value }
+        //}
+        //fn or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
+        //  bytes${length}{ value: self.value | other.value }
+        //}
+        //fn exclusive_or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
+        //  bytes${length}{ value: self.value ^ other.value }
+        //}
         // Bitwise negation is not currently supported
         // Shift operators are not currently supported
       }
@@ -80,12 +81,7 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
 
   return {
     fileName: 'fixed_bytes',
-    imports: [
-      'use integer::U8IntoU16;',
-      'use integer::U8IntoU32;',
-      'use integer::U8IntoU64;',
-      'use integer::U8IntoU128;',
-    ],
+    imports: [],
     functions: [fixed_bytes_trait, fixed_bytes_types],
   };
 }
