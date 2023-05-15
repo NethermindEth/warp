@@ -20,6 +20,7 @@ import * as fs from 'fs';
 import endent from 'endent';
 import { glob } from 'glob';
 import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
+import { fixed_bytes_types } from './implementations/types/bytes';
 
 const mathWarplibFunctions: WarplibFunctionInfo[] = [
   add(),
@@ -67,10 +68,12 @@ const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
   external_input_check_ints(),
   // external_input_check_address - handwritten
 ];
+const warplibTypes: WarplibFunctionInfo[] = [fixed_bytes_types()];
 
 generateWarplibFor('maths', mathWarplibFunctions);
 generateWarplibFor('conversions', conversionWarplibFunctions);
 generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
+generateWarplibFor('types', warplibTypes);
 
 function generateWarplibFor(folderName: string, functions: WarplibFunctionInfo[]) {
   functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
