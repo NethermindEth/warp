@@ -1,6 +1,6 @@
 use integer::u128_to_felt252;
 use integer::u256_from_felt252;
-use warplib::integer::u256_from_felts;
+use warplib::conversions::integer_conversions::u256_from_felts;
 use warplib::warp_memory::WarpMemory;
 use warplib::warp_memory::WarpMemoryTrait;
 
