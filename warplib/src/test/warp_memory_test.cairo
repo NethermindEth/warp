@@ -58,8 +58,8 @@ fn test_access(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     let ptr1 = warp_memory.unsafe_alloc(2);
-    assert(ptr1 == 0, 'Pointer should be 0');
-    assert(warp_memory.free_space_pointer == 2, 'Pointer should be 2');
+    assert(ptr1 == 0, 'Pointer to allocated memory should be 0');
+    assert(warp_memory.free_space_pointer == 2, 'Free space pointer should be 2');
 
     warp_memory.write(ptr1, 2); 
     warp_memory.write(ptr1 + 1, 3); 
