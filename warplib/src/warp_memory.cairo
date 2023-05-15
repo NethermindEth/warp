@@ -14,7 +14,7 @@ use accessors::WarpMemoryMultiCellAccessorTrait;
 
 
 struct WarpMemory {
-    pointer: felt252,
+    free_space_pointer: felt252,
     memory: Felt252Dict::<felt252>
 }
 
@@ -34,7 +34,7 @@ trait WarpMemoryTrait {
     fn unsafe_read(ref self: WarpMemory, position: felt252) -> felt252;
     fn read(ref self: WarpMemory, position: felt252) -> felt252;
 
-    /// Given a certain size, it allocates the space for writing
+    // Given a certain size, it allocates the space for writing
     fn unsafe_alloc(ref self: WarpMemory, size: felt252) -> felt252;
     fn alloc(ref self: WarpMemory, size: felt252) -> felt252;
 }
@@ -42,7 +42,7 @@ trait WarpMemoryTrait {
 
 impl WarpMemoryImpl of WarpMemoryTrait {
     fn initialize() -> WarpMemory {
-        return WarpMemory {memory: Felt252DictTrait::new(), pointer: 0};
+        return WarpMemory {memory: Felt252DictTrait::new(), free_space_pointer: 0};
     }
 
     fn unsafe_write(ref self: WarpMemory, position: felt252, value: felt252){
@@ -51,7 +51,7 @@ impl WarpMemoryImpl of WarpMemoryTrait {
 
     fn write(ref self: WarpMemory, position: felt252, value: felt252){
         let position_256 = u256_from_felt252(position);
-        let pointer_256 = u256_from_felt252(self.pointer);
+        let pointer_256 = u256_from_felt252(self.free_space_pointer);
         if position_256 >= pointer_256 {
            panic_with_felt252('Writing on unreserved position');
         }
@@ -64,7 +64,7 @@ impl WarpMemoryImpl of WarpMemoryTrait {
 
     fn read(ref self: WarpMemory, position: felt252) -> felt252 {
         let position_256 = u256_from_felt252(position);
-        let pointer_256 = u256_from_felt252(self.pointer);
+        let pointer_256 = u256_from_felt252(self.free_space_pointer);
         if position_256 >= pointer_256 {
             panic_with_felt252('Reading on unreserved position');
         }
@@ -72,14 +72,14 @@ impl WarpMemoryImpl of WarpMemoryTrait {
     }
 
     fn unsafe_alloc(ref self: WarpMemory, size: felt252) -> felt252 {
-        let reserved_pointer = self.pointer;
-        self.pointer += size;
+        let reserved_pointer = self.free_space_pointer;
+        self.free_space_pointer += size;
         
         reserved_pointer
     }
 
     fn alloc(ref self: WarpMemory, size: felt252) -> felt252 {
-        let pointer_256 = u256_from_felt252(self.pointer);
+        let pointer_256 = u256_from_felt252(self.free_space_pointer);
         let size_256 = u256_from_felt252(size);
 
         let MAX_FELT_256: u256 = u256_from_felt252(-1);
@@ -87,8 +87,8 @@ impl WarpMemoryImpl of WarpMemoryTrait {
             panic_with_felt252('Maximum memory size exceded');
         }
 
-        let reserved_pointer = self.pointer;
-        self.pointer += size;
+        let reserved_pointer = self.free_space_pointer;
+        self.free_space_pointer += size;
         reserved_pointer
     }
 }
