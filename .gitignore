@@ -155,6 +155,7 @@ warp_venv
 warplib/src/maths.cairo
 warplib/src/external_input_check.cairo
 warplib/src/conversions.cairo
+warplib/src/types.cairo
 
 warplib/src/maths/add.cairo
 warplib/src/maths/add_unsafe.cairo
@@ -212,6 +213,11 @@ warplib/src/conversions/int_conversions.cairo
 
 # ---external-input-input-checks---
 warplib/src/external_input_check/external_input_check_ints.cairo
+# external_input_check_address.cairo - handwritten
+# external_input_check_bool.cairo - handwritten
+
+# ---types---
+warplib/src/types/fixed_bytes.cairo
 # external_input_check_address.cairo - handwritten
 # external_input_check_bool.cairo - handwritten
 
