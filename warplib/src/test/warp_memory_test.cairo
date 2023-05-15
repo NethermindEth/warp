@@ -36,7 +36,7 @@ fn test_unsafe_access() {
     
     let read_from_unallocated = warp_memory.unsafe_read(3);
     assert(read_from_unallocated == 5, 'Invalid read value');
-    assert(warp_memory.free_space_pointer == 0, 'Pointer should be 0');
+    assert(warp_memory.free_space_pointer == 0, 'Free space pointer should be 0');
 }
 
 #[test] 
