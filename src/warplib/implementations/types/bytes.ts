@@ -51,18 +51,24 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
                 let value_u256 = u256_from_felt252(value_felt252);
               `
           }
-          let mut value_at_index_u8: u8 = 0_u8;
-          //TODO: if we could do a quick compute of 2powN this loop wouldn't be needed
-          loop {
-            if index == 0_u8 {
-              let value_at_index_u256 = value_u256 & u256{ low: 0xFFFF_u128, high: 0_u128 };
-              let value_at_index_felt252 = u128_to_felt252(value_at_index_u256.low);
-              value_at_index_u8 = u8_try_from_felt252(value_at_index_felt252).unwrap();
-              break();
-            }
-            let value_u256 = value_u256 / u256{ low: 0x100_u128, high: 0_u128 };
-            let index = index - 1_u8;
-          };
+          ${
+            length > 16
+              ? endent`
+                let mut value_shifted = 0_u128;
+                if index < 16_u8 {
+                  value_shifted = value_u256.high / pow2_n(u8_to_felt252(self.length() - 17_u8 - index) * 8);
+                } else {
+                  value_shifted = value_u256.low / pow2_n(u8_to_felt252(self.length() - 1_u8 - index) * 8);
+                }
+              `
+              : endent`
+                let value_shifted = value_u256.low / pow2_n(u8_to_felt252(self.length() - 1_u8 - index) * 8);
+              `
+          }
+          let value_at_index_u128 = value_shifted & 0xFF_u128;
+
+          let value_at_index_felt252 = u128_to_felt252(value_at_index_u128);
+          let value_at_index_u8 = u8_try_from_felt252(value_at_index_felt252).unwrap();
 
           bytes1{ value: value_at_index_u8}
         }
@@ -115,6 +121,7 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
       'use integer::u256_from_felt252;',
       'use integer::u8_try_from_felt252;',
       'use option::OptionTrait;',
+      'use warplib::maths::pow2::pow2_n;',
     ],
     functions: [fixed_bytes_trait, fixed_bytes_types],
   };
