@@ -243,7 +243,7 @@ fn test_write_multiple_overflow_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     warp_memory.unsafe_alloc(MAX_FELT);
     
-    warp_memory.write_multiple(-3, ref values);
+    warp_memory.write_multiple(MAX_FELT - 2, ref values);
 }
 
 #[test]
