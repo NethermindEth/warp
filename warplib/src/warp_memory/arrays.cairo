@@ -72,8 +72,7 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
             panic_with_felt252('Index out of range');
         } 
 
-        let index_location = array_ptr + 1 + index * elem_width;
-        self.read(index_location)
+        array_ptr + 1 + index * elem_width
     }
 
     fn index_static(ref self: WarpMemory, array_ptr: felt252, index: felt252, elem_width: felt252, length: felt252) -> felt252 {
@@ -83,8 +82,7 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
              panic_with_felt252('Index out of range');
         } 
 
-        let index_location = array_ptr + index * elem_width;
-        self.read(index_location) 
+        array_ptr + index * elem_width
     }
 
     fn length_dyn(ref self: WarpMemory, array_ptr: felt252) -> felt252 {
