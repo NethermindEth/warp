@@ -107,7 +107,7 @@ fn test_new_dynamic_array(){
 
 #[test]
 #[should_panic]
-fn test_new_dynamic_array_overflow_1_should_panic(){
+fn test_new_dynamic_array_overflow_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     let dyn_array = warp_memory.new_dynamic_array(MAX_FELT, 1);
