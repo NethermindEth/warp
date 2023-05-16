@@ -102,7 +102,7 @@ fn test_new_dynamic_array(){
 
     let dyn_array = warp_memory.new_dynamic_array(MAX_FELT-1, 1);
     assert(warp_memory.free_space_pointer == MAX_FELT, 'Invalid pointer value');
-    assert(warp_memory.read(dyn_array) == -2, 'Invalid length value');
+    assert(warp_memory.read(dyn_array) == MAX_FELT - 1, 'Invalid length value');
 }
 
 #[test]
