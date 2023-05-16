@@ -305,3 +305,180 @@ fn test_store_retrieve() {
     let readVal3: u128 = warp_memory.retrieve(pointer + 4, 1);
     assert(readVal3 == val3, 'Incorrect value 3');
 }
+
+
+// ==================== FixedBytes Functions ====================
+
+use integer::u256_from_felt252;
+use warplib::types::fixed_bytes::bytes32;
+use warplib::types::fixed_bytes::bytes13;
+use warplib::warp_memory::WarpMemoryBytesTrait;
+use warplib::conversions::integer_conversions::u256_from_felts;
+
+#[test]
+#[available_gas(1000000)]
+fn test_bytes32_converter_simple() {
+    let mut values = ArrayTrait::new();
+    values.append(219);
+
+    let mut warp_memory = WarpMemoryTrait::initialize();
+    let array_pointer = warp_memory.new_dynamic_array(1, 1); // this points now to the start that holds the array len: 1
+    warp_memory.write_multiple(array_pointer+1, ref values);
+    
+    assert(warp_memory.read(array_pointer) == 1, 'Saved a wrong length');
+    assert(warp_memory.read(array_pointer+1) == 219, 'Wrong first value');
+
+    let fixed_byte32: bytes32 = warp_memory.bytes_to_fixed_bytes32(array_pointer);
+    let expected_value = u256 { low: 0_u128, high: 0xdb000000000000000000000000000000_u128 };
+    assert(fixed_byte32.value == expected_value, 'Unexpected bytes32 read');
+}
+
+#[test]
+#[available_gas(10000000)]
+fn test_bytes32_converter_len16() {
+    let mut values = ArrayTrait::new();
+    values.append(131);
+    values.append(89);
+    values.append(219);
+    values.append(164);
+    values.append(153);
+    values.append(22);
+    values.append(76);
+    values.append(190);
+    values.append(47);
+    values.append(201);
+    values.append(200);
+    values.append(109);
+    values.append(199);
+    values.append(88);
+    values.append(32);
+    values.append(68);
+
+    let mut warp_memory = WarpMemoryTrait::initialize();
+    let array_pointer = warp_memory.new_dynamic_array(16, 1); // this points now to the start that holds the array len: 16
+    warp_memory.write_multiple(array_pointer+1, ref values);
+    
+    assert(warp_memory.read(array_pointer) == 16, 'Saved a wrong length');
+    assert(warp_memory.read(array_pointer+1) == 131, 'Wrong first value');
+
+    let fixed_byte32: bytes32 = warp_memory.bytes_to_fixed_bytes32(array_pointer);
+    let expected_value = u256 { low: 0_u128, high: 0x8359dba499164cbe2fc9c86dc7582044_u128 };
+    assert(fixed_byte32.value == expected_value, 'Unexpected bytes32 read');
+}
+
+#[test]
+#[available_gas(10000000)]
+fn test_bytes32_converter_len_between_16_32() {
+    let mut values = ArrayTrait::new();
+    values.append(131);
+    values.append(89);
+    values.append(219);
+    values.append(164);
+    values.append(153);
+    values.append(22);
+    values.append(76);
+    values.append(190);
+    values.append(47);
+    values.append(201);
+    values.append(200);
+    values.append(109);
+    values.append(199);
+    values.append(88);
+    values.append(32);
+    values.append(68);
+    values.append(181);
+    values.append(216);
+
+    let mut warp_memory = WarpMemoryTrait::initialize();
+    let array_pointer = warp_memory.new_dynamic_array(18, 1); // this points now to the start that holds the array len: 16
+    warp_memory.write_multiple(array_pointer+1, ref values);
+    
+    assert(warp_memory.read(array_pointer) == 18, 'Saved a wrong length');
+
+    let fixed_byte32: bytes32 = warp_memory.bytes_to_fixed_bytes32(array_pointer);
+    let expected_value = u256 { low: 0xb5d80000000000000000000000000000_u128, high: 0x8359dba499164cbe2fc9c86dc7582044_u128 };
+    assert(fixed_byte32.value == expected_value, 'Unexpected bytes32 read');
+}
+
+#[test]
+#[available_gas(10000000)]
+fn test_bytes32_converter_len_greater_than_32() {
+    let mut values = ArrayTrait::new();
+    values.append(131);
+    values.append(89);
+    values.append(219);
+    values.append(164);
+    values.append(153);
+    values.append(22);
+    values.append(76);
+    values.append(190);
+    values.append(47);
+    values.append(201);
+    values.append(200);
+    values.append(109);
+    values.append(199);
+    values.append(88);
+    values.append(32);
+    values.append(68);
+    values.append(181);
+    values.append(216);
+    values.append(56);
+    values.append(165);
+    values.append(176);
+    values.append(86);
+    values.append(72);
+    values.append(101);
+    values.append(53);
+    values.append(32);
+    values.append(21);
+    values.append(1);
+    values.append(220);
+    values.append(120);
+    values.append(194);
+    values.append(95);
+    values.append(38);
+    values.append(78);
+    values.append(9);
+    values.append(8);
+
+    let mut warp_memory = WarpMemoryTrait::initialize();
+    let array_pointer = warp_memory.new_dynamic_array(36, 1); // this points now to the start that holds the array len: 36
+    warp_memory.write_multiple(array_pointer+1, ref values);
+    
+    assert(warp_memory.read(array_pointer) == 36, 'Saved a wrong length');
+
+    let fixed_byte32: bytes32 = warp_memory.bytes_to_fixed_bytes32(array_pointer);
+    let expected_value = u256 { low: 0xb5d838a5b056486535201501dc78c25f_u128, high: 0x8359dba499164cbe2fc9c86dc7582044_u128 };
+    assert(fixed_byte32.value == expected_value, 'Unexpected bytes32 read');
+}
+
+#[test]
+#[available_gas(10000000)]
+fn test_bytes13_converter_len16() {
+    let mut values = ArrayTrait::new();
+    values.append(131);
+    values.append(89);
+    values.append(219);
+    values.append(164);
+    values.append(153);
+    values.append(22);
+    values.append(76);
+    values.append(190);
+    values.append(47);
+    values.append(201);
+    values.append(200);
+    values.append(109);
+    values.append(199);
+    values.append(88);
+    values.append(32);
+    values.append(68);
+
+    let mut warp_memory = WarpMemoryTrait::initialize();
+    let array_pointer = warp_memory.new_dynamic_array(16, 1); // this points now to the start that holds the array len: 16
+    warp_memory.write_multiple(array_pointer+1, ref values);
+    
+
+    let fixed_byte32: bytes13 = warp_memory.bytes_to_fixed_bytes13(array_pointer);
+    let expected_value = 0x8359dba499164cbe2fc9c86dc7_u128;
+    assert(fixed_byte32.value == expected_value, 'Unexpected bytes13 read');
+}

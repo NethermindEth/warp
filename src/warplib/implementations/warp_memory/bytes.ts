@@ -16,6 +16,12 @@ export function warp_memory_fixed_bytes(): WarplibFunctionInfo {
     `;
   const recursive_converter = endent`
     fn _bytes_to_fixed_recursive(ref memory: WarpMemory, bytes_data_loc: felt252, target_width: felt252, data_len: felt252, representation: felt252) -> felt252 {
+      match gas::withdraw_gas() {
+        Option::Some(_) => {},
+        Option::None(_) => {
+             panic_with_felt252('Out of gas');
+        }
+      }
       if target_width == 0 {
           return representation;
       }
@@ -36,22 +42,23 @@ export function warp_memory_fixed_bytes(): WarplibFunctionInfo {
           return endent`
             fn bytes_to_fixed_bytes32(ref self: WarpMemory, location: felt252) -> bytes32 {
               let data_len = self.read(location);
-              
               let data_len_u256 = u256_from_felt252(data_len);
               let u256_literal_16 = u256{low: 16, high: 0};
               let u256_literal_32 = u256{low: 32, high: 0};
+
+              // It will be stored right-padded: 0x<some_values>000...0
               if data_len_u256 >= u256_literal_16 {
-                  let low_felt = _bytes_to_fixed_recursive(ref self, location + 1, 16, 16, 0);
+                  let high_felt = _bytes_to_fixed_recursive(ref self, location + 1, 16, 16, 0);
                   if data_len_u256 >= u256_literal_32 {
-                      let high_felt = _bytes_to_fixed_recursive(ref self, location + 17, 16, 16, 0);
+                      let low_felt = _bytes_to_fixed_recursive(ref self, location + 17, 16, 16, 0);
                       return bytes32{ value: u256_from_felts(low_felt, high_felt) }; 
                   } else {
-                      let high_felt = _bytes_to_fixed_recursive(ref self, location + 17, 16, data_len - 16, 0);
+                      let low_felt = _bytes_to_fixed_recursive(ref self, location + 17, 16, data_len - 16, 0);
                       return bytes32{ value: u256_from_felts(low_felt, high_felt) }; 
                   }
               } else {
-                  let low_felt = _bytes_to_fixed_recursive(ref self, location + 1, 16, data_len, 0);
-                  return bytes32{ value: u256_from_felts(low_felt, 0) };
+                  let high_felt = _bytes_to_fixed_recursive(ref self, location + 1, 16, data_len, 0);
+                  return bytes32{ value: u256_from_felts(0, high_felt) };
               }
             }
           `;
