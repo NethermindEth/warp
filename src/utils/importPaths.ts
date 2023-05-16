@@ -266,14 +266,20 @@ export const WM_GET_ID: [string[], string] = [
   'warp_memory.get_or_create_id',
 ];
 
-const ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryAccesssorTrait'];
-export const WM_WRITE_MULTIPLE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.write_multiple'];
-export const WM_READ_MULTIPLE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.read_multiple'];
-
 const MULTICELL_ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryMultiCellAccessorTrait'];
-export const WM_RETRIEVE: [string[], string] = [MULTICELL_ACCESSOR_TRAIT, 'warp_memory.retrieve'];
-export const WM_STORE: [string[], string] = [MULTICELL_ACCESSOR_TRAIT, 'warp_memory.store'];
-export const WM_CREATE: [string[], string] = [MULTICELL_ACCESSOR_TRAIT, 'warp_memory.create'];
+export const WM_WRITE_MULTIPLE: [string[], string] = [
+  MULTICELL_ACCESSOR_TRAIT,
+  'warp_memory.write_multiple',
+];
+export const WM_READ_MULTIPLE: [string[], string] = [
+  MULTICELL_ACCESSOR_TRAIT,
+  'warp_memory.read_multiple',
+];
+
+const ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryAccesssorTrait'];
+export const WM_RETRIEVE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.retrieve'];
+export const WM_STORE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.store'];
+export const WM_CREATE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.create'];
 
 export const WM_TO_FELT_ARRAY: [string[], string] = [['not set yet'], 'wm_to_felt_array'];
 

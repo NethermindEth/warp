@@ -7,7 +7,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { DICT_WRITE, WM_STORE, WM_UNSAFE_WRITE, WM_WRITE } from '../../utils/importPaths';
+import { WM_STORE, WM_UNSAFE_WRITE, WM_WRITE } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';

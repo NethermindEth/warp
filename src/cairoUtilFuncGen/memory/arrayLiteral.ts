@@ -21,7 +21,6 @@ import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/
 import {
   ARRAY,
   ARRAY_TRAIT,
-  U32_TO_FELT,
   WARP_MEMORY,
   WM_WRITE,
   WM_UNSAFE_ALLOC,
