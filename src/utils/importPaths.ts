@@ -276,3 +276,5 @@ export const WM_STORE: [string[], string] = [MULTICELL_ACCESSOR_TRAIT, 'warp_mem
 export const WM_CREATE: [string[], string] = [MULTICELL_ACCESSOR_TRAIT, 'warp_memory.create'];
 
 export const WM_TO_FELT_ARRAY: [string[], string] = [['not set yet'], 'wm_to_felt_array'];
+
+export const SUPER: string[] = ['super'];
