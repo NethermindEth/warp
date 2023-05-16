@@ -40,9 +40,31 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
       impl FixedBytes${length}Impl of FixedBytesTrait<bytes${length}>{
         fn atIndex(self: bytes${length}, index: u8) -> bytes1 {
           assert(index < self.length(), 'Index out of range');
-          //let mask = 0xFF_u${max_width};
-          //let bits_wanted = mask * 0x10_u${max_width} * U8IntoU16::into(index);
-          bytes1{ value: 0_u8 }
+
+          ${
+            max_width === 256
+              ? endent`
+                let value_u256 = self.value;
+              `
+              : endent`
+                let value_felt252 = u${max_width}_to_felt252(self.value);
+                let value_u256 = u256_from_felt252(value_felt252);
+              `
+          }
+          let mut value_at_index_u8: u8 = 0_u8;
+          //TODO: if we could do a quick compute of 2powN this loop wouldn't be needed
+          loop {
+            if index == 0_u8 {
+              let value_at_index_u256 = value_u256 & u256{ low: 0xFFFF_u128, high: 0_u128 };
+              let value_at_index_felt252 = u128_to_felt252(value_at_index_u256.low);
+              value_at_index_u8 = u8_try_from_felt252(value_at_index_felt252).unwrap();
+              break();
+            }
+            let value_u256 = value_u256 / u256{ low: 0x100_u128, high: 0_u128 };
+            let index = index - 1_u8;
+          };
+
+          bytes1{ value: value_at_index_u8}
         }
         fn length(self: bytes${length}) -> u8 {
           ${length}_u8
@@ -84,7 +106,16 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
 
   return {
     fileName: 'fixed_bytes',
-    imports: [],
+    imports: [
+      'use integer::u8_to_felt252;',
+      'use integer::u16_to_felt252;',
+      'use integer::u32_to_felt252;',
+      'use integer::u64_to_felt252;',
+      'use integer::u128_to_felt252;',
+      'use integer::u256_from_felt252;',
+      'use integer::u8_try_from_felt252;',
+      'use option::OptionTrait;',
+    ],
     functions: [fixed_bytes_trait, fixed_bytes_types],
   };
 }
