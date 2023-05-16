@@ -53,8 +53,9 @@ export abstract class CairoUtilFuncGenBase {
     name: string,
     inputs?: ParameterInfo[],
     outputs?: ParameterInfo[],
+    options?: { isTrait?: boolean },
   ): CairoImportFunctionDefinition {
-    return createImport(location, name, this.sourceUnit, this.ast, inputs, outputs);
+    return createImport(location, name, this.sourceUnit, this.ast, inputs, outputs, options);
   }
 }
 

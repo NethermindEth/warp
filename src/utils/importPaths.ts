@@ -218,12 +218,18 @@ export const U248_TO_FELT: [string[], string] = [['integer'], 'u248_to_felt252']
 
 export const GET_CALLER_ADDRESS: [string[], string] = [['starknet'], 'get_caller_address'];
 export const CONTRACT_ADDRESS: [string[], string] = [['starknet'], 'ContractAddress'];
+
+export const CONTRACT_ADDRESS_FROM_FELT: [string[], string] = [
+  ['starknet'],
+  'contract_address_try_from_felt252',
+];
+
 export const INTO: [string[], string] = [['traits'], 'Into'];
+export const OPTION_TRAIT: [string[], string] = [['option'], 'OptionTrait'];
 
 const MEMORY_MODULE = ['warplib', 'warp_memory'];
 
 export const WARP_MEMORY: [string[], string] = [MEMORY_MODULE, 'WarpMemory'];
-
 const WARP_MEMORY_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryTrait'];
 export const WM_READ: [string[], string] = [[...WARP_MEMORY_TRAIT], 'warp_memory.read'];
 export const WM_WRITE: [string[], string] = [[...WARP_MEMORY_TRAIT], 'warp_memory.write'];
