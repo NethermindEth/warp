@@ -312,6 +312,7 @@ fn test_store_retrieve() {
 use integer::u256_from_felt252;
 use warplib::types::fixed_bytes::bytes32;
 use warplib::types::fixed_bytes::bytes13;
+use warplib::types::fixed_bytes::FixedBytesTrait;
 use warplib::warp_memory::WarpMemoryBytesTrait;
 use warplib::conversions::integer_conversions::u256_from_felts;
 
@@ -398,6 +399,21 @@ fn test_bytes32_converter_len_between_16_32() {
     let fixed_byte32: bytes32 = warp_memory.bytes_to_fixed_bytes32(array_pointer);
     let expected_value = u256 { low: 0xb5d80000000000000000000000000000_u128, high: 0x8359dba499164cbe2fc9c86dc7582044_u128 };
     assert(fixed_byte32.value == expected_value, 'Unexpected bytes32 read');
+
+    let byte0 = fixed_byte32.atIndex(0_u8);
+    assert(byte0.value == 131_u8, 'Unexpected byte 0');
+
+    let byte14 = fixed_byte32.atIndex(14_u8);
+    assert(byte14.value == 32_u8, 'Unexpected byte 14');
+
+    let byte15 = fixed_byte32.atIndex(15_u8);
+    assert(byte15.value == 68_u8, 'Unexpected byte 15');
+
+    let byte16 = fixed_byte32.atIndex(16_u8);
+    assert(byte16.value == 181_u8, 'Unexpected byte 16');
+
+    let byte17 = fixed_byte32.atIndex(17_u8);
+    assert(byte17.value == 216_u8, 'Unexpected byte 17');
 }
 
 #[test]
@@ -450,6 +466,9 @@ fn test_bytes32_converter_len_greater_than_32() {
     let fixed_byte32: bytes32 = warp_memory.bytes_to_fixed_bytes32(array_pointer);
     let expected_value = u256 { low: 0xb5d838a5b056486535201501dc78c25f_u128, high: 0x8359dba499164cbe2fc9c86dc7582044_u128 };
     assert(fixed_byte32.value == expected_value, 'Unexpected bytes32 read');
+
+    let byte31 = fixed_byte32.atIndex(31_u8);
+    assert(byte31.value == 95_u8, 'Unexpected byte 31');
 }
 
 #[test]
@@ -478,7 +497,13 @@ fn test_bytes13_converter_len16() {
     warp_memory.write_multiple(array_pointer+1, ref values);
     
 
-    let fixed_byte32: bytes13 = warp_memory.bytes_to_fixed_bytes13(array_pointer);
+    let fixed_byte13: bytes13 = warp_memory.bytes_to_fixed_bytes13(array_pointer);
     let expected_value = 0x8359dba499164cbe2fc9c86dc7_u128;
-    assert(fixed_byte32.value == expected_value, 'Unexpected bytes13 read');
+    assert(fixed_byte13.value == expected_value, 'Unexpected bytes13 read');
+
+    let byte0 = fixed_byte13.atIndex(0_u8);
+    assert(byte0.value == 131_u8, 'Unexpected byte 0');
+
+    let byte12 = fixed_byte13.atIndex(12_u8);
+    assert(byte12.value == 199_u8, 'Unexpected byte 12');
 }
