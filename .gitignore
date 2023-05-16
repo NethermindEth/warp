@@ -179,6 +179,8 @@ warplib/src/maths/div_signed_unsafe.cairo
 # mod - handwritten
 warplib/src/maths/mod_signed.cairo
 
+warplib/src/maths/pow2.cairo
+
 warplib/src/maths/exp.cairo
 warplib/src/maths/exp_unsafe.cairo
 warplib/src/maths/exp_signed.cairo

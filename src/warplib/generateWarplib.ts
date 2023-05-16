@@ -22,6 +22,7 @@ import { glob } from 'glob';
 import { parseCairoTraitsAndStructs, parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { fixed_bytes_types } from './implementations/types/bytes';
 import { warp_memory_fixed_bytes } from './implementations/warp_memory/bytes';
+import { pow2_constants } from './implementations/maths/pow2';
 
 const mathWarplibFunctions: WarplibFunctionInfo[] = [
   add(),
@@ -42,6 +43,7 @@ const mathWarplibFunctions: WarplibFunctionInfo[] = [
   div_signed_unsafe(),
   // mod - handwritten
   mod_signed(),
+  pow2_constants(),
   exp(),
   exp_signed(),
   exp_unsafe(),
