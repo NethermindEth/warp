@@ -268,7 +268,7 @@ fn test_write_multiple_unallocated_should_panic() {
 fn test_read_multiple_overflow_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     warp_memory.unsafe_alloc(MAX_FELT);
-    warp_memory.read_multiple(-3, 3);
+    warp_memory.read_multiple(MAX_FELT - 2, 3);
 }
 
 #[test]
