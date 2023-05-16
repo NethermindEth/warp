@@ -100,7 +100,7 @@ fn test_get_or_create_id(){
 fn test_new_dynamic_array(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
-    let dyn_array = warp_memory.new_dynamic_array(-2, 1);
+    let dyn_array = warp_memory.new_dynamic_array(MAX_FELT-1, 1);
     assert(warp_memory.free_space_pointer == -1, 'Invalid pointer value');
     assert(warp_memory.read(dyn_array) == -2, 'Invalid length value');
 }
