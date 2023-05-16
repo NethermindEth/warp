@@ -125,7 +125,7 @@ export const isCairoPrimitiveIntType = (x: string): x is CairoPrimitiveIntType =
 
 export function primitiveTypeToCairo(
   typeString: string,
-): CairoPrimitiveIntType | 'felt252' | 'ContractAddress' {
+): CairoPrimitiveIntType | 'felt252' | 'ContractAddress' | 'bool' {
   if (typeString === 'address' || typeString === 'address payable') return 'ContractAddress';
 
   if (typeString === 'uint' || typeString === 'int') return 'u256';
@@ -133,6 +133,8 @@ export function primitiveTypeToCairo(
   if (typeString === 'fixed' || typeString === 'ufixed') {
     throw new NotSupportedYetError('Fixed types not implemented');
   }
+
+  if (typeString === 'bool') return 'bool';
 
   // regex match if typeString is uintN or intN
 
