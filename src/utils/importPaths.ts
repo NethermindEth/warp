@@ -235,10 +235,13 @@ export const CONTRACT_ADDRESS_FROM_FELT: [string[], string] = [
 ];
 
 export const INTO: [string[], string] = [['traits'], 'Into'];
-
 export const OPTION_TRAIT: [string[], string] = [['option'], 'OptionTrait'];
 
-export const WARP_MEMORY: [string[], string] = [['warplib', 'warp_memory'], 'WarpMemory'];
-export const MEMORY_TRAIT: [string[], string] = [['warplib', 'warp_memory'], 'MemoryTrait'];
+export const MEMORY_MODULE = ['warplib', 'warp_memory'];
+export const WARP_MEMORY: [string[], string] = [MEMORY_MODULE, 'WarpMemory'];
+export const WARP_MEMORY_TRAIT: [string[], string] = [MEMORY_MODULE, 'WarpMemoryTrait'];
+export const WARP_MEMORY_IMPL: [string[], string] = [MEMORY_MODULE, 'WarpMemoryImpl'];
+export const ACCESSOR: [string[], string] = [MEMORY_MODULE, 'WarpMemoryAccesssor'];
+export const ACCESSOR_TRAIT: [string[], string] = [MEMORY_MODULE, 'WarpMemoryAccesssorTrait'];
 
 export const SUPER: string[] = ['super'];

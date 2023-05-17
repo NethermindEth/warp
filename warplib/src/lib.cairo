@@ -2,3 +2,6 @@
 mod integer;
 mod maths;
 mod warp_memory;
+
+#[cfg(test)]
+mod test;
