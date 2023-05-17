@@ -77,7 +77,7 @@ export const FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL: [string[], string] = [
   [...DYNAMIC_ARRAYS_UTIL],
   'fixed_bytes256_to_felt_dynamic_array_spl',
 ];
-export const U256_TO_FELT252: [string[], string] = [[...WARPLIB_MATHS], 'u256_to_felt252'];
+export const U256_TO_FELT252: [string[], string] = [[...WARPLIB_MATHS, 'utils'], 'u256_to_felt252'];
 export const PACK_BYTES_FELT: [string[], string] = [[...WARPLIB_KECCAK], 'pack_bytes_felt'];
 export const STRING_HASH: [string[], string] = [['warplib', 'string_hash'], 'string_hash'];
 export const WARP_KECCAK: [string[], string] = [[...WARPLIB_KECCAK], 'warp_keccak'];
@@ -276,7 +276,7 @@ export const WM_READ_MULTIPLE: [string[], string] = [
   'warp_memory.read_multiple',
 ];
 
-const ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryAccesssorTrait'];
+const ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'accessors', 'WarpMemoryAccesssorTrait'];
 export const WM_RETRIEVE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.retrieve'];
 export const WM_STORE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.store'];
 export const WM_CREATE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.create'];
