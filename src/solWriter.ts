@@ -5,11 +5,11 @@ import {
   ASTWriter,
   ContractDefinition,
   DefaultASTWriterMapping,
+  FunctionCall,
   FunctionDefinition,
   SrcDesc,
 } from 'solc-typed-ast';
 import {
-  CairoAssert,
   CairoContract,
   CairoFunctionDefinition,
   CairoGeneratedFunctionDefinition,
@@ -108,21 +108,12 @@ class CairoImportFunctionDefinitionSolWriter extends ASTNodeWriter {
   }
 }
 
-class CairoAssertSolWriter extends ASTNodeWriter {
-  writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
-    const result: SrcDesc = [];
-    result.push(`<cairo information> assert ${writer.write(node.vExpression)} = 1`);
-    return result;
-  }
-}
-
 const CairoExtendedASTWriterMapping = (printStubs: boolean) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
     [CairoContract, new CairoContractSolWriter()],
     [CairoFunctionDefinition, new CairoFunctionDefinitionSolWriter(printStubs)],
     [CairoGeneratedFunctionDefinition, new CairoGeneratedFunctionDefinitionSolWriter()],
     [CairoImportFunctionDefinition, new CairoImportFunctionDefinitionSolWriter()],
-    [CairoAssert, new CairoAssertSolWriter()],
   ]);
 
 export const CairoToSolASTWriterMapping = (printStubs: boolean) =>

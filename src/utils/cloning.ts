@@ -44,7 +44,7 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
+import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { printNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { createParameterList } from './nodeTemplates';
@@ -102,14 +102,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.operator,
       cloneASTNodeImpl(node.vLeftExpression, ast, remappedIds),
       cloneASTNodeImpl(node.vRightExpression, ast, remappedIds),
-      node.raw,
-    );
-  } else if (node instanceof CairoAssert) {
-    newNode = new CairoAssert(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
-      node.assertMessage,
       node.raw,
     );
   } else if (node instanceof ElementaryTypeNameExpression) {

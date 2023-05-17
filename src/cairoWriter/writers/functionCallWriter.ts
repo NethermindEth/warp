@@ -28,7 +28,9 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
     const func = writer.write(node.vExpression);
     switch (node.kind) {
       case FunctionCallKind.FunctionCall: {
-        if (node.vExpression instanceof MemberAccess) {
+        if (['assert', 'require', 'revert'].includes(func)) {
+          return [`assert(${args}${node.vArguments.length === 1 ? ", 'Assertion error'" : ''})`];
+        } else if (node.vExpression instanceof MemberAccess) {
           // check if we're calling a member of a contract
           const nodeType = safeGetNodeType(node.vExpression.vExpression, this.ast.inference);
           if (

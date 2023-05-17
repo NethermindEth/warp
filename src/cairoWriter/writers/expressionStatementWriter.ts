@@ -6,7 +6,6 @@ import {
   FunctionCallKind,
   SrcDesc,
 } from 'solc-typed-ast';
-import { CairoAssert } from '../../ast/cairoNodes';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
 
@@ -17,8 +16,7 @@ export class ExpressionStatementWriter extends CairoASTNodeWriter {
     if (
       (node.vExpression instanceof FunctionCall &&
         node.vExpression.kind !== FunctionCallKind.StructConstructorCall) ||
-      node.vExpression instanceof Assignment ||
-      node.vExpression instanceof CairoAssert
+      node.vExpression instanceof Assignment
     ) {
       return [[documentation, `${writer.write(node.vExpression)};`].join('\n')];
     } else {
