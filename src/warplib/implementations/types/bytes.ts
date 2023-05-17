@@ -19,10 +19,10 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
       fn greater_comparison(self: T, other: T) -> bool; // a > b
       // Bitwise
       // TODO: Bitwise is not natively supported for all uN types. We can convert them into the ones that
-      // implement the operation and go back to the original type (this will not work with 256)
-      // fn and_bitwise(self: T, other: T) -> T; // a & b
-      // fn or_bitwise(self: T, other: T) -> T; // a | b
-      // fn exclusive_or_bitwise(self: T, other: T) -> T; // a ^ b
+      // implement the operation and go back to the original type 
+      fn and_bitwise(self: T, other: T) -> T; // a & b
+      fn or_bitwise(self: T, other: T) -> T; // a | b
+      fn exclusive_or_bitwise(self: T, other: T) -> T; // a ^ b
       // Bitwise negation is not currently supported
       // Shift operators are not currently supported
     }
@@ -94,16 +94,52 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
         fn greater_comparison(self: bytes${length}, other: bytes${length}) -> bool {
           self.value > other.value
         }
-        // Bitwise
-        //fn and_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-        //  bytes${length}{ value: self.value & other.value }
-        //}
-        //fn or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-        //  bytes${length}{ value: self.value | other.value }
-        //}
-        //fn exclusive_or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-        //  bytes${length}{ value: self.value ^ other.value }
-        //}
+        // Bitwise 
+        fn and_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
+          ${
+            max_width >= 128 // uN types lower than 128 bits don't have an implementation for bitwise operations
+              ? `bytes${length}{ value: self.value & other.value }`
+              : endent`
+              let self_value_felt252 = u${max_width}_to_felt252(self.value);
+              let other_value_felt252 = u${max_width}_to_felt252(other.value);
+              let self_value_u128 = u128_try_from_felt252(self_value_felt252).unwrap();
+              let other_value_u128 = u128_try_from_felt252(other_value_felt252).unwrap();
+              let result_u128 = self_value_u128 & other_value_u128;
+              let result_felt252 = u128_to_felt252(result_u128);
+              bytes${length}{ value: u${max_width}_try_from_felt252(result_felt252).unwrap() }
+            `
+          }
+        }
+        fn or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
+          ${
+            max_width >= 128 // uN types lower than 128 bits don't have an implementation for bitwise operations
+              ? `bytes${length}{ value: self.value | other.value }`
+              : endent`
+              let self_value_felt252 = u${max_width}_to_felt252(self.value);
+              let other_value_felt252 = u${max_width}_to_felt252(other.value);
+              let self_value_u128 = u128_try_from_felt252(self_value_felt252).unwrap();
+              let other_value_u128 = u128_try_from_felt252(other_value_felt252).unwrap();
+              let result_u128 = self_value_u128 | other_value_u128;
+              let result_felt252 = u128_to_felt252(result_u128);
+              bytes${length}{ value: u${max_width}_try_from_felt252(result_felt252).unwrap() }
+            `
+          }
+        }
+        fn exclusive_or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
+          ${
+            max_width >= 128 // uN types lower than 128 bits don't have an implementation for bitwise operations
+              ? `bytes${length}{ value: self.value ^ other.value }`
+              : endent`
+              let self_value_felt252 = u${max_width}_to_felt252(self.value);
+              let other_value_felt252 = u${max_width}_to_felt252(other.value);
+              let self_value_u128 = u128_try_from_felt252(self_value_felt252).unwrap();
+              let other_value_u128 = u128_try_from_felt252(other_value_felt252).unwrap();
+              let result_u128 = self_value_u128 ^ other_value_u128;
+              let result_felt252 = u128_to_felt252(result_u128);
+              bytes${length}{ value: u${max_width}_try_from_felt252(result_felt252).unwrap() }
+            `
+          }
+        }
         // Bitwise negation is not currently supported
         // Shift operators are not currently supported
       }
@@ -118,8 +154,12 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
       'use integer::u32_to_felt252;',
       'use integer::u64_to_felt252;',
       'use integer::u128_to_felt252;',
-      'use integer::u256_from_felt252;',
       'use integer::u8_try_from_felt252;',
+      'use integer::u16_try_from_felt252;',
+      'use integer::u32_try_from_felt252;',
+      'use integer::u64_try_from_felt252;',
+      'use integer::u128_try_from_felt252;',
+      'use integer::u256_from_felt252;',
       'use option::OptionTrait;',
       'use warplib::maths::pow2::pow2_n;',
     ],
