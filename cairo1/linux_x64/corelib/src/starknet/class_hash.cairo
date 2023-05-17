@@ -1,10 +1,11 @@
 use zeroable::Zeroable;
+use serde::Serde;
 
 #[derive(Copy, Drop)]
 extern type ClassHash;
 
 
-extern fn class_hash_const<const address>() -> ClassHash nopanic;
+extern fn class_hash_const<const address: felt252>() -> ClassHash nopanic;
 extern fn class_hash_to_felt252(address: ClassHash) -> felt252 nopanic;
 
 extern fn class_hash_try_from_felt252(
@@ -39,8 +40,8 @@ impl ClassHashZeroable of Zeroable<ClassHash> {
 }
 
 impl ClassHashSerde of serde::Serde<ClassHash> {
-    fn serialize(ref serialized: Array<felt252>, input: ClassHash) {
-        serde::Serde::serialize(ref serialized, class_hash_to_felt252(input));
+    fn serialize(self: @ClassHash, ref output: Array<felt252>) {
+        class_hash_to_felt252(*self).serialize(ref output);
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<ClassHash> {
         Option::Some(
@@ -51,11 +52,11 @@ impl ClassHashSerde of serde::Serde<ClassHash> {
 
 impl ClassHashPartialEq of PartialEq<ClassHash> {
     #[inline(always)]
-    fn eq(a: ClassHash, b: ClassHash) -> bool {
-        class_hash_to_felt252(a) == class_hash_to_felt252(b)
+    fn eq(lhs: ClassHash, rhs: ClassHash) -> bool {
+        class_hash_to_felt252(lhs) == class_hash_to_felt252(rhs)
     }
     #[inline(always)]
-    fn ne(a: ClassHash, b: ClassHash) -> bool {
-        !(a == b)
+    fn ne(lhs: ClassHash, rhs: ClassHash) -> bool {
+        !(lhs == rhs)
     }
 }
