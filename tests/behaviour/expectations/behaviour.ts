@@ -21,14 +21,6 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
-        File.Simple('example', [
-          Expect.Simple('test', [], []),
-          Expect.Simple('returnTest', [], toCairoUint256(12)),
-        ]),
-      ]),
-    ]),
-  ]),
-);
 //         new Dir('abiDecode', [
 //           File.Simple('abiDecodeDynamic', [
 //             Expect.Simple('decodeSimpleDynamic', getByte32Array(32, 5, 2, 3, 7, 9, 11), [
@@ -659,7 +651,7 @@ export const expectations = flatten(
 //             Expect.Simple('emptyMultiple', [], ['0']),
 //           ]),
 //         ]),
-//         new Dir('conditionals', [
+        new Dir('conditionals', [
 //           File.Simple('and', [
 //             Expect.Simple('f', ['50', '0', '0'], ['0', '0']),
 //             Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
@@ -674,15 +666,15 @@ export const expectations = flatten(
 //             Expect.Simple('useValues', ['1'], ['3', '4']),
 //             Expect.Simple('useValues', ['0'], ['1', '2']),
 //           ]),
-//           File.Simple('voidReturn', [
-//             Expect.Simple('x', [], ['0', '0']),
-//             Expect.Simple('voidReturn', [], []),
-//             Expect.Simple('x', [], ['5', '0']),
-//             Expect.Simple('voidReturn', [], []),
-//             Expect.Simple('x', [], ['10', '0']),
-//             Expect.Simple('voidReturn', [], []),
-//             Expect.Simple('x', [], ['0', '0']),
-//           ]),
+          File.Simple('voidReturn', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['5', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['10', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['0', '0']),
+          ]),
 //           new File(
 //             'nestedAndOr',
 //             'WARP',
@@ -695,7 +687,7 @@ export const expectations = flatten(
 //               Expect.Simple('move_valid', ['1200', '0', '500', '0'], ['1']),
 //             ],
 //           ),
-//         ]),
+        ]),
 //         new Dir('constants', [
 //           File.Simple('constantStringAtFileLevel', [
 //             Expect.Simple('f', [], ['3', '0x3', '0x1', '0x2']),
@@ -2015,7 +2007,7 @@ export const expectations = flatten(
 //             ],
 //           ),
 //         ]),
-//         new Dir('delete', [
+        new Dir('delete', [
 //           File.Simple('address', [Expect.Simple('f', [], ['23', '0'])]),
 
 //           File.Simple('arrayStatic', [
@@ -2043,15 +2035,15 @@ export const expectations = flatten(
 //             ]),
 //           ]),
 
-//           File.Simple('boolean', [
-//             Expect.Simple('boolean', ['1'], ['0'], 'delete true = false'),
-//             Expect.Simple('boolean', ['0'], ['0'], 'delete false = false'),
-//             new Expect('delete state boolean', [
-//               ['flag', [], ['1'], '0'],
-//               ['deleteFlag', [], [], '0'],
-//               ['flag', [], ['0'], '0'],
-//             ]),
-//           ]),
+          File.Simple('boolean', [
+            Expect.Simple('boolean', ['1'], ['0'], 'delete true = false'),
+            Expect.Simple('boolean', ['0'], ['0'], 'delete false = false'),
+            new Expect('delete state boolean', [
+              ['flag', [], ['1'], '0'],
+              ['deleteFlag', [], [], '0'],
+              ['flag', [], ['0'], '0'],
+            ]),
+          ]),
 
 //           File.Simple('enum', [
 //             new Expect('delete', [
@@ -2061,14 +2053,14 @@ export const expectations = flatten(
 //             ]),
 //           ]),
 
-//           File.Simple('int', [
-//             new Expect('delete', [
-//               ['totalSupply', [], ['100000000000000', '0'], '0'],
-//               ['reset', [], [], '0'],
-//               ['totalSupply', [], ['0', '0'], '0'],
-//               ['addValue', ['25', '0'], ['25', '0'], '0'],
-//             ]),
-//           ]),
+          File.Simple('int', [
+            new Expect('delete', [
+              ['totalSupply', [], ['100000000000000', '0'], '0'],
+              ['reset', [], [], '0'],
+              ['totalSupply', [], ['0', '0'], '0'],
+              ['addValue', ['25', '0'], ['25', '0'], '0'],
+            ]),
+          ]),
 
 //           File.Simple('struct', [
 //             new Expect('deleteWholeStruct', [
@@ -2093,7 +2085,7 @@ export const expectations = flatten(
 //               ['getRadius', [], ['0', '0'], '0'],
 //             ]),
 //           ]),
-//         ]),
+        ]),
 //         new Dir('elementaryTypesNames', [
 //           File.Simple('example', [Expect.Simple('ArrayFunc', [], ['69', '0'])]),
 //         ]),
@@ -2136,7 +2128,7 @@ export const expectations = flatten(
 //             ),
 //           ]),
 //         ]),
-//         new Dir('enums', [
+        new Dir('enums', [
 //           File.Simple('boundCheck', [
 //             Expect.Simple('checkInt256', ['3', '0'], null),
 //             Expect.Simple('checkInt256', ['2', '0'], []),
@@ -2181,21 +2173,21 @@ export const expectations = flatten(
 //               ['get', [], ['1'], '0'],
 //             ]),
 //           ]),
-//           File.Simple('doubleEnum', [
-//             Expect.Simple('a', [], ['2']),
-//             Expect.Simple('getTopEnum', [], ['0']),
-//             new Expect('setB', [
-//               ['setB', [], [], '0'],
-//               ['a', [], ['1'], '0'],
-//               ['getTopEnum', [], ['4'], '0'],
-//             ]),
-//             new Expect('setBAgain', [
-//               ['setB', [], [], '0'],
-//               ['a', [], ['0'], '0'],
-//               ['getTopEnum', [], ['1'], '0'],
-//             ]),
-//           ]),
-//         ]),
+          File.Simple('doubleEnum', [
+            Expect.Simple('a', [], ['2']),
+            Expect.Simple('getTopEnum', [], ['0']),
+            new Expect('setB', [
+              ['setB', [], [], '0'],
+              ['a', [], ['1'], '0'],
+              ['getTopEnum', [], ['4'], '0'],
+            ]),
+            new Expect('setBAgain', [
+              ['setB', [], [], '0'],
+              ['a', [], ['0'], '0'],
+              ['getTopEnum', [], ['1'], '0'],
+            ]),
+          ]),
+        ]),
 //         new Dir('enumtoint', [
 //           File.Simple('enumtointconversion', [Expect.Simple('test', [], ['1', '0'])]),
 //         ]),
@@ -3061,327 +3053,327 @@ export const expectations = flatten(
 //           ]),
 //         ]),
 //         new Dir('externalInputChecks', [
-//           File.Simple('address', [
-//             new Expect('testing an address in bounds does not throw', [
-//               [
-//                 'addressTest',
-//                 ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
-//                 ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
-//                 '0',
-//               ],
-//             ]),
-//             new Expect('testing an address in bounds does', [
-//               [
-//                 'addressTest',
-//                 ['3618502788666131106986593281521497120414687020801267626233049500247285301248'],
-//                 null,
-//                 '0',
-//               ],
-//             ]),
+//         File.Simple('address', [
+//           new Expect('testing an address in bounds does not throw', [
+//             [
+//               'addressTest',
+//               ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+//               ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+//               '0',
+//             ],
 //           ]),
-//           File.Simple('dynArray', [
-//             new Expect('testing a dynArray of int values, no values out of bounds', [
-//               ['elemInt', ['4', '10', '20', '30', '40'], ['10'], '0'],
-//             ]),
-//             new Expect('testing a dynArray of int values, with values out of bounds', [
-//               [
-//                 'elemInt',
-//                 ['4', '10', '20', '30', '400'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
-//             new Expect('testing a dynArray of struct values, with values out of bounds', [
-//               [
-//                 'elemStruct',
-//                 ['2', '20', '21', '50', '30', '40', '400'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
-//             new Expect('testing a dynArray of struct values, with no values out of bounds', [
-//               [
-//                 'elemStruct',
-//                 ['3', '10', '20', '30', '11', '12', '13', '20', '21', '40'],
-//                 ['10', '20', '30'],
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
+//           new Expect('testing an address in bounds does', [
+//             [
+//               'addressTest',
+//               ['3618502788666131106986593281521497120414687020801267626233049500247285301248'],
+//               null,
+//               '0',
+//             ],
 //           ]),
-//           File.Simple('int', [
-//             new Expect('testing solidity pure external signed int8 lower bound', [
-//               ['testInt8', ['0'], ['0'], '0'],
-//             ]),
-//             new Expect('testing solidity pure external signed int8 upper bound', [
-//               ['testInt8', ['255'], ['255'], '0'],
-//             ]),
-//             new Expect('testing solidity pure external signed int8 overflow', [
-//               [
-//                 'testInt8',
-//                 ['256'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
-//             new Expect('testing solidity pure external unsigned int32 overflow', [
-//               [
-//                 'testUint32',
-//                 ['4294967296'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**32',
-//               ],
-//             ]),
-//             new Expect('testing solidity unsigned view external int32 in upper bound', [
-//               ['testUint32', ['4294967295'], ['4294967295'], '0'],
-//             ]),
-//             new Expect('testing solidity signed int248 upper bound', [
-//               [
-//                 'testInt248',
-//                 ['452312848583266388373324160190187140051835877600158453279131187530910662655'],
-//                 ['452312848583266388373324160190187140051835877600158453279131187530910662655'],
-//                 '0',
-//               ],
-//             ]),
-//             new Expect('testing solidity unsigned int248 overflow', [
-//               [
-//                 'testInt248',
-//                 ['452312848583266388373324160190187140051835877600158453279131187530910662656'],
-//                 null,
-//                 '0',
-//               ],
-//             ]),
-//             new Expect('testing solidity unsigned int256 in bounds', [
-//               [
-//                 'testInt256',
-//                 ['0', '340282366920938463463374607431768211455'],
-//                 ['0', '340282366920938463463374607431768211455'],
-//                 '0',
-//               ],
-//             ]),
-//             new Expect('testing solidity unsigned int256 in bounds', [
-//               [
-//                 'testInt256',
-//                 ['340282366920938463463374607431768211455', '0'],
-//                 ['340282366920938463463374607431768211455', '0'],
-//                 '0',
-//               ],
-//             ]),
-//             new Expect('testing solidity unsigned int256 lower out of bounds', [
-//               [
-//                 'testInt256',
-//                 ['0', '340282366920938463463374607431768211456'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
-//               ],
-//             ]),
-//             new Expect('testing solidity unsigned int256 high out of bounds', [
-//               [
-//                 'testInt256',
-//                 ['340282366920938463463374607431768211456', '0'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
-//               ],
-//             ]),
-//             new Expect('testing solidity unsigned int256 lower and high out of bounds', [
-//               [
-//                 'testInt256',
-//                 [
-//                   '340282366920938463463374607431768211456',
-//                   '340282366920938463463374607431768211456',
-//                 ],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
-//               ],
-//             ]),
-//             new Expect('testing that more than 1 assert is placed when there are two inputs', [
-//               [
-//                 'testInt256Int8',
-//                 ['18', '256'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8.',
-//               ],
-//             ]),
-//             new Expect('testing that more than 1 assert is placed when there are two inputs', [
-//               [
-//                 'testInt256Int8',
-//                 ['65536', '255'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**16.',
-//               ],
-//             ]),
+//         ]),
+//         File.Simple('dynArray', [
+//           new Expect('testing a dynArray of int values, no values out of bounds', [
+//             ['elemInt', ['4', '10', '20', '30', '40'], ['10'], '0'],
 //           ]),
-//           File.Simple('enum', [
-//             new Expect('testing that enum in range does not throw error', [
-//               ['externalFunction', ['0'], ['0'], '0'],
-//             ]),
-//             new Expect('testing that enum in range does not throw error', [
-//               ['externalFunction', ['2'], ['2'], '0'],
-//             ]),
-//             new Expect('testing public function with enum out of range throws error', [
+//           new Expect('testing a dynArray of int values, with values out of bounds', [
+//             [
+//               'elemInt',
+//               ['4', '10', '20', '30', '400'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//           new Expect('testing a dynArray of struct values, with values out of bounds', [
+//             [
+//               'elemStruct',
+//               ['2', '20', '21', '50', '30', '40', '400'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//           new Expect('testing a dynArray of struct values, with no values out of bounds', [
+//             [
+//               'elemStruct',
+//               ['3', '10', '20', '30', '11', '12', '13', '20', '21', '40'],
+//               ['10', '20', '30'],
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//         ]),
+//         File.Simple('int', [
+//           new Expect('testing solidity pure external signed int8 lower bound', [
+//             ['testInt8', ['0'], ['0'], '0'],
+//           ]),
+//           new Expect('testing solidity pure external signed int8 upper bound', [
+//             ['testInt8', ['255'], ['255'], '0'],
+//           ]),
+//           new Expect('testing solidity pure external signed int8 overflow', [
+//             [
+//               'testInt8',
+//               ['256'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//           new Expect('testing solidity pure external unsigned int32 overflow', [
+//             [
+//               'testUint32',
+//               ['4294967296'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**32',
+//             ],
+//           ]),
+//           new Expect('testing solidity unsigned view external int32 in upper bound', [
+//             ['testUint32', ['4294967295'], ['4294967295'], '0'],
+//           ]),
+//           new Expect('testing solidity signed int248 upper bound', [
+//             [
+//               'testInt248',
+//               ['452312848583266388373324160190187140051835877600158453279131187530910662655'],
+//               ['452312848583266388373324160190187140051835877600158453279131187530910662655'],
+//               '0',
+//             ],
+//           ]),
+//           new Expect('testing solidity unsigned int248 overflow', [
+//             [
+//               'testInt248',
+//               ['452312848583266388373324160190187140051835877600158453279131187530910662656'],
+//               null,
+//               '0',
+//             ],
+//           ]),
+//           new Expect('testing solidity unsigned int256 in bounds', [
+//             [
+//               'testInt256',
+//               ['0', '340282366920938463463374607431768211455'],
+//               ['0', '340282366920938463463374607431768211455'],
+//               '0',
+//             ],
+//           ]),
+//           new Expect('testing solidity unsigned int256 in bounds', [
+//             [
+//               'testInt256',
+//               ['340282366920938463463374607431768211455', '0'],
+//               ['340282366920938463463374607431768211455', '0'],
+//               '0',
+//             ],
+//           ]),
+//           new Expect('testing solidity unsigned int256 lower out of bounds', [
+//             [
+//               'testInt256',
+//               ['0', '340282366920938463463374607431768211456'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+//             ],
+//           ]),
+//           new Expect('testing solidity unsigned int256 high out of bounds', [
+//             [
+//               'testInt256',
+//               ['340282366920938463463374607431768211456', '0'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+//             ],
+//           ]),
+//           new Expect('testing solidity unsigned int256 lower and high out of bounds', [
+//             [
+//               'testInt256',
 //               [
-//                 'externalFunction',
-//                 ['3'],
+//                 '340282366920938463463374607431768211456',
+//                 '340282366920938463463374607431768211456',
+//               ],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+//             ],
+//           ]),
+//           new Expect('testing that more than 1 assert is placed when there are two inputs', [
+//             [
+//               'testInt256Int8',
+//               ['18', '256'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8.',
+//             ],
+//           ]),
+//           new Expect('testing that more than 1 assert is placed when there are two inputs', [
+//             [
+//               'testInt256Int8',
+//               ['65536', '255'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**16.',
+//             ],
+//           ]),
+//         ]),
+//         File.Simple('enum', [
+//           new Expect('testing that enum in range does not throw error', [
+//             ['externalFunction', ['0'], ['0'], '0'],
+//           ]),
+//           new Expect('testing that enum in range does not throw error', [
+//             ['externalFunction', ['2'], ['2'], '0'],
+//           ]),
+//           new Expect('testing public function with enum out of range throws error', [
+//             [
+//               'externalFunction',
+//               ['3'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
+//             ],
+//           ]),
+//           new Expect(
+//             'testing external function with more than 1 input has multiple asserts are placed pt. 1',
+//             [
+//               [
+//                 'externalFunction2Inputs',
+//                 ['2', '4'],
+//                 null,
+//                 '0',
+//                 'Error: value out-of-bounds. Values passed to must be in enum range (0, 3].',
+//               ],
+//             ],
+//           ),
+//           new Expect(
+//             'testing external function with more than 1 input has multiple asserts are placed pt. 2',
+//             [
+//               [
+//                 'externalFunction2Inputs',
+//                 ['3', '3'],
 //                 null,
 //                 '0',
 //                 'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
 //               ],
-//             ]),
-//             new Expect(
-//               'testing external function with more than 1 input has multiple asserts are placed pt. 1',
-//               [
-//                 [
-//                   'externalFunction2Inputs',
-//                   ['2', '4'],
-//                   null,
-//                   '0',
-//                   'Error: value out-of-bounds. Values passed to must be in enum range (0, 3].',
-//                 ],
-//               ],
-//             ),
-//             new Expect(
-//               'testing external function with more than 1 input has multiple asserts are placed pt. 2',
-//               [
-//                 [
-//                   'externalFunction2Inputs',
-//                   ['3', '3'],
-//                   null,
-//                   '0',
-//                   'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
-//                 ],
-//               ],
-//             ),
+//             ],
+//           ),
+//         ]),
+//         File.Simple('staticArray', [
+//           new Expect('testing an array of ints with no values out of bounds', [
+//             ['elemInt', ['10', '20', '30', '40', '50'], ['10'], '0'],
 //           ]),
-//           File.Simple('staticArray', [
-//             new Expect('testing an array of ints with no values out of bounds', [
-//               ['elemInt', ['10', '20', '30', '40', '50'], ['10'], '0'],
-//             ]),
-//             new Expect('testing an array of ints with no values out of bounds', [
-//               [
-//                 'elemInt',
-//                 ['10', '20', '30', '40', '300'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
-//             new Expect('testing an array of structs with no values out of bounds', [
-//               [
-//                 'elemStruct',
-//                 ['10', '0', '11', '20', '0', '22', '30', '0', '33'],
-//                 ['10', '0', '11'],
-//                 '0',
-//               ],
-//             ]),
-//             new Expect('testing an array of structs with values out of bounds', [
-//               [
-//                 'elemStruct',
-//                 ['10', '0', '11', '20', '0', '22', '30', '0', '330'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
-//             new Expect('testing an array of static arrays with no values out of bounds', [
-//               [
-//                 'elemStruct',
-//                 ['10', '11', '12', '20', '21', '22', '30', '31', '33'],
-//                 ['10', '11', '12'],
-//                 '0',
-//               ],
-//             ]),
-//             new Expect('testing an array of structs with values out of bounds', [
-//               [
-//                 'elemStruct',
-//                 ['10', '11', '12', '20', '21', '300', '30', '31', '33'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
+//           new Expect('testing an array of ints with no values out of bounds', [
+//             [
+//               'elemInt',
+//               ['10', '20', '30', '40', '300'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
 //           ]),
-//           File.Simple('struct', [
-//             new Expect('testing a struct of with int values, no values out of bounds', [
-//               ['memberInts', ['10', '20', '30'], ['30'], '0'],
-//             ]),
-//             new Expect('testing a struct of with int values, values out of bounds', [
-//               [
-//                 'memberInts',
-//                 ['10', '20', '300'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
-//             new Expect('testing a struct of with int values, no values out of bounds', [
-//               ['memberStructs', ['10', '10', '20', '30'], ['10'], '0'],
-//             ]),
-//             new Expect('testing a struct of with int values, values out of bounds', [
-//               [
-//                 'memberStructs',
-//                 ['10', '10', '20', '300'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
-//             new Expect('testing a struct of with int values, no values out of bounds', [
-//               ['memberStaticArray', ['10', '10', '20', '30'], ['10'], '0'],
-//             ]),
-//             new Expect('testing a struct of with int values, values out of bounds', [
-//               [
-//                 'memberStaticArray',
-//                 ['10', '10', '20', '300'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Value must be less than 2**8',
-//               ],
-//             ]),
+//           new Expect('testing an array of structs with no values out of bounds', [
+//             [
+//               'elemStruct',
+//               ['10', '0', '11', '20', '0', '22', '30', '0', '33'],
+//               ['10', '0', '11'],
+//               '0',
+//             ],
 //           ]),
-//           File.Simple('bool', [
-//             new Expect('testing that false input does not throw error', [
-//               ['externalFunction', ['0'], ['0'], '0'],
-//             ]),
-//             new Expect('testing that true input does not throw error', [
-//               ['externalFunction', ['1'], ['1'], '0'],
-//             ]),
-//             new Expect('testing that external function with out of bounds input throws error', [
-//               [
-//                 'externalFunction',
-//                 ['2'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
-//               ],
-//             ]),
-//             new Expect('testing external function and more than 1 input asserts are placed pt. 1', [
-//               [
-//                 'externalFunction2Inputs',
-//                 ['2', '0'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
-//               ],
-//             ]),
-//             new Expect('testing external function and more than 1 input asserts are placed pt. 2', [
-//               [
-//                 'externalFunction2Inputs',
-//                 ['0', '2'],
-//                 null,
-//                 '0',
-//                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
-//               ],
-//             ]),
+//           new Expect('testing an array of structs with values out of bounds', [
+//             [
+//               'elemStruct',
+//               ['10', '0', '11', '20', '0', '22', '30', '0', '330'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
 //           ]),
+//           new Expect('testing an array of static arrays with no values out of bounds', [
+//             [
+//               'elemStruct',
+//               ['10', '11', '12', '20', '21', '22', '30', '31', '33'],
+//               ['10', '11', '12'],
+//               '0',
+//             ],
+//           ]),
+//           new Expect('testing an array of structs with values out of bounds', [
+//             [
+//               'elemStruct',
+//               ['10', '11', '12', '20', '21', '300', '30', '31', '33'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//         ]),
+//         File.Simple('struct', [
+//           new Expect('testing a struct of with int values, no values out of bounds', [
+//             ['memberInts', ['10', '20', '30'], ['30'], '0'],
+//           ]),
+//           new Expect('testing a struct of with int values, values out of bounds', [
+//             [
+//               'memberInts',
+//               ['10', '20', '300'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//           new Expect('testing a struct of with int values, no values out of bounds', [
+//             ['memberStructs', ['10', '10', '20', '30'], ['10'], '0'],
+//           ]),
+//           new Expect('testing a struct of with int values, values out of bounds', [
+//             [
+//               'memberStructs',
+//               ['10', '10', '20', '300'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//           new Expect('testing a struct of with int values, no values out of bounds', [
+//             ['memberStaticArray', ['10', '10', '20', '30'], ['10'], '0'],
+//           ]),
+//           new Expect('testing a struct of with int values, values out of bounds', [
+//             [
+//               'memberStaticArray',
+//               ['10', '10', '20', '300'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Value must be less than 2**8',
+//             ],
+//           ]),
+//         ]),
+//         File.Simple('bool', [
+//           new Expect('testing that false input does not throw error', [
+//             ['externalFunction', ['0'], ['0'], '0'],
+//           ]),
+//           new Expect('testing that true input does not throw error', [
+//             ['externalFunction', ['1'], ['1'], '0'],
+//           ]),
+//           new Expect('testing that external function with out of bounds input throws error', [
+//             [
+//               'externalFunction',
+//               ['2'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
+//             ],
+//           ]),
+//           new Expect('testing external function and more than 1 input asserts are placed pt. 1', [
+//             [
+//               'externalFunction2Inputs',
+//               ['2', '0'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
+//             ],
+//           ]),
+//           new Expect('testing external function and more than 1 input asserts are placed pt. 2', [
+//             [
+//               'externalFunction2Inputs',
+//               ['0', '2'],
+//               null,
+//               '0',
+//               'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
+//             ],
+//           ]),
+//         ]),
 //         ]),
 //         new Dir('fallback', [
 //           new File(
@@ -3449,7 +3441,7 @@ export const expectations = flatten(
 //             Expect.Simple('x', [], ['3', '0']),
 //           ]),
 //         ]),
-//         new Dir('if', [
+        new Dir('if', [
 //           File.Simple('complexTypeInCondition', [
 //             Expect.Simple('arr1DInIfExpression', ['5'], ['6']),
 //             Expect.Simple('map1DInIfExpression', ['5'], ['6']),
@@ -3457,20 +3449,20 @@ export const expectations = flatten(
 //             Expect.Simple('map2DInIfExpression', ['5'], ['6']),
 //             Expect.Simple('nestedExpressions', ['5'], ['5']),
 //           ]),
-//           File.Simple('localVariables', [
-//             Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
-//             Expect.Simple('ifNoElse', ['0'], ['2'], 'false branch'),
-//             Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
-//             Expect.Simple('ifWithElse', ['0'], ['3'], 'false branch'),
-//           ]),
-//           File.Simple('returns', [
-//             Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
-//             Expect.Simple('ifNoElse', ['0'], ['2'], 'false branch'),
-//             Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
-//             Expect.Simple('ifWithElse', ['0'], ['2'], 'false branch'),
-//             Expect.Simple('unreachableCode', ['1'], ['1'], 'true branch'),
-//             Expect.Simple('unreachableCode', ['0'], ['2'], 'false branch'),
-//           ]),
+          File.Simple('localVariables', [
+            Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifNoElse', ['0'], ['2'], 'false branch'),
+            Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifWithElse', ['0'], ['3'], 'false branch'),
+          ]),
+          File.Simple('returns', [
+            Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifNoElse', ['0'], ['2'], 'false branch'),
+            Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifWithElse', ['0'], ['2'], 'false branch'),
+            Expect.Simple('unreachableCode', ['1'], ['1'], 'true branch'),
+            Expect.Simple('unreachableCode', ['0'], ['2'], 'false branch'),
+          ]),
 //           File.Simple('nesting', [
 //             Expect.Simple('nestedIfs', ['1', '1'], ['3', '1'], 'true/true'),
 //             Expect.Simple('nestedIfs', ['1', '0'], ['2', '1'], 'true/false'),
@@ -3481,13 +3473,13 @@ export const expectations = flatten(
 //             Expect.Simple('loops', ['1'], ['1'], 'true branch'),
 //             Expect.Simple('loops', ['0'], ['0'], 'false branch'),
 //           ]),
-//           File.Simple('noBlocks', [
-//             Expect.Simple('test', ['0', '0'], ['0b00']),
-//             Expect.Simple('test', ['0', '1'], ['0b01']),
-//             Expect.Simple('test', ['1', '0'], ['0b10']),
-//             Expect.Simple('test', ['1', '1'], ['0b11']),
-//           ]),
-//         ]),
+          File.Simple('noBlocks', [
+            Expect.Simple('test', ['0', '0'], ['0b00']),
+            Expect.Simple('test', ['0', '1'], ['0b01']),
+            Expect.Simple('test', ['1', '0'], ['0b10']),
+            Expect.Simple('test', ['1', '1'], ['0b11']),
+          ]),
+        ]),
 //         new Dir('imports', [
 //           File.Simple('importto', [Expect.Simple('checkImports', ['3', '2'], ['1'])]),
 //         ]),
@@ -3637,14 +3629,14 @@ export const expectations = flatten(
 //             ),
 //           ]),
 //         ]),
-//         new Dir('libraries', [
+        new Dir('libraries', [
 //           File.Simple('constantInitialization', [Expect.Simple('f', [], ['20001'])]),
-//           File.Simple('usingFor', [
-//             Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
-//           ]),
+          File.Simple('usingFor', [
+            Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
+          ]),
 //           File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
 //           File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
-//           new File('librariesInInheritance', 'C', [], [Expect.Simple('g', [], ['1', '0'])]),
+          new File('librariesInInheritance', 'C', [], [Expect.Simple('g', [], ['1', '0'])]),
 //           File.Simple('libraryCallInHomestead', [
 //             new Expect('f', [['f', [], [], '234']]),
 //             new Expect('sender', [['sender', [], ['234'], '465']]),
@@ -3661,7 +3653,7 @@ export const expectations = flatten(
 //             File.Simple('directAndIndirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),
 //             File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
 //           ]),
-//         ]),
+        ]),
 //         new Dir('loops', [
 //           File.Simple('loops', [
 //             Expect.Simple('forLoop', ['3'], ['8']),
@@ -3676,12 +3668,12 @@ export const expectations = flatten(
 //             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
 //           ]),
 //         ]),
-//         new Dir('mangledIdentifiers', [
-//           File.Simple('freeFunction', [
-//             Expect.Simple('f', [], ['20']),
-//             Expect.Simple('s', [], ['10']),
-//           ]),
-//         ]),
+        new Dir('mangledIdentifiers', [
+          File.Simple('freeFunction', [
+            Expect.Simple('f', [], ['20']),
+            Expect.Simple('s', [], ['10']),
+          ]),
+        ]),
 //         new Dir('mapping', [
 //           File.Simple('stringKeyMapping', [
 //             Expect.Simple('cdString', ['1', '97'], ['5']),
@@ -4124,20 +4116,20 @@ export const expectations = flatten(
 //             Expect.Simple('output', ['3', '4', '5'], ['3', '4', '5']),
 //           ]),
 //         ]),
-//         new Dir('modifiers', [
-//           File.Simple('modifier', [
-//             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
-//             Expect.Simple('f', ['110000', '0'], ['0', '0']),
-//           ]),
+        new Dir('modifiers', [
+          File.Simple('modifier', [
+            Expect.Simple('f', ['90000', '0'], ['10000', '0']),
+            Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
 //           File.Simple('modifierRecursive', [
 //             new Expect('modifier', [
 //               ['fact', ['5', '0'], ['120', '0'], '0'],
 //               ['called', [], ['6', '0'], '0'],
 //             ]),
 //           ]),
-//           File.Simple('modifierWithReturn', [
-//             Expect.Simple('returnFiveThroughModifiers', [], ['5']),
-//           ]),
+          File.Simple('modifierWithReturn', [
+            Expect.Simple('returnFiveThroughModifiers', [], ['5']),
+          ]),
 //           File.Simple('multipleModifiers', [
 //             new Expect('modifier', [
 //               ['openEvent', [], [], '0'],
@@ -4156,31 +4148,7 @@ export const expectations = flatten(
 //               ['balance', [], ['0', '0'], '0'],
 //             ]),
 //           ]),
-//         ]),
-//         new Dir('modifiers', [
-//           File.Simple('modifier', [
-//             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
-//             Expect.Simple('f', ['110000', '0'], ['0', '0']),
-//           ]),
-//           File.Simple('multipleModifiers', [
-//             new Expect('modifier', [
-//               ['openEvent', [], [], '0'],
-//               ['donate', ['238', '0'], ['238', '0'], '0'],
-//               ['donate', ['100', '0'], ['338', '0'], '0'],
-//               ['donate', ['50', '0'], null, '0', 'Value for donation must be bigger than 100'],
-//               ['balance', [], ['338', '0'], '0'],
-//               ['closeEvent', [], [], '0'],
-//               [
-//                 'donate',
-//                 ['500', '0'],
-//                 null,
-//                 '0',
-//                 'The event must be open in order to receive donations',
-//               ],
-//               ['balance', [], ['0', '0'], '0'],
-//             ]),
-//           ]),
-//         ]),
+        ]),
 //         new Dir('new', [
 //           File.Simple('deep', [Expect.Simple('createContracts', [], [])]),
 //           File.Simple('many', [
@@ -4302,7 +4270,7 @@ export const expectations = flatten(
 //             'WARP',
 //           ),
 //         ]),
-//         new Dir('publicStateVars', [
+        new Dir('publicStateVars', [
 //           File.Simple('elementary', [
 //             Expect.Simple('a', [], ['234', '0']),
 //             Expect.Simple('b', [], ['23']),
@@ -4325,13 +4293,13 @@ export const expectations = flatten(
 //             Expect.Simple('y', ['0', '0'], ['12', '0']),
 //             Expect.Simple('w', ['0', '0', '0', '0', '0', '0'], ['15', '0']),
 //           ]),
-//           File.Simple('enums', [
-//             Expect.Simple('a', [], ['0']),
-//             Expect.Simple('b', [], ['1']),
-//             Expect.Simple('c', [], ['0']),
-//             Expect.Simple('d', [], ['1']),
-//             Expect.Simple('f', [], ['2']),
-//           ]),
+          File.Simple('enums', [
+            Expect.Simple('a', [], ['0']),
+            Expect.Simple('b', [], ['1']),
+            Expect.Simple('c', [], ['0']),
+            Expect.Simple('d', [], ['1']),
+            Expect.Simple('f', [], ['2']),
+          ]),
 //           File.Simple('mappings', [
 //             Expect.Simple('a', ['1', '0'], ['1', '0']),
 //             Expect.Simple('b', ['2', '0'], ['1']),
@@ -4374,11 +4342,13 @@ export const expectations = flatten(
 //               ],
 //             ),
 //           ]),
-//         ]),
-//         new Dir('preExpressionSplitter', [
-//           File.Simple('assignSimple', [Expect.Simple('f', [], ['10', ''])]),
-//           File.Simple('assignSimple', [Expect.Simple('g', [], ['15', ''])]),
-//         ]),
+        ]),
+        new Dir('preExpressionSplitter', [
+          File.Simple('assignSimple', [
+            Expect.Simple('f', [], ['10', '']),
+            Expect.Simple('g', [], ['15', '']),
+          ]),
+        ]),
 //         new Dir('returns', [
 //           File.Simple('initialiseStorageReturns', [
 //             Expect.Simple('getDefaultArrayLengths', [], ['0', '0', '0', '0']),
@@ -4669,77 +4639,77 @@ export const expectations = flatten(
 //             Expect.Simple('tupleSplit', ['3', '1', '2', '3', '5'], ['5']),
 //           ]),
 //         ]),
-//         new Dir('typeInformation', [
-//           File.Simple('informationEnum', [
-//             Expect.Simple('dMin', [], ['0']),
-//             Expect.Simple('dMax', [], ['3']),
-//           ]),
+        new Dir('typeInformation', [
+          File.Simple('informationEnum', [
+            Expect.Simple('dMin', [], ['0']),
+            Expect.Simple('dMax', [], ['3']),
+          ]),
 //           File.Simple('informationContract', [
 //             Expect.Simple('getName', [], [...encodeString('WARP')]),
 //             Expect.Simple('getId', [], ['3619205059']),
 //           ]),
-//         ]),
-//         new Dir('typeNameTypeRemoval', [
-//           File.Simple('complex', [
-//             Expect.Simple('assignment', [], []),
-//             Expect.Simple('varDeclStatement', [], []),
-//             Expect.Simple('tupleExpression', [], []),
-//           ]),
-//           File.Simple('simple', [
-//             Expect.Simple('memberAccess', [], []),
-//             Expect.Simple('identifier', [], []),
-//             Expect.Simple('simple', [], []),
-//             Expect.Simple('indexAccess', [], []),
-//           ]),
-//         ]),
-//         new Dir('underscoreIntegers', [
-//           File.Simple('underscoreIntegers', [
-//             Expect.Simple('a', [], ['10000', '0']),
-//             Expect.Simple('b', [], ['10000', '0']),
-//           ]),
-//         ]),
+        ]),
+        new Dir('typeNameTypeRemoval', [
+          File.Simple('complex', [
+            Expect.Simple('assignment', [], []),
+            Expect.Simple('varDeclStatement', [], []),
+            Expect.Simple('tupleExpression', [], []),
+          ]),
+          File.Simple('simple', [
+            Expect.Simple('memberAccess', [], []),
+            Expect.Simple('identifier', [], []),
+            Expect.Simple('simple', [], []),
+            Expect.Simple('indexAccess', [], []),
+          ]),
+        ]),
+        new Dir('underscoreIntegers', [
+          File.Simple('underscoreIntegers', [
+            Expect.Simple('a', [], ['10000', '0']),
+            Expect.Simple('b', [], ['10000', '0']),
+          ]),
+        ]),
 //         new Dir('userDefinedValueTypes', [
-//           File.Simple('overloading', [
-//             Expect.Simple(
-//               'callOverloads',
-//               ['4'],
-//               ['4', '5'],
-//               'test wrapped value goes to different overload',
-//             ),
-//           ]),
-//           File.Simple('userDefinedValueTypes', [
-//             Expect.Simple('narrowUnsigned', ['1', '0'], ['1']),
-//             Expect.Simple('narrowUnsigned', ['2', '0'], ['2']),
-//             Expect.Simple('narrowUnsigned', ['257', '0'], ['1']),
-//             Expect.Simple('narrowSigned', ['1', '0'], ['1']),
-//             Expect.Simple('narrowSigned', ['2', '0'], ['2']),
-//             Expect.Simple('narrowSigned', ['255', '0'], ['255']),
-//             Expect.Simple('narrowSigned', ['257', '0'], ['1']),
-//             Expect.Simple('unsignedToSigned', ['1'], ['1']),
-//             Expect.Simple('unsignedToSigned', ['2'], ['2']),
-//             Expect.Simple('unsignedToSigned', ['255'], ['255']),
-//             Expect.Simple('unsignedToSigned', ['257'], null),
-//             Expect.Simple('widenWrap', ['250'], ['250']),
-//             Expect.Simple('widenNoWrap', ['1'], ['1', '0']),
-//             Expect.Simple('widenNoWrap', ['2'], ['2', '0']),
-//             Expect.Simple('widenNoWrap', ['255'], ['0xff', '0']),
-//             Expect.Simple('widenNoWrap', ['257'], null),
-//             Expect.Simple('widenWrap', ['1'], ['1']),
-//             Expect.Simple('widenWrap', ['2'], ['2']),
-//             Expect.Simple('widenWrap', ['255'], ['0xff']),
-//             Expect.Simple('widenWrap', ['257'], null),
-//             Expect.Simple('narrowWithUnwrap', ['1'], ['1']),
-//             Expect.Simple('narrowWithUnwrap', ['2'], ['2']),
-//             Expect.Simple('narrowWithUnwrap', ['255'], ['0xff']),
-//             Expect.Simple('narrowWithUnwrap', ['257'], ['1']),
-//           ]),
+//         File.Simple('overloading', [
+//           Expect.Simple(
+//             'callOverloads',
+//             ['4'],
+//             ['4', '5'],
+//             'test wrapped value goes to different overload',
+//           ),
 //         ]),
-//         new Dir('usingFor', [
-//           File.Simple('simple', [
-//             Expect.Simple('callOnIdentifier', [], ['6', '0']),
-//             Expect.Simple('callOnFunctionCall', [], ['60', '0']),
-//             Expect.Simple('namedArgChecker', [], ['62', '0']),
-//           ]),
+//         File.Simple('userDefinedValueTypes', [
+//           Expect.Simple('narrowUnsigned', ['1', '0'], ['1']),
+//           Expect.Simple('narrowUnsigned', ['2', '0'], ['2']),
+//           Expect.Simple('narrowUnsigned', ['257', '0'], ['1']),
+//           Expect.Simple('narrowSigned', ['1', '0'], ['1']),
+//           Expect.Simple('narrowSigned', ['2', '0'], ['2']),
+//           Expect.Simple('narrowSigned', ['255', '0'], ['255']),
+//           Expect.Simple('narrowSigned', ['257', '0'], ['1']),
+//           Expect.Simple('unsignedToSigned', ['1'], ['1']),
+//           Expect.Simple('unsignedToSigned', ['2'], ['2']),
+//           Expect.Simple('unsignedToSigned', ['255'], ['255']),
+//           Expect.Simple('unsignedToSigned', ['257'], null),
+//           Expect.Simple('widenWrap', ['250'], ['250']),
+//           Expect.Simple('widenNoWrap', ['1'], ['1', '0']),
+//           Expect.Simple('widenNoWrap', ['2'], ['2', '0']),
+//           Expect.Simple('widenNoWrap', ['255'], ['0xff', '0']),
+//           Expect.Simple('widenNoWrap', ['257'], null),
+//           Expect.Simple('widenWrap', ['1'], ['1']),
+//           Expect.Simple('widenWrap', ['2'], ['2']),
+//           Expect.Simple('widenWrap', ['255'], ['0xff']),
+//           Expect.Simple('widenWrap', ['257'], null),
+//           Expect.Simple('narrowWithUnwrap', ['1'], ['1']),
+//           Expect.Simple('narrowWithUnwrap', ['2'], ['2']),
+//           Expect.Simple('narrowWithUnwrap', ['255'], ['0xff']),
+//           Expect.Simple('narrowWithUnwrap', ['257'], ['1']),
+//         ]),
+//         ]),
+        new Dir('usingFor', [
+          File.Simple('simple', [
+            Expect.Simple('callOnIdentifier', [], ['6', '0']),
+            Expect.Simple('callOnFunctionCall', [], ['60', '0']),
+            Expect.Simple('namedArgChecker', [], ['62', '0']),
+          ]),
 //           File.Simple('library', [
 //             Expect.Simple('callOnIdentifierAdd', [], ['6', '0']),
 //             Expect.Simple('callOnIdentifierMul', [], ['2', '0']),
@@ -4748,17 +4718,17 @@ export const expectations = flatten(
 //           File.Simple('private', [
 //             Expect.Simple('callOnIdentifier', ['23', '0', '3', '0'], ['69', '0']),
 //           ]),
-//         ]),
-//         File.Simple('example', [
-//           Expect.Simple('test', [], []),
-//           Expect.Simple('returnTest', [], ['12', '0']),
-//         ]),
+        ]),
+        File.Simple('example', [
+          Expect.Simple('test', [], []),
+          Expect.Simple('returnTest', [], ['12', '0']),
+        ]),
 //         File.Simple('removeIdentityFunctions', [
 //           Expect.Simple('f', ['10', '0'], ['3', '20', '0', '5', '0', '13', '0']),
 //         ]),
-//       ]),
-//     ]),
-//     new Dir('benchmark', [
+      ]),
+    ]),
+    new Dir('benchmark', [
 //       new File(
 //         'BaseJumpRateModelV2',
 //         'BaseJumpRateModelV2',
@@ -4803,6 +4773,6 @@ export const expectations = flatten(
 //           new Expect('transferFrom', [['transferFrom', ['4', '123', '0', '0'], ['1'], '1234']]),
 //         ],
 //       ),
-//     ]),
-//   ]),
-// );
+    ]),
+  ]),
+);
