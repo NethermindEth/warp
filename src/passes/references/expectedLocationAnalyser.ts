@@ -24,7 +24,6 @@ import {
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoAssert } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
@@ -320,7 +319,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     this.visitStatement(node, ast);
   }
 
-  visitCairoAssert(node: CairoAssert, ast: AST): void {
+  visitCairoAssert(node: FunctionCall, ast: AST): void {
     this.expectedLocations.set(node.vExpression, DataLocation.Default);
     this.visitExpression(node, ast);
   }

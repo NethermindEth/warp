@@ -8,7 +8,6 @@ import {
   Return,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoAssert } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { createBoolLiteral } from '../../utils/nodeTemplates';
 
@@ -56,12 +55,13 @@ export class Require extends ASTMapper {
       return new ExpressionStatement(
         ast.reserveId(),
         expression.src,
-        new CairoAssert(
+        new FunctionCall(
           ast.reserveId(),
           expression.src,
-          expression.vArguments[0],
-          requireMessage,
-          expression.raw,
+          expression.typeString,
+          expression.kind,
+          expression.vExpression,
+          expression.vArguments,
         ),
       );
     } else if (expression.vIdentifier === 'revert') {
@@ -71,12 +71,13 @@ export class Require extends ASTMapper {
       return new ExpressionStatement(
         ast.reserveId(),
         expression.src,
-        new CairoAssert(
+        new FunctionCall(
           ast.reserveId(),
           expression.src,
+          expression.typeString,
+          expression.kind,
           createBoolLiteral(false, ast),
-          revertMessage,
-          expression.raw,
+          expression.vArguments,
         ),
       );
     }

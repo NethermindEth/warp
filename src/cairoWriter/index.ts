@@ -58,7 +58,6 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import {
-  CairoAssert,
   CairoContract,
   CairoFunctionDefinition,
   CairoGeneratedFunctionDefinition,
@@ -69,7 +68,6 @@ import {
   AssignmentWriter,
   BinaryOperationWriter,
   BlockWriter,
-  CairoAssertWriter,
   CairoContractWriter,
   CairoFunctionDefinitionWriter,
   CairoTempVarWriter,
@@ -104,7 +102,6 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [BinaryOperation, new BinaryOperationWriter(ast, throwOnUnimplemented)],
     [Block, new BlockWriter(ast, throwOnUnimplemented)],
     [Break, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
     [

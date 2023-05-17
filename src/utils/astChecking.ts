@@ -64,7 +64,7 @@ import {
 } from 'solc-typed-ast';
 import { pp } from 'solc-typed-ast/dist/misc/index';
 import { AST } from '../ast/ast';
-import { CairoAssert, CairoTempVarStatement } from '../ast/cairoNodes';
+import { CairoTempVarStatement } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
 import { InsaneASTError } from './errors';
@@ -667,8 +667,6 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
     } else if (node instanceof UnaryOperation) {
       checkVFieldCtx(node, 'vSubExpression', ctx);
       checkDirectChildren(node, 'vSubExpression');
-    } else if (node instanceof CairoAssert) {
-      checkDirectChildren(node, 'vExpression');
     } else if (node instanceof CairoTempVarStatement) {
       // Not being checked because this node does not get affected by any
       // other ast pass
