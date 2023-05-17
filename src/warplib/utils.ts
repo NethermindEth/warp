@@ -31,9 +31,9 @@ export function forAllWidths<T>(funcGen: (width: number) => T): T[] {
 }
 
 export function necessary_width_to_store_nlen_bytes(length: number) {
-  if (length == 1) {
+  if (length === 1) {
     return 8;
-  } else if (length == 2) {
+  } else if (length === 2) {
     return 16;
   } else if (length <= 4) {
     return 32;

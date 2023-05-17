@@ -1,5 +1,4 @@
 import endent from 'endent';
-import { BigNumber } from 'bignumber.js';
 import { mapRange } from '../../../export';
 import { msb, WarplibFunctionInfo } from '../../utils';
 
