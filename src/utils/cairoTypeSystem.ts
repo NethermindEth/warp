@@ -33,6 +33,8 @@ export enum TypeConversionContext {
   CallDataRef,
 }
 
+export const FELT252_BOUND: bigint = 2n ** 251n + 17n * 2n ** 192n + 1n;
+
 export abstract class CairoType {
   // This gives the cairo typestring for the represented type
   abstract toString(): string;

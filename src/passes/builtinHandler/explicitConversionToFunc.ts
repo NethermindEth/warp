@@ -21,7 +21,7 @@ import {
 import { AST } from '../../ast/ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { ASTMapper } from '../../ast/mapper';
-import { NotSupportedYetError } from '../../utils/errors';
+import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createAddressTypeName, createUint256TypeName } from '../../utils/nodeTemplates';
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
@@ -29,7 +29,8 @@ import { createCallToFunction } from '../../utils/functionGeneration';
 import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
 import { functionaliseBytesToFixedBytes } from '../../warplib/implementations/conversions/dynBytesToFixed';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { FELT_TO_UINT256, WARPLIB_MATHS } from '../../utils/importPaths';
+import { FELT_TO_UINT256, UNSAFE_CONTRACT_ADDRESS_FROM_FELT } from '../../utils/importPaths';
+import { FELT252_BOUND } from '../../export';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -99,15 +100,18 @@ export class ExplicitConversionToFunc extends ASTMapper {
     }
 
     if (typeTo instanceof AddressType) {
-      if (
+      const operand = node.vArguments[0];
+      if (argType instanceof IntLiteralType) {
+        operand.typeString = 'address';
+        ast.replaceNode(node, operand);
+      } else if (
         (argType instanceof IntType && argType.nBits === 256) ||
         (argType instanceof FixedBytesType && argType.size === 32)
       ) {
         const replacementCall = createCallToFunction(
           ast.registerImport(
             node,
-            [...WARPLIB_MATHS, 'utils'],
-            'uint256_to_address_felt',
+            ...UNSAFE_CONTRACT_ADDRESS_FROM_FELT,
             [['uint_arg', createUint256TypeName(ast)]],
             [['address_ret', createAddressTypeName(false, ast)]],
           ),
@@ -116,7 +120,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
         );
         ast.replaceNode(node, replacementCall);
       } else {
-        ast.replaceNode(node, node.vArguments[0]);
+        throw new TranspileFailedError(`Don't know how to convert ${typeof argType} to address`);
       }
       return;
     }

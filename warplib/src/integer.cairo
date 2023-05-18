@@ -1,13 +1,14 @@
-use integer::u128_try_from_felt252;
-use serde::BoolSerde;
 use array::ArrayImpl;
+use integer::u128_try_from_felt252;
 use option::OptionTrait;
 use option::OptionTraitImpl;
+use serde::BoolSerde;
+use starknet::ContractAddress;
 
 fn u256_from_felts(low_felt: felt252, high_felt: felt252) -> u256 {
     let low_u128: u128 = get_u128_try_from_felt_result(low_felt);
     let high_u128: u128 = get_u128_try_from_felt_result(high_felt);
-    return u256{ low: low_u128, high: high_u128 };
+    return u256 { low: low_u128, high: high_u128 };
 }
 
 fn get_u128_try_from_felt_result(value: felt252) -> u128 {
@@ -32,4 +33,11 @@ fn bool_into_felt252(val: bool) -> felt252 {
     let resp_option = ArrayImpl::pop_front(ref serialization_array);
     let resp = OptionTraitImpl::<felt252>::unwrap(resp_option);
     resp
+}
+
+fn unsafe_contract_address_from_felt252(x: felt252) -> ContractAddress {
+    match starknet::contract_address_try_from_felt252(x) {
+        Option::Some(address) => address,
+        Option::None(_) => panic_with_felt252('the felt cannot be an address'),
+    }
 }
