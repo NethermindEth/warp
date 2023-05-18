@@ -4,7 +4,6 @@ import {
   ExpressionStatement,
   ExternalReferenceType,
   FunctionCall,
-  Literal,
   Return,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -49,9 +48,6 @@ export class Require extends ASTMapper {
     }
 
     if (expression.vIdentifier === 'require' || expression.vIdentifier === 'assert') {
-      const requireMessage =
-        expression.vArguments[1] instanceof Literal ? expression.vArguments[1].value : null;
-
       return new ExpressionStatement(
         ast.reserveId(),
         expression.src,
@@ -65,9 +61,6 @@ export class Require extends ASTMapper {
         ),
       );
     } else if (expression.vIdentifier === 'revert') {
-      const revertMessage =
-        expression.vArguments[0] instanceof Literal ? expression.vArguments[0].value : null;
-
       return new ExpressionStatement(
         ast.reserveId(),
         expression.src,
