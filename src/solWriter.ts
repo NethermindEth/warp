@@ -5,7 +5,6 @@ import {
   ASTWriter,
   ContractDefinition,
   DefaultASTWriterMapping,
-  FunctionCall,
   FunctionDefinition,
   SrcDesc,
 } from 'solc-typed-ast';
