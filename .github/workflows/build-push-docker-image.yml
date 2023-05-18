@@ -1,10 +1,8 @@
 name: Publish Docker image
 
 on:
-  # release:
-  #   types: [published]
-  push:
-    branches: docker_build_and_push
+  release:
+    types: [published]
 
 jobs:
   build_and_push_docker_image:
@@ -35,4 +33,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: nethermindeth/warp:${{ steps.get_version.outputs.TAG_FROM_REPO }}
+          tags: nethermind/warp:${{ steps.get_version.outputs.TAG_FROM_REPO }}
