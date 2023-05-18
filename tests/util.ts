@@ -86,7 +86,7 @@ export type SafePromise<T> = Promise<
 export function wrapPromise<T>(promise: Promise<T>): SafePromise<T> {
   return promise.then(
     (res) => ({ success: true, result: res }),
-    (reason) => ({ success: false, result: reason }),
+    (reason) => ({ success: false, result: { stderr: reason.toString() } }),
   );
 }
 
