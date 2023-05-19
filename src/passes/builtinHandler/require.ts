@@ -9,6 +9,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createBoolLiteral } from '../../utils/nodeTemplates';
+import { cloneASTNode } from '../../export';
 
 export class Require extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -26,7 +27,6 @@ export class Require extends ASTMapper {
       return;
     }
 
-    // Since the cairoAssert is not null, we have a require/revert/assert function call at hand
     assert(expressionNode instanceof FunctionCall);
 
     ast.replaceNode(node, cairoAssert);
@@ -51,14 +51,7 @@ export class Require extends ASTMapper {
       return new ExpressionStatement(
         ast.reserveId(),
         expression.src,
-        new FunctionCall(
-          ast.reserveId(),
-          expression.src,
-          expression.typeString,
-          expression.kind,
-          expression.vExpression,
-          expression.vArguments,
-        ),
+        cloneASTNode(expression, ast),
       );
     } else if (expression.vIdentifier === 'revert') {
       return new ExpressionStatement(
@@ -69,8 +62,8 @@ export class Require extends ASTMapper {
           expression.src,
           expression.typeString,
           expression.kind,
-          createBoolLiteral(false, ast),
-          expression.vArguments,
+          expression.vExpression,
+          [createBoolLiteral(false, ast), ...expression.vArguments],
         ),
       );
     }
