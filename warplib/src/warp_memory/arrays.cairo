@@ -7,7 +7,12 @@ use integer::Into;
 use option::OptionTrait;
 
 trait WarpMemoryArraysTrait {
-    /// Reads the pointer of an array. If it does not exist, it creates a new one
+    /// Reads the pointer location expecting to find a complex memory structure. If it
+    /// finds none then it creates one with default values.
+    /// The size param specify how many memory cell the structure requires. For example:
+    /// dynamic arrays: size is 1, because you need the length
+    /// static arrays: size is its length times it's element type size
+    /// structs: size is the sum of it's members
     fn get_or_create_id(ref self: WarpMemory, location: felt252, size: felt252) -> felt252;
 
     /// Given the length and the felt size of an element, allocates the space
@@ -29,17 +34,17 @@ trait WarpMemoryArraysTrait {
 
 
 impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
-    fn get_or_create_id(ref self: WarpMemory, location: felt252, size: felt252) -> felt252{
-        // Get the id at the location
-        let id = self.read(location);
-        if id != 0 {
-            return id;
+    fn get_or_create_id(ref self: WarpMemory, pointer_position: felt252, size: felt252) -> felt252{
+        // Get the the array location at the current ptr position
+        let array_location = self.read(pointer_position);
+        if array_location != 0 {
+            return array_location;
         }
 
         // If no id was found create a new one
-        let id = self.alloc(size);
-        self.unsafe_write(location, id);
-        id
+        let array_location = self.alloc(size);
+        self.unsafe_write(pointer_position, array_location);
+        array_location
     }
 
     fn new_dynamic_array(ref self: WarpMemory, len: felt252, elem_width: felt252) -> felt252 {
@@ -72,8 +77,7 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
             panic_with_felt252('Index out of range');
         } 
 
-        let index_location = array_ptr + 1 + index * elem_width;
-        self.read(index_location)
+        array_ptr + 1 + index * elem_width
     }
 
     fn index_static(ref self: WarpMemory, array_ptr: felt252, index: felt252, elem_width: felt252, length: felt252) -> felt252 {
@@ -83,8 +87,7 @@ impl WarpMemoryArraysImpl of WarpMemoryArraysTrait {
              panic_with_felt252('Index out of range');
         } 
 
-        let index_location = array_ptr + index * elem_width;
-        self.read(index_location) 
+        array_ptr + index * elem_width
     }
 
     fn length_dyn(ref self: WarpMemory, array_ptr: felt252) -> felt252 {

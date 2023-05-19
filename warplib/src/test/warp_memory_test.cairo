@@ -100,14 +100,14 @@ fn test_get_or_create_id(){
 fn test_new_dynamic_array(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
-    let dyn_array = warp_memory.new_dynamic_array(-2, 1);
-    assert(warp_memory.free_space_pointer == -1, 'Invalid pointer value');
-    assert(warp_memory.read(dyn_array) == -2, 'Invalid length value');
+    let dyn_array = warp_memory.new_dynamic_array(MAX_FELT-1, 1);
+    assert(warp_memory.free_space_pointer == MAX_FELT, 'Invalid pointer value');
+    assert(warp_memory.read(dyn_array) == MAX_FELT - 1, 'Invalid length value');
 }
 
 #[test]
 #[should_panic]
-fn test_new_dynamic_array_overflow_1_should_panic(){
+fn test_new_dynamic_array_overflow_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     let dyn_array = warp_memory.new_dynamic_array(MAX_FELT, 1);
@@ -115,7 +115,7 @@ fn test_new_dynamic_array_overflow_1_should_panic(){
 
 #[test]
 #[should_panic]
-fn test_new_dynamic_array_overflow_2_should_panic(){
+fn test_complex_element_dynamic_array_overflow__should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
 
     let dyn_array = warp_memory.new_dynamic_array(MAX_FELT - 1, 2);
@@ -132,17 +132,17 @@ fn test_index_dyn(){
     warp_memory.unsafe_write(9, 5);
     warp_memory.unsafe_write(5, 7);
 
-    let value = warp_memory.index_dyn(dyn_array, 0, 2);
-    assert(value == 2, 'Invalid index location (2)');
+    let value_loc = warp_memory.index_dyn(dyn_array, 0, 2);
+    assert(value_loc == 1, 'Invalid index location (1)');
 
-    let value = warp_memory.index_dyn(dyn_array, 1, 2);
-    assert(value == 3, 'Invalid index location (3)');
+    let value_loc = warp_memory.index_dyn(dyn_array, 1, 2);
+    assert(value_loc == 3, 'Invalid index location (3)');
 
-    let value = warp_memory.index_dyn(dyn_array, 4, 2);
-    assert(value == 5, 'Invalid index location (5)');
+    let value_loc = warp_memory.index_dyn(dyn_array, 4, 2);
+    assert(value_loc == 9, 'Invalid index location (9)');
 
-    let value = warp_memory.index_dyn(dyn_array, 1, 4);
-    assert(value == 7, 'Invalid index location (7)');
+    let value_loc = warp_memory.index_dyn(dyn_array, 1, 4);
+    assert(value_loc == 5, 'Invalid index location (5)');
 }
 
 #[test]
@@ -155,7 +155,6 @@ fn test_index_dyn_out_of_range_should_panic(){
 }
 
 #[test]
-#[should_panic]
 fn test_index_static(){
     let mut warp_memory = WarpMemoryTrait::initialize();
     let length = 10;
@@ -178,10 +177,11 @@ fn test_index_static(){
 #[should_panic]
 fn test_index_static_out_of_range_should_panic(){
     let mut warp_memory = WarpMemoryTrait::initialize();
-    let length = 10;
-    let static_array = warp_memory.unsafe_alloc(length);
+    let elem_size = 2;
+    let length = 5;
+    let static_array = warp_memory.unsafe_alloc(length * elem_size);
 
-    warp_memory.index_static(static_array, 5, 2, length);
+    warp_memory.index_static(static_array, 5, elem_size, length);
 }
 
 #[test]
@@ -243,7 +243,7 @@ fn test_write_multiple_overflow_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     warp_memory.unsafe_alloc(MAX_FELT);
     
-    warp_memory.write_multiple(-3, ref values);
+    warp_memory.write_multiple(MAX_FELT - 2, ref values);
 }
 
 #[test]
@@ -268,7 +268,7 @@ fn test_write_multiple_unallocated_should_panic() {
 fn test_read_multiple_overflow_should_panic() {
     let mut warp_memory = WarpMemoryTrait::initialize();
     warp_memory.unsafe_alloc(MAX_FELT);
-    warp_memory.read_multiple(-3, 3);
+    warp_memory.read_multiple(MAX_FELT - 2, 3);
 }
 
 #[test]
@@ -284,7 +284,7 @@ fn test_read_multiple_unallocated_should_panic() {
 #[available_gas(1000000)]
 fn test_store_retrieve() {
     let mut warp_memory = WarpMemoryTrait::initialize();
-    let pointer = warp_memory.unsafe_alloc(5);
+    let pointer = warp_memory.unsafe_alloc(6);
     
     // Store u256
     let val1 = u256{low: 2, high: 0};
@@ -296,6 +296,10 @@ fn test_store_retrieve() {
     let val3 = 105_u128;
     warp_memory.store(pointer + 4, val3);
 
+    // Store u8
+    let val4 = 15_u8;
+    warp_memory.store(pointer + 5, val4);
+
     let readVal1: u256 = warp_memory.retrieve(pointer,  2);
     assert(readVal1 == val1, 'Incorrect value 1');
 
@@ -304,7 +308,11 @@ fn test_store_retrieve() {
 
     let readVal3: u128 = warp_memory.retrieve(pointer + 4, 1);
     assert(readVal3 == val3, 'Incorrect value 3');
+
+    let readVal4: u8 = warp_memory.retrieve(pointer + 5, 1);
+    assert(readVal4 == val4, 'Incorrect value 4');
 }
+
 
 
 // ==================== FixedBytes Functions ====================

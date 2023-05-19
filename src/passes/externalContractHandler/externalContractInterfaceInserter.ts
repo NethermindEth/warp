@@ -1,5 +1,6 @@
 import assert = require('assert');
 import {
+  ASTNode,
   ContractDefinition,
   ContractKind,
   FunctionKind,
@@ -18,7 +19,9 @@ import { TEMP_INTERFACE_SUFFIX } from '../../export';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { isExternallyVisible } from '../../utils/utils';
+import { getContainingSourceUnit, isExternallyVisible } from '../../utils/utils';
+import { createImport } from '../../utils/importFuncGenerator';
+import { SUPER } from '../../utils/importPaths';
 
 export class ExternalContractInterfaceInserter extends ASTMapper {
   /*
@@ -38,6 +41,7 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
 
     if (declaration instanceof ContractDefinition) {
       importExternalContract(
+        node,
         declaration,
         node.getClosestParentByType(SourceUnit),
         this.contractInterfaces,
@@ -55,6 +59,7 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
       if (node.context === undefined)
         throw new TranspileFailedError('Node context should not be undefined');
       importExternalContract(
+        node,
         node.context.locate(nodeType.definition.id) as ContractDefinition,
         node.getClosestParentByType(SourceUnit),
         this.contractInterfaces,
@@ -74,6 +79,7 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
       varType.vReferencedDeclaration instanceof ContractDefinition
     ) {
       importExternalContract(
+        node,
         varType.vReferencedDeclaration,
         node.getClosestParentByType(SourceUnit),
         this.contractInterfaces,
@@ -84,6 +90,7 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
 }
 
 function importExternalContract(
+  node: ASTNode,
   contract: ContractDefinition,
   sourceUnit: SourceUnit | undefined,
   contractInterfaces: Map<number, ContractDefinition>,
@@ -93,7 +100,7 @@ function importExternalContract(
 
   if (contract.kind === ContractKind.Library) return;
   if (contractInterfaces.has(contract.id)) return;
-  contractInterfaces.set(contract.id, genContractInterface(contract, sourceUnit, ast));
+  contractInterfaces.set(contract.id, genContractInterface(node, contract, sourceUnit, ast));
 }
 
 export function getTemporaryInterfaceName(contractName: string): string {
@@ -101,6 +108,7 @@ export function getTemporaryInterfaceName(contractName: string): string {
 }
 
 export function genContractInterface(
+  node: ASTNode,
   contract: ContractDefinition,
   sourceUnit: SourceUnit,
   ast: AST,
@@ -138,5 +146,38 @@ export function genContractInterface(
     });
   sourceUnit.appendChild(contractInterface);
   ast.registerChild(contractInterface, sourceUnit);
+  createImport(
+    SUPER,
+    `${contract.name}_warped_interfaceDispatcherTrait`,
+    getContainingSourceUnit(node),
+    ast,
+    [],
+    [],
+    {
+      isTrait: true,
+    },
+  );
+  createImport(
+    SUPER,
+    `${contract.name}_warped_interfaceDispatcher`,
+    getContainingSourceUnit(node),
+    ast,
+    [],
+    [],
+    {
+      isTrait: true,
+    },
+  );
+  createImport(
+    SUPER,
+    `${contract.name}_warped_interfaceLibraryDispatcher`,
+    getContainingSourceUnit(node),
+    ast,
+    [],
+    [],
+    {
+      isTrait: true,
+    },
+  );
   return contractInterface;
 }

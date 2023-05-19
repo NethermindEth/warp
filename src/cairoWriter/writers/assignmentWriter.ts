@@ -7,6 +7,6 @@ export class AssignmentWriter extends CairoASTNodeWriter {
     assert(node.operator === '=', `Unexpected operator ${node.operator}`);
     const [lhs, rhs] = [node.vLeftHandSide, node.vRightHandSide];
     const nodes = [lhs, rhs].map((v) => writer.write(v));
-    return [`let ${nodes[0]} ${node.operator} ${nodes[1]};`];
+    return [`${nodes[0]} ${node.operator} ${nodes[1]}`];
   }
 }
