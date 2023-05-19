@@ -3,15 +3,11 @@ title: QuickStart
 sidebar_position: 1
 ---
 
-<!-- # Welcome to Warp 2.0
+# Welcome to Warp!
 
-We are excited to announce the second version of Warp, now designed to transpile your Solidity code directly into Cairo.
+Warp is a transpiler from Solidity to Cairo. It allows you to deploy your Solidity contracts on Starknet.
 
-Warp 1 set out to show that compiling Solidity code into Cairo was possible, and paved the way for developers to access the benefits of Starknet without needing to master Cairo. Using everything we learned from Warp 1, we have written a new version adding vast improvements to contract efficiency and user experience. In this blog, we will talk through the improvements made to Warp, transpile OpenZeppelin’s ERC20 contract, and describe future plans for the project.
-
-#### Want to know more on Warp 2.0? Read the blog [here](https://medium.com/nethermind-eth/warp-2-0-transpiling-directly-from-solidity-to-cairo-9bf41a6d26ee). -->
-
-<!-- ## Quickstart -->
+# Quickstart
 
 Docker compose provides a ready to use environment featuring warp and devnet.
 
