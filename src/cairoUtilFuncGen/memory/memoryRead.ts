@@ -1,4 +1,3 @@
-import endent from 'endent';
 import {
   Expression,
   TypeName,
@@ -26,7 +25,6 @@ import { locationIfComplexType, StringIndexedFuncGen } from '../base';
   felts to produce a full value. For example, a function to read a Uint256 reads the given location
   and the next one, and combines them into a Uint256 struct
 */
-// TODO: Replace the whole class with a call to warp_memory.retrieve?
 export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression): FunctionCall {
     const valueType = generalizeType(safeGetNodeType(memoryRef, this.ast.inference))[0];
@@ -40,7 +38,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       args.push(
         createNumberLiteral(
           isDynamicArray(valueType)
-            ? 2
+            ? 1
             : CairoType.fromSol(valueType, this.ast, TypeConversionContext.MemoryAllocation).width,
           this.ast,
           'uint252',
@@ -88,29 +86,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
         [output],
       );
     }
-    //else {
-    //  const funcInfo = this.getOrCreate(resultCairoType);
-    //  funcDef = createCairoGeneratedFunction(funcInfo, inputs, outputs, this.ast, this.sourceUnit, {
-    //    mutability: FunctionStateMutability.View,
-    //  });
-    //}
-    //
     this.generatedFunctionsDef.set(key, funcDef);
     return funcDef;
   }
-
-  // NOTE: If retrieve covers all cases, this can be safely deleted
-  //private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
-  //  const funcName = `WM${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
-  //  const funcInfo: GeneratedFunctionInfo = {
-  //    name: funcName,
-  //    code: endent`
-  //    #[implicits(warp_memory: WarpMemory)]
-  //    fn ${funcName}(loc: felt) -> ${typeToRead.toString()}{
-  //      warp_memory.retrieve(loc, loc + ${typeToRead.width})
-  //    }`,
-  //    functionsCalled: [this.requireImport(...WM_RETRIEVE)],
-  //  };
-  //  return funcInfo;
-  //}
 }
