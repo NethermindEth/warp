@@ -72,6 +72,7 @@ import {
 import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 import { TranspilationOptions } from '../cli';
+import { warning } from './formatting';
 
 export type Implicits = 'warp_memory';
 
@@ -125,8 +126,10 @@ export const isCairoPrimitiveIntType = (x: string): x is CairoPrimitiveIntType =
 
 export function primitiveTypeToCairo(
   typeString: string,
-): CairoPrimitiveIntType | 'felt252' | 'ContractAddress' {
+): CairoPrimitiveIntType | 'bool' | 'felt252' | 'ContractAddress' {
   if (typeString === 'address' || typeString === 'address payable') return 'ContractAddress';
+
+  if (typeString === 'bool') return 'bool';
 
   if (typeString === 'uint' || typeString === 'int') return 'u256';
 
@@ -159,7 +162,13 @@ export function primitiveTypeToCairo(
     return `u${bits}` as CairoPrimitiveIntType;
   }
 
-  throw new Error(`Unknown translation for cairo type: ${typeString}`);
+  console.log(
+    warning('Warning:'),
+    `Unknown translation for primitive type ${typeString}.`,
+    'Defaulting to felt252',
+  );
+  return `felt252`;
+  // throw new Error(`Unknown translation for cairo type: ${typeString}`);
 }
 
 export function union<T>(setA: Set<T>, setB: Set<T>) {
