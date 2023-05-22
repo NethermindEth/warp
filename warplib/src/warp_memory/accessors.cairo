@@ -71,7 +71,7 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
         }
 
         let mut index = position;
-        let mut array: Array<felt252> = ArrayImpl::<felt252>::new();
+        let mut array: Array<felt252> = ArrayTrait::<felt252>::new();
         let final_location = position + size;
         loop {
             match gas::withdraw_gas() {
@@ -94,15 +94,15 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
 
 impl WarpMemoryAccesssor of WarpMemoryAccesssorTrait {
     fn store<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, value: T) {
-        let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
-        TSerde::serialize(ref serialization_array, value);
+        let mut serialization_array: Array<felt252> = ArrayTrait::<felt252>::new();
+        TSerde::serialize(@value, ref serialization_array);
 
         self.write_multiple(position, ref serialization_array);
     }
 
     fn create<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, value: T) {
-        let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
-        TSerde::serialize(ref serialization_array, value);
+        let mut serialization_array: Array<felt252> = ArrayTrait::<felt252>::new();
+        TSerde::serialize(@value, ref serialization_array);
 
         let position = self.alloc(serialization_array.len().into());
         self.write_multiple(position, ref serialization_array);
@@ -110,7 +110,7 @@ impl WarpMemoryAccesssor of WarpMemoryAccesssorTrait {
 
     fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, size: felt252) -> T {
         let serialization_array: Array<felt252> = self.read_multiple(position, size);
-        let mut span = ArrayImpl::<felt252>::span(@serialization_array);
+        let mut span = ArrayTrait::<felt252>::span(@serialization_array);
         let value = TSerde::deserialize(ref span);
 
         value.unwrap()
