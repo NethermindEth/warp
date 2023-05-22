@@ -38,7 +38,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
-import { IS_LE_FELT, U256_TO_FELT252, WARPLIB_MATHS } from '../../utils/importPaths';
+import { IS_LE_FELT, U256_TO_FELT252, WARPLIB_EXT_INPUT_CHK } from '../../utils/importPaths';
 import endent from 'endent';
 
 export class InputCheckGen extends StringIndexedFuncGen {
@@ -67,22 +67,22 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
     if (type instanceof FixedBytesType)
       return this.requireImport(
-        [...WARPLIB_MATHS, 'external_input_check_ints'],
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_ints'],
         `warp_external_input_check_int${type.size * 8}`,
       );
     if (type instanceof IntType)
       return this.requireImport(
-        [...WARPLIB_MATHS, 'external_input_check_ints'],
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_ints'],
         `warp_external_input_check_int${type.nBits}`,
       );
     if (isAddressType(type))
       return this.requireImport(
-        [...WARPLIB_MATHS, 'external_input_check_address'],
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_address'],
         `warp_external_input_check_address`,
       );
     if (type instanceof BoolType)
       return this.requireImport(
-        [...WARPLIB_MATHS, 'external_input_check_bool'],
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_bool'],
         `warp_external_input_check_bool`,
       );
 

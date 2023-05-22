@@ -48,11 +48,14 @@ export const GET_CONTRACT_ADDRESS: [string[], string] = [
 
 export const WARPLIB_KECCAK = ['warplib', 'keccak'];
 export const WARPLIB_MATHS = ['warplib', 'maths'];
-export const WARPLIB_INTEGER = ['warplib', 'integer'];
+export const WARPLIB_CONVERSIONS = ['warplib', 'conversions'];
+export const WARPLIB_EXT_INPUT_CHK = ['warplib', 'external_input_check'];
 
 export const DYNAMIC_ARRAYS_UTIL = ['warplib', 'dynamic_arrays_util'];
-export const BYTES_CONVERSIONS = [...WARPLIB_MATHS, 'bytes_conversions'];
-export const INT_CONVERSIONS = [...WARPLIB_MATHS, 'int_conversions'];
+export const BYTES_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'bytes_conversions'];
+export const INT_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'int_conversions'];
+// Integer_conversions holds the functions used in Cairo1, once int_conversions is translated they both can be merged
+export const INTEGER_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'integer_conversions'];
 
 export const BYTE256_AT_INDEX: [string[], string] = [
   [...WARPLIB_MATHS, 'bytes_access'],
@@ -84,9 +87,15 @@ export const WARP_KECCAK: [string[], string] = [[...WARPLIB_KECCAK], 'warp_kecca
 export const WARP_UINT256: [string[], string] = [[...INT_CONVERSIONS], 'warp_uint256'];
 export const ARRAY: [string[], string] = [['array'], 'Array'];
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
-export const U256_FROM_FELTS: [string[], string] = [[...WARPLIB_INTEGER], 'u256_from_felts'];
-export const FELT252_INTO_BOOL: [string[], string] = [[...WARPLIB_INTEGER], 'felt252_into_bool'];
-export const BOOL_INTO_FELT252: [string[], string] = [[...WARPLIB_INTEGER], 'bool_into_felt252'];
+export const U256_FROM_FELTS: [string[], string] = [[...INTEGER_CONVERSIONS], 'u256_from_felts'];
+export const FELT252_INTO_BOOL: [string[], string] = [
+  [...INTEGER_CONVERSIONS],
+  'felt252_into_bool',
+];
+export const BOOL_INTO_FELT252: [string[], string] = [
+  [...INTEGER_CONVERSIONS],
+  'bool_into_felt252',
+];
 
 /**  cairo1 uX <-> felt conversions */
 

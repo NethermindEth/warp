@@ -61,8 +61,8 @@ export function msbAndNext(width: number): string {
 // This is used along with the commented out code in generateFile to enable cairo-formatting
 // const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-export function generateFile(warpFunc: WarplibFunctionInfo): void {
-  const pathToFile = path.join(PATH_TO_WARPLIB, 'maths', `${warpFunc.fileName}.cairo`);
+export function generateFile(warpFunc: WarplibFunctionInfo, folderName: string): void {
+  const pathToFile = path.join(PATH_TO_WARPLIB, folderName, `${warpFunc.fileName}.cairo`);
 
   fs.writeFileSync(
     pathToFile,
