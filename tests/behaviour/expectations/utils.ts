@@ -28,7 +28,7 @@ function stringFlatten_(val: Value): string[] {
   if (typeof val === 'string' || typeof val === 'number') {
     if (typeof val === 'string' && (val.startsWith('address@') || val.startsWith('hash@')))
       return [val];
-    return [BigInt(val).toString()];
+    return ['0x' + BigInt(val).toString(16)];
   }
   if (Array.isArray(val)) {
     return [val.length, ...val].flatMap(stringFlatten_);
@@ -83,7 +83,7 @@ export function toCairoUint256(val: number | bigint): [string, string] {
   val = BigInt(val);
   const low = val & ((1n << 128n) - 1n);
   const high = val >> 128n;
-  return [low.toString(), high.toString()];
+  return [`0x${low.toString(16)}`, `0x${high.toString(16)}`];
 }
 
 export function toCairoInt256(val: number | bigint): [string, string] {
