@@ -3,6 +3,7 @@ mod conversions;
 mod external_input_check;
 mod maths;
 mod warp_memory;
+mod dynamic_arrays_util;
 
 #[cfg(test)]
 mod test;

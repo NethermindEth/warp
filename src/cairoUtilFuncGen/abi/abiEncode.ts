@@ -14,7 +14,6 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import {
-  ALLOC,
   DYNAMIC_ARRAYS_UTIL,
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
@@ -23,6 +22,8 @@ import {
   WM_DYN_ARRAY_LENGTH,
   WM_INDEX_DYN,
   WM_NEW,
+  ARRAY,
+  ARRAY_TRAIT,
 } from '../../utils/importPaths';
 import {
   getByteSize,
@@ -78,6 +79,8 @@ export class AbiEncode extends AbiBase {
     );
 
     const initialOffset = types.reduce(
+      // these sizes are not actual byte size of elements but the space it takes for the headencoding
+      // for more details: https://docs.soliditylang.org/en/develop/abi-spec.html#formal-specification-of-the-encoding
       (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.inference)),
       0n,
     );
@@ -86,23 +89,21 @@ export class AbiEncode extends AbiBase {
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
     const code = endent`
       #[implicit(warp_memory)]
-      func ${funcName}(${cairoParams}) -> (result_ptr : felt){
-        alloc_locals;
-        let bytes_index : felt = 0;
-        let bytes_offset : felt = ${initialOffset};
-        let (bytes_array : felt*) = alloc();
+      fn ${funcName}(${cairoParams}) -> felt252 {
+        let bytes_index: felt252  = 0; // current index of the array which would have the encodeded data
+        let bytes_offset: felt252 = ${initialOffset}; // var represents the length of final array which has encodeded data
+        let bytes_array: Array<felt252> = ArrayImpl::<felt252>::new(); // array which would have the encodeded data
         ${encodings.join('\n')}
-        let (max_length256) = felt_to_uint256(bytes_offset);
-        let (mem_ptr) = wm_new(max_length256, ${uint256(1)});
+        let mem_ptr = warp_memory.new_dynamic_array(bytes_offset, 1);
         felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);
-        return (mem_ptr,);
+        mem_ptr
       }
       `;
 
     const importedFuncs = [
-      this.requireImport(...ALLOC),
+      this.requireImport(...ARRAY),
+      this.requireImport(...ARRAY_TRAIT),
       this.requireImport(...U128_FROM_FELT),
-      this.requireImport(...FELT_TO_UINT256),
       this.requireImport(...WM_NEW),
       this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
@@ -235,26 +236,25 @@ export class AbiEncode extends AbiBase {
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = endent`
       #[implicit(warp_memory)]
-      func ${name}(
-        bytes_index: felt,
-        bytes_offset: felt,
-        bytes_array: felt*,
-        element_offset: felt,
-        mem_ptr : felt
-      ) -> (final_bytes_index : felt, final_bytes_offset : felt){
-        alloc_locals;
+      fn ${name}(
+        bytes_index: felt252,
+        bytes_offset: felt252,
+        bytes_array: @Array<felt252>,
+        element_offset: felt252,
+        mem_ptr : felt252
+      ) -> (felt252, felt252){
         // Storing pointer to data
         let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);
         ${valueEncoding.name}(bytes_index, bytes_array, 0, bytes_offset256);
         let new_index = bytes_index + 32;
         // Storing the length
-        let (length256) = wm_dyn_array_length(mem_ptr);
+        let length = warp_memory.length_dyn(mem_ptr);
+        let length256 = felt_to_uint256(length);
         ${valueEncoding.name}(bytes_offset, bytes_array, 0, length256);
         let bytes_offset = bytes_offset + 32;
         // Storing the data
-        let (length) = narrow_safe(length256);
         let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)};
-        let (extended_offset) = ${tailEncoding.name}(
+        let extended_offset = ${tailEncoding.name}(
           bytes_offset,
           bytes_offset_offset,
           bytes_array,
@@ -263,10 +263,7 @@ export class AbiEncode extends AbiBase {
           length,
           mem_ptr
         );
-        return (
-          final_bytes_index=new_index,
-          final_bytes_offset=extended_offset
-        );
+        (new_index,extended_offset)
       }
       `;
 
@@ -306,22 +303,20 @@ export class AbiEncode extends AbiBase {
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = endent`
       #[implicit(warp_memory)]
-      func ${name}(
-        bytes_index : felt,
-        bytes_offset : felt,
-        bytes_array : felt*,
-        element_offset : felt,
-        index : felt,
-        length : felt,
-        mem_ptr : felt
-      ) -> (final_offset : felt){
-        alloc_locals;
-        if (index == length){
-           return (final_offset=bytes_offset);
+      fn ${name}(
+        bytes_index : felt252,
+        bytes_offset : felt252,
+        bytes_array : @Array<felt252>,
+        element_offset : felt252,
+        index : felt252,
+        length : felt252,
+        mem_ptr : felt252
+      ) -> felt252{
+        if index == length {
+           bytes_offset;
         }
-        let (index256) = felt_to_uint256(index);
-        let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});
-        let (elem) = ${readElement};
+        let elem_loc = warp_memory.index_dyn(mem_ptr, index, ${elementTSize});
+        let elem = ${readElement};
         ${headEncodingCode}
         return ${name}(new_bytes_index, new_bytes_offset, bytes_array, element_offset, index + 1, length, mem_ptr);
       }

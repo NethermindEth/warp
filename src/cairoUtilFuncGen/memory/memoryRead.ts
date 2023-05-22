@@ -34,7 +34,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
     if (!(resultCairoType instanceof CairoFelt)) {
       // The size parameter represents how much space to allocate
-      // for the contents of the newly accessed subobject
+      // for the contents of the newly accessed sub-object
       args.push(
         createNumberLiteral(
           isDynamicArray(valueType)
