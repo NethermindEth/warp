@@ -1,5 +1,4 @@
 import { generateFile, PATH_TO_WARPLIB, WarplibFunctionInfo } from './utils';
-import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
 import { div_signed, div_signed_unsafe } from './implementations/maths/div';
 import { exp, exp_signed, exp_signed_unsafe, exp_unsafe } from './implementations/maths/exp';
@@ -62,14 +61,13 @@ const mathWarplibFunctions: WarplibFunctionInfo[] = [
   // bitwise_or - handwritten
   bitwise_not(),
 ];
-const conversionWarplibFunctions: WarplibFunctionInfo[] = [int_conversions()];
 const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
   external_input_check_ints(),
   // external_input_check_address - handwritten
 ];
 
 generateWarplibFor('maths', mathWarplibFunctions);
-generateWarplibFor('conversions', conversionWarplibFunctions);
+generateWarplibFor('conversions', []);
 generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
 
 function generateWarplibFor(folderName: string, functions: WarplibFunctionInfo[]) {

@@ -86,7 +86,6 @@ export const NARROW_SAFE: [string[], string] = [[...WARPLIB_MATHS, 'utils'], 'na
 export const PACK_BYTES_FELT: [string[], string] = [[...WARPLIB_KECCAK], 'pack_bytes_felt'];
 export const STRING_HASH: [string[], string] = [['warplib', 'string_hash'], 'string_hash'];
 export const WARP_KECCAK: [string[], string] = [[...WARPLIB_KECCAK], 'warp_keccak'];
-export const WARP_UINT256: [string[], string] = [[...INT_CONVERSIONS], 'warp_uint256'];
 export const WM_DYN_ARRAY_LENGTH: [string[], string] = [[...WARPLIB_MEMORY], 'wm_dyn_array_length'];
 export const WM_INDEX_DYN: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_dyn'];
 export const WM_INDEX_STATIC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_static'];
@@ -260,3 +259,7 @@ export const ACCESSOR: [string[], string] = [MEMORY_MODULE, 'WarpMemoryAccesssor
 export const ACCESSOR_TRAIT: [string[], string] = [MEMORY_MODULE, 'WarpMemoryAccesssorTrait'];
 
 export const SUPER: string[] = ['super'];
+
+export const SIGNED_UPCAST: [string[], string] = [INTEGER_CONVERSIONS, 'signed_upcast'];
+export const UPCAST: [string[], string] = [['integer'], 'upcast'];
+export const CUTOFF_DOWNCAST: [string[], string] = [INTEGER_CONVERSIONS, 'cutoff_downcast'];

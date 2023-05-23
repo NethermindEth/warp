@@ -207,9 +207,6 @@ warplib/src/maths/lt_signed.cairo
 # bitwise_or - handwritten
 warplib/src/maths/bitwise_not.cairo
 
-# ---conversions---
-warplib/src/conversions/int_conversions.cairo
-
 # ---external-input-input-checks---
 warplib/src/external_input_check/external_input_check_ints.cairo
 # external_input_check_address.cairo - handwritten
@@ -217,4 +214,3 @@ warplib/src/external_input_check/external_input_check_ints.cairo
 
 tests/cli/starknet_open_zeppelin_accounts.json
 tests/cli/starknet_open_zeppelin_accounts.json.backup
-

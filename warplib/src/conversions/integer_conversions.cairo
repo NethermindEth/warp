@@ -1,11 +1,18 @@
+// FIXME: merge imports using "use bla::{foo, bar}" syntax, when
+// updated to Cairo 1.1
 use array::ArrayImpl;
+use integer::BoundedInt;
+use integer::downcast;
 use integer::u128_try_from_felt252;
+use integer::upcast;
 use option::OptionTrait;
-use option::OptionTraitImpl;
 use serde::BoolSerde;
 use starknet::ContractAddress;
 use traits::Into;
 use traits::TryInto;
+
+use warplib::integer::Integer;
+use warplib::integer::bitnot;
 
 fn u256_from_felts(low_felt: felt252, high_felt: felt252) -> u256 {
     let low_u128: u128 = get_u128_try_from_felt_result(low_felt);
@@ -70,4 +77,35 @@ fn unsafe_contract_address_from_u256(x: u256) -> ContractAddress {
             },
         Option::None(_) => panic_with_felt252('the u256 does not fit in felt'),
     }
+}
+
+// FIXME: Should have been possible without our special Integer trait,
+// but NumericLiteral doesn't quite work yet. Without being able to
+// create constants of our generic type, we can't do anything.
+fn signed_upcast<
+    FromType,
+    impl IntegerFrom: Integer<FromType>,
+    impl BoundedIntFrom: BoundedInt<FromType>,
+    impl SubFrom: Sub<FromType>,
+    impl PartialOrdFrom: PartialOrd<FromType>,
+    impl CopyFrom: Copy<FromType>,
+    impl DropFrom: Drop<FromType>,
+    ToType,
+    impl BoundedIntTo: BoundedInt<ToType>,
+    impl SubTo: Sub<ToType>,
+>(x: FromType) -> ToType {
+    if x < Integer::signed_upper_bound() {
+        upcast(x)
+    } else {
+        bitnot(upcast(bitnot(x)))
+    }
+}
+
+fn cutoff_downcast<
+    FromType,
+    impl BitAndFrom: BitAnd<FromType>,
+    ToType,
+    impl BoundedIntTo: BoundedInt<ToType>,
+>(x: FromType) -> ToType {
+    downcast(x & upcast(BoundedInt::<ToType>::max())).unwrap()
 }
