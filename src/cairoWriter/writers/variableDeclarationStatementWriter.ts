@@ -16,6 +16,7 @@ import { isExternalCall } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
 import endent from 'endent';
+import { CairoType } from '../../export';
 
 export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
   gapVarCounter = 0;
@@ -68,17 +69,17 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         return [writer.write(getDeclarationForId(id))];
       }
     });
+    const solTyp = safeGetNodeType(node.vInitialValue, this.ast.inference);
+    const cairoTyp = CairoType.fromSol(solTyp, this.ast).toString();
+    let namePortion: string;
     if (declarations.length > 1) {
-      return [
-        endent`${documentation}
-          let (${declarations.map((decl) => `mut ${decl}`).join(', ')}) = ${writer.write(
-          node.vInitialValue,
-        )};`,
-      ];
+      namePortion = '(' + declarations.map((decl) => `mut ${decl}`).join(', ') + ')';
+    } else {
+      namePortion = `mut ${declarations[0]}`;
     }
     return [
       endent`${documentation}
-      let mut ${declarations[0]} = ${writer.write(node.vInitialValue)};`,
+      let ${namePortion}: ${cairoTyp} = ${writer.write(node.vInitialValue)};`,
     ];
   }
 }
