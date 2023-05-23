@@ -150,6 +150,7 @@ export function createImport(
     Paths.WARP_MEMORY_TRAIT,
     Paths.BOOL_INTO_FELT252,
     Paths.FELT252_INTO_BOOL,
+    Paths.WARPLIB_INTEGER,
   ];
   if (pathsForFunctionImport.some((i) => encodePath([path, name]) === encodePath(i))) {
     return createFuncImport();

@@ -51,6 +51,7 @@ export const WARPLIB_KECCAK = ['warplib', 'keccak'];
 export const WARPLIB_MATHS = ['warplib', 'maths'];
 export const WARPLIB_CONVERSIONS = ['warplib', 'conversions'];
 export const WARPLIB_EXT_INPUT_CHK = ['warplib', 'external_input_check'];
+export const WARPLIB_INTEGER = ['warplib', 'integer'];
 
 export const DYNAMIC_ARRAYS_UTIL = ['warplib', 'dynamic_arrays_util'];
 export const BYTES_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'bytes_conversions'];
