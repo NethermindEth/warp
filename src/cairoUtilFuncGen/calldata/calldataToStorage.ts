@@ -19,7 +19,6 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { WARP_UINT256 } from '../../utils/importPaths';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -179,7 +178,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
          }
       }
 
-      func ${funcName}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt){ 
+      func ${funcName}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt){
          alloc_locals;
          let (len_uint256) = warp_uint256(dyn_array_struct.len);
          ${lenName}.write(loc, len_uint256);
@@ -191,7 +190,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: code,
-      functionsCalled: [this.requireImport(...WARP_UINT256), dynArray, dynArrayLength, writeDef],
+      functionsCalled: [dynArray, dynArrayLength, writeDef],
     };
   }
 

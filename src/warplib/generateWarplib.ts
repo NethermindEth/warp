@@ -1,5 +1,4 @@
 import { generateFile, PATH_TO_WARPLIB, WarplibFunctionInfo } from './utils';
-import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
 import { div_signed, div_signed_unsafe } from './implementations/maths/div';
 import { exp, exp_signed, exp_signed_unsafe, exp_unsafe } from './implementations/maths/exp';
@@ -66,7 +65,6 @@ const mathWarplibFunctions: WarplibFunctionInfo[] = [
   // bitwise_or - handwritten
   bitwise_not(),
 ];
-const conversionWarplibFunctions: WarplibFunctionInfo[] = [int_conversions()];
 const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
   external_input_check_ints(),
   // external_input_check_address - handwritten
@@ -74,16 +72,16 @@ const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
 const warplibTypes: WarplibFunctionInfo[] = [fixed_bytes_types()];
 const warp_memory: WarplibFunctionInfo[] = [warp_memory_fixed_bytes()];
 
-generateWarplibFor('maths', mathWarplibFunctions, true);
-generateWarplibFor('conversions', conversionWarplibFunctions, true);
-generateWarplibFor('external_input_check', inputCheckWarplibFunctions, true);
-generateWarplibFor('types', warplibTypes, true);
+generateWarplibFor('maths', mathWarplibFunctions);
+generateWarplibFor('conversions', []);
+generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
+generateWarplibFor('types', warplibTypes);
 generateWarplibFor('warp_memory', warp_memory, false);
 
 function generateWarplibFor(
   folderName: string,
   functions: WarplibFunctionInfo[],
-  writeExportFile: boolean,
+  writeExportFile = true,
 ) {
   functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
   if (writeExportFile) {
