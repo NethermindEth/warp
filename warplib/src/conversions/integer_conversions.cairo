@@ -20,18 +20,21 @@ fn get_u128_try_from_felt_result(value: felt252) -> u128 {
 
 /// Conversions.
 fn felt252_into_bool(val: felt252) -> bool {
-    let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
-    ArrayImpl::<felt252>::append(ref serialization_array, val);
-    let mut span_serialization_array = ArrayImpl::<felt252>::span(@serialization_array);
-    let resp_option = BoolSerde::deserialize(ref span_serialization_array);
-    let resp = OptionTraitImpl::<bool>::unwrap(resp_option);
-    resp
+    if val == 0 {
+        false
+    }
+    else if val == 1 {
+        true
+    }
+    else {
+        panic_with_felt252('Failed felt to bool conversion')
+    }
 }
 
 fn bool_into_felt252(val: bool) -> felt252 {
-    let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
-    BoolSerde::serialize(ref serialization_array, val);
-    let resp_option = ArrayImpl::pop_front(ref serialization_array);
-    let resp = OptionTraitImpl::<felt252>::unwrap(resp_option);
-    resp
+    if val {
+        1
+    } else {
+        0
+    }
 }
