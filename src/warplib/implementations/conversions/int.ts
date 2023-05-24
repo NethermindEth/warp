@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { FunctionCall, generalizeType, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { createCallToFunction, createNumberTypeName } from '../../../export';
+import { createCallToFunction, createNumberTypeName, requireNonNullish } from '../../../export';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { CUTOFF_DOWNCAST, SIGNED_UPCAST, UPCAST } from '../../../utils/importPaths';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
@@ -25,8 +25,8 @@ export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): 
     )}`,
   );
 
-  const fromCairoWidth = cairoWidths.find((x) => x >= fromType.nBits)!;
-  const toCairoWidth = cairoWidths.find((x) => x >= toType.nBits)!;
+  const fromCairoWidth = requireNonNullish(cairoWidths.find((x) => x >= fromType.nBits));
+  const toCairoWidth = requireNonNullish(cairoWidths.find((x) => x >= toType.nBits));
 
   if (fromCairoWidth === toCairoWidth) {
     return;

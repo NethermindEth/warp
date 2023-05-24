@@ -12,6 +12,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { requireNonNullish } from '../export';
 import { createImport } from '../utils/importFuncGenerator';
 import {
   INTO,
@@ -54,7 +55,7 @@ export class CairoUtilImporter extends ASTMapper {
     // corelib
     if (node.vFunctionName === CUTOFF_DOWNCAST[1]) {
       const path = WARPLIB_INTEGER.slice(0, -1);
-      const name = WARPLIB_INTEGER.at(-1)!;
+      const name = requireNonNullish(WARPLIB_INTEGER.at(-1));
       createImport(path, name, this.dummySourceUnit ?? node, ast);
     }
     super.visitFunctionCall(node, ast);
