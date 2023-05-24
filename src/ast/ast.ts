@@ -32,7 +32,7 @@ import { ParameterInfo } from '../export';
 
 /*
  A centralised store of information required for transpilation, a reference
- to the AST is passed around during processing so that such information is 
+ to the AST is passed around during processing so that such information is
  always available.
  Both contains members that exist in the original compilation data, such as
  compilerVersion and context, that are generally inconvenient to access from
@@ -267,14 +267,14 @@ export class AST {
   }
 
   registerImport(
-    node: ASTNode,
+    nodeInSourceUnit: ASTNode,
     location: string[],
     name: string,
     inputs: ParameterInfo[],
     outputs: ParameterInfo[],
     options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean },
   ): CairoImportFunctionDefinition {
-    return createImport(location, name, node, this, inputs, outputs, options);
+    return createImport(location, name, nodeInSourceUnit, this, inputs, outputs, options);
   }
 
   removeStatement(statement: Statement): void {
