@@ -21,7 +21,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_KEY }}
 
-  build_and_push_docker_image:
+  dockerhub:
     name: Push Docker image to Docker Hub
     if: github.repository_owner == 'NethermindEth'
     runs-on: ubuntu-latest
