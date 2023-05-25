@@ -4,7 +4,7 @@ on:
     types: [published]
 
 jobs:
-  build_package:
+  npm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
