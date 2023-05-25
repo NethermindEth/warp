@@ -5,8 +5,12 @@ pragma solidity ^0.8.11;
 contract WARP {
   uint8[] x;
 
-  function getArray() public view returns (uint8[] memory) {
+  function returnStorageArray() public view returns (uint8[] memory) {
     return x;
   }
 
+  function returnMemoryArray(uint128[] memory) public view returns (uint128[] memory) {
+    uint128[] memory y = new uint128[](10);
+    return y;
+  }
 }
