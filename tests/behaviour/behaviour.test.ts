@@ -33,10 +33,9 @@ interface AsyncTestCluster {
   dependencies: Map<string, string[]>;
 }
 
-fs.writeFileSync(
-  path.join(BASE_PATH, '.starknet_accounts_devnet', 'starknet_open_zeppelin_accounts.json'),
-  '{}',
-);
+const accountDir = '.starknet_accounts_devnet';
+fs.mkdirSync(accountDir, { recursive: true });
+fs.writeFileSync(path.join(BASE_PATH, accountDir, 'starknet_open_zeppelin_accounts.json'), '{}');
 const address = execSync(`${starknetCliCall('new_account', '')} | awk 'NR==1 {printf $3}'`);
 console.log(`New address: ${address}`);
 const addFunds = `curl ${DEVNET_URL}/mint -H "Content-Type: application/json" -d '{"address": "${address}", "amount": 1000000000000000000}'`;
@@ -170,7 +169,7 @@ describe('Compiled contracts are deployable', function () {
   }
 });
 
-/* 
+/*
  Test that the contracts that have been deployed have the correct output given a
  corresponding input. These inputs are received from the test/expectations/index.ts
  file which processes inputs and outputs from behaviour.ts and semantic.ts
