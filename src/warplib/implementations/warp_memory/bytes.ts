@@ -64,9 +64,9 @@ export function warp_memory_fixed_bytes(): WarplibFunctionInfo {
           `;
         }
         return endent`
-          fn bytes_to_fixed_bytes${length}(ref self: WarpMemory, bytes_loc: felt252) -> bytes${length} {
-            let data_len = self.read(bytes_loc);
-            let value_felt = _bytes_to_fixed_recursive(ref self, bytes_loc + 1, ${length}, data_len, 0);
+          fn bytes_to_fixed_bytes${length}(ref self: WarpMemory, location: felt252) -> bytes${length} {
+            let data_len = self.read(location);
+            let value_felt = _bytes_to_fixed_recursive(ref self, location + 1, ${length}, data_len, 0);
             ${
               max_width === 256
                 ? `bytes${length} { value: u256_from_felt252(value_felt) }`
