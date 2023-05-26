@@ -16,12 +16,7 @@ import {
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { WM_READ, WM_GET_ID, WM_RETRIEVE } from '../../utils/importPaths';
-import {
-  createFeltLiteral,
-  createFeltTypeName,
-  createNumberLiteral,
-  createNumberTypeName,
-} from '../../utils/nodeTemplates';
+import { createFeltLiteral, createFeltTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 
