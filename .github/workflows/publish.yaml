@@ -42,4 +42,4 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: nethermind/warp:${{ github.event.release.tag_name }}
+          tags: nethermind/warp:latest,nethermind/warp:${{ github.event.release.tag_name }}
