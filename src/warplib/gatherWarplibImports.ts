@@ -6,7 +6,6 @@ import path from 'path';
 
 import { WARP_ROOT } from '../config';
 
-
 export const warplibImportInfo = glob
   .sync(path.join(WARP_ROOT, 'warplib/**/*.cairo'))
   .reduce((warplibMap, pathToFile) => {
