@@ -190,6 +190,10 @@ export function createNumberLiteral(
   return node;
 }
 
+export function createFeltLiteral(value: number | bigint | string, ast: AST) {
+  return createNumberLiteral(value, ast, 'uint252');
+}
+
 export function createNumberTypeName(width: number, signed: boolean, ast: AST): ElementaryTypeName {
   const typestring = `${signed ? '' : 'u'}int${width}`;
   const typeName = new ElementaryTypeName(ast.reserveId(), '', typestring, typestring);
