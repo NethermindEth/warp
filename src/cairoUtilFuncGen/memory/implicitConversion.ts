@@ -255,7 +255,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       sourceLocationCode = `let source_elem = ${memoryRead.name}(${offset}, ${allocSize});`;
     } else {
       const offset = getOffset('source', 'index', sourceTWidth);
-      sourceLocationCode = `let (source_elem) = ${memoryRead.name}(${offset});`;
+      sourceLocationCode = `let source_elem = ${memoryRead.name}(${offset});`;
     }
 
     const [conversionCode, conversionFuncs] = this.generateScalingCode(
