@@ -23,7 +23,6 @@ import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   BYTES_CONVERSIONS,
-  FELT_TO_UINT256,
   INT_CONVERSIONS,
   U128_FROM_FELT,
   UINT256_ADD,
@@ -33,7 +32,6 @@ import {
 } from '../../utils/importPaths';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { uint256 } from '../../warplib/utils';
 import { delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { MemoryReadGen } from './memoryRead';
 import { MemoryWriteGen } from './memoryWrite';
@@ -185,12 +183,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     let sourceLocationFunc: CairoFunctionDefinition;
     let sourceLocationCode: string;
     if (targetType.elementT instanceof PointerType) {
-      const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
+      const idAllocSize = isDynamicArray(sourceType.elementT) ? 1 : cairoSourceElementType.width;
       sourceLocationFunc = this.requireImport(...WM_GET_ID);
-      sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)});`;
+      sourceLocationCode = `let source_elem = ${sourceLocationFunc.name}(${sourceLoc}, ${idAllocSize});`;
     } else {
       sourceLocationFunc = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
-      sourceLocationCode = `let (source_elem) = ${sourceLocationFunc.name}(${sourceLoc});`;
+      sourceLocationCode = `let source_elem = ${sourceLocationFunc.name}(${sourceLoc});`;
     }
 
     const [conversionCode, calledFuncs] = this.generateScalingCode(
@@ -254,7 +252,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     if (sourceType.elementT instanceof PointerType) {
       const offset = getOffset('source', 'index', sourceTWidth);
       const allocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
-      sourceLocationCode = `let source_elem = warp_memory.read_id(${offset}, ${allocSize});`;
+      sourceLocationCode = `let source_elem = ${memoryRead.name}(${offset}, ${allocSize});`;
     } else {
       const offset = getOffset('source', 'index', sourceTWidth);
       sourceLocationCode = `let (source_elem) = ${memoryRead.name}(${offset});`;
@@ -284,7 +282,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         return ${funcName}_copy(source, target, next_index + 1, len);
       }
       #[implicit(warp_memory: WarpMemory)]
-      func ${funcName}(source : felt) -> (target : felt){
+      fn ${funcName}(source : felt252) -> felt252{
         let target = warp_memory.new_dynamic_array(${sourceType.size}, ${targetTWidth});
         ${funcName}_copy(source, target, 0, ${sourceType.size});
         target
@@ -326,7 +324,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     if (sourceType.elementT instanceof PointerType) {
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 1 : cairoSourceElementType.width;
       sourceLocationCode.push(
-        `let source_elem = warp_memory.read_id(source_elem_loc, ${idAllocSize});`,
+        `let source_elem = ${memoryRead.name}(source_elem_loc, ${idAllocSize});`,
       );
     } else {
       sourceLocationCode.push(`let source_elem = ${memoryRead.name}(source_elem_loc);`);
@@ -424,10 +422,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         [this.requireImport(INT_CONVERSIONS, conversionFunc)],
       ];
     } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
-      return [
-        `let ${targetVar} = felt_to_uint256(${sourceVar});`,
-        [this.requireImport(...FELT_TO_UINT256)],
-      ];
+      return [`let ${targetVar}: u256 = ${sourceVar}.into();`, []];
     } else {
       return [`let ${targetVar} = ${sourceVar};`, []];
     }
@@ -447,7 +442,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const conversionFunc = targetType.size === 32 ? 'warp_bytes_widen_256' : 'warp_bytes_widen';
 
     return [
-      `let (${targetVar}) = ${conversionFunc}(${sourceVar}, ${widthDiff * 8});`,
+      `let ${targetVar} = ${conversionFunc}(${sourceVar}, ${widthDiff * 8});`,
       [this.requireImport(BYTES_CONVERSIONS, conversionFunc)],
     ];
   }

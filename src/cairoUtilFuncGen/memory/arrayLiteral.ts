@@ -130,6 +130,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       elementCairoType instanceof CairoFelt
         ? this.requireImport(...WM_WRITE)
         : this.requireImport(...WM_STORE);
+
     const writes = [
       dynamic ? `warp_memory.write(start, ${arraySize});` : '',
       ...mapRange(arraySize, (n) => elementCairoType.serialiseMembers(`e${n}`))
@@ -141,6 +142,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
           );`,
         ),
     ];
+
     const calledFuncs: FunctionDefinition[] = dynamic
       ? [this.requireImport(...WM_WRITE), funcCall]
       : [funcCall];

@@ -240,9 +240,9 @@ const MEMORY_MODULE = ['warplib', 'warp_memory'];
 
 export const WARP_MEMORY: [string[], string] = [MEMORY_MODULE, 'WarpMemory'];
 const WARP_MEMORY_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryTrait'];
-export const WM_READ: [string[], string] = [[...WARP_MEMORY_TRAIT], 'warp_memory.read'];
-export const WM_WRITE: [string[], string] = [[...WARP_MEMORY_TRAIT], 'warp_memory.write'];
-export const WM_ALLOC: [string[], string] = [[...WARP_MEMORY_TRAIT], 'warp_memory.alloc'];
+export const WM_READ: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.read'];
+export const WM_WRITE: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.write'];
+export const WM_ALLOC: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.alloc'];
 export const WM_UNSAFE_READ: [string[], string] = [
   [...WARP_MEMORY_TRAIT],
   'warp_memory.unsafe_read',
