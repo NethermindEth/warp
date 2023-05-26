@@ -264,10 +264,9 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     );
 
     const memoryWrite = this.memoryWrite.getOrCreateFuncDef(targetType.elementT);
-    const targetCopyCode = [
-      `let target_elem_loc = warp_memory.index_dyn(target, index, ${targetTWidth});`,
-      `${memoryWrite.name}(target_elem_loc, target_elem);`,
-    ].join('\n');
+    const targetCopyCode = endent`
+      let target_elem_loc = warp_memory.index_dyn(target, index, ${targetTWidth});
+      ${memoryWrite.name}(target_elem_loc, target_elem);`;
 
     const funcName = `memory_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = endent`
@@ -356,7 +355,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       }
 
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}(source: felt252) -> (target: felt252) {
+      fn ${funcName}(source: felt252) -> felt252 {
         let len = warp_memory.length_dyn(source);
         let target = warp_memory.new_dynamic_array(len, ${targetWidth});
         ${funcName}_copy(source, target, 0, len);
