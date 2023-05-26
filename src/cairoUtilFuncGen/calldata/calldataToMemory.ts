@@ -126,7 +126,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         }
 
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(calldata : ${callDataType}) -> felt{
+        fn ${funcName}(calldata : ${callDataType}) -> felt252 {
             let mem_start = warp_memory.new_dynamic_array(calldata.len, ${memoryElementWidth});
             ${funcName}_elem(calldata, mem_start + 1, calldata.len);
             mem_start
