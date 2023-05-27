@@ -99,7 +99,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       code: [
         endent`
         #[implicits(warp_memory: WarpMemory)]
-        fn ${funcName}(${argString}) -> felt252{
+        fn ${funcName}(${argString}) -> felt252 {
             let start = warp_memory.unsafe_alloc(${structType.width});
             ${writeStructCode}
             return (start,);
