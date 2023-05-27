@@ -112,7 +112,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(loc : felt, mem_loc: felt) -> felt {
+        fn ${funcName}(loc : felt252, mem_loc: felt252) -> felt252 {
             ${copyInstructions}
             loc
         }
@@ -141,7 +141,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(loc : felt, mem_loc: felt) -> felt {
+        fn ${funcName}(loc : felt252, mem_loc: felt252) -> felt252 {
             ${copyInstructions}
             loc
         }
@@ -202,7 +202,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}_elem(storage_loc: felt, mem_loc : felt, length: felt) {
+        fn ${funcName}_elem(storage_loc: felt252, mem_loc : felt252, length: felt252) {
           if length == 0 {
               return ();
           }
@@ -212,9 +212,9 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         }
 
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(storage_loc : felt, mem_loc : felt) -> felt {
+        fn ${funcName}(storage_loc : felt252, mem_loc : felt252) -> felt252 {
             ${funcName}_elem(storage_loc, mem_loc, ${length});
-            stroage_loc
+            storage_loc
         }
       `,
       functionsCalled: calledFuncs,
@@ -275,7 +275,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}_elem(storage_id: felt252, mem_loc: felt252, length: felt252) -> (){
+        fn ${funcName}_elem(storage_id: felt252, mem_loc: felt252, length: felt252) {
             if length == 0 {
                 return ();
             }
@@ -295,7 +295,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         }
 
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(storage_id: felt, mem_loc: felt) -> felt {
+        fn ${funcName}(storage_id: felt252, mem_loc: felt252) -> felt252 {
             let length = ${lengthMappingName}::read(loc);
             let mem_length = warp_memory.dyn_array_length(mem_loc);
             ${lengthMappingName}.write(storage_id, mem_length);

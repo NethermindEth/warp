@@ -157,7 +157,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     const code = endent`
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}(${cairoArgs}) -> felt252{
+      fn ${funcName}(${cairoArgs}) -> felt252 {
           // Get all sizes
           ${argSizes}
           let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};

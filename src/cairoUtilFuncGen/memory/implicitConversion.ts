@@ -29,6 +29,8 @@ import {
   WM_INDEX_DYN,
   WM_NEW,
   WM_GET_ID,
+  WM_UNSAFE_ALLOC,
+  INTO,
 } from '../../utils/importPaths';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -204,7 +206,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const funcName = `memory_conversion_static_to_static${this.generatedFunctionsDef.size}`;
     const code = endent`
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}_copy(source : felt252, target : felt252, index : felt252) {
+      fn ${funcName}_copy(source: felt252, target: felt252, index: felt252) {
          if index == ${sourceType.size}{
              return ();
          }
@@ -215,8 +217,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       }
 
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}(source : felt252) ->  felt252{
-         let target = wm_alloc(${allocSize});
+      fn ${funcName}(source: felt252) ->  felt252 {
+         let target = warp_memory.unsafe_alloc(${allocSize});
          ${funcName}_copy(source, target, 0);
          target
       }
@@ -226,10 +228,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport(...U128_FROM_FELT),
         sourceLocationFunc,
         ...calledFuncs,
         memoryWriteDef,
+        this.requireImport(...WM_UNSAFE_ALLOC),
       ],
     };
   }
@@ -271,7 +273,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const funcName = `memory_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = endent`
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}_copy(source : felt252, target : felt252, index : felt252, len : felt252){
+      fn ${funcName}_copy(source: felt252, target: felt252, index: felt252, len: felt252){
         if index == len {
             return ();
         }
@@ -281,7 +283,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         return ${funcName}_copy(source, target, next_index + 1, len);
       }
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}(source : felt252) -> felt252{
+      fn ${funcName}(source: felt252) -> felt252{
         let target = warp_memory.new_dynamic_array(${sourceType.size}, ${targetTWidth});
         ${funcName}_copy(source, target, 0, ${sourceType.size});
         target
@@ -344,7 +346,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const funcName = `memory_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
     const code = endent`
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}_copy(source : felt252, target : felt252, index : felt252, len : felt252){
+      fn ${funcName}_copy(source: felt252, target: felt252, index: felt252, len: felt252){
         if index == len{
           return ();
         }
@@ -421,7 +423,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         [this.requireImport(INT_CONVERSIONS, conversionFunc)],
       ];
     } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
-      return [`let ${targetVar}: u256 = ${sourceVar}.into();`, []];
+      return [`let ${targetVar}: u256 = ${sourceVar}.into();`, [this.requireImport(...INTO)]];
     } else {
       return [`let ${targetVar} = ${sourceVar};`, []];
     }
