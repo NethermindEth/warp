@@ -80,14 +80,15 @@ export const FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL: [string[], string] = [
   [...DYNAMIC_ARRAYS_UTIL],
   'fixed_bytes256_to_felt_dynamic_array_spl',
 ];
-export const U256_TO_FELT252: [string[], string] = [[...WARPLIB_MATHS, 'utils'], 'u256_to_felt252'];
-export const PACK_BYTES_FELT: [string[], string] = [[...WARPLIB_KECCAK], 'pack_bytes_felt'];
+export const PACK_BYTES_FELT: [string[], string] = [WARPLIB_KECCAK, 'pack_bytes_felt'];
 export const STRING_HASH: [string[], string] = [['warplib', 'string_hash'], 'string_hash'];
-export const WARP_KECCAK: [string[], string] = [[...WARPLIB_KECCAK], 'warp_keccak'];
-export const WARP_UINT256: [string[], string] = [[...INT_CONVERSIONS], 'warp_uint256'];
+export const WARP_KECCAK: [string[], string] = [WARPLIB_KECCAK, 'warp_keccak'];
+export const WARP_UINT256: [string[], string] = [INT_CONVERSIONS, 'warp_uint256'];
 export const ARRAY: [string[], string] = [['array'], 'Array'];
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
-export const U256_FROM_FELTS: [string[], string] = [[...INTEGER_CONVERSIONS], 'u256_from_felts'];
+
+export const U256_FROM_FELTS: [string[], string] = [INTEGER_CONVERSIONS, 'u256_from_felts'];
+export const U256_TO_FELT252: [string[], string] = [INTEGER_CONVERSIONS, 'u256_to_felt252'];
 export const FELT252_INTO_BOOL: [string[], string] = [
   [...INTEGER_CONVERSIONS],
   'felt252_into_bool',
