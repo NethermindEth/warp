@@ -234,6 +234,11 @@ export const CONTRACT_ADDRESS_FROM_FELT: [string[], string] = [
   'contract_address_try_from_felt252',
 ];
 
+export const UNSAFE_CONTRACT_ADDRESS_FROM_U256: [string[], string] = [
+  INTEGER_CONVERSIONS,
+  'unsafe_contract_address_from_u256',
+];
+
 export const INTO: [string[], string] = [['traits'], 'Into'];
 export const OPTION_TRAIT: [string[], string] = [['option'], 'OptionTrait'];
 

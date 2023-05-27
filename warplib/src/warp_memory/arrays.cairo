@@ -13,7 +13,7 @@ trait WarpMemoryArraysTrait {
     /// dynamic arrays: size is 1, because you need the length
     /// static arrays: size is its length times it's element type size
     /// structs: size is the sum of it's members
-    fn get_or_create_id(ref self: WarpMemory, location: felt252, size: felt252) -> felt252;
+    fn get_or_create_id(ref self: WarpMemory, pointer_position: felt252, size: felt252) -> felt252;
 
     /// Given the length and the felt size of an element, allocates the space
     /// in memory and returns a pointer to it

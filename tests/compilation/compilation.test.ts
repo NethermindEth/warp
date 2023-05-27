@@ -169,6 +169,7 @@ const expectedResults = new Map<string, ResultType>(
     ['typeConversion/implicitReturnConversion.sol', 'Success'],
     ['typeConversion/implicitTypeConv.sol', 'Success'],
     ['typeConversion/shifts.sol', 'Success'],
+    ['typeConversion/toAddressConversion.sol', 'Success'],
     ['typeConversion/unusedArrayConversion.sol', 'Success'],
     ['typeMinMax.sol', 'Success'],
     ['uint256StaticArrayCasting.sol', 'Success'],
