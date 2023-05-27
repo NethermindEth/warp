@@ -1,11 +1,9 @@
 use integer::u128_try_from_felt252;
 use integer::u256_from_felt252;
 use integer::u128_to_felt252;
-use serde::BoolSerde;
 use array::ArrayImpl;
 use option::OptionTrait;
 use option::OptionTraitImpl;
-use serde::BoolSerde;
 use starknet::ContractAddress;
 use traits::Into;
 use traits::TryInto;
