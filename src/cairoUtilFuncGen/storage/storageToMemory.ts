@@ -21,15 +21,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  DICT_WRITE,
-  U128_FROM_FELT,
-  UINT256_SUB,
-  WM_ALLOC,
-  WM_INDEX_DYN,
-  WM_NEW,
-  WM_UNSAFE_WRITE,
-} from '../../utils/importPaths';
+import { WM_ALLOC, WM_INDEX_DYN, WM_NEW, WM_UNSAFE_WRITE } from '../../utils/importPaths';
 import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
