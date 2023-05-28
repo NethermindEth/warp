@@ -30,10 +30,9 @@ import {
 import {
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
-  U256_TO_FELT252,
   U128_FROM_FELT,
-  WM_DYN_ARRAY_LENGTH,
   WM_NEW,
+  WM_UNSAFE_READ,
 } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
@@ -186,9 +185,9 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
         endent`
-          let size_${index} = warp_memory.read(arg_${index});
+          let size_${index} = warp_memory.unsafe_read(arg_${index});
         `,
-        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...U256_TO_FELT252)],
+        [this.requireImport(...WM_UNSAFE_READ)],
       ];
     }
 

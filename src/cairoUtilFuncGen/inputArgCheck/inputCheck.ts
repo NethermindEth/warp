@@ -38,7 +38,7 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
-import { IS_LE_FELT, U256_TO_FELT252, WARPLIB_EXT_INPUT_CHK } from '../../utils/importPaths';
+import { IS_LE_FELT, TRY_U256_TO_FELT252, WARPLIB_EXT_INPUT_CHK } from '../../utils/importPaths';
 import endent from 'endent';
 
 export class InputCheckGen extends StringIndexedFuncGen {
@@ -202,7 +202,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
     const importFuncs = [this.requireImport(...IS_LE_FELT)];
     if (takesUint) {
-      importFuncs.push(this.requireImport(...U256_TO_FELT252));
+      importFuncs.push(this.requireImport(...TRY_U256_TO_FELT252));
     }
 
     const nMembers = enumDef.vMembers.length;
