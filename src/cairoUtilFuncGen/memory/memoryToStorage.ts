@@ -329,17 +329,15 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         if (isReferenceType(type)) {
           const auxFunc = this.getOrCreateFuncDef(type);
           const copyCode = isDynamicArray(type)
-            ? [
-                `let ${elemLoc} = ${readFunc.name}(${add('mem_loc', memOffset)}, 1);`,
-                `let storage_dyn_array_loc = readId(${add('loc', storageOffset)});`,
-                `${auxFunc.name}(storage_dyn_array_loc, ${elemLoc});`,
-              ]
-            : [
-                `let ${elemLoc} = ${readFunc.name}(${add('mem_loc', memOffset)}, ${
-                  CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width
-                });`,
-                `${auxFunc.name}(${add('loc', storageOffset)}, ${elemLoc});`,
-              ];
+            ? endent`
+                let ${elemLoc} = ${readFunc.name}(${add('mem_loc', memOffset)}, 1);
+                let storage_dyn_array_loc = readId(${add('loc', storageOffset)});
+                ${auxFunc.name}(storage_dyn_array_loc, ${elemLoc});`
+            : endent`
+                let ${elemLoc} = ${readFunc.name}(${add('mem_loc', memOffset)}, ${
+                CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width
+              });
+                ${auxFunc.name}(${add('loc', storageOffset)}, ${elemLoc});`;
           return [
             [...code, ...copyCode],
             [...funcCalls, this.requireImport(...U128_FROM_FELT), readFunc, auxFunc],

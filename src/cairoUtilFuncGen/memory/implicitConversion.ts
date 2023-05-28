@@ -337,10 +337,9 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     );
 
     const memoryWrite = this.memoryWrite.getOrCreateFuncDef(targetType.elementT);
-    const targetCopyCode = [
-      `let target_elem_loc = warp_memory.index_dyn(target, index, ${targetTWidth});`,
-      `${memoryWrite.name}(target_elem_loc, target_elem);`,
-    ];
+    const targetCopyCode = endent`
+      let target_elem_loc = warp_memory.index_dyn(target, index, ${targetTWidth});
+      ${memoryWrite.name}(target_elem_loc, target_elem);`;
 
     const targetWidth = cairoTargetElementType.width;
     const funcName = `memory_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
@@ -352,7 +351,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         }
         ${sourceLocationCode.join('\n')}
         ${conversionCode}
-        ${targetCopyCode.join('\n')}
+        ${targetCopyCode}
         ${funcName}_copy(source, target, index + 1, len);
       }
 

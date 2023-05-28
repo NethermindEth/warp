@@ -12,7 +12,7 @@ import {
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { U128_FROM_FELT } from '../../utils/importPaths';
+import { WM_UNSAFE_ALLOC, WM_UNSAFE_WRITE } from '../../utils/importPaths';
 import { safeGetNodeType, typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
@@ -96,16 +96,17 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [
-        endent`
+      code: endent`
         #[implicits(warp_memory: WarpMemory)]
         fn ${funcName}(${argString}) -> felt252 {
             let start = warp_memory.unsafe_alloc(${structType.width});
             ${writeStructCode}
-            return (start,);
+            start
         }`,
-      ].join('\n'),
-      functionsCalled: [this.requireImport(...U128_FROM_FELT)],
+      functionsCalled: [
+        this.requireImport(...WM_UNSAFE_ALLOC),
+        this.requireImport(...WM_UNSAFE_WRITE),
+      ],
     };
   }
 }
