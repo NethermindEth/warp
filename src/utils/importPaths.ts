@@ -291,7 +291,7 @@ export const WM_READ_MULTIPLE: [string[], string] = [
   'warp_memory.read_multiple',
 ];
 
-const ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'accessors', 'WarpMemoryAccesssorTrait'];
+const ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'accessors', 'WarpMemoryAccessorTrait'];
 export const WM_RETRIEVE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.retrieve'];
 export const WM_STORE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.store'];
 export const WM_CREATE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.create'];
