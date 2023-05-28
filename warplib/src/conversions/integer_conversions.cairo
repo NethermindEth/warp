@@ -14,7 +14,7 @@ fn u256_from_felts(low_felt: felt252, high_felt: felt252) -> u256 {
     return u256 { low: low_u128, high: high_u128 };
 }
 
-fn u256_to_felt252(x: u256) -> felt252 {
+fn try_u256_to_felt252(x: u256) -> felt252 {
     let MAX_FELT = u256_from_felt252(-1);
     if x > MAX_FELT {
         panic_with_felt252('Overflow in u256_to_felt252')
