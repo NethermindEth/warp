@@ -113,7 +113,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(mem_loc : felt252) -> ${outputType.toString()} {
+        fn ${funcName}(mem_loc: felt252) -> ${outputType.toString()} {
           ${code.join('\n')}
           ${outputType.toString()}(${mapRange(structDef.vMembers.length, (n) => `member${n}`)})
         }

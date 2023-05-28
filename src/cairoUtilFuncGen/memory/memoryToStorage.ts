@@ -112,7 +112,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(loc : felt252, mem_loc: felt252) -> felt252 {
+        fn ${funcName}(loc: felt252, mem_loc: felt252) -> felt252 {
             ${copyInstructions}
             loc
         }
@@ -141,7 +141,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(loc : felt252, mem_loc: felt252) -> felt252 {
+        fn ${funcName}(loc: felt252, mem_loc: felt252) -> felt252 {
             ${copyInstructions}
             loc
         }
@@ -202,7 +202,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}_elem(storage_loc: felt252, mem_loc : felt252, length: felt252) {
+        fn ${funcName}_elem(storage_loc: felt252, mem_loc: felt252, length: felt252) {
           if length == 0 {
               return ();
           }
