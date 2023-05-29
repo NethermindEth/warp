@@ -212,7 +212,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         }
 
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(storage_loc : felt252, mem_loc : felt252) -> felt252 {
+        fn ${funcName}(storage_loc: felt252, mem_loc: felt252) -> felt252 {
             ${funcName}_elem(storage_loc, mem_loc, ${length});
             storage_loc
         }

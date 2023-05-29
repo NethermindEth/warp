@@ -156,7 +156,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(loc : felt252) -> felt252{
+        fn ${funcName}(loc: felt252) -> felt252{
           let mem_start = warp_memory.alloc(${memoryType.width});
           ${copyInstructions.join('\n')}
           mem_start
@@ -245,7 +245,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}_elem(storage_name: felt252, mem_start: felt252, length: felt252) -> () {
+        fn ${funcName}_elem(storage_name: felt252, mem_start: felt252, length: felt252) {
             if length == 0 {
                 return ();
             }
