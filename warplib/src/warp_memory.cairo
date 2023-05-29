@@ -9,7 +9,7 @@ mod bytes;
 use bytes::WarpMemoryBytesTrait;
 
 mod accessors;
-use accessors::WarpMemoryAccesssorTrait;
+use accessors::WarpMemoryAccessorTrait;
 use accessors::WarpMemoryMultiCellAccessorTrait;
 
 
