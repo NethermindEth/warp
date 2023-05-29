@@ -23,7 +23,7 @@ import {
   createUint256TypeName,
 } from '../../utils/nodeTemplates';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { U256_TO_FELT252, WM_NEW } from '../../utils/importPaths';
+import { TRY_U256_TO_FELT252, WM_NEW } from '../../utils/importPaths';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
@@ -108,7 +108,7 @@ export class MemoryAllocations extends ReferenceSubPass {
 
     const uint256ToFeltDef = ast.registerImport(
       node,
-      ...U256_TO_FELT252,
+      ...TRY_U256_TO_FELT252,
       [['x_256', createUint256TypeName(ast)]],
       [['x_252', createFeltTypeName(ast)]],
     );
