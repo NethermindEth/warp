@@ -1,3 +1,4 @@
+/* eslint-disable */
 import * as fs from 'fs';
 
 import {
@@ -9,7 +10,7 @@ import {
   compileCluster,
   removeOutputDir,
 } from '../util';
-import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
+import { deploy, ensureTestnetContactable, invoke, starknetCliCall } from '../testnetInterface';
 
 import { describe } from 'mocha';
 import { expect } from 'chai';
@@ -18,6 +19,10 @@ import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
 import { EventItem } from '../../src/utils/event';
+import { BASE_PATH, compileCairo1 } from '../../src/starknetCli';
+import path from 'path';
+import { execSync } from 'child_process';
+import { DEVNET_URL } from '../config';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -27,6 +32,18 @@ interface AsyncTestCluster {
   asyncTest: AsyncTest;
   dependencies: Map<string, string[]>;
 }
+
+const accountDir = '.starknet_accounts_devnet';
+fs.mkdirSync(accountDir, { recursive: true });
+fs.writeFileSync(path.join(BASE_PATH, accountDir, 'starknet_open_zeppelin_accounts.json'), '{}');
+const address = execSync(`${starknetCliCall('new_account', '')} | awk 'NR==1 {printf $3}'`);
+console.log(`New address: ${address}`);
+const addFunds = `curl ${DEVNET_URL}/mint -H "Content-Type: application/json" -d '{"address": "${address}", "amount": 1000000000000000000}'`;
+console.log(addFunds);
+console.log(execSync(addFunds).toString());
+console.log('Deploying account:');
+const account_deployed = execSync(starknetCliCall('deploy_account', ''));
+console.log(account_deployed.toString());
 
 // Transpiling the solidity files using the `bin/warp transpile` CLI command.
 describe('Transpile solidity', function () {
@@ -88,7 +105,8 @@ describe('Transpiled contracts are valid cairo', function () {
           return Promise.resolve(null);
         }
         // This is will compile the test and declare all of the dependencies that it needs.
-        return compileCluster(test);
+        let compiled = compileCairo1(test.asyncTest.projectRoot);
+        return Promise.resolve({ stderr: compiled.success ? '' : 'Compilation failed' });
       },
     );
   });
@@ -151,7 +169,7 @@ describe('Compiled contracts are deployable', function () {
   }
 });
 
-/* 
+/*
  Test that the contracts that have been deployed have the correct output given a
  corresponding input. These inputs are received from the test/expectations/index.ts
  file which processes inputs and outputs from behaviour.ts and semantic.ts

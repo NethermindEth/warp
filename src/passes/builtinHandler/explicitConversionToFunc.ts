@@ -21,7 +21,7 @@ import {
 import { AST } from '../../ast/ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { ASTMapper } from '../../ast/mapper';
-import { NotSupportedYetError } from '../../utils/errors';
+import { TranspileFailedError } from '../../utils/errors';
 import { createAddressTypeName, createUint256TypeName } from '../../utils/nodeTemplates';
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
@@ -29,6 +29,7 @@ import { createCallToFunction } from '../../utils/functionGeneration';
 import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
 import { functionaliseBytesToFixedBytes } from '../../warplib/implementations/conversions/dynBytesToFixed';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { FELT_TO_UINT256, UNSAFE_CONTRACT_ADDRESS_FROM_U256 } from '../../utils/importPaths';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -64,6 +65,11 @@ export class ExplicitConversionToFunc extends ASTMapper {
     const typeTo = generalizeType(typeNameType.type)[0];
     const argType = generalizeType(safeGetNodeType(node.vArguments[0], ast.inference))[0];
 
+    const noMatchMsg = `Unexpected type ${printTypeNode(
+      argType,
+    )} received in conversion to ${printTypeNode(typeTo)}`;
+    const onFail = new TranspileFailedError(noMatchMsg);
+
     if (typeTo instanceof IntType) {
       if (argType instanceof FixedBytesType) {
         assert(
@@ -81,8 +87,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
         const replacementCall = createCallToFunction(
           ast.registerImport(
             node,
-            'warplib.maths.utils',
-            'felt_to_uint256',
+            ...FELT_TO_UINT256,
             [['address_arg', createAddressTypeName(false, ast)]],
             [['uint_ret', createUint256TypeName(ast)]],
           ),
@@ -91,32 +96,35 @@ export class ExplicitConversionToFunc extends ASTMapper {
         );
         ast.replaceNode(node, replacementCall);
       } else {
-        throw new NotSupportedYetError(
-          `Unexpected type ${printTypeNode(argType)} in uint256 conversion`,
-        );
+        throw onFail;
       }
       return;
     }
 
     if (typeTo instanceof AddressType) {
-      if (
+      const operand = node.vArguments[0];
+      if (argType instanceof AddressType) {
+        ast.replaceNode(node, operand);
+      } else if (argType instanceof IntLiteralType) {
+        operand.typeString = 'address';
+        ast.replaceNode(node, operand);
+      } else if (
         (argType instanceof IntType && argType.nBits === 256) ||
         (argType instanceof FixedBytesType && argType.size === 32)
       ) {
         const replacementCall = createCallToFunction(
           ast.registerImport(
             node,
-            'warplib.maths.utils',
-            'uint256_to_address_felt',
+            ...UNSAFE_CONTRACT_ADDRESS_FROM_U256,
             [['uint_arg', createUint256TypeName(ast)]],
             [['address_ret', createAddressTypeName(false, ast)]],
           ),
-          [node.vArguments[0]],
+          [operand],
           ast,
         );
         ast.replaceNode(node, replacementCall);
       } else {
-        ast.replaceNode(node, node.vArguments[0]);
+        throw onFail;
       }
       return;
     }
@@ -126,26 +134,20 @@ export class ExplicitConversionToFunc extends ASTMapper {
         const replacementCall = createCallToFunction(
           ast.registerImport(
             node,
-            'warplib.maths.utils',
-            'felt_to_uint256',
+            ...FELT_TO_UINT256,
             [['address_arg', createAddressTypeName(false, ast)]],
             [['uint_ret', createUint256TypeName(ast)]],
           ),
           [node.vArguments[0]],
           ast,
         );
-
         ast.replaceNode(node, replacementCall);
-        return;
       } else if (argType instanceof BytesType) {
         functionaliseBytesToFixedBytes(node, typeTo, ast);
-        return;
       } else if (argType instanceof FixedBytesType) {
         functionaliseFixedBytesConversion(node, ast);
-        return;
       } else if (argType instanceof IntLiteralType) {
         ast.replaceNode(node, literalToFixedBytes(node.vArguments[0], typeTo));
-        return;
       } else if (argType instanceof IntType) {
         assert(
           typeTo.size * 8 >= argType.nBits,
@@ -154,12 +156,13 @@ export class ExplicitConversionToFunc extends ASTMapper {
         const operand = node.vArguments[0];
         operand.typeString = node.typeString;
         ast.replaceNode(node, operand);
-        return;
       } else if (argType instanceof StringLiteralType) {
         const replacement = literalToFixedBytes(node.vArguments[0], typeTo);
         ast.replaceNode(node, replacement);
-        return;
+      } else {
+        throw onFail;
       }
+      return;
     }
 
     if (typeTo instanceof BytesType || typeTo instanceof StringType) {
@@ -171,9 +174,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
       }
     }
 
-    throw new NotSupportedYetError(
-      `${printTypeNode(argType)} to ${printTypeNode(typeTo)} conversion not supported yet`,
-    );
+    throw onFail;
   }
 }
 

@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ASTNode,
   DataLocation,
@@ -11,6 +12,7 @@ import {
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
 import { createCairoGeneratedFunction, createCallToFunction } from '../utils/functionGeneration';
+import { IS_LE_FELT, NARROW_SAFE, U128_FROM_FELT } from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from './base';
@@ -62,33 +64,27 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     const input256Bits = type.nBits === 256;
     const funcName = `enum_bound_check_${enumDef.name}` + (input256Bits ? '_256' : '');
 
-    const imports = [this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt')];
+    const imports = [this.requireImport(...IS_LE_FELT)];
     if (input256Bits) {
-      imports.push(
-        this.requireImport('warplib.maths.utils', 'narrow_safe'),
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      );
+      imports.push(this.requireImport(...NARROW_SAFE), this.requireImport(...U128_FROM_FELT));
     }
 
-    const implicits = '{range_check_ptr : felt}';
     const nMembers = enumDef.vMembers.length;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}${implicits}(${
-          input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'
-        }) -> (arg: felt){`,
-        '    alloc_locals;',
-        input256Bits ? ['    let (arg) = narrow_safe(arg_Uint256);'].join('\n') : ``,
-        `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
-        `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
-          nMembers - 1
-        }]."){`,
-        `        assert 1 = inRange;`,
-        `    }`,
-        `    return (arg,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(${input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'}) -> (arg: felt){
+            alloc_locals;
+            ${input256Bits ? 'let (arg) = narrow_safe(arg_Uint256);' : ``}
+            let inRange : felt = is_le_felt(arg, ${nMembers - 1});
+            with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
+              nMembers - 1
+            }]."){
+                assert 1 = inRange;
+            }
+            return (arg,);
+        }
+      `,
       functionsCalled: imports,
     };
     return funcInfo;

@@ -25,9 +25,13 @@ import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
-
-const IMPLICITS =
-  '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
+import {
+  BYTES_CONVERSIONS,
+  FELT_TO_UINT256,
+  INT_CONVERSIONS,
+  U128_FROM_FELT,
+} from '../../utils/importPaths';
+import endent from 'endent';
 
 // TODO: Add checks for expressions locations when generating
 export class ImplicitArrayConversion extends StringIndexedFuncGen {
@@ -173,13 +177,13 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       TypeConversionContext.CallDataRef,
     ).toString();
     const funcName = `calldata_conversion_static_to_static${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}${IMPLICITS}(storage_loc: felt, arg: ${cairoSourceTypeName}){`,
-      `alloc_locals;`,
-      ...copyInstructions,
-      '    return ();',
-      '}',
-    ].join('\n');
+    const code = endent`
+      func ${funcName}(storage_loc: felt, arg: ${cairoSourceTypeName}){
+      alloc_locals;
+      ${copyInstructions.join('\n')}
+          return ();
+      }
+    `;
 
     return {
       name: funcName,
@@ -216,19 +220,19 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       TypeConversionContext.CallDataRef,
     ).toString();
     const funcName = `calldata_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}${IMPLICITS}(ref: felt, arg: ${cairoSourceTypeName}){`,
-      `alloc_locals;`,
-      `    ${optionalCode}`,
-      ...copyInstructions,
-      '    return ();',
-      '}',
-    ].join('\n');
+    const code = endent`
+      func ${funcName}(ref: felt, arg: ${cairoSourceTypeName}){
+          alloc_locals;
+          ${optionalCode}
+          ${copyInstructions}
+          return ();
+      }
+    `;
     return {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
+        this.requireImport(...U128_FROM_FELT),
         ...requiredFunctions,
         ...optionalImport,
       ],
@@ -261,25 +265,26 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     assert(cairoSourceType instanceof CairoDynArray);
     const funcName = `calldata_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
     const recursiveFuncName = `${funcName}_helper`;
-    const code = [
-      `func ${recursiveFuncName}${IMPLICITS}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
-      `    alloc_locals;`,
-      `    if (len == 0){`,
-      `      return ();`,
-      `    }`,
-      `    let (storage_loc) = ${arrayDef.name}(ref, Uint256(target_index, 0));`,
-      copyInstructions(),
+    const code = endent`
+      func ${recursiveFuncName}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){
+          alloc_locals;
+          if (len == 0){
+            return ();
+          }
+          let (storage_loc) = ${arrayDef.name}(ref, Uint256(target_index, 0));
+          ${copyInstructions()}
+          return ${recursiveFuncName}(ref, len - 1, ptr + ${
+      cairoSourceType.ptr_member.width
+    }, target_index+ 1 );
+      }
 
-      `    return ${recursiveFuncName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
-      `}`,
-      ``,
-      `func ${funcName}${IMPLICITS}(ref: felt, source: ${cairoSourceType.toString()}){`,
-      `     alloc_locals;`,
-      `    ${dynArrayLength.name}.write(ref, Uint256(source.len, 0));`,
-      `    ${recursiveFuncName}(ref, source.len, source.ptr, 0);`,
-      '    return ();',
-      '}',
-    ].join('\n');
+      func ${funcName}(ref: felt, source: ${cairoSourceType.toString()}){
+          alloc_locals;
+          ${dynArrayLength.name}.write(ref, Uint256(source.len, 0));
+          ${recursiveFuncName}(ref, source.len, source.ptr, 0);
+          return ();
+      }
+    `;
 
     return { name: funcName, code: code, functionsCalled: [...requiredFunctions, dynArrayLength] };
   }
@@ -302,26 +307,26 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         ];
       }
       if (targetElementT.signed) {
-        const conversionFunc = this.requireImport(
-          'warplib.maths.int_conversions',
+        const convertionFunc = this.requireImport(
+          INT_CONVERSIONS,
           `warp_int${sourceElementT.nBits}_to_int${targetElementT.nBits}`,
         );
         return [
           (index, offset) =>
-            [
-              `    let (arg_${index}) = ${conversionFunc.name}(arg[${index}]);`,
-              `    ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});`,
-            ].join('\n'),
-          [writeToStorage, conversionFunc],
+            endent`
+                let (arg_${index}) = ${convertionFunc.name}(arg[${index}]);
+                ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});
+            `,
+          [writeToStorage, convertionFunc],
         ];
       }
-      const toUintFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+      const toUintFunc = this.requireImport(...FELT_TO_UINT256);
       return [
         (index, offset) =>
-          [
-            `    let (arg_${index}) = ${toUintFunc.name}(arg[${index}]);`,
-            `    ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});`,
-          ].join('\n'),
+          endent`
+              let (arg_${index}) = ${toUintFunc.name}(arg[${index}]);
+              ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});
+          `,
         [writeToStorage, toUintFunc],
       ];
     }
@@ -331,17 +336,17 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       const writeToStorage = this.storageWriteGen.getOrCreateFuncDef(targetElementT);
       if (targetElementT.size > sourceElementT.size) {
         const widenFunc = this.requireImport(
-          'warplib.maths.bytes_conversions',
+          BYTES_CONVERSIONS,
           `warp_bytes_widen${targetElementT.size === 32 ? '_256' : ''}`,
         );
         return [
           (index, offset) =>
-            [
-              `    let (arg_${index}) = ${widenFunc.name}(arg[${index}], ${
-                (targetElementT.size - sourceElementT.size) * 8
-              });`,
-              `    ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});`,
-            ].join('\n'),
+            endent`
+                  let (arg_${index}) = ${widenFunc.name}(arg[${index}], ${
+              (targetElementT.size - sourceElementT.size) * 8
+            });
+                  ${writeToStorage.name}(${add('storage_loc', offset)}, arg_${index});
+            `,
           [writeToStorage, widenFunc],
         ];
       }
@@ -355,11 +360,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const auxFunc = this.getOrCreateFuncDef(targetElementT, sourceElementT);
     return [
       isDynamicArray(targetElementT)
-        ? (index, offset) =>
-            [
-              `    let (ref_${index}) = readId(${add('storage_loc', offset)});`,
-              `    ${auxFunc.name}(ref_${index}, arg[${index}]);`,
-            ].join('\n')
+        ? (index, offset) => endent`
+          let (ref_${index}) = readId(${add('storage_loc', offset)});
+          ${auxFunc.name}(ref_${index}, arg[${index}]);
+          `
         : (index, offset) => `    ${auxFunc.name}(${add('storage_loc', offset)}, arg[${index}]);`,
       [auxFunc],
     ];
@@ -378,37 +382,36 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       const writeDef = this.storageWriteGen.getOrCreateFuncDef(targetElmType);
       if (targetElmType.nBits === sourceElmType.nBits) {
         return [
-          (index) =>
-            [
-              `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-              `    ${writeDef.name}(storage_loc${index}, arg[${index}]);`,
-            ].join('\n'),
+          (index) => endent`
+              let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});
+              ${writeDef.name}(storage_loc${index}, arg[${index}]);
+            `,
           [arrayDef, writeDef],
         ];
       }
       if (targetElmType.signed) {
         const conversionFunc = this.requireImport(
-          'warplib.maths.int_conversions',
+          INT_CONVERSIONS,
           `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
         );
         return [
           (index) =>
-            [
-              `    let (arg_${index}) = ${conversionFunc.name}(arg[${index}]);`,
-              `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-              `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
-            ].join('\n'),
+            endent`
+                let (arg_${index}) = ${conversionFunc.name}(arg[${index}]);
+                let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});
+                ${writeDef.name}(storage_loc${index}, arg_${index});
+            `,
           [arrayDef, writeDef, conversionFunc],
         ];
       }
-      const toUintFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+      const toUintFunc = this.requireImport(...FELT_TO_UINT256);
       return [
         (index) =>
-          [
-            `    let (arg_${index}) = ${toUintFunc.name}(arg[${index}]);`,
-            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
-          ].join('\n'),
+          endent`
+              let (arg_${index}) = ${toUintFunc.name}(arg[${index}]);
+              let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});
+              ${writeDef.name}(storage_loc${index}, arg_${index});
+          `,
         [arrayDef, writeDef, toUintFunc],
       ];
     }
@@ -420,27 +423,27 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
       if (targetElmType.size > sourceElmType.size) {
         const widenFunc = this.requireImport(
-          'warplib.maths.bytes_conversions',
+          BYTES_CONVERSIONS,
           `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
         );
         const bits = (targetElmType.size - sourceElmType.size) * 8;
         return [
           (index) =>
-            [
-              `    let (arg_${index}) = ${widenFunc.name}(arg[${index}], ${bits});`,
-              `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-              `    ${writeDef.name}(storage_loc${index}, arg_${index});`,
-            ].join('\n'),
+            endent`
+                let (arg_${index}) = ${widenFunc.name}(arg[${index}], ${bits});
+                let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});
+                ${writeDef.name}(storage_loc${index}, arg_${index});
+            `,
           [arrayDef, writeDef, widenFunc],
         ];
       }
 
       return [
         (index) =>
-          [
-            `    let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `    ${writeDef.name}(storage_loc${index}, arg[${index}]);`,
-          ].join('\n'),
+          endent`
+              let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});
+              ${writeDef.name}(storage_loc${index}, arg[${index}]);
+          `,
         [arrayDef, writeDef],
       ];
     }
@@ -454,24 +457,24 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (isDynamicArray(targetElmType)) {
       return [
         (index) =>
-          [
-            `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-            `     let (ref_${index}) = readId(storage_loc${index});`,
+          endent`
+            let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});
+            let (ref_${index}) = readId(storage_loc${index});
             // TODO: Potential bug here: when array size is reduced, remaining elements must be
             // deleted. Investigate
-            `     ${dynArrayLength.name}.write(ref_${index}, ${uint256(sourceSize)});`,
-            `     ${auxFunc.name}(ref_${index}, arg[${index}]);`,
-          ].join('\n'),
+            ${dynArrayLength.name}.write(ref_${index}, ${uint256(sourceSize)});
+            ${auxFunc.name}(ref_${index}, arg[${index}]);
+          `,
         [arrayDef, auxFunc, dynArrayLength],
       ];
     }
 
     return [
       (index) =>
-        [
-          `     let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});`,
-          `    ${auxFunc.name}(storage_loc${index}, arg[${index}]);`,
-        ].join('\n'),
+        endent`
+            let (storage_loc${index}) = ${arrayDef.name}(ref, ${uint256(index)});
+            ${auxFunc.name}(storage_loc${index}, arg[${index}]);
+        `,
       [arrayDef, auxFunc],
     ];
   }
@@ -489,10 +492,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       assert(sourceElmType instanceof IntType);
       const conversionFunc = targetElmType.signed
         ? this.requireImport(
-            'warplib.maths.int_conversions',
+            INT_CONVERSIONS,
             `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
           )
-        : this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+        : this.requireImport(...FELT_TO_UINT256);
       return [
         () =>
           [
@@ -508,16 +511,16 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (targetElmType instanceof FixedBytesType) {
       assert(sourceElmType instanceof FixedBytesType);
       const widenFunc = this.requireImport(
-        'warplib.maths.bytes_conversions',
+        BYTES_CONVERSIONS,
         `warp_bytes_widen${targetElmType.size === 32 ? '_256' : ''}`,
       );
       const bits = (targetElmType.size - sourceElmType.size) * 8;
       return [
         () =>
-          [
-            `   let (val) = ${widenFunc.name}(ptr[0], ${bits});`,
-            `   ${writeDef.name}(storage_loc, val);`,
-          ].join('\n'),
+          endent`
+            let (val) = ${widenFunc.name}(ptr[0], ${bits});
+            ${writeDef.name}(storage_loc, val);
+          `,
         [writeDef, widenFunc],
       ];
     }
@@ -526,9 +529,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     return [
       isDynamicArray(targetElmType)
         ? () =>
-            [`let (ref_name) = readId(storage_loc);`, `${auxFunc.name}(ref_name, ptr[0]);`].join(
-              '\n',
-            )
+            endent`
+            let (ref_name) = readId(storage_loc);
+            ${auxFunc.name}(ref_name, ptr[0]);
+          `
         : () => `${auxFunc.name}(storage_loc, ptr[0]);`,
       [auxFunc],
     ];

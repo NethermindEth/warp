@@ -1,21 +1,14 @@
 import assert from 'assert';
-import {
-  ASTNode,
-  EventDefinition,
-  FunctionCall,
-  FunctionDefinition,
-  SourceUnit,
-} from 'solc-typed-ast';
+import { ASTNode, EventDefinition, FunctionCall, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
-import { Implicits, registerImportsForImplicit } from '../utils/implicits';
-import { isExternallyVisible, union } from '../utils/utils';
+import { Implicits } from '../utils/utils';
+import { union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
-import { EMIT_PREFIX } from '../export';
-import { parseImplicits } from '../utils/cairoParsing';
+import { getRawCairoFunctionInfo } from '../utils/cairoParsing';
 
 export class AnnotateImplicits extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -56,7 +49,6 @@ export class AnnotateImplicits extends ASTMapper {
       node.raw,
     );
     ast.replaceNode(node, annotatedFunction);
-    implicits.forEach((i) => registerImportsForImplicit(ast, annotatedFunction, i));
     node.children.forEach((child) => this.dispatchVisit(child, ast));
   }
 }
@@ -97,15 +89,6 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
       extractImplicitFromStubs(node, result);
       return node === this.root ? result : union(result, this.commonVisit(node, ast));
     }
-    if (node.implemented && isExternallyVisible(node)) {
-      result.add('range_check_ptr');
-      result.add('syscall_ptr');
-    }
-    if (node.isConstructor) {
-      result.add('syscall_ptr');
-      result.add('pedersen_ptr');
-      result.add('range_check_ptr');
-    }
 
     if (node === this.root) return result;
     return union(result, this.commonVisit(node, ast));
@@ -121,20 +104,11 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     ) {
       this.dispatchVisit(node.vReferencedDeclaration, ast).forEach((defn) => result.add(defn));
     }
-
-    const sourceUnit = node.getClosestParentByType(SourceUnit);
-    const referencedSourceUnit = node.vReferencedDeclaration?.getClosestParentByType(SourceUnit);
-    if (referencedSourceUnit !== sourceUnit || node.vFunctionName.startsWith(EMIT_PREFIX)) {
-      result.add('range_check_ptr');
-      result.add('syscall_ptr');
-    }
     return result;
   }
 
   visitEventDefinition(node: EventDefinition, ast: AST): Set<Implicits> {
     const result = this.commonVisit(node, ast);
-    result.add('syscall_ptr');
-    result.add('range_check_ptr');
     return result;
   }
 }
@@ -142,9 +116,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicits>) {
   const cairoCode = getDocString(node.documentation);
   assert(cairoCode !== undefined);
-  const funcSignature = cairoCode.match(/func .+\{(.+)\}/);
-  if (funcSignature === null) return;
+  const rawCairoFunctionInfo = getRawCairoFunctionInfo(cairoCode);
 
-  const implicits = parseImplicits(funcSignature[1]);
-  implicits.forEach((impl) => result.add(impl));
+  rawCairoFunctionInfo.implicits.forEach((impl) => result.add(impl));
 }

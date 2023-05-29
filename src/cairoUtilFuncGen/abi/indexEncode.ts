@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   ArrayType,
   generalizeType,
@@ -14,6 +15,18 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import {
+  ALLOC,
+  BITWISE_BUILTIN,
+  DYNAMIC_ARRAYS_UTIL,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  NARROW_SAFE,
+  U128_FROM_FELT,
+  WM_DYN_ARRAY_LENGTH,
+  WM_INDEX_DYN,
+  WM_NEW,
+} from '../../utils/importPaths';
+import {
   getElementType,
   getPackedByteSize,
   isAddressType,
@@ -26,9 +39,6 @@ import { uint256 } from '../../warplib/utils';
 import { delegateBasedOnType, GeneratedFunctionInfo, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase, removeSizeInfo } from './base';
-
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
 /**
  * It is a special class used for encoding of indexed arguments in events.
@@ -67,26 +77,27 @@ export class IndexEncode extends AbiBase {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
-      `  let bytes_index : felt = 0;`,
-      `  let (bytes_array : felt*) = alloc();`,
-      ...encodings,
-      `  let (max_length256) = felt_to_uint256(bytes_index);`,
-      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)});`,
-      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_index);`,
-      `  return (mem_ptr,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(${cairoParams}) -> (result_ptr : felt){
+        alloc_locals;
+        let bytes_index : felt = 0;
+        let (bytes_array : felt*) = alloc();
+        ${encodings.join('\n')}
+        let (max_length256) = felt_to_uint256(bytes_index);
+        let (mem_ptr) = wm_new(max_length256, ${uint256(1)});
+        felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_index);
+        return (mem_ptr,);
+      }
+    `;
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-      this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin'),
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
+      this.requireImport(...ALLOC),
+      this.requireImport(...BITWISE_BUILTIN),
+      this.requireImport(...U128_FROM_FELT),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...WM_NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
     ];
 
     const cairoFunc = {
@@ -145,13 +156,13 @@ export class IndexEncode extends AbiBase {
     const func = this.getOrCreateEncoding(type, padding);
     if (isDynamicallySized(type, this.ast.inference) || isStruct(type)) {
       return [
-        [
-          `let (${newIndexVar}) = ${func.name}(`,
-          `  bytes_index,`,
-          `  bytes_array,`,
-          `  ${varToEncode}`,
-          `);`,
-        ].join('\n'),
+        endent`
+          let (${newIndexVar}) = ${func.name}(
+            bytes_index,
+            bytes_array,
+            ${varToEncode}
+          );
+        `,
         [func],
       ];
     }
@@ -160,15 +171,15 @@ export class IndexEncode extends AbiBase {
     if (type instanceof ArrayType) {
       assert(type.size !== undefined);
       return [
-        [
-          `let (${newIndexVar}) = ${func.name}(`,
-          `  bytes_index,`,
-          `  bytes_array,`,
-          `  0,`,
-          `  ${type.size},`,
-          `  ${varToEncode},`,
-          `);`,
-        ].join('\n'),
+        endent`
+          let (${newIndexVar}) = ${func.name}(
+            bytes_index,
+            bytes_array,
+            0,
+            ${type.size},
+            ${varToEncode},
+          );
+        `,
         [func],
       ];
     }
@@ -181,7 +192,7 @@ export class IndexEncode extends AbiBase {
     // so they should be converted to Uint256 accordingly
     if (size < 32 || isAddressType(type)) {
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
-      importedFunc.push(this.requireImport(`warplib.maths.utils`, 'felt_to_uint256'));
+      importedFunc.push(this.requireImport(...FELT_TO_UINT256));
       varToEncode = `${varToEncode}256`;
     }
     instructions.push(
@@ -200,33 +211,34 @@ export class IndexEncode extends AbiBase {
 
     const tailEncoding = this.createDynamicArrayTailEncoding(type);
     const name = `${this.functionName}_head_dynamic_array_spl${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  bytes_index: felt,`,
-      `  bytes_array: felt*,`,
-      `  mem_ptr : felt`,
-      `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
-      `  let (length256) = wm_dyn_array_length(mem_ptr);`,
-      `  let (length) = narrow_safe(length256);`,
-      `  // Storing the element values encoding`,
-      `  let (new_index) = ${tailEncoding.name}(`,
-      `    bytes_index,`,
-      `    bytes_array,`,
-      `    0,`,
-      `    length,`,
-      `    mem_ptr`,
-      `  );`,
-      `  return (`,
-      `    final_bytes_index=new_index,`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index: felt,
+        bytes_array: felt*,
+        mem_ptr : felt
+      ) -> (final_bytes_index : felt){
+        alloc_locals;
+        let (length256) = wm_dyn_array_length(mem_ptr);
+        let (length) = narrow_safe(length256);
+        // Storing the element values encoding
+        let (new_index) = ${tailEncoding.name}(
+          bytes_index,
+          bytes_array,
+          0,
+          length,
+          mem_ptr
+        );
+        return (
+          final_bytes_index=new_index,
+        );
+      }
+      `;
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.maths.utils', 'narrow_safe'),
+      this.requireImport(...WM_DYN_ARRAY_LENGTH),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...NARROW_SAFE),
     ];
 
     const funcInfo = { name, code, functionsCalled: [...importedFuncs, tailEncoding] };
@@ -251,29 +263,30 @@ export class IndexEncode extends AbiBase {
       'elem',
     );
     const name = `${this.functionName}_tail_dynamic_array_spl${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  bytes_index : felt,`,
-      `  bytes_array : felt*,`,
-      `  index : felt,`,
-      `  length : felt,`,
-      `  mem_ptr : felt`,
-      `) -> (final_index : felt){`,
-      `  alloc_locals;`,
-      `  if (index == length){`,
-      `     return (final_index=bytes_index);`,
-      `  }`,
-      `  let (index256) = felt_to_uint256(index);`,
-      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});`,
-      `  let (elem) = ${readElement};`,
-      `  ${headEncodingCode}`,
-      `  return ${name}(bytes_index, bytes_array, index + 1, length, mem_ptr);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_array : felt*,
+        index : felt,
+        length : felt,
+        mem_ptr : felt
+      ) -> (final_index : felt){
+        alloc_locals;
+        if (index == length){
+           return (final_index=bytes_index);
+        }
+        let (index256) = felt_to_uint256(index);
+        let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTSize)});
+        let (elem) = ${readElement};
+        ${headEncodingCode}
+        return ${name}(bytes_index, bytes_array, index + 1, length, mem_ptr);
+      }
+      `;
 
     const importedFuncs = [
-      this.requireImport('warplib.memory', 'wm_index_dyn'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
+      this.requireImport(...WM_INDEX_DYN),
+      this.requireImport(...FELT_TO_UINT256),
     ];
 
     const funcInfo = {
@@ -296,29 +309,30 @@ export class IndexEncode extends AbiBase {
     const inlineEncoding = this.createArrayInlineEncoding(type);
 
     const name = `${this.functionName}_head_static_array_spl${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  bytes_index : felt,`,
-      `  bytes_array : felt*,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
-      `  let length = ${type.size};`,
-      `  // Storing the data values encoding`,
-      `  let (bytes_index) = ${inlineEncoding}(`,
-      `    bytes_index,`,
-      `    bytes_array,`,
-      `    0,`,
-      `    length,`,
-      `    mem_ptr`,
-      `  );`,
-      `  return (`,
-      `    final_bytes_index=new_bytes_index,`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_array : felt*,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt){
+        alloc_locals;
+        let length = ${type.size};
+        // Storing the data values encoding
+        let (bytes_index) = ${inlineEncoding}(
+          bytes_index,
+          bytes_array,
+          0,
+          length,
+          mem_ptr
+        );
+        return (
+          final_bytes_index=new_bytes_index,
+        );
+      }
+      `;
 
-    const importedFunc = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const importedFunc = this.requireImport(...FELT_TO_UINT256);
 
     const funcInfo = { name, code, functionsCalled: [importedFunc] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -343,30 +357,31 @@ export class IndexEncode extends AbiBase {
     );
 
     const name = `${this.functionName}_inline_array_spl${this.auxiliarGeneratedFunctions.size}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  bytes_index : felt,`,
-      `  bytes_array : felt*,`,
-      `  mem_index : felt,`,
-      `  mem_length : felt,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
-      `  if (mem_index == mem_length){`,
-      `     return (final_bytes_index=bytes_index);`,
-      `  }`,
-      `  let elem_loc = mem_ptr + ${mul('mem_index', elementTWidth)};`,
-      `  let (elem) = ${readElement};`,
-      `  ${headEncodingCode}`,
-      `  return ${name}(`,
-      `     bytes_index,`,
-      `     bytes_array,`,
-      `     mem_index + 1,`,
-      `     mem_length,`,
-      `     mem_ptr`,
-      `  );`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_array : felt*,
+        mem_index : felt,
+        mem_length : felt,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt){
+        alloc_locals;
+        if (mem_index == mem_length){
+           return (final_bytes_index=bytes_index);
+        }
+        let elem_loc = mem_ptr + ${mul('mem_index', elementTWidth)};
+        let (elem) = ${readElement};
+        ${headEncodingCode}
+        return ${name}(
+           bytes_index,
+           bytes_array,
+           mem_index + 1,
+           mem_length,
+           mem_ptr
+        );
+      }
+      `;
 
     const funcInfo = { name, code, functionsCalled: [...functionsCalled, readFunc] };
 
@@ -387,24 +402,25 @@ export class IndexEncode extends AbiBase {
     const inlineEncoding = this.createStructInlineEncoding(type, def);
 
     const name = `${this.functionName}_head_spl_${def.name}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  bytes_index : felt,`,
-      `  bytes_array : felt*,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
-      `  // Storing the data values encoding`,
-      `  let (bytes_index) = ${inlineEncoding}(`,
-      `    bytes_index,`,
-      `    bytes_array,`,
-      `    mem_ptr`,
-      `);`,
-      `  return (bytes_index,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_array : felt*,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt){
+        alloc_locals;
+        // Storing the data values encoding
+        let (bytes_index) = ${inlineEncoding}(
+          bytes_index,
+          bytes_array,
+          mem_ptr
+      );
+        return (bytes_index,);
+      }
+      `;
 
-    const importedFunction = this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const importedFunction = this.requireImport(...FELT_TO_UINT256);
 
     const funcInfo = { name, code, functionsCalled: [importedFunction, inlineEncoding] };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -433,12 +449,12 @@ export class IndexEncode extends AbiBase {
           `elem${index}`,
         );
         return [
-          [
-            `// Encoding member ${member.name}`,
-            `let (elem${index}) = ${readElement};`,
-            `${encoding}`,
-            `let mem_ptr = mem_ptr + ${elemWidth};`,
-          ].join('\n'),
+          endent`
+            // Encoding member ${member.name}
+            let (elem${index}) = ${readElement};
+            ${encoding}
+            let mem_ptr = mem_ptr + ${elemWidth};
+          `,
           [...functionsCalled, readFunc],
         ];
       },
@@ -453,17 +469,18 @@ export class IndexEncode extends AbiBase {
     );
 
     const name = `${this.functionName}_inline_struct_spl_${def.name}`;
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  bytes_index : felt,`,
-      `  bytes_array : felt*,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
-      `  alloc_locals;`,
-      ...instructions,
-      `  return (bytes_index,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${name}(
+        bytes_index : felt,
+        bytes_array : felt*,
+        mem_ptr : felt,
+      ) -> (final_bytes_index : felt){
+        alloc_locals;
+        ${instructions.join('\n')}
+        return (bytes_index,);
+      }
+    `;
 
     const funcInfo = { name, code, functionsCalled };
     const auxFunc = this.createAuxiliarGeneratedFunction(funcInfo);
@@ -474,17 +491,17 @@ export class IndexEncode extends AbiBase {
 
   private createStringOrBytesHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   private createStringOrBytesHeadEncodingWithoutPadding(): CairoImportFunctionDefinition {
     const funcName = 'bytes_to_felt_dynamic_array_spl_without_padding';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   private createValueTypeHeadEncoding(): CairoImportFunctionDefinition {
     const funcName = 'fixed_bytes256_to_felt_dynamic_array_spl';
-    return this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return this.requireImport(DYNAMIC_ARRAYS_UTIL, funcName);
   }
 
   protected readMemory(type: TypeNode, arg: string): [string, CairoFunctionDefinition] {

@@ -2,34 +2,20 @@ import { forAllWidths, mask, WarplibFunctionInfo } from '../../utils';
 
 const INDENT = ' '.repeat(4);
 
+// TODO: Check if cairo 1.0 validates outputs itself. Is it needed anymore?
 export function external_input_check_ints(): WarplibFunctionInfo {
   return {
     fileName: 'external_input_check_ints',
-    imports: [
-      'from starkware.cairo.common.math_cmp import is_le_felt',
-      'from starkware.cairo.common.uint256 import Uint256',
-    ],
+    imports: ['use warplib::maths::le::warp_le;'],
     functions: forAllWidths((int_width) => {
+      // These functions will not be needed when we transition to map solidity uintN to cairo uN
       if (int_width === 256) {
-        return [
-          `func warp_external_input_check_int256{range_check_ptr}(x : Uint256){`,
-          `${INDENT}alloc_locals;`,
-          `${INDENT}let inRangeHigh : felt = is_le_felt(x.high, ${mask(128)});`,
-          `${INDENT}let inRangeLow : felt = is_le_felt(x.low, ${mask(128)});`,
-          `${INDENT}with_attr error_message("Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128."){`,
-          `${INDENT.repeat(2)}assert 1 = (inRangeHigh * inRangeLow);`,
-          `${INDENT}}`,
-          `${INDENT}return();`,
-          `}\n`,
-        ].join('\n');
+        return 'fn warp_external_input_check_int256(x : u256){}\n';
       } else {
         return [
-          `func warp_external_input_check_int${int_width}{range_check_ptr}(x : felt){`,
-          `${INDENT}let inRange : felt = is_le_felt(x, ${mask(int_width)});`,
-          `${INDENT}with_attr error_message("Error: value out-of-bounds. Value must be less than 2**${int_width}."){`,
-          `${INDENT.repeat(2)}assert 1 = inRange;`,
-          `${INDENT}}`,
-          `${INDENT}return ();`,
+          `fn warp_external_input_check_int${int_width}(x : felt252){`,
+          `${INDENT}let max: felt252 = ${mask(int_width)};`,
+          `${INDENT}assert(warp_le(x, max), 'Error: value out-of-bounds.');`,
           `}\n`,
         ].join('\n');
       }

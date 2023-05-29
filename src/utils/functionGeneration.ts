@@ -23,7 +23,7 @@ import { AST } from '../ast/ast';
 import { CairoImportFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { CairoGeneratedFunctionDefinition } from '../ast/cairoNodes/cairoGeneratedFunctionDefinition';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
-import { Implicits } from './implicits';
+import { Implicits } from './utils';
 import { createIdentifier, createParameterList } from './nodeTemplates';
 import { isDynamicArray, safeGetNodeTypeInCtx } from './nodeTypeProcessing';
 import { toSingleExpression } from './utils';
@@ -115,7 +115,7 @@ export function createCairoGeneratedFunction(
 
 export function createCairoImportFunctionDefinition(
   funcName: string,
-  path: string,
+  path: string[],
   implicits: Set<Implicits>,
   params: ParameterInfo[],
   retParams: ParameterInfo[],
@@ -140,7 +140,7 @@ export function createCairoImportFunctionDefinition(
     implicits,
     createParameterList(createParameters(params, id, ast), ast),
     createParameterList(createParameters(retParams, id, ast), ast),
-    FunctionStubKind.FunctionDefStub,
+    options.stubKind ?? FunctionStubKind.FunctionDefStub,
     options.acceptsRawDArray,
     options.acceptsUnpackedStructArray,
   );
@@ -151,9 +151,12 @@ export function createCairoImportFunctionDefinition(
 
 export function createCairoImportStructDefinition(
   structName: string,
-  path: string,
+  path: string[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
+  options: CairoFunctionStubOptions = {
+    stubKind: FunctionStubKind.StructDefStub,
+  },
 ): CairoImportFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
 
@@ -172,7 +175,7 @@ export function createCairoImportStructDefinition(
     implicits,
     params,
     retParams,
-    FunctionStubKind.StructDefStub,
+    options.stubKind ?? FunctionStubKind.StructDefStub,
   );
   ast.setContextRecursive(funcDef);
   sourceUnit.insertAtBeginning(funcDef);

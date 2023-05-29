@@ -38,8 +38,8 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
-
-const IMPLICITS = '{range_check_ptr : felt}';
+import { IS_LE_FELT, NARROW_SAFE, WARPLIB_EXT_INPUT_CHK } from '../../utils/importPaths';
+import endent from 'endent';
 
 export class InputCheckGen extends StringIndexedFuncGen {
   public gen(nodeInput: VariableDeclaration | Expression, typeToCheck: TypeNode): FunctionCall {
@@ -67,22 +67,22 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
     if (type instanceof FixedBytesType)
       return this.requireImport(
-        'warplib.maths.external_input_check_ints',
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_ints'],
         `warp_external_input_check_int${type.size * 8}`,
       );
     if (type instanceof IntType)
       return this.requireImport(
-        'warplib.maths.external_input_check_ints',
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_ints'],
         `warp_external_input_check_int${type.nBits}`,
       );
     if (isAddressType(type))
       return this.requireImport(
-        'warplib.maths.external_input_check_address',
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_address'],
         `warp_external_input_check_address`,
       );
     if (type instanceof BoolType)
       return this.requireImport(
-        'warplib.maths.external_input_check_bool',
+        [...WARPLIB_EXT_INPUT_CHK, 'external_input_check_bool'],
         `warp_external_input_check_bool`,
       );
 
@@ -152,13 +152,13 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcName = `external_input_check_struct_${structDef.name}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(arg : ${cairoType.toString()}) -> (){`,
-        `alloc_locals;`,
-        ...inputCheckCode,
-        `return ();`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(arg : ${cairoType.toString()}) -> (){
+        alloc_locals;
+        ${inputCheckCode.join('\n')}
+        return ();
+        }
+      `,
       functionsCalled: funcCalls,
     };
     return funcInfo;
@@ -177,15 +177,15 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcName = `external_input_check_static_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(arg : ${cairoType.toString()}) -> (){`,
-        `alloc_locals;`,
-        ...mapRange(length, (index) => {
+      code: endent`
+        func ${funcName}(arg : ${cairoType.toString()}) -> (){
+        alloc_locals;
+        ${mapRange(length, (index) => {
           return [`${auxFunc.name}(arg[${index}]);`];
-        }),
-        `return ();`,
-        `}`,
-      ].join('\n'),
+        }).join('\n')}
+        return ();
+        }
+      `,
       functionsCalled: [auxFunc],
     };
     return funcInfo;
@@ -200,30 +200,32 @@ export class InputCheckGen extends StringIndexedFuncGen {
     // TODO: enum names are unique right?
     const funcName = `external_input_check_enum_${enumDef.name}`;
 
-    const importFuncs = [this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt')];
+    const importFuncs = [this.requireImport(...IS_LE_FELT)];
     if (takesUint) {
-      importFuncs.push(this.requireImport('warplib.maths.utils', 'narrow_safe'));
+      importFuncs.push(this.requireImport(...NARROW_SAFE));
     }
 
     const nMembers = enumDef.vMembers.length;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
-        takesUint
-          ? [
-              '    let (arg_0) = narrow_safe(arg);',
-              `    let inRange: felt = is_le_felt(arg_0, ${nMembers - 1});`,
-            ].join('\n')
-          : `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
-        `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
-          nMembers - 1
-        }]."){`,
-        `        assert 1 = inRange;`,
-        `    }`,
-        `    return ();`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){
+        ${
+          takesUint
+            ? endent`
+              let (arg_0) = narrow_safe(arg);
+              let inRange: felt = is_le_felt(arg_0, ${nMembers - 1});
+            `
+            : `let inRange : felt = is_le_felt(arg, ${nMembers - 1});`
+        }
+          with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
+            nMembers - 1
+          }]."){
+              assert 1 = inRange;
+          }
+          return ();
+        }
+      `,
       functionsCalled: importFuncs,
     };
     return funcInfo;
@@ -243,17 +245,17 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcName = `external_input_check_dynamic_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
-        `    alloc_locals;`,
-        `    if (len == 0){`,
-        `        return ();`,
-        `    }`,
-        `    ${calledFunction.name}(ptr[0]);`,
-        `    ${funcName}(len = len - 1, ptr = ptr + ${ptrType.to.width});`,
-        `    return ();`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        func ${funcName}(len: felt, ptr : ${ptrType.toString()}) -> (){
+            alloc_locals;
+            if (len == 0){
+                return ();
+            }
+            ${calledFunction.name}(ptr[0]);
+            ${funcName}(len = len - 1, ptr = ptr + ${ptrType.to.width});
+            return ();
+        }
+      `,
       functionsCalled: [calledFunction],
     };
     return funcInfo;

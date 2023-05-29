@@ -20,6 +20,13 @@ import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cai
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
+  ALLOC,
+  NARROW_SAFE,
+  U128_FROM_FELT,
+  U32_FROM_FELT,
+  WARPLIB_MEMORY,
+} from '../../utils/importPaths';
+import {
   getElementType,
   getSize,
   isDynamicArray,
@@ -31,9 +38,8 @@ import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 import { MemoryReadGen } from './memoryRead';
+import endent from 'endent';
 
-const IMPLICITS =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 export class MemoryToCallDataGen extends StringIndexedFuncGen {
   public constructor(
     private dynamicArrayStructGen: ExternalDynArrayStructConstructor,
@@ -113,16 +119,17 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const funcName = `wm_to_calldata${this.generatedFunctionsDef.size}_struct_${structDef.name}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
-        `    alloc_locals;`,
-        ...code,
-        `    return (${outputType.toString()}(${mapRange(
-          structDef.vMembers.length,
-          (n) => `member${n}`,
-        )}),);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        func ${funcName}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){
+          alloc_locals;
+          ${code.join('\n')}
+          return (${outputType.toString()}(${mapRange(
+        structDef.vMembers.length,
+        (n) => `member${n}`,
+      )}),);
+        }
+      `,
       functionsCalled: funcCalls,
     };
   }
@@ -151,13 +158,12 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const funcName = `wm_to_calldata_static_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){`,
-        `    alloc_locals;`,
-        ...copyCode,
-        `    return ((${mapRange(length, (n) => `member${n}`)}),);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        fn ${funcName}(mem_loc : felt) -> ${outputType.toString()} {
+          ${copyCode.join('\n')}
+          return (${mapRange(length, (n) => `member${n}`)});
+        }`,
       functionsCalled: funcCalls,
     };
   }
@@ -184,21 +190,22 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const funcName = `wm_to_calldata_dynamic_array${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        dynArrayReaderInfo.code,
-        `func ${funcName}${IMPLICITS}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
-        `    let (len_256) = wm_read_256(mem_loc);`,
-        `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
-        `    let (len_felt) = narrow_safe(len_256);`,
-        `    ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);`,
-        `    return (${calldataDynArrayStruct.name}(len=len_felt, ptr=ptr),);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        ${dynArrayReaderInfo.code}
+        #[implicit(warp_memory)]
+        func ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}){
+            alloc_locals;
+            let (len_256) = wm_read_256(mem_loc);
+            let (ptr : ${outputType.vPtr.toString()}) = alloc();
+            let (len_felt) = narrow_safe(len_256);
+            ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);
+            return (${calldataDynArrayStruct.name}(len=len_felt, ptr=ptr),);
+        }
+        `,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-        this.requireImport('warplib.maths.utils', 'narrow_safe'),
-        this.requireImport('warplib.memory', 'wm_read_256'),
+        this.requireImport(...ALLOC),
+        this.requireImport(...NARROW_SAFE),
+        this.requireImport([...WARPLIB_MEMORY], 'wm_read_256'),
         calldataDynArrayStruct,
         ...dynArrayReaderInfo.functionsCalled,
       ],
@@ -227,11 +234,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `let (mem_read1) = ${auxFunc.name}(mem_read0);`,
         `assert ptr[0] = mem_read1;`,
       ];
-      funcCalls = [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        auxFunc,
-        readFunc,
-      ];
+      funcCalls = [this.requireImport(...U128_FROM_FELT), auxFunc, readFunc];
     } else {
       code = [`let (mem_read0) = ${readFunc.name}(mem_loc);`, 'assert ptr[0] = mem_read0;'];
       funcCalls = [readFunc];
@@ -239,17 +242,18 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [
-        `func ${funcName}${IMPLICITS}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
-        `    alloc_locals;`,
-        `    if (len == 0){`,
-        `         return ();`,
-        `    }`,
-        ...code,
-        `    ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth});`,
-        `    return ();`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicit(warp_memory)]
+        func ${funcName}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){
+            alloc_locals;
+            if (len == 0){
+                 return ();
+            }
+            ${code.join('\n')}
+            ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth});
+            return ();
+        }
+      `,
       functionsCalled: funcCalls,
     };
   }
@@ -267,24 +271,18 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         : CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
       return [
         [
-          `let (read_${index}) = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(
-            allocSize,
-          )});`,
-          `let (member${index})= ${memberGetterFunc.name}(read_${index});`,
+          `let read_${index} = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(allocSize)});`,
+          `let member${index}= ${memberGetterFunc.name}(read_${index});`,
         ],
-        [
-          this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-          memberGetterFunc,
-          readFunc,
-        ],
+        [this.requireImport(...U128_FROM_FELT), memberGetterFunc, readFunc],
         offset + 1,
       ];
     }
 
     const memberFeltSize = CairoType.fromSol(type, this.ast).width;
     return [
-      [`let (member${index}) = ${readFunc.name}(${add('mem_loc', offset)});`],
-      [readFunc],
+      [`let member${index} = *warp_memory.at(u32_from_felt252(${add('mem_loc', offset)}));`],
+      [this.requireImport(...U32_FROM_FELT)],
       offset + memberFeltSize,
     ];
   }

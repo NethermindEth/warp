@@ -17,6 +17,7 @@ import {
 } from '../externalContractHandler/externalContractInterfaceInserter';
 import { assert } from 'console';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { GET_CONTRACT_ADDRESS } from '../../utils/importPaths';
 
 export class ThisKeyword extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -24,8 +25,7 @@ export class ThisKeyword extends ASTMapper {
       const replacementCall = createCallToFunction(
         ast.registerImport(
           node,
-          'starkware.starknet.common.syscalls',
-          'get_contract_address',
+          ...GET_CONTRACT_ADDRESS,
           [],
           [['address', typeNameFromTypeNode(safeGetNodeType(node, ast.inference), ast)]],
         ),
@@ -52,7 +52,7 @@ export class ThisKeyword extends ASTMapper {
           (contract) => contract.name === getTemporaryInterfaceName(currentContract.name),
         );
         if (contractIndex === -1) {
-          const insertedInterface = genContractInterface(currentContract, sourceUnit, ast);
+          const insertedInterface = genContractInterface(node, currentContract, sourceUnit, ast);
           replaceInterfaceWithCairoContract(insertedInterface, ast);
         }
       }

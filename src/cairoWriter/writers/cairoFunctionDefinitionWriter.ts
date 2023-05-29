@@ -1,8 +1,6 @@
 import assert from 'assert';
 import {
   ASTWriter,
-  ContractDefinition,
-  ContractKind,
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
@@ -11,11 +9,11 @@ import {
 import { CairoContract, CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
 import { error } from '../../utils/formatting';
-import { implicitOrdering, implicitTypes } from '../../utils/implicits';
 import { notNull } from '../../utils/typeConstructs';
 import { isExternallyVisible } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
+import endent from 'endent';
 
 export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
@@ -40,29 +38,32 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const body = this.getBody(node, writer);
 
     const returns = this.getReturns(node, writer);
-    const implicits = this.getImplicits(node);
 
     return [
-      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}{`, body, `}`]
+      [documentation, ...decorator, `fn ${name}(${args})${returns}{`, body, `}`]
         .filter(notNull)
         .join('\n'),
     ];
   }
 
   private getDecorator(node: CairoFunctionDefinition): string[] {
-    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    if (node.kind === FunctionKind.Constructor) return ['#[constructor]'];
     const decorators: string[] = [];
     if (node.kind === FunctionKind.Fallback) {
-      decorators.push('@raw_input');
-      if (node.vParameters.vParameters.length > 0) decorators.push('@raw_output');
+      decorators.push('#[raw_input]');
+      if (node.vParameters.vParameters.length > 0) decorators.push('#[raw_output]');
     }
 
     if (node.visibility === FunctionVisibility.External) {
       if (
         [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
       )
-        decorators.push('@view');
-      else decorators.push('@external');
+        decorators.push('#[view]');
+      else decorators.push('#[external]');
+    }
+
+    if (node.implicits.has('warp_memory')) {
+      decorators.push('#[implicit(warp_memory)]');
     }
 
     return decorators;
@@ -77,43 +78,19 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   private getBody(node: CairoFunctionDefinition, writer: ASTWriter): string | null {
     if (node.vBody === undefined) return null;
 
-    const [keccakPtrInit, [withKeccak, end]] =
-      node.implicits.has('keccak_ptr') && isExternallyVisible(node)
-        ? [
-            [
-              'let (local keccak_ptr_start : felt*) = alloc();',
-              'let keccak_ptr = keccak_ptr_start;',
-            ],
-            ['with keccak_ptr{', '}'],
-          ]
-        : [[], ['', '']];
-
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
-      return [
-        'alloc_locals;',
-        this.getConstructorStorageAllocation(node),
-        ...keccakPtrInit,
-        withKeccak,
-        writer.write(node.vBody),
-        end,
-      ]
+      return [this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
         .filter(notNull)
         .join('\n');
     }
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
-    const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
     return [
-      'alloc_locals;',
       this.getConstructorStorageAllocation(node),
-      ...keccakPtrInit,
-      'let (local warp_memory : DictAccess*) = default_dict_new(0);',
-      'local warp_memory_start: DictAccess* = warp_memory;',
-      'dict_write{dict_ptr=warp_memory}(0,1);',
-      `with warp_memory${keccakPtr}{`,
-      writer.write(node.vBody),
-      '}',
+      endent`let mut warp_memory: WarpMemory = MemoryTrait::initialize();
+      ${writer.write(node.vBody)}
+      `,
     ]
       .flat()
       .filter(notNull)
@@ -122,26 +99,13 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
   private getReturns(node: CairoFunctionDefinition, writer: ASTWriter): string {
     if (node.kind === FunctionKind.Constructor) return '';
-    return `-> (${writer.write(node.vReturnParameters)})`;
-  }
 
-  private getImplicits(node: CairoFunctionDefinition): string {
-    // Function in interfaces should not have implicit arguments written out
-    if (node.vScope instanceof ContractDefinition && node.vScope.kind === ContractKind.Interface) {
-      return '';
-    }
-
-    const implicits = [...node.implicits.values()].filter(
-      // External functions should not print the warp_memory or keccak_ptr implicit argument, even
-      // if they use them internally. Instead their contents are wrapped
-      // in code to initialise them
-      (i) => !isExternallyVisible(node) || (i !== 'warp_memory' && i !== 'keccak_ptr'),
-    );
-    if (implicits.length === 0) return '';
-    return `{${implicits
-      .sort(implicitOrdering)
-      .map((implicit) => `${implicit} : ${implicitTypes[implicit]}`)
-      .join(', ')}}`;
+    const returnStr = writer.write(node.vReturnParameters);
+    const paramLen = node.vReturnParameters.vParameters.length;
+    // Cairo1 does not need to always return a tuple as former versions
+    if (paramLen > 1) return `-> (${returnStr})`;
+    else if (paramLen === 1) return `-> ${returnStr}`;
+    else return ''; // No return specified so nothing to print
   }
 
   private getConstructorStorageAllocation(node: CairoFunctionDefinition): string | null {
@@ -152,8 +116,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         return null;
       }
       return [
-        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE.write(${contract.usedStorage});`,
-        contract.usedIds === 0 ? '' : `WARP_NAMEGEN.write(${contract.usedIds});`,
+        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE::write(${contract.usedStorage});`,
+        contract.usedIds === 0 ? '' : `WARP_NAMEGEN::write(${contract.usedIds});`,
       ].join(`\n`);
     }
     return null;

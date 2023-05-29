@@ -1,3 +1,4 @@
+import endent from 'endent';
 import {
   Expression,
   FunctionCall,
@@ -5,6 +6,7 @@ import {
   FunctionStateMutability,
   TypeNode,
   TypeName,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { typeNameFromTypeNode } from '../../export';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -58,28 +60,34 @@ export class StorageReadGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToRead: CairoType): GeneratedFunctionInfo {
+    const functionsCalled: FunctionDefinition[] = [];
     const funcName = `WS${this.generatedFunctionsDef.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
+
+    const [reads, pack, requiredImports] = serialiseReads(typeToRead, readFelt, readId);
+
+    requiredImports.map((i) => {
+      functionsCalled.push(this.requireImport(...i.import, [], [], { isTrait: i.isTrait }));
+    });
+
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}){`,
-        `    alloc_locals;`,
-        ...reads.map((s) => `    ${s}`),
-        `    return (${pack},);`,
-        '}',
-      ].join('\n'),
-      functionsCalled: [],
+      code: endent`
+        fn ${funcName}(loc: felt252) -> ${resultCairoType}{
+          ${reads.map((s) => `  ${s}`).join('\n')}
+          ${pack}
+        }
+      `,
+      functionsCalled: functionsCalled,
     };
     return funcInfo;
   }
 }
 
 function readFelt(offset: number): string {
-  return `let (read${offset}) = WARP_STORAGE.read(${add('loc', offset)});`;
+  return `let read${offset} = WARP_STORAGE::read(${add('loc', offset)});`;
 }
 
 function readId(offset: number): string {
-  return `let (read${offset}) = readId(${add('loc', offset)});`;
+  return `let read${offset} = readId(${add('loc', offset)});`;
 }

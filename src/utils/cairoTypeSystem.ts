@@ -49,7 +49,7 @@ export abstract class CairoType {
     context: TypeConversionContext = TypeConversionContext.Ref,
   ): CairoType {
     if (tp instanceof AddressType) {
-      return new CairoFelt();
+      return new CairoContractAddress();
     } else if (tp instanceof ArrayType) {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
@@ -74,7 +74,7 @@ export abstract class CairoType {
         return new CairoStaticArray(elementType, narrowedLength);
       }
     } else if (tp instanceof BoolType) {
-      return new CairoFelt();
+      return new CairoBool();
     } else if (tp instanceof BuiltinType) {
       throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
     } else if (tp instanceof BuiltinStructType) {
@@ -92,11 +92,11 @@ export abstract class CairoType {
           return new WarpLocation();
       }
     } else if (tp instanceof FixedBytesType) {
-      return tp.size === 32 ? CairoUint256 : new CairoFelt();
+      return new CairoUint(tp.size * 8);
     } else if (tp instanceof FunctionType) {
       throw new NotSupportedYetError('Serialising FunctionType not supported yet');
     } else if (tp instanceof IntType) {
-      return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
+      return new CairoUint(tp.nBits);
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {
@@ -137,7 +137,7 @@ export abstract class CairoType {
           );
         }
       } else if (tp.definition instanceof ContractDefinition) {
-        return new CairoFelt();
+        return new CairoContractAddress();
       } else if (tp.definition instanceof UserDefinedValueTypeDefinition) {
         return CairoType.fromSol(
           safeGetNodeType(tp.definition.underlyingType, ast.inference),
@@ -156,10 +156,60 @@ export abstract class CairoType {
 
 export class CairoFelt extends CairoType {
   get fullStringRepresentation(): string {
-    return '[Felt]';
+    return '[Felt252]';
   }
   toString(): string {
-    return 'felt';
+    return 'felt252';
+  }
+  get width(): number {
+    return 1;
+  }
+  serialiseMembers(name: string): string[] {
+    return [name];
+  }
+}
+
+export class CairoBool extends CairoType {
+  get fullStringRepresentation(): string {
+    return '[Bool]';
+  }
+  toString(): string {
+    return 'bool';
+  }
+  get width(): number {
+    return 1;
+  }
+  serialiseMembers(name: string): string[] {
+    return [name];
+  }
+}
+
+export class CairoUint extends CairoType {
+  constructor(public nBits: number = 256) {
+    super();
+  }
+  get fullStringRepresentation(): string {
+    return `[u${this.nBits}]`;
+  }
+  toString(): string {
+    return `u${this.nBits}`;
+  }
+  get width(): number {
+    if (this.nBits === 256) return 2;
+    return 1;
+  }
+  serialiseMembers(name: string): string[] {
+    if (this.nBits === 256) return [`${name}.low`, `${name}.high`];
+    return [name];
+  }
+}
+
+export class CairoContractAddress extends CairoType {
+  get fullStringRepresentation(): string {
+    return '[ContractAddress]';
+  }
+  toString(): string {
+    return 'ContractAddress';
   }
   get width(): number {
     return 1;
@@ -277,13 +327,7 @@ export class WarpLocation extends CairoFelt {
 
 export class MemoryLocation extends CairoFelt {}
 
-export const CairoUint256 = new CairoStruct(
-  'Uint256',
-  new Map([
-    ['low', new CairoFelt()],
-    ['high', new CairoFelt()],
-  ]),
-);
+export const CairoUint256 = new CairoUint(256);
 
 const cd_dynarray_prefix = 'cd_dynarray_';
 export function generateCallDataDynArrayStructName(elementType: TypeNode, ast: AST): string {

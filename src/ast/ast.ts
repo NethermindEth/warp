@@ -23,17 +23,16 @@ import { CairoUtilFuncGen } from '../cairoUtilFuncGen';
 import { SolcOutput } from '../solCompile';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
-import { Implicits } from '../utils/implicits';
 import { createBlock } from '../utils/nodeTemplates';
 import { createImport } from '../utils/importFuncGenerator';
 import { safeGetNodeType, WarpInferType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternalCall } from '../utils/utils';
-import { CairoFunctionDefinition, CairoImportFunctionDefinition } from './cairoNodes';
+import { CairoImportFunctionDefinition } from './cairoNodes';
 import { ParameterInfo } from '../export';
 
 /*
  A centralised store of information required for transpilation, a reference
- to the AST is passed around during processing so that such information is 
+ to the AST is passed around during processing so that such information is
  always available.
  Both contains members that exist in the original compilation data, such as
  compilerVersion and context, that are generally inconvenient to access from
@@ -158,13 +157,6 @@ export class AST {
     return scope.id;
   }
 
-  getImplicitsAt(node: Statement): Set<Implicits> {
-    const containingFunction = node.getClosestParentByType(CairoFunctionDefinition);
-    if (containingFunction === undefined) return new Set();
-
-    return containingFunction.implicits;
-  }
-
   getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {
     const sourceUnit = node instanceof SourceUnit ? node : getContainingSourceUnit(node);
     const gen = this.cairoUtilFuncGen.get(sourceUnit.id);
@@ -275,14 +267,14 @@ export class AST {
   }
 
   registerImport(
-    node: ASTNode,
-    location: string,
+    nodeInSourceUnit: ASTNode,
+    location: string[],
     name: string,
     inputs: ParameterInfo[],
     outputs: ParameterInfo[],
     options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean },
   ): CairoImportFunctionDefinition {
-    return createImport(location, name, node, this, inputs, outputs, options);
+    return createImport(location, name, nodeInSourceUnit, this, inputs, outputs, options);
   }
 
   removeStatement(statement: Statement): void {

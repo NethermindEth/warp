@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   BytesType,
   DataLocation,
@@ -21,6 +22,14 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
+import {
+  DYNAMIC_ARRAYS_UTIL,
+  FELT_TO_UINT256,
+  NARROW_SAFE,
+  U128_FROM_FELT,
+  WM_DYN_ARRAY_LENGTH,
+  WM_NEW,
+} from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
@@ -84,34 +93,26 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   }
 
   private getOrCreate(argTypes: TypeNode[]): GeneratedFunctionInfo {
-    const implicits = argTypes.some(
-      (type) => type instanceof IntType || type instanceof FixedBytesType,
-    )
-      ? '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}'
-      : '{range_check_ptr : felt, warp_memory : DictAccess*}';
-
-    const funcInfo = this.generateBytesConcat(argTypes, implicits);
+    const funcInfo = this.generateBytesConcat(argTypes);
     return funcInfo;
   }
 
-  private generateBytesConcat(argTypes: TypeNode[], implicits: string): GeneratedFunctionInfo {
+  private generateBytesConcat(argTypes: TypeNode[]): GeneratedFunctionInfo {
     const argAmount = argTypes.length;
     const funcName = `concat${this.generatedFunctionsDef.size}_${argAmount}`;
 
     if (argAmount === 0) {
       return {
         name: funcName,
-        code: [
-          `func ${funcName}${implicits}() -> (res_loc : felt){`,
-          `   alloc_locals;`,
-          `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
-          `   return (res_loc,);`,
-          `}`,
-        ].join('\n'),
-        functionsCalled: [
-          this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-          this.requireImport('warplib.memory', 'wm_new'),
-        ],
+        code: endent`
+          #[implicit(warp_memory)]
+          func ${funcName}() -> (res_loc : felt){
+             alloc_locals;
+             let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});
+             return (res_loc,);
+          }
+        `,
+        functionsCalled: [this.requireImport(...U128_FROM_FELT), this.requireImport(...WM_NEW)],
       };
     }
 
@@ -147,28 +148,29 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       [new Array<string>(), new Array<CairoImportFunctionDefinition>()],
     );
 
-    const code = [
-      `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt){`,
-      `    alloc_locals;`,
-      `    // Get all sizes`,
-      argSizes,
-      `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};`,
-      `    let (total_length256) = felt_to_uint256(total_length);`,
-      `    let (res_loc) = wm_new(total_length256, ${uint256(1)});`,
-      `    // Copy values`,
-      `    let start_loc = 0;`,
-      ...concatCode,
-      `    return (res_loc,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(${cairoArgs}) -> (res_loc : felt){
+          alloc_locals;
+          // Get all sizes
+          ${argSizes}
+          let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};
+          let (total_length256) = felt_to_uint256(total_length);
+          let (res_loc) = wm_new(total_length256, ${uint256(1)});
+          // Copy values
+          let start_loc = 0;
+          ${concatCode.join('\n')}
+          return (res_loc,);
+      }
+      `;
 
     return {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...U128_FROM_FELT),
+        this.requireImport(...FELT_TO_UINT256),
+        this.requireImport(...WM_NEW),
         ...argSizesImports,
         ...concatImports,
       ],
@@ -178,14 +180,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   private getSize(type: TypeNode, index: number): [string, CairoImportFunctionDefinition[]] {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
-        [
-          `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
-          `let (size_${index}) = narrow_safe(size256_${index});`,
-        ].join('\n'),
-        [
-          this.requireImport('warplib.memory', 'wm_dyn_array_length'),
-          this.requireImport('warplib.maths.utils', 'narrow_safe'),
-        ],
+        endent`
+          let (size256_${index}) = wm_dyn_array_length(arg_${index});
+          let (size_${index}) = narrow_safe(size256_${index});
+        `,
+        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
       ];
     }
 
@@ -209,7 +208,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
         `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0);`,
-        this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt'),
+        this.requireImport(DYNAMIC_ARRAYS_UTIL, 'dynamic_array_copy_felt'),
       ];
     }
 
@@ -217,13 +216,13 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type.size < 32) {
       return [
         `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index});`,
-        this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes_to_dynamic_array'),
+        this.requireImport(DYNAMIC_ARRAYS_UTIL, 'fixed_bytes_to_dynamic_array'),
       ];
     }
 
     return [
       `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0);`,
-      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_dynamic_array'),
+      this.requireImport(DYNAMIC_ARRAYS_UTIL, 'fixed_bytes256_to_dynamic_array'),
     ];
   }
 }

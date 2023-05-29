@@ -1,4 +1,5 @@
 import assert from 'assert';
+import endent from 'endent';
 import {
   AddressType,
   ArrayType,
@@ -20,6 +21,17 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  BYTES_CONVERSIONS,
+  FELT_TO_UINT256,
+  INT_CONVERSIONS,
+  U128_FROM_FELT,
+  UINT256_ADD,
+  WM_ALLOC,
+  WM_INDEX_DYN,
+  WM_NEW,
+  WM_READ_ID,
+} from '../../utils/importPaths';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -36,8 +48,6 @@ import { MemoryWriteGen } from './memoryWrite';
     uint8[3] -> uint256[8]
   Only int/uint or fixed bytes implicit conversions
 */
-
-const IMPLICITS = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
 
 export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   public constructor(
@@ -177,7 +187,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     let sourceLocationCode: string;
     if (targetType.elementT instanceof PointerType) {
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
-      sourceLocationFunc = this.requireImport('warplib.memory', 'wm_read_id');
+      sourceLocationFunc = this.requireImport(...WM_READ_ID);
       sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)});`;
     } else {
       sourceLocationFunc = this.memoryRead.getOrCreateFuncDef(sourceType.elementT);
@@ -195,32 +205,34 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
     const funcName = `memory_conversion_static_to_static${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : felt){`,
-      `   alloc_locals;`,
-      `   if (index == ${sourceType.size}){`,
-      `       return ();`,
-      `   }`,
-      `   ${sourceLocationCode}`,
-      `   ${conversionCode}`,
-      `   ${targetCopyCode}`,
-      `   return ${funcName}_copy(source, target, index + 1);`,
-      `}`,
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}_copy(source : felt, target : felt, index : felt){
+         alloc_locals;
+         if (index == ${sourceType.size}){
+             return ();
+         }
+         ${sourceLocationCode}
+         ${conversionCode}
+         ${targetCopyCode}
+         return ${funcName}_copy(source, target, index + 1);
+      }
 
-      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt){`,
-      `   alloc_locals;`,
-      `   let (target) = wm_alloc(${uint256(allocSize)});`,
-      `   ${funcName}_copy(source, target, 0);`,
-      `   return(target,);`,
-      `}`,
-    ].join('\n');
+      #[implicit(warp_memory)]
+      func ${funcName}(source : felt) -> (target : felt){
+         alloc_locals;
+         let (target) = wm_alloc(${uint256(allocSize)});
+         ${funcName}_copy(source, target, 0);
+         return(target,);
+      }
+    `;
 
     return {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('warplib.memory', 'wm_alloc'),
+        this.requireImport(...U128_FROM_FELT),
+        this.requireImport(...WM_ALLOC),
         sourceLocationFunc,
         ...calledFuncs,
         memoryWriteDef,
@@ -274,35 +286,37 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     ];
 
     const funcName = `memory_conversion_static_to_dynamic${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : Uint256, len : Uint256){`,
-      `   alloc_locals;`,
-      `   if (len.low == index.low and len.high == index.high){`,
-      `       return ();`,
-      `   }`,
-      ...sourceLocationCode,
-      `   ${conversionCode}`,
-      ...targetCopyCode,
-      `   let (next_index, _) = uint256_add(index, ${uint256(1)});`,
-      `   return ${funcName}_copy(source, target, next_index, len);`,
-      `}`,
-      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt){`,
-      `   alloc_locals;`,
-      `   let len = ${uint256(sourceType.size)};`,
-      `   let (target) = wm_new(len, ${uint256(targetTWidth)});`,
-      `   ${funcName}_copy(source, target, Uint256(0, 0), len);`,
-      `   return (target=target,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}_copy(source : felt, target : felt, index : Uint256, len : Uint256){
+        alloc_locals;
+        if (len.low == index.low and len.high == index.high){
+            return ();
+        }
+        ${sourceLocationCode.join('\n')}
+        ${conversionCode}
+        ${targetCopyCode.join('\n')}
+        let (next_index, _) = uint256_add(index, ${uint256(1)});
+        return ${funcName}_copy(source, target, next_index, len);
+      }
+      #[implicit(warp_memory)]
+      func ${funcName}(source : felt) -> (target : felt){
+        alloc_locals;
+        let len = ${uint256(sourceType.size)};
+        let (target) = wm_new(len, ${uint256(targetTWidth)});
+        ${funcName}_copy(source, target, Uint256(0, 0), len);
+        return (target=target,);
+      }
+    `;
 
     return {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...U128_FROM_FELT),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...WM_INDEX_DYN),
+        this.requireImport(...WM_NEW),
         memoryRead,
         ...conversionFuncs,
         memoryWrite,
@@ -349,36 +363,38 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const targetWidth = cairoTargetElementType.width;
     const funcName = `memory_conversion_dynamic_to_dynamic${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : Uint256, len : Uint256){`,
-      `   alloc_locals;`,
-      `   if (len.low == index.low and len.high == index.high){`,
-      `       return ();`,
-      `   }`,
-      ...sourceLocationCode,
-      `   ${conversionCode}`,
-      ...targetCopyCode,
-      `   let (next_index, _) = uint256_add(index, ${uint256(1)});`,
-      `   return ${funcName}_copy(source, target, next_index, len);`,
-      `}`,
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}_copy(source : felt, target : felt, index : Uint256, len : Uint256){
+        alloc_locals;
+        if (len.low == index.low and len.high == index.high){
+          return ();
+        }
+        ${sourceLocationCode.join('\n')}
+        ${conversionCode}
+        ${targetCopyCode.join('\n')}
+        let (next_index, _) = uint256_add(index, ${uint256(1)});
+        return ${funcName}_copy(source, target, next_index, len);
+      }
 
-      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt){`,
-      `   alloc_locals;`,
-      `   let (len) = wm_dyn_array_length(source);`,
-      `   let (target) = wm_new(len, ${uint256(targetWidth)});`,
-      `   ${funcName}_copy(source, target, Uint256(0, 0), len);`,
-      `   return (target=target,);`,
-      `}`,
-    ].join('\n');
+      #[implicit(warp_memory)]
+      func ${funcName}(source : felt) -> (target : felt){
+        alloc_locals;
+        let (len) = wm_dyn_array_length(source);
+        let (target) = wm_new(len, ${uint256(targetWidth)});
+        ${funcName}_copy(source, target, Uint256(0, 0), len);
+        return (target=target,);
+      }
+    `;
 
     return {
       name: funcName,
       code: code,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
-        this.requireImport('warplib.memory', 'wm_index_dyn'),
-        this.requireImport('warplib.memory', 'wm_new'),
+        this.requireImport(...U128_FROM_FELT),
+        this.requireImport(...UINT256_ADD),
+        this.requireImport(...WM_INDEX_DYN),
+        this.requireImport(...WM_NEW),
         memoryRead,
         ...conversionCalls,
         memoryWrite,
@@ -426,13 +442,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       const conversionFunc = `warp_int${sourceType.nBits}_to_int${targetType.nBits}`;
       return [
         `let (${targetVar}) = ${conversionFunc}(${sourceVar});`,
-        [this.requireImport('warplib.maths.int_conversions', conversionFunc)],
+        [this.requireImport(INT_CONVERSIONS, conversionFunc)],
       ];
     } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
-      const conversionFunc = `felt_to_uint256`;
       return [
-        `let (${targetVar}) = ${conversionFunc}(${sourceVar});`,
-        [this.requireImport('warplib.maths.utils', conversionFunc)],
+        `let (${targetVar}) = felt_to_uint256(${sourceVar});`,
+        [this.requireImport(...FELT_TO_UINT256)],
       ];
     } else {
       return [`let ${targetVar} = ${sourceVar};`, []];
@@ -454,7 +469,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     return [
       `let (${targetVar}) = ${conversionFunc}(${sourceVar}, ${widthDiff * 8});`,
-      [this.requireImport('warplib.maths.bytes_conversions', conversionFunc)],
+      [this.requireImport(BYTES_CONVERSIONS, conversionFunc)],
     ];
   }
 }

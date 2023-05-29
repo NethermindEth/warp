@@ -35,18 +35,15 @@ import {
   ModifierHandler,
   NamedArgsRemover,
   NewToDeploy,
-  OrderNestedStructs,
   PublicFunctionSplitter,
   PublicStateVarsGetterGenerator,
   ReferencedLibraries,
   References,
   RejectPrefix,
   RejectUnsupportedFeatures,
-  ReplaceIdentifierContractMemberAccess,
   Require,
   ReturnInserter,
   ReturnVariableInitializer,
-  ShortCircuitToConditional,
   SourceUnitPathFixer,
   SourceUnitSplitter,
   StaticArrayIndexer,
@@ -120,7 +117,6 @@ function applyPasses(
     ['Req', Require],
     ['Ffi', FreeFunctionInliner],
     ['Rl', ReferencedLibraries],
-    ['Ons', OrderNestedStructs],
     ['Sa', StorageAllocator],
     ['Ii', InheritanceInliner],
     ['Ech', ExternalContractHandler],
@@ -131,7 +127,6 @@ function applyPasses(
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
     ['Ifr', IdentityFunctionRemover],
-    ['Sc', ShortCircuitToConditional],
     ['U', UnloadingAssignment],
     ['Cos', ConditionalSplitter],
     ['V', VariableDeclarationInitialiser],
@@ -153,7 +148,6 @@ function applyPasses(
     ['An', AnnotateImplicits],
     ['Lv', IfStatementTempVarPostpender],
     ['Ci', CairoUtilImporter],
-    ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
   ]);
@@ -171,7 +165,7 @@ function applyPasses(
   printAST(ast, options);
 
   // Fix absolutePath in source unit
-  ast = SourceUnitPathFixer.map_(ast, options.includePaths || []);
+  ast = SourceUnitPathFixer.map_(ast, options.includePaths ?? []);
   // Reject code that contains identifiers starting with certain patterns
   RejectPrefix.map(ast);
 

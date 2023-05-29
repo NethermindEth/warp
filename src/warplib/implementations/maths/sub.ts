@@ -16,39 +16,20 @@ import {
 export function sub_unsafe(): WarplibFunctionInfo {
   return {
     fileName: 'sub_unsafe',
-    imports: [
-      'from starkware.cairo.common.bitwise import bitwise_and',
-      'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.uint256 import Uint256',
-    ],
+    imports: ['use integer::u256_overflow_sub;'],
     functions: forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_sub_unsafe256{bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (`,
-          `        result : Uint256){`,
-          '    //preemptively borrow from bit128',
-          `    let (low_safe) = bitwise_and(${bound(128)} + lhs.low - rhs.low, ${mask(128)});`,
-          `    let low_unsafe = lhs.low - rhs.low;`,
-          `    if (low_safe == low_unsafe){`,
-          '        //the borrow was not used',
-          `        let (high) = bitwise_and(${bound(128)} + lhs.high - rhs.high, ${mask(128)});`,
-          `        return (Uint256(low_safe, high),);`,
-          `    }else{`,
-          '        //the borrow was used',
-          `        let (high) = bitwise_and(${bound(128)} + lhs.high - rhs.high - 1, ${mask(
-            128,
-          )});`,
-          `        return (Uint256(low_safe, high),);`,
-          `    }`,
+          `fn warp_sub_unsafe256(lhs : u256, rhs : u256) -> u256 {`,
+          `    let (value, _) = u256_overflow_sub(lhs, rhs);`,
+          `    return value;`,
           `}`,
         ].join('\n');
       } else {
         return [
-          `func warp_sub_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
-          `        res : felt){`,
-          `    let res : felt = ${bound(width)} + lhs - rhs;`,
-          `    let (res) = bitwise_and(res, ${mask(width)});`,
-          `    return (res,);`,
+          // TODO: Use bitwise '&' to take just the width-bits
+          `fn warp_sub_unsafe${width}(lhs : felt252, rhs : felt252) -> felt252 {`,
+          `    return lhs - rhs;`,
           `}`,
         ].join('\n');
       }
@@ -70,10 +51,10 @@ export function sub_signed(): WarplibFunctionInfo {
           `func warp_sub_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (`,
           `        res : Uint256){`,
           `    // First sign extend both operands`,
-          `    let (left_msb : felt) = bitwise_and(lhs.high, ${msb(128)});`,
-          `    let (right_msb : felt) = bitwise_and(rhs.high, ${msb(128)});`,
-          `    let left_overflow : felt = left_msb / ${msb(128)};`,
-          `    let right_overflow : felt = right_msb / ${msb(128)};`,
+          `    let (left_msb : felt252) = bitwise_and(lhs.high, ${msb(128)});`,
+          `    let (right_msb : felt252) = bitwise_and(rhs.high, ${msb(128)});`,
+          `    let left_overflow : felt252 = left_msb / ${msb(128)};`,
+          `    let right_overflow : felt252 = right_msb / ${msb(128)};`,
           ``,
           `    // Now safely negate the rhs and add (l - r = l + (-r))`,
           `    let (right_flipped : Uint256) = uint256_not(rhs);`,
@@ -83,8 +64,8 @@ export function sub_signed(): WarplibFunctionInfo {
           `    let res_overflow = res_base_overflow + left_overflow + right_overflow_neg;`,
           ``,
           `    // Check if the result fits in the correct width`,
-          `    let (res_msb : felt) = bitwise_and(res.high, ${msb(128)});`,
-          `    let (res_overflow_lsb : felt) = bitwise_and(res_overflow, 1);`,
+          `    let (res_msb : felt252) = bitwise_and(res.high, ${msb(128)});`,
+          `    let (res_overflow_lsb : felt252) = bitwise_and(res_overflow, 1);`,
           `    assert res_overflow_lsb * ${msb(128)} = res_msb;`,
           ``,
           `    // Narrow and return`,
@@ -93,17 +74,17 @@ export function sub_signed(): WarplibFunctionInfo {
         ].join('\n');
       } else {
         return [
-          `func warp_sub_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
-          `        res : felt){`,
+          `func warp_sub_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt252, rhs : felt252) -> (`,
+          `        res : felt252){`,
           `    // First sign extend both operands`,
-          `    let (left_msb : felt) = bitwise_and(lhs, ${msb(width)});`,
-          `    let (right_msb : felt) = bitwise_and(rhs, ${msb(width)});`,
-          `    let left_safe : felt = lhs + 2 * left_msb;`,
-          `    let right_safe : felt = rhs + 2 * right_msb;`,
+          `    let (left_msb : felt252) = bitwise_and(lhs, ${msb(width)});`,
+          `    let (right_msb : felt252) = bitwise_and(rhs, ${msb(width)});`,
+          `    let left_safe : felt252 = lhs + 2 * left_msb;`,
+          `    let right_safe : felt252 = rhs + 2 * right_msb;`,
           ``,
           `    // Now safely negate the rhs and add (l - r = l + (-r))`,
-          `    let right_neg : felt = ${bound(width + 1)} - right_safe;`,
-          `    let extended_res : felt = left_safe + right_neg;`,
+          `    let right_neg : felt252 = ${bound(width + 1)} - right_safe;`,
+          `    let extended_res : felt252 = left_safe + right_neg;`,
           ``,
           `    // Check if the result fits in the correct width`,
           `    let (overflowBits) = bitwise_and(extended_res, ${msbAndNext(width)});`,
@@ -138,16 +119,16 @@ export function sub_signed_unsafe(): WarplibFunctionInfo {
       } else {
         return [
           `func warp_sub_signed_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : felt, rhs : felt) -> (res : felt){`,
+          `        lhs : felt252, rhs : felt252) -> (res : felt252){`,
           `    // First sign extend both operands`,
-          `    let (left_msb : felt) = bitwise_and(lhs, ${msb(width)});`,
-          `    let (right_msb : felt) = bitwise_and(rhs, ${msb(width)});`,
-          `    let left_safe : felt = lhs + 2 * left_msb;`,
-          `    let right_safe : felt = rhs + 2 * right_msb;`,
+          `    let (left_msb : felt252) = bitwise_and(lhs, ${msb(width)});`,
+          `    let (right_msb : felt252) = bitwise_and(rhs, ${msb(width)});`,
+          `    let left_safe : felt252 = lhs + 2 * left_msb;`,
+          `    let right_safe : felt252 = rhs + 2 * right_msb;`,
           ``,
           `    // Now safely negate the rhs and add (l - r = l + (-r))`,
-          `    let right_neg : felt = ${bound(width + 1)} - right_safe;`,
-          `    let extended_res : felt = left_safe + right_neg;`,
+          `    let right_neg : felt252 = ${bound(width + 1)} - right_safe;`,
+          `    let extended_res : felt252 = left_safe + right_neg;`,
           ``,
           `    // Narrow and return`,
           `    let (res) = bitwise_and(extended_res, ${mask(width)});`,
@@ -159,7 +140,7 @@ export function sub_signed_unsafe(): WarplibFunctionInfo {
   };
 }
 
-//func warp_sub{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt):
+//func warp_sub{range_check_ptr}(lhs : felt252, rhs : felt252) -> (res : felt252):
 //func warp_sub256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):
 
 export function functionaliseSub(node: BinaryOperation, unsafe: boolean, ast: AST): void {

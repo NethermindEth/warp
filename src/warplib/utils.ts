@@ -2,7 +2,6 @@ import assert from 'assert';
 import * as fs from 'fs';
 import {
   BinaryOperation,
-  BoolType,
   Expression,
   FixedBytesType,
   FunctionCall,
@@ -16,6 +15,9 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { literalToValueType, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import path from 'path';
+import { WARPLIB_MATHS } from '../utils/importPaths';
+
+export const PATH_TO_WARPLIB = path.join('.', 'warplib', 'src');
 
 export type WarplibFunctionInfo = {
   fileName: string;
@@ -59,8 +61,8 @@ export function msbAndNext(width: number): string {
 // This is used along with the commented out code in generateFile to enable cairo-formatting
 // const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-export function generateFile(warpFunc: WarplibFunctionInfo): void {
-  const pathToFile = path.join('.', 'warplib', 'maths', `${warpFunc.fileName}.cairo`);
+export function generateFile(warpFunc: WarplibFunctionInfo, folderName: string): void {
+  const pathToFile = path.join(PATH_TO_WARPLIB, folderName, `${warpFunc.fileName}.cairo`);
 
   fs.writeFileSync(
     pathToFile,
@@ -94,16 +96,13 @@ export function IntxIntFunction(
     name,
     signed && separateSigned ? '_signed' : '',
     unsafe ? '_unsafe' : '',
-
     shouldAppendWidth ? `${width}` : '',
   ].join('');
 
   const importName = [
-    'warplib.maths.',
-    name,
-    signed && separateSigned ? '_signed' : '',
-    unsafe ? '_unsafe' : '',
-  ].join('');
+    ...WARPLIB_MATHS,
+    `${name}${signed && separateSigned ? '_signed' : ''}${unsafe ? '_unsafe' : ''}`,
+  ];
 
   const importedFunc = ast.registerImport(
     node,
@@ -156,7 +155,7 @@ export function Comparison(
     shouldAppendWidth ? `${getIntOrFixedByteBitWidth(lhsType)}` : '',
   ].join('');
 
-  const importName = `warplib.maths.${name}${signed && separateSigned ? '_signed' : ''}`;
+  const importName = [...WARPLIB_MATHS, `${name}${signed && separateSigned ? '_signed' : ''}`];
 
   const importedFunc = ast.registerImport(
     node,
@@ -205,7 +204,7 @@ export function IntFunction(
 
   const importedFunc = ast.registerImport(
     node,
-    `warplib.maths.${fileName}`,
+    [...WARPLIB_MATHS, fileName],
     fullName,
     [['op', typeNameFromTypeNode(opType, ast)]],
     [['res', typeNameFromTypeNode(retType, ast)]],
@@ -224,52 +223,6 @@ export function IntFunction(
       importedFunc.id,
     ),
     [argument],
-  );
-
-  ast.replaceNode(node, call);
-}
-
-export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST): void {
-  const lhsType = safeGetNodeType(node.vLeftExpression, ast.inference);
-  const rhsType = safeGetNodeType(node.vRightExpression, ast.inference);
-  const retType = safeGetNodeType(node, ast.inference);
-
-  assert(
-    lhsType instanceof BoolType,
-    `Expected BoolType for ${name} left argument, got ${printTypeNode(lhsType)}`,
-  );
-  assert(
-    rhsType instanceof BoolType,
-    `Expected BoolType for ${name} right argument, got ${printTypeNode(rhsType)}`,
-  );
-  assert(
-    retType instanceof BoolType,
-    `Expected BoolType for ${name} return type, got ${printTypeNode(retType)}`,
-  );
-
-  const fullName = `warp_${name}`;
-
-  const importedFunc = ast.registerImport(
-    node,
-    `warplib.maths.${name}`,
-    fullName,
-    [['lhs', typeNameFromTypeNode(lhsType, ast)]],
-    [['rhs', typeNameFromTypeNode(rhsType, ast)]],
-  );
-
-  const call = new FunctionCall(
-    ast.reserveId(),
-    node.src,
-    node.typeString,
-    FunctionCallKind.FunctionCall,
-    new Identifier(
-      ast.reserveId(),
-      '',
-      `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
-      fullName,
-      importedFunc.id,
-    ),
-    [node.vLeftExpression, node.vRightExpression],
   );
 
   ast.replaceNode(node, call);

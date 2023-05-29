@@ -16,6 +16,8 @@ import { catchExecSyncError, execSyncAndLog, runStarknetClassHash } from './util
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 import { decodedOutputsToString } from './transcode/utils';
+import { getPlatform } from './nethersolc';
+import { existsSync } from 'fs';
 
 // Options of StarkNet cli commands
 const GATEWAY_URL = 'gateway_url';
@@ -26,7 +28,9 @@ const MAX_FEE = 'max_fee';
 const NETWORK = 'network';
 const WALLET = 'wallet';
 
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+export const BASE_PATH = path.dirname(__dirname);
+const warpVenvPrefix = `PATH=${path.join(BASE_PATH, 'warp_venv', 'bin')}:$PATH`;
+const CAIRO1_COMPILE_BIN = path.join(BASE_PATH, 'cairo1', getPlatform(), 'bin', 'warp');
 
 interface CompileResult {
   success: boolean;
@@ -34,6 +38,36 @@ interface CompileResult {
   abiPath?: string;
   solAbiPath?: string;
   classHash?: string;
+}
+
+interface CompileCairo1Result {
+  success: boolean;
+  outputDir?: string;
+}
+
+export function compileCairo1(cairoProjectPath: string, debug = true): CompileCairo1Result {
+  // check existence of cairo project dir and project files
+  assert(existsSync(cairoProjectPath), `Cairo project does not exist at ${cairoProjectPath}`);
+  const scarbToml = path.join(cairoProjectPath, 'Scarb.toml');
+  assert(existsSync(scarbToml), `Scarb.toml does not exist at ${scarbToml}`);
+
+  try {
+    if (debug) console.log(`Running cairo1 compile`);
+    execSync(`${CAIRO1_COMPILE_BIN} build ${cairoProjectPath}`, {
+      stdio: 'inherit',
+    });
+    return { success: true, outputDir: path.join(cairoProjectPath, 'target') };
+  } catch (e) {
+    if (e instanceof Error) {
+      logError('Compile failed');
+      return {
+        success: false,
+        outputDir: undefined,
+      };
+    } else {
+      throw e;
+    }
+  }
 }
 
 export function compileCairo(
@@ -46,6 +80,7 @@ export function compileCairo(
   const resultPath = `${cairoPathRoot}_compiled.json`;
   const abiPath = `${cairoPathRoot}_abi.json`;
   const solAbiPath = `${cairoPathRoot}_sol_abi.json`;
+
   const parameters = new Map([
     ['output', resultPath],
     ['abi', abiPath],
@@ -57,7 +92,7 @@ export function compileCairo(
   const command = 'starknet-compile';
 
   try {
-    console.log(`Running starknet compile with cairoPath ${cairoPath}`);
+    console.log(`Running starknet compile on ${filePath}`);
     execSync(
       `${warpVenvPrefix} ${command} --disable_hint_validation ${debug} ${filePath} ${[
         ...parameters.entries(),

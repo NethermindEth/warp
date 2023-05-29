@@ -1,17 +1,24 @@
+import endent from 'endent';
 import { FixedBytesType, SourceUnit, TypeNode } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoFunctionDefinition } from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
+import {
+  ALLOC,
+  FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
+  FELT_TO_UINT256,
+  FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
+  U128_FROM_FELT,
+  WARP_KECCAK,
+  WM_NEW,
+} from '../../utils/importPaths';
 import { getByteSize } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { GeneratedFunctionInfo } from '../base';
 import { AbiEncode } from './abiEncode';
 import { AbiBase } from './base';
-
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
 export class AbiEncodeWithSelector extends AbiBase {
   protected override functionName = 'abi_encode_with_selector';
@@ -51,10 +58,10 @@ export class AbiEncodeWithSelector extends AbiBase {
       [
         [{ name: 'selector', type: 'felt' }],
         [
-          [
-            'fixed_bytes_to_felt_dynamic_array(bytes_index, bytes_array, 0, selector, 4);',
-            'let bytes_index = bytes_index + 4;',
-          ].join('\n'),
+          endent`
+            fixed_bytes_to_felt_dynamic_array(bytes_index, bytes_array, 0, selector, 4);
+            let bytes_index = bytes_index + 4;
+          `,
         ],
         new Array<CairoFunctionDefinition>(),
       ],
@@ -67,28 +74,29 @@ export class AbiEncodeWithSelector extends AbiBase {
 
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctionsDef.size}`;
-    const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
-      `  let bytes_index : felt = 0;`,
-      `  let bytes_offset : felt = ${initialOffset};`,
-      `  let (bytes_array : felt*) = alloc();`,
-      ...encodings,
-      `  let (max_length256) = felt_to_uint256(bytes_offset);`,
-      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)});`,
-      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);`,
-      `  return (mem_ptr,);`,
-      `}`,
-    ].join('\n');
+    const code = endent`
+      #[implicit(warp_memory)]
+      func ${funcName}(${cairoParams}) -> (result_ptr : felt){
+        alloc_locals;
+        let bytes_index : felt = 0;
+        let bytes_offset : felt = ${initialOffset};
+        let (bytes_array : felt*) = alloc();
+        ${encodings.join('\n')}
+        let (max_length256) = felt_to_uint256(bytes_offset);
+        let (mem_ptr) = wm_new(max_length256, ${uint256(1)});
+        felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);
+        return (mem_ptr,);
+      }
+      `;
 
     const importedFuncs = [
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-      this.requireImport('starkware.cairo.common.alloc', 'alloc'),
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256'),
-      this.requireImport('warplib.memory', 'wm_new'),
-      this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array'),
-      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes_to_felt_dynamic_array'),
-      this.requireImport('warplib.keccak', 'warp_keccak'),
+      this.requireImport(...U128_FROM_FELT),
+      this.requireImport(...ALLOC),
+      this.requireImport(...FELT_TO_UINT256),
+      this.requireImport(...WM_NEW),
+      this.requireImport(...FELT_ARRAY_TO_WARP_MEMORY_ARRAY),
+      this.requireImport(...FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY),
+      this.requireImport(...WARP_KECCAK),
     ];
 
     const funcInfo = {

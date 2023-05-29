@@ -73,16 +73,20 @@ export function outputResult(
         );
       }
     }
-    const fullCodeOutPath = path.join(options.outputDir, outputPath);
-    const abiOutPath = fullCodeOutPath.slice(0, -'.cairo'.length).concat('_sol_abi.json');
 
-    const solFilePath = path.dirname(outputPath);
+    const outputLocation = path.parse(path.join(options.outputDir, outputPath));
+    const metadataLocation = path.dirname(outputLocation.dir);
 
+    const abiOutPath = path.join(metadataLocation, `${outputLocation.name}_sol_abi.json`);
+
+    const solFilePath = path.dirname(path.dirname(outputPath));
     outputFileSync(
       abiOutPath,
       JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
     );
-    outputFileSync(fullCodeOutPath, code);
+
+    const codeOutPath = path.join(outputLocation.dir, outputLocation.base);
+    outputFileSync(codeOutPath, code);
     // Cairo-format is disabled, as it has a bug
     // if (options.formatCairo || options.dev) {
     //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;

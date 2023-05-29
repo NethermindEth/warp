@@ -29,6 +29,8 @@ import {
   specializeType,
 } from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
+import { U128_FROM_FELT, UINT256_ADD } from '../../utils/importPaths';
+import endent from 'endent';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   public constructor(
@@ -143,10 +145,8 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const arrayName = dynArray.name;
     const lengthName = dynArrayLength.name;
     const funcName = `${arrayName}_PUSHV${this.generatedFunctionsDef.size}`;
-    const implicits =
-      argLoc === DataLocation.Memory
-        ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
-        : '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, bitwise_ptr: BitwiseBuiltin*}';
+
+    const implicit = argLoc === DataLocation.Memory ? '#[implicit(warp_memory)]' : '';
 
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
@@ -155,28 +155,29 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [
-        `func ${funcName}${implicits}(loc: felt, value: ${inputType}) -> (){`,
-        `    alloc_locals;`,
-        `    let (len) = ${lengthName}.read(loc);`,
-        `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
-        `    assert carry = 0;`,
-        `    ${lengthName}.write(loc, newLen);`,
-        `    let (existing) = ${arrayName}.read(loc, len);`,
-        `    if (existing == 0){`,
-        `        let (used) = WARP_USED_STORAGE.read();`,
-        `        WARP_USED_STORAGE.write(used + ${allocationCairoType.width});`,
-        `        ${arrayName}.write(loc, len, used);`,
-        ...callWriteFunc('used'),
-        `    }else{`,
-        ...callWriteFunc('existing'),
-        `    }`,
-        `    return ();`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        ${implicit}
+        func ${funcName}(loc: felt, value: ${inputType}) -> (){
+            alloc_locals;
+            let (len) = ${lengthName}.read(loc);
+            let (newLen, carry) = uint256_add(len, Uint256(1,0));
+            assert carry = 0;
+            ${lengthName}.write(loc, newLen);
+            let (existing) = ${arrayName}.read(loc, len);
+            if (existing == 0){
+                let (used) = WARP_USED_STORAGE.read();
+                WARP_USED_STORAGE.write(used + ${allocationCairoType.width});
+                ${arrayName}.write(loc, len, used);
+                ${callWriteFunc('used').join('\n')}
+            }else{
+                ${callWriteFunc('existing').join('\n')}
+            }
+            return ();
+        }
+      `,
       functionsCalled: [
-        this.requireImport('starkware.cairo.common.uint256', 'Uint256'),
-        this.requireImport('starkware.cairo.common.uint256', 'uint256_add'),
+        this.requireImport(...U128_FROM_FELT),
+        this.requireImport(...UINT256_ADD),
         elementWriteDef,
         dynArray,
         dynArrayLength,

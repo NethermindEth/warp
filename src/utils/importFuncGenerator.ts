@@ -1,36 +1,25 @@
 import { ASTNode, SourceUnit } from 'solc-typed-ast';
-import { CairoImportFunctionDefinition } from '../ast/cairoNodes';
+import { CairoImportFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { AST } from '../ast/ast';
 import { TranspileFailedError } from '../utils/errors';
 import { warplibImportInfo } from '../warplib/gatherWarplibImports';
-import { Implicits } from './implicits';
+import { Implicits } from './utils';
 import {
   createCairoImportFunctionDefinition,
   createCairoImportStructDefinition,
   ParameterInfo,
 } from './functionGeneration';
 import { getContainingSourceUnit } from './utils';
-
-// Paths
-const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
-const STARKWARE_CAIRO_COMMON_BUILTINS = 'starkware.cairo.common.cairo_builtins';
-const STARKWARE_CAIRO_COMMON_CAIRO_KECCAK = 'starkware.cairo.common.cairo_keccak.keccak';
-const STARKWARE_CAIRO_COMMON_DEFAULT_DICT = 'starkware.cairo.common.default_dict';
-const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
-const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
-const STARKWARE_CAIRO_COMMON_MATH = 'starkware.cairo.common.math';
-const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
-const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
-const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.starknet.common.syscalls';
+import * as Paths from './importPaths';
 
 export function createImport(
-  path: string,
+  path: string[],
   name: string,
   nodeInSourceUnit: ASTNode,
   ast: AST,
   inputs?: ParameterInfo[],
   outputs?: ParameterInfo[],
-  options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean },
+  options?: { acceptsRawDarray?: boolean; acceptsUnpackedStructArray?: boolean; isTrait?: boolean },
 ) {
   const sourceUnit = getContainingSourceUnit(nodeInSourceUnit);
 
@@ -62,63 +51,111 @@ export function createImport(
       sourceUnit,
       options,
     );
-  const createStructImport = () => createCairoImportStructDefinition(name, path, ast, sourceUnit);
+  const createStructImport = () =>
+    createCairoImportStructDefinition(name, path, ast, sourceUnit, {
+      stubKind: options?.isTrait
+        ? FunctionStubKind.TraitStructDefStub
+        : FunctionStubKind.StructDefStub,
+    });
 
-  const warplibFunc = warplibImportInfo.get(path)?.get(name);
+  const warplibFunc = warplibImportInfo.get(encodePath(path))?.get(name);
   if (warplibFunc !== undefined) {
     return createFuncImport(...warplibFunc);
   }
 
-  switch (path + name) {
-    case STARKWARE_CAIRO_COMMON_ALLOC + 'alloc':
-      return createFuncImport();
-    case STARKWARE_CAIRO_COMMON_BUILTINS + 'BitwiseBuiltin':
-      return createStructImport();
-    case STARKWARE_CAIRO_COMMON_BUILTINS + 'HashBuiltin':
-      return createStructImport();
-    case STARKWARE_CAIRO_COMMON_CAIRO_KECCAK + 'finalize_keccak':
-      return createFuncImport('range_check_ptr', 'bitwise_ptr');
-    case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_new':
-      return createFuncImport();
-    case STARKWARE_CAIRO_COMMON_DEFAULT_DICT + 'default_dict_finalize':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_DICT + 'dict_read':
-      return createFuncImport('dict_ptr');
-    case STARKWARE_CAIRO_COMMON_DICT + 'dict_write':
-      return createFuncImport('dict_ptr');
-    case STARKWARE_CAIRO_COMMON_DICT_ACCESS + 'DictAccess':
-      return createStructImport();
-    case STARKWARE_CAIRO_COMMON_MATH + 'split_felt':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_MATH_CMP + 'is_le':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_MATH_CMP + 'is_le_felt':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'Uint256':
-      return createStructImport();
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_add':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_eq':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_le':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_lt':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_mul':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_CAIRO_COMMON_UINT256 + 'uint256_sub':
-      return createFuncImport('range_check_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'deploy':
-      return createFuncImport('syscall_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'emit_event':
-      return createFuncImport('syscall_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_caller_address':
-      return createFuncImport('syscall_ptr');
-    case STARKWARE_STARKNET_COMMON_SYSCALLS + 'get_contract_address':
-      return createFuncImport('syscall_ptr');
-    default:
-      throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
+  if (options?.isTrait) {
+    return createStructImport();
   }
+
+  const pathForStructImport = [
+    Paths.U8_FROM_FELT,
+    Paths.U16_FROM_FELT,
+    Paths.U24_FROM_FELT,
+    Paths.U32_FROM_FELT,
+    Paths.U40_FROM_FELT,
+    Paths.U48_FROM_FELT,
+    Paths.U56_FROM_FELT,
+    Paths.U64_FROM_FELT,
+    Paths.U72_FROM_FELT,
+    Paths.U80_FROM_FELT,
+    Paths.U88_FROM_FELT,
+    Paths.U96_FROM_FELT,
+    Paths.U104_FROM_FELT,
+    Paths.U112_FROM_FELT,
+    Paths.U120_FROM_FELT,
+    Paths.U128_FROM_FELT,
+    Paths.U136_FROM_FELT,
+    Paths.U144_FROM_FELT,
+    Paths.U152_FROM_FELT,
+    Paths.U160_FROM_FELT,
+    Paths.U168_FROM_FELT,
+    Paths.U176_FROM_FELT,
+    Paths.U184_FROM_FELT,
+    Paths.U192_FROM_FELT,
+    Paths.U200_FROM_FELT,
+    Paths.U208_FROM_FELT,
+    Paths.U216_FROM_FELT,
+    Paths.U224_FROM_FELT,
+    Paths.U232_FROM_FELT,
+    Paths.U240_FROM_FELT,
+    Paths.U248_FROM_FELT,
+  ];
+  if (pathForStructImport.some((i) => encodePath([path, name]) === encodePath(i))) {
+    return createStructImport();
+  }
+
+  const pathsForFunctionImport = [
+    Paths.DEPLOY,
+    Paths.EMIT_EVENT,
+    Paths.GET_CALLER_ADDRESS,
+    Paths.GET_CONTRACT_ADDRESS,
+    Paths.CONTRACT_ADDRESS_FROM_FELT,
+    Paths.INTO,
+    Paths.CONTRACT_ADDRESS,
+    Paths.U8_TO_FELT,
+    Paths.U16_TO_FELT,
+    Paths.U24_TO_FELT,
+    Paths.U32_TO_FELT,
+    Paths.U40_TO_FELT,
+    Paths.U48_TO_FELT,
+    Paths.U56_TO_FELT,
+    Paths.U64_TO_FELT,
+    Paths.U72_TO_FELT,
+    Paths.U80_TO_FELT,
+    Paths.U88_TO_FELT,
+    Paths.U96_TO_FELT,
+    Paths.U104_TO_FELT,
+    Paths.U112_TO_FELT,
+    Paths.U120_TO_FELT,
+    Paths.U128_TO_FELT,
+    Paths.U136_TO_FELT,
+    Paths.U144_TO_FELT,
+    Paths.U152_TO_FELT,
+    Paths.U160_TO_FELT,
+    Paths.U168_TO_FELT,
+    Paths.U176_TO_FELT,
+    Paths.U184_TO_FELT,
+    Paths.U192_TO_FELT,
+    Paths.U200_TO_FELT,
+    Paths.U208_TO_FELT,
+    Paths.U216_TO_FELT,
+    Paths.U224_TO_FELT,
+    Paths.U232_TO_FELT,
+    Paths.U240_TO_FELT,
+    Paths.U248_TO_FELT,
+    Paths.U256_FROM_FELTS,
+    Paths.ARRAY,
+    Paths.ARRAY_TRAIT,
+    Paths.WARP_MEMORY,
+    Paths.WARP_MEMORY_TRAIT,
+    Paths.BOOL_INTO_FELT252,
+    Paths.FELT252_INTO_BOOL,
+  ];
+  if (pathsForFunctionImport.some((i) => encodePath([path, name]) === encodePath(i))) {
+    return createFuncImport();
+  }
+
+  throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
 }
 
 function findExistingImport(
@@ -130,4 +167,8 @@ function findExistingImport(
       n instanceof CairoImportFunctionDefinition && n.name === name,
   );
   return found[0];
+}
+
+export function encodePath(path: (string | string[])[]): string {
+  return path.flat().join('/');
 }
