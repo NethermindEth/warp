@@ -3,7 +3,6 @@ export * from './annotateImplicits';
 export * from './argBoundChecker';
 export * from './builtinHandler';
 export * from './builtinHandler/require';
-export * from './bytesConverter';
 export * from './cairoStubProcessor';
 export * from './cairoUtilImporter';
 export * from './conditionalSplitter/conditionalSplitter';
