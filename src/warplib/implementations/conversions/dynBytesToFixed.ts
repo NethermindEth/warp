@@ -22,9 +22,15 @@ export function functionaliseBytesToFixedBytes(
         ['width', createUint8TypeName(ast)],
       ];
 
-  const importedFunc = ast.registerImport(node, ['this needs to be set'], funcName, args, [
-    ['res', typeNameFromTypeNode(targetType, ast)],
-  ]);
+  const importedFunc = ast.registerImport(
+    node,
+    [
+      /*TODO: Set an the correct import*/
+    ],
+    funcName,
+    args,
+    [['res', typeNameFromTypeNode(targetType, ast)]],
+  );
 
   const replacement = createCallToFunction(
     importedFunc,

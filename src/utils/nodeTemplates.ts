@@ -32,6 +32,8 @@ import { safeGetNodeTypeInCtx, specializeType } from './nodeTypeProcessing';
 import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
 
+const FELT_TYPESTRING = 'uint252';
+
 export function createCairoTempVar(name: string, ast: AST) {
   const node = new CairoTempVarStatement(ast.reserveId(), '', name);
   ast.setContextRecursive(node);
@@ -190,6 +192,10 @@ export function createNumberLiteral(
   return node;
 }
 
+export function createFeltLiteral(value: number | bigint | string, ast: AST) {
+  return createNumberLiteral(value, ast, FELT_TYPESTRING);
+}
+
 export function createNumberTypeName(width: number, signed: boolean, ast: AST): ElementaryTypeName {
   const typestring = `${signed ? '' : 'u'}int${width}`;
   const typeName = new ElementaryTypeName(ast.reserveId(), '', typestring, typestring);
@@ -262,7 +268,7 @@ export function createUint8TypeName(ast: AST): ElementaryTypeName {
 }
 
 export function createFeltTypeName(ast: AST): ElementaryTypeName {
-  const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint252', 'uint252');
+  const typeName = new ElementaryTypeName(ast.reserveId(), '', FELT_TYPESTRING, FELT_TYPESTRING);
   ast.setContextRecursive(typeName);
   return typeName;
 }

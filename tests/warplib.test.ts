@@ -11,13 +11,8 @@ describe('Warplib files should compile and execute correctly', function () {
     const compileResult: SafePromise<{ stderr: string }> = wrapPromise(
       cairoTest(path.resolve(BASE_PATH, 'warplib')),
     );
-
-    try {
-      const { success, result } = await compileResult;
-      expect(result, 'cairo-test printed errors').to.include({ stderr: '' });
-      expect(success).to.be.true;
-    } catch (e) {
-      expect(false, `${e}`).to.be.true;
-    }
+    const { success, result } = await compileResult;
+    expect(result, 'starknet-compile printed errors').to.include({ stderr: '' });
+    expect(success);
   });
 });

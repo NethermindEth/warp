@@ -13,7 +13,12 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
-import { createBytesTypeName, createStringTypeName } from '../../export';
+import {
+  createBytesTypeName,
+  createFeltLiteral,
+  createFeltTypeName,
+  createStringTypeName,
+} from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
@@ -25,10 +30,9 @@ import {
 import {
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
-  U256_TO_FELT252,
   U128_FROM_FELT,
-  WM_DYN_ARRAY_LENGTH,
   WM_NEW,
+  WM_UNSAFE_READ,
 } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
@@ -40,8 +44,17 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const argTypes = concat.vArguments.map(
       (expr) => generalizeType(safeGetNodeType(expr, this.ast.inference))[0],
     );
-
     const funcDef = this.getOrCreateFuncDef(argTypes);
+
+    // Concat of nothing returns an empty byte/string array
+    if (argTypes.length === 0) {
+      return createCallToFunction(
+        funcDef,
+        [createFeltLiteral(0, this.ast), createFeltLiteral(1, this.ast)],
+        this.ast,
+      );
+    }
+
     return createCallToFunction(funcDef, concat.vArguments, this.ast);
   }
 
@@ -79,7 +92,19 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       : createBytesTypeName(this.ast);
     const output: ParameterInfo = ['res_loc', outputTypeName, DataLocation.Memory];
 
-    const funcInfo = this.getOrCreate(argTypes);
+    // Concat of nothing returns an empty byte/string array
+    if (argTypes.length === 0) {
+      return this.requireImport(
+        ...WM_NEW,
+        [
+          ['length', createFeltTypeName(this.ast)],
+          ['elem_size', createFeltTypeName(this.ast)],
+        ],
+        [output],
+      );
+    }
+
+    const funcInfo = this.generateBytesConcat(argTypes);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       inputs,
@@ -91,27 +116,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(argTypes: TypeNode[]): GeneratedFunctionInfo {
-    const funcInfo = this.generateBytesConcat(argTypes);
-    return funcInfo;
-  }
-
   private generateBytesConcat(argTypes: TypeNode[]): GeneratedFunctionInfo {
     const argAmount = argTypes.length;
     const funcName = `concat${this.generatedFunctionsDef.size}_${argAmount}`;
 
-    if (argAmount === 0) {
-      return {
-        name: funcName,
-        code: endent`
-          #[implicit(warp_memory: WarpMemory)]
-          fn ${funcName}() -> felt{
-              warp_memory.new_dynamic_array(0, 1)
-          }
-        `,
-        functionsCalled: [this.requireImport(...U128_FROM_FELT), this.requireImport(...WM_NEW)],
-      };
-    }
+    assert(argAmount > 0, 'Cannot generate bytes concat function for 0 arguments');
 
     const cairoArgs = argTypes.map((type, index) => {
       const cairoType = CairoType.fromSol(type, this.ast).toString();
@@ -147,7 +156,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     const code = endent`
       #[implicit(warp_memory: WarpMemory)]
-      fn ${funcName}(${cairoArgs}) -> (res_loc : felt){
+      fn ${funcName}(${cairoArgs}) -> felt252 {
           // Get all sizes
           ${argSizes}
           let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};
@@ -176,9 +185,9 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
         endent`
-          let size_${index} = warp_memory.read(arg_${index});
+          let size_${index} = warp_memory.unsafe_read(arg_${index});
         `,
-        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...U256_TO_FELT252)],
+        [this.requireImport(...WM_UNSAFE_READ)],
       ];
     }
 

@@ -16,7 +16,7 @@ import {
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { WM_READ, WM_GET_ID, WM_RETRIEVE } from '../../utils/importPaths';
-import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
+import { createFeltLiteral, createFeltTypeName } from '../../utils/nodeTemplates';
 import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 
@@ -36,12 +36,11 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       // The size parameter represents how much space to allocate
       // for the contents of the newly accessed subobject
       args.push(
-        createNumberLiteral(
+        createFeltLiteral(
           isDynamicArray(valueType)
             ? 1
             : CairoType.fromSol(valueType, this.ast, TypeConversionContext.MemoryAllocation).width,
           this.ast,
-          'uint252',
         ),
       );
     }
@@ -74,7 +73,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     if (resultCairoType instanceof MemoryLocation) {
       funcDef = this.requireImport(
         ...WM_GET_ID,
-        [input, ['size', createNumberTypeName(252, false, this.ast), DataLocation.Default]],
+        [input, ['size', createFeltTypeName(this.ast), DataLocation.Default]],
         [output],
       );
     } else if (resultCairoType instanceof CairoFelt) {
@@ -82,7 +81,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     } else {
       funcDef = this.requireImport(
         ...WM_RETRIEVE,
-        [input, ['size', createNumberTypeName(252, false, this.ast), DataLocation.Default]],
+        [input, ['size', createFeltTypeName(this.ast), DataLocation.Default]],
         [output],
       );
     }

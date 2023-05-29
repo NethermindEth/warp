@@ -126,7 +126,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         }
 
         #[implicit(warp_memory: WarpMemory)]
-        fn ${funcName}(calldata : ${callDataType}) -> felt{
+        fn ${funcName}(calldata : ${callDataType}) -> felt252 {
             let mem_start = warp_memory.new_dynamic_array(calldata.len, ${memoryElementWidth});
             ${funcName}_elem(calldata, mem_start + 1, calldata.len);
             mem_start
@@ -204,22 +204,20 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
 
         if (isReferenceType(type)) {
           const recursiveFunc = this.getOrCreateFuncDef(type);
-          const code = [
-            `let member_${decl.name} = ${recursiveFunc.name}(calldata.${decl.name});`,
-            `warp_memory.unsafe_write(${add('mem_start', offset)}, member_${decl.name});`,
-          ].join('\n');
+          const code = endent`
+            let member_${decl.name} = ${recursiveFunc.name}(calldata.${decl.name});
+            warp_memory.unsafe_write(${add('mem_start', offset)}, member_${decl.name});`;
           return [[...copyCode, code], [...funcCalls, recursiveFunc], offset + 1];
         }
 
         const memberWidth = CairoType.fromSol(type, this.ast).width;
         const code =
           memberWidth === 2
-            ? [
-                `warp_memory.unsafe_write(${add('mem_start', offset)}, calldata.${decl.name}.low);`,
-                `warp_memory.unsafe_write(${add('mem_start', offset + 1)}, calldata.${
-                  decl.name
-                }.high);`,
-              ].join('\n')
+            ? endent`
+                warp_memory.unsafe_write(${add('mem_start', offset)}, calldata.${decl.name}.low);
+                warp_memory.unsafe_write(${add('mem_start', offset + 1)}, calldata.${
+                decl.name
+              }.high);`
             : `warp_memory.unsafe_write(${add('mem_start', offset)}, calldata.${decl.name});`;
         return [[...copyCode, code], funcCalls, offset + memberWidth];
       },
