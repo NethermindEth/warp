@@ -4051,71 +4051,71 @@ export const expectations = flatten(
         //             Expect.Simple('xor256signedunsafe', ['10', '7', '24', '19'], ['18', '20']),
         //           ]),
         //         ]),
-        //         new Dir('memory', [
-        //           File.Simple('delete', [
-        //             Expect.Simple('deleteFelt', [], ['0']),
-        //             Expect.Simple('deleteUint', [], ['0', '0']),
-        //             Expect.Simple('deleteS', [], ['0', '0'], 'Delete simple struct'),
-        //             Expect.Simple('deleteDArray', ['3', '5', '3', '2'], ['0', '0'], 'Delete dynamic array'),
-        //             Expect.Simple(
-        //               'copyDeleteDArray',
-        //               ['3', '5', '3', '2'],
-        //               ['8', '0'],
-        //               'Delete dynamic array but keep a reference copy',
-        //             ),
-        //             // Blocked by returning a struct containing a dynamic array
-        //             // Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dynamic array as a member'),
-        //             Expect.Simple(
-        //               'deleteCnotArray',
-        //               ['3', '5', '1', '2'],
-        //               ['4'],
-        //               'Delete struct but keep member array ',
-        //             ),
-        //             Expect.Simple('deleteSArray', [], ['3', '4'], 'Delete dynamic array of structs'),
-        //             Expect.Simple('delete2dArray', [], ['13', '0'], 'Delete dynamic array of structs'),
-        //           ]),
-        //           File.Simple('dynamicArrays', [
-        //             Expect.Simple('uint8new', [], ['0', '0']),
-        //             Expect.Simple('uint8write', ['5'], ['0', '5']),
-        //             Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
-        //             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
-        //           ]),
-        //           File.Simple('nested', [
-        //             Expect.Simple('setAndGet', ['100'], ['100']),
-        //             Expect.Simple(
-        //               'memberAssign',
-        //               ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
-        //               ['2', '3', '4', '5', '6'],
-        //             ),
-        //             Expect.Simple(
-        //               'identifierAssign',
-        //               ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
-        //               ['7', '8', '9', '10', '11'],
-        //             ),
-        //           ]),
-        //           File.Simple('nestedIndexAccessWrite', [
-        //             Expect.Simple(
-        //               'passDataToInnerFunction',
-        //               [],
-        //               [...['0', '0', '0'], ...['0', '0', '0'], ...['0', '0', '1'], ...['0', '0', '7']],
-        //               '0',
-        //             ),
-        //           ]),
-        //           File.Simple('staticArrays', [
-        //             Expect.Simple('uint8default', [], ['0', '0']),
-        //             Expect.Simple('uint8write', ['5'], ['0', '5']),
-        //             Expect.Simple('uint256default', [], ['0', '0', '0', '0']),
-        //             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
-        //           ]),
-        //           File.Simple('structs', [
-        //             Expect.Simple('createDefault', [], ['0', '0', '0']),
-        //             Expect.Simple('createManual', ['1', '2', '3'], ['1', '2', '3']),
-        //             Expect.Simple('writeMembers', ['1', '2', '3'], ['1', '2', '3']),
-        //             Expect.Simple('references', ['1', '2', '3'], ['1', '2', '3']),
-        //             Expect.Simple('input', ['3', '4', '5'], ['4', '5', '5']),
-        //             Expect.Simple('output', ['3', '4', '5'], ['3', '4', '5']),
-        //           ]),
-        //         ]),
+        new Dir('memory', [
+          //           File.Simple('delete', [
+          //             Expect.Simple('deleteFelt', [], ['0']),
+          //             Expect.Simple('deleteUint', [], ['0', '0']),
+          //             Expect.Simple('deleteS', [], ['0', '0'], 'Delete simple struct'),
+          //             Expect.Simple('deleteDArray', ['3', '5', '3', '2'], ['0', '0'], 'Delete dynamic array'),
+          //             Expect.Simple(
+          //               'copyDeleteDArray',
+          //               ['3', '5', '3', '2'],
+          //               ['8', '0'],
+          //               'Delete dynamic array but keep a reference copy',
+          //             ),
+          //             // Blocked by returning a struct containing a dynamic array
+          //             // Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dynamic array as a member'),
+          //             Expect.Simple(
+          //               'deleteCnotArray',
+          //               ['3', '5', '1', '2'],
+          //               ['4'],
+          //               'Delete struct but keep member array ',
+          //             ),
+          //             Expect.Simple('deleteSArray', [], ['3', '4'], 'Delete dynamic array of structs'),
+          //             Expect.Simple('delete2dArray', [], ['13', '0'], 'Delete dynamic array of structs'),
+          //           ]),
+          //           File.Simple('dynamicArrays', [
+          //             Expect.Simple('uint8new', [], ['0', '0']),
+          //             Expect.Simple('uint8write', ['5'], ['0', '5']),
+          //             Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
+          //             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          //           ]),
+          //           File.Simple('nested', [
+          //             Expect.Simple('setAndGet', ['100'], ['100']),
+          //             Expect.Simple(
+          //               'memberAssign',
+          //               ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
+          //               ['2', '3', '4', '5', '6'],
+          //             ),
+          //             Expect.Simple(
+          //               'identifierAssign',
+          //               ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
+          //               ['7', '8', '9', '10', '11'],
+          //             ),
+          //           ]),
+          //           File.Simple('nestedIndexAccessWrite', [
+          //             Expect.Simple(
+          //               'passDataToInnerFunction',
+          //               [],
+          //               [...['0', '0', '0'], ...['0', '0', '0'], ...['0', '0', '1'], ...['0', '0', '7']],
+          //               '0',
+          //             ),
+          //           ]),
+          File.Simple('staticArrays', [
+            Expect.Simple('uint8default', [], ['0', '0']),
+            Expect.Simple('uint8write', ['5'], ['0', '5']),
+            Expect.Simple('uint256default', [], ['0', '0', '0', '0']),
+            Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          ]),
+          //           File.Simple('structs', [
+          //             Expect.Simple('createDefault', [], ['0', '0', '0']),
+          //             Expect.Simple('createManual', ['1', '2', '3'], ['1', '2', '3']),
+          //             Expect.Simple('writeMembers', ['1', '2', '3'], ['1', '2', '3']),
+          //             Expect.Simple('references', ['1', '2', '3'], ['1', '2', '3']),
+          //             Expect.Simple('input', ['3', '4', '5'], ['4', '5', '5']),
+          //             Expect.Simple('output', ['3', '4', '5'], ['3', '4', '5']),
+          //           ]),
+        ]),
         new Dir('modifiers', [
           File.Simple('modifier', [
             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
