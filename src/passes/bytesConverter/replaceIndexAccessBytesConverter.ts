@@ -19,6 +19,7 @@ import {
 } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { replaceBytesType } from './utils';
+import { BYTES_ACCESS } from '../../utils/importPaths';
 
 export class ReplaceIndexAccessBytesConverter extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
@@ -48,7 +49,7 @@ export class ReplaceIndexAccessBytesConverter extends ASTMapper {
 
     const importedFunc = ast.registerImport(
       node,
-      'warplib.maths.bytes_access',
+      BYTES_ACCESS,
       selectWarplibFunction(baseExprType, indexNodeType),
       stubParams,
       [['res', createUint8TypeName(ast)]],

@@ -58,10 +58,8 @@ export const INT_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'int_conversions'];
 // Integer_conversions holds the functions used in Cairo1, once int_conversions is translated they both can be merged
 export const INTEGER_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'integer_conversions'];
 
-export const BYTE256_AT_INDEX: [string[], string] = [
-  [...WARPLIB_MATHS, 'bytes_access'],
-  'byte256_at_index',
-];
+export const BYTES_ACCESS = [...WARPLIB_MATHS, 'maths'];
+export const BYTE256_AT_INDEX: [string[], string] = [BYTES_ACCESS, 'byte256_at_index'];
 export const BYTE_ARRAY_TO_FELT_VALUE: [string[], string] = [
   [...DYNAMIC_ARRAYS_UTIL],
   'byte256_at_index',
