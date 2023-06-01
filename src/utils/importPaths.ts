@@ -88,7 +88,7 @@ export const ARRAY: [string[], string] = [['array'], 'Array'];
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
 
 export const U256_FROM_FELTS: [string[], string] = [INTEGER_CONVERSIONS, 'u256_from_felts'];
-export const TRY_U256_TO_FELT252: [string[], string] = [INTEGER_CONVERSIONS, 'try_u256_to_felt252'];
+export const U256_TO_FELT252: [string[], string] = [INTEGER_CONVERSIONS, 'u256_to_felt252'];
 export const FELT252_INTO_BOOL: [string[], string] = [
   [...INTEGER_CONVERSIONS],
   'felt252_into_bool',
