@@ -6,7 +6,6 @@ import { CairoASTMapping } from './cairoWriter';
 import {
   ABIBuiltins,
   AnnotateImplicits,
-  ArgBoundChecker,
   BuiltinHandler,
   BytesConverter,
   CairoStubProcessor,
@@ -138,7 +137,6 @@ function applyPasses(
     ['Ev', Events],
     ['Dh', DeleteHandler],
     ['Rf', References],
-    ['Abc', ArgBoundChecker],
     ['Ec', EnumConverter],
     ['B', BuiltinHandler],
     ['Bc', BytesConverter],
