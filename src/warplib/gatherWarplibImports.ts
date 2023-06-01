@@ -4,17 +4,18 @@ import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
 import { glob } from 'glob';
 import path from 'path';
 
+import { WARP_ROOT } from '../config';
+
 export const warplibImportInfo = glob
-  .sync('warplib/src/**/*.cairo')
+  .sync(path.join(WARP_ROOT, 'warplib/**/*.cairo'))
   .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
-    // TODO: Add encodePath here. Importing encodePath cause circular
-    // dependency error. Suggested solution is to relocate the import files
-    const importPath = [
-      'warplib',
-      ...pathToFile.slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
-    ].join('/');
+    const importPath = path
+      .relative(WARP_ROOT, pathToFile)
+      .split('/')
+      .join('.')
+      .slice(0, -'.cairo'.length);
 
     const fileMap: Map<string, Implicits[]> =
       warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
