@@ -32,6 +32,12 @@ import { safeGetNodeTypeInCtx, specializeType } from './nodeTypeProcessing';
 import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
 
+// We use `uint252` to give an internal representantion of a cairo felt
+// Since `uint252` does not exist in solidity we are safe from clashes
+// with other types.
+// We cannot use `felt252` or other type strings because we need to use
+// a type known to solc-typed-ast. In this case `uint252` is parseable
+// but `felt252` or other made up name would crash.
 const FELT_TYPESTRING = 'uint252';
 
 export function createCairoTempVar(name: string, ast: AST) {

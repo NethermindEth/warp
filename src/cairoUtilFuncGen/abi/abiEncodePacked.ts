@@ -28,7 +28,7 @@ import {
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
   FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY,
-  TRY_U256_TO_FELT252,
+  U256_TO_FELT252,
   U128_FROM_FELT,
   WM_DYN_ARRAY_LENGTH,
   WM_INDEX_DYN,
@@ -146,11 +146,7 @@ export class AbiEncodePacked extends AbiBase {
           let (length) = narrow_safe(length256);
           let (${newIndexVar}) = ${func.name}(bytes_index, bytes_array, 0, length, ${varToEncode});
         `,
-        [
-          this.requireImport(...WM_DYN_ARRAY_LENGTH),
-          this.requireImport(...TRY_U256_TO_FELT252),
-          func,
-        ],
+        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...U256_TO_FELT252), func],
       ];
     }
 
