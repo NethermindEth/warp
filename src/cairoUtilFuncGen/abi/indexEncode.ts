@@ -20,7 +20,7 @@ import {
   DYNAMIC_ARRAYS_UTIL,
   FELT_ARRAY_TO_WARP_MEMORY_ARRAY,
   FELT_TO_UINT256,
-  TRY_U256_TO_FELT252,
+  U256_TO_FELT252,
   U128_FROM_FELT,
   WM_DYN_ARRAY_LENGTH,
   WM_INDEX_DYN,
@@ -238,7 +238,7 @@ export class IndexEncode extends AbiBase {
     const importedFuncs = [
       this.requireImport(...WM_DYN_ARRAY_LENGTH),
       this.requireImport(...FELT_TO_UINT256),
-      this.requireImport(...TRY_U256_TO_FELT252),
+      this.requireImport(...U256_TO_FELT252),
     ];
 
     const funcInfo = { name, code, functionsCalled: [...importedFuncs, tailEncoding] };

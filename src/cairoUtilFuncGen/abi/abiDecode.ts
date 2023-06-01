@@ -41,7 +41,7 @@ import {
   BYTE_ARRAY_TO_FELT_VALUE,
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
-  TRY_U256_TO_FELT252,
+  U256_TO_FELT252,
   U128_FROM_FELT,
   WM_INDEX_DYN,
   WM_NEW,
@@ -439,7 +439,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       this.requireImport(...U128_FROM_FELT),
       this.requireImport(...WM_INDEX_DYN),
       this.requireImport(...FELT_TO_UINT256),
-      this.requireImport(...TRY_U256_TO_FELT252),
+      this.requireImport(...U256_TO_FELT252),
     ];
 
     const funcInfo = {

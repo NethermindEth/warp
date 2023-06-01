@@ -3,7 +3,7 @@ import { ArrayType, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-a
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { TRY_U256_TO_FELT252, WM_INDEX_STATIC } from '../../utils/importPaths';
+import { U256_TO_FELT252, WM_INDEX_STATIC } from '../../utils/importPaths';
 import {
   createFeltLiteral,
   createFeltTypeName,
@@ -43,7 +43,7 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
 
     const u256ToFelt252 = this.ast.registerImport(
       indexAccess,
-      ...TRY_U256_TO_FELT252,
+      ...U256_TO_FELT252,
       [['x', createUint256TypeName(this.ast)]],
       [['r', createFeltTypeName(this.ast)]],
     );
