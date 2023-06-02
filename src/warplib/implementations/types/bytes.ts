@@ -96,49 +96,13 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
         }
         // Bitwise 
         fn and_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-          ${
-            max_width >= 128 // uN types lower than 128 bits don't have an implementation for bitwise operations
-              ? `bytes${length}{ value: self.value & other.value }`
-              : endent`
-              let self_value_felt252 = u${max_width}_to_felt252(self.value);
-              let other_value_felt252 = u${max_width}_to_felt252(other.value);
-              let self_value_u128 = u128_try_from_felt252(self_value_felt252).unwrap();
-              let other_value_u128 = u128_try_from_felt252(other_value_felt252).unwrap();
-              let result_u128 = self_value_u128 & other_value_u128;
-              let result_felt252 = u128_to_felt252(result_u128);
-              bytes${length}{ value: u${max_width}_try_from_felt252(result_felt252).unwrap() }
-            `
-          }
+          ${body_for_bitwise_operations(max_width, length, '&')}
         }
         fn or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-          ${
-            max_width >= 128 // uN types lower than 128 bits don't have an implementation for bitwise operations
-              ? `bytes${length}{ value: self.value | other.value }`
-              : endent`
-              let self_value_felt252 = u${max_width}_to_felt252(self.value);
-              let other_value_felt252 = u${max_width}_to_felt252(other.value);
-              let self_value_u128 = u128_try_from_felt252(self_value_felt252).unwrap();
-              let other_value_u128 = u128_try_from_felt252(other_value_felt252).unwrap();
-              let result_u128 = self_value_u128 | other_value_u128;
-              let result_felt252 = u128_to_felt252(result_u128);
-              bytes${length}{ value: u${max_width}_try_from_felt252(result_felt252).unwrap() }
-            `
-          }
+          ${body_for_bitwise_operations(max_width, length, '|')}
         }
         fn exclusive_or_bitwise(self: bytes${length}, other: bytes${length}) -> bytes${length} {
-          ${
-            max_width >= 128 // uN types lower than 128 bits don't have an implementation for bitwise operations
-              ? `bytes${length}{ value: self.value ^ other.value }`
-              : endent`
-              let self_value_felt252 = u${max_width}_to_felt252(self.value);
-              let other_value_felt252 = u${max_width}_to_felt252(other.value);
-              let self_value_u128 = u128_try_from_felt252(self_value_felt252).unwrap();
-              let other_value_u128 = u128_try_from_felt252(other_value_felt252).unwrap();
-              let result_u128 = self_value_u128 ^ other_value_u128;
-              let result_felt252 = u128_to_felt252(result_u128);
-              bytes${length}{ value: u${max_width}_try_from_felt252(result_felt252).unwrap() }
-            `
-          }
+          ${body_for_bitwise_operations(max_width, length, '^')}
         }
         // Bitwise negation is not currently supported
         // Shift operators are not currently supported
@@ -165,4 +129,18 @@ export function fixed_bytes_types(): WarplibFunctionInfo {
     ],
     functions: [fixed_bytes_trait, fixed_bytes_types],
   };
+}
+
+function body_for_bitwise_operations(max_width: number, length: number, operator: string) {
+  return max_width >= 128 // uN types lower than 128 bits don't have an implementation for bitwise operations
+    ? `bytes${length}{ value: self.value ${operator} other.value }`
+    : endent`
+      let self_value_felt252 = u${max_width}_to_felt252(self.value);
+      let other_value_felt252 = u${max_width}_to_felt252(other.value);
+      let self_value_u128 = u128_try_from_felt252(self_value_felt252).unwrap();
+      let other_value_u128 = u128_try_from_felt252(other_value_felt252).unwrap();
+      let result_u128 = self_value_u128 ${operator} other_value_u128;
+      let result_felt252 = u128_to_felt252(result_u128);
+      bytes${length}{ value: u${max_width}_try_from_felt252(result_felt252).unwrap() }
+    `;
 }
