@@ -13,12 +13,11 @@ export const warplibImportInfo = glob
 
     const importPath = [
       'warplib',
-      path.relative(WARP_ROOT, pathToFile).slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
+      path
+        .relative(WARP_ROOT, pathToFile)
+        .slice('warplib/src/'.length, -'.cairo'.length)
+        .split(path.sep),
     ];
-
-    const fileMap: Map<string, Implicits[]> =
-      warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
-
     // TODO: Add encodePath here. Importing encodePath cause circular
     // dependency error. Suggested solution is to relocate all import
     // related scripts (including this, and the ones in src/utils)
