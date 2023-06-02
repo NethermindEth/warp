@@ -1,4 +1,5 @@
 import assert = require('assert');
+import endent from 'endent';
 import {
   DataLocation,
   FunctionCall,
@@ -11,9 +12,8 @@ import {
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import { DICT_ACCESS, DICT_WRITE, U128_FROM_FELT, WM_ALLOC } from '../../utils/importPaths';
+import { WM_UNSAFE_ALLOC, WM_UNSAFE_WRITE } from '../../utils/importPaths';
 import { safeGetNodeType, typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
-import { uint256 } from '../../warplib/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 /*
@@ -79,38 +79,34 @@ export class MemoryStructGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(structType: CairoStruct): GeneratedFunctionInfo {
-    const funcName = `WM${this.generatedFunctionsDef.size}_struct_${structType.name}`;
+    const funcName = `wm${this.generatedFunctionsDef.size}_struct_${structType.name}`;
 
-    const mangledStructMembers: [string, CairoType][] = [...structType.members.entries()].map(
-      ([name, type]) => [`member_${name}`, type],
+    const mangledStructMembers = [...structType.members.entries()].map(
+      ([name, type]): [string, CairoType] => [`member_${name}`, type],
     );
+
     const argString = mangledStructMembers
       .map(([name, type]) => `${name}: ${type.toString()}`)
       .join(', ');
 
+    const writeStructCode = mangledStructMembers
+      .flatMap(([name, type]) => type.serialiseMembers(name))
+      .map((name, index) => `warp_memory.unsafe_write(${add('start', index)}, ${name})`)
+      .join('\n');
+
     return {
       name: funcName,
-      code: [
-        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
-        `    alloc_locals;`,
-        `    let (start) = wm_alloc(${uint256(structType.width)});`,
-        mangledStructMembers
-          .flatMap(([name, type]) => type.serialiseMembers(name))
-          .map(write)
-          .join('\n'),
-        `    return (start,);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        #[implicits(warp_memory: WarpMemory)]
+        fn ${funcName}(${argString}) -> felt252 {
+            let start = warp_memory.unsafe_alloc(${structType.width});
+            ${writeStructCode}
+            start
+        }`,
       functionsCalled: [
-        this.requireImport(...WM_ALLOC),
-        this.requireImport(...DICT_WRITE),
-        this.requireImport(...DICT_ACCESS),
-        this.requireImport(...U128_FROM_FELT),
+        this.requireImport(...WM_UNSAFE_ALLOC),
+        this.requireImport(...WM_UNSAFE_WRITE),
       ],
     };
   }
-}
-
-function write(name: string, offset: number): string {
-  return `dict_write{dict_ptr=warp_memory}(${add('start', offset)}, ${name});`;
 }

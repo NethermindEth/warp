@@ -15,7 +15,6 @@ import assert from 'assert';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
-import { uint256 } from '../../warplib/utils';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -32,6 +31,7 @@ import {
   U128_FROM_FELT,
   WM_ALLOC,
   WM_NEW,
+  WM_UNSAFE_WRITE,
 } from '../../utils/importPaths';
 import endent from 'endent';
 
@@ -96,44 +96,40 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     if (isReferenceType(elementT)) {
       const recursiveFunc = this.getOrCreateFuncDef(elementT);
       copyCode = endent`
-        let cdElem = calldata[0];
-        let (mElem) = ${recursiveFunc.name}(cdElem);
-        dict_write{dict_ptr=warp_memory}(mem_start, mElem);
+        let calldata_elem = calldata[index];
+        let memory_elem = ${recursiveFunc.name}(calldata_elem);
+        warp_memory.unsafe_write(calldata_elem, memory_elem)
       `;
       auxFunc = recursiveFunc;
     } else if (memoryElementWidth === 2) {
       copyCode = endent`
-        dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low);
-        dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high);
+        warp_memory.unsafe_write(mem_ptr, calldata[index].low)
+        warp_memory.unsafe_write(mem_ptr + 1, calldata[index].high)
       `;
-      auxFunc = this.requireImport(...DICT_WRITE);
+      auxFunc = this.requireImport(...WM_UNSAFE_WRITE);
     } else {
-      copyCode = `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0]);`;
-      auxFunc = this.requireImport(...DICT_WRITE);
+      copyCode = `warp_memory.unsafe_write(mem_start, calldata[index]);`;
+      auxFunc = this.requireImport(...WM_UNSAFE_WRITE);
     }
 
     const funcName = `cd_to_memory_dynamic_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}_elem(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){
-            alloc_locals;
-            if (length == 0){
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}_elem(calldata: ${callDataType}, mem_ptr: felt252, length: felt252) {
+            if index == length {
                 return ();
             }
             ${copyCode}
-            return ${funcName}_elem(calldata + ${
-        callDataType.vPtr.to.width
-      }, mem_start + ${memoryElementWidth}, length - 1);
+            ${funcName}_elem(calldata, mem_ptr + ${memoryElementWidth}, index + 1, length)
         }
-        #[implicit(warp_memory)]
-        func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){
-            alloc_locals;
-            let (len256) = felt_to_uint256(calldata.len);
-            let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)});
-            ${funcName}_elem(calldata.ptr, mem_start + 2, calldata.len);
-            return (mem_start,);
+
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(calldata : ${callDataType}) -> felt252 {
+            let mem_start = warp_memory.new_dynamic_array(calldata.len, ${memoryElementWidth});
+            ${funcName}_elem(calldata, mem_start + 1, calldata.len);
+            mem_start
         }
       `,
       functionsCalled: [
@@ -161,37 +157,35 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       const recursiveFunc = this.getOrCreateFuncDef(type.elementT);
       copyCode = (index) =>
         endent`
-          let cdElem = calldata[${index}];
-          let (mElem) = ${recursiveFunc.name}(cdElem);
-          dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem);
+          let calldata_elem = calldata[${index}];
+          let memory_elem = ${recursiveFunc.name}(calldata_elem);
+          warp_memory.unsafe_write(${loc(index)}, memory_elem);
         `;
       funcCalls = [recursiveFunc];
     } else if (memoryElementWidth === 2) {
       copyCode = (index) =>
         endent`
-          dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}].low);
-          dict_write{dict_ptr=warp_memory}(${loc(index)} + 1, calldata[${index}].high);
+            warp_memory.unsafe_write(${loc(index)}, calldata[${index}].low);
+            warp_memory.unsafe_write(${loc(index)} + 1, calldata[${index}].high);
         `;
     } else {
-      copyCode = (index) => `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}]);`;
+      copyCode = (index) => `warp_memory.unsafe_write(${loc(index)}, calldata[${index}]);`;
     }
 
     const funcName = `cd_to_memory_static_array${this.generatedFunctionsDef.size}`;
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt){
-            alloc_locals;
-            let (mem_start) = wm_alloc(${uint256(memoryType.width)});
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(calldata : ${callDataType}) -> felt252{
+            let mem_start = warp_memory.alloc(${memoryType.width});
             ${mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)).join('\n')}
-            return (mem_start,);
+            mem_start
         }
       `,
       functionsCalled: [
         this.requireImport(...WM_ALLOC),
         this.requireImport(...U128_FROM_FELT),
-        this.requireImport(...DICT_WRITE),
         ...funcCalls,
       ],
     };
@@ -210,27 +204,21 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
 
         if (isReferenceType(type)) {
           const recursiveFunc = this.getOrCreateFuncDef(type);
-          const code = [
-            `let (member_${decl.name}) = ${recursiveFunc.name}(calldata.${decl.name});`,
-            `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset)}, member_${decl.name});`,
-          ].join('\n');
+          const code = endent`
+            let member_${decl.name} = ${recursiveFunc.name}(calldata.${decl.name});
+            warp_memory.unsafe_write(${add('mem_start', offset)}, member_${decl.name});`;
           return [[...copyCode, code], [...funcCalls, recursiveFunc], offset + 1];
         }
 
         const memberWidth = CairoType.fromSol(type, this.ast).width;
         const code =
           memberWidth === 2
-            ? [
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset)}, calldata.${
-                  decl.name
-                }.low);`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset + 1)}, calldata.${
-                  decl.name
-                }.high);`,
-              ].join('\n')
-            : `dict_write{dict_ptr=warp_memory}(${add('mem_start', offset)}, calldata.${
+            ? endent`
+                warp_memory.unsafe_write(${add('mem_start', offset)}, calldata.${decl.name}.low);
+                warp_memory.unsafe_write(${add('mem_start', offset + 1)}, calldata.${
                 decl.name
-              });`;
+              }.high);`
+            : `warp_memory.unsafe_write(${add('mem_start', offset)}, calldata.${decl.name});`;
         return [[...copyCode, code], funcCalls, offset + memberWidth];
       },
       [new Array<string>(), new Array<CairoFunctionDefinition>(), 0],
@@ -240,12 +228,11 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}(calldata : ${calldataType}) -> (mem_loc: felt){
-            alloc_locals;
-            let (mem_start) = wm_alloc(${uint256(memoryType.width)});
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(calldata : ${calldataType}) -> felt252 {
+            let mem_start = warp_memory.alloc(${memoryType.width});
             ${copyCode.join('\n')}
-            return (mem_start,
+            mem_start
         }
       `,
       functionsCalled: [

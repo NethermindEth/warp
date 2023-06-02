@@ -1,4 +1,5 @@
 import assert = require('assert');
+import endent from 'endent';
 import {
   MemberAccess,
   FunctionCall,
@@ -91,11 +92,11 @@ export class MemoryMemberAccessGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [
-        `func ${funcName}(loc: felt) -> (memberLoc: felt){`,
-        `    return (${add('loc', offset)},);`,
-        `}`,
-      ].join('\n'),
+      code: endent`
+        fn ${funcName}(loc: felt252) -> felt252{
+            ${add('loc', offset)}
+        }`,
+
       functionsCalled: [],
     };
   }
