@@ -4,7 +4,7 @@ use warplib::warp_memory::WarpMemoryImpl;
 use warplib::warp_memory::WarpMemoryArraysTrait;
 use array::ArrayTrait;
 use warplib::warp_memory::WarpMemoryMultiCellAccessorTrait;
-use warplib::warp_memory::WarpMemoryAccesssorTrait;
+use warplib::warp_memory::WarpMemoryAccessorTrait;
 use warplib::types::fixed_bytes::bytes32;
 use warplib::types::fixed_bytes::bytes13;
 use warplib::types::fixed_bytes::FixedBytesTrait;
