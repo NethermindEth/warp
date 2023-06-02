@@ -1,6 +1,5 @@
 use warplib::warp_memory::WarpMemory;
 use warplib::warp_memory::WarpMemoryTrait;
-use warplib::warp_memory::WarpMemoryImpl;
 
 const MAX_FELT: felt252 = 3618502788666131213697322783095070105623107215331596699973092056135872020480;
 
@@ -197,7 +196,7 @@ use array::ArrayTrait;
 use integer::u32_to_felt252;
 use option::OptionTrait;
 use warplib::warp_memory::WarpMemoryMultiCellAccessorTrait;
-use warplib::warp_memory::WarpMemoryAccesssorTrait;
+use warplib::warp_memory::WarpMemoryAccessorTrait;
 
 #[test]
 #[available_gas(1000000)]

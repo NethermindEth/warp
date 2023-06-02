@@ -13,7 +13,7 @@ export class MemoryDynArrayLengthGen extends CairoUtilFuncGenBase {
     const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
     const funcDef = this.requireImport(
       ...WM_DYN_ARRAY_LENGTH,
-      [['arrayLoc', arrayTypeName, DataLocation.Memory]],
+      [['array_loc', arrayTypeName, DataLocation.Memory]],
       [['len', createUint256TypeName(this.ast)]],
     );
     return createCallToFunction(funcDef, [node.vExpression], this.ast);

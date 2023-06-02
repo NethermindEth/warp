@@ -11,7 +11,7 @@ use warplib::warp_memory::WarpMemoryTrait;
 use warplib::warp_memory::WarpMemoryImpl;
 
 
-trait WarpMemoryAccesssorTrait {
+trait WarpMemoryAccessorTrait {
     fn store<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, value: T);
     fn retrieve<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, size: felt252) -> T;
     fn create<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, value: T);
@@ -84,7 +84,7 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
             if index == final_location {
                 break();
             }
-            array.append(self.read(index));
+            array.append(self.unsafe_read(index));
             index += 1;
         };
         array
@@ -92,7 +92,7 @@ impl WarpMemoryMultiCellAccessor of WarpMemoryMultiCellAccessorTrait {
 }
 
 
-impl WarpMemoryAccesssor of WarpMemoryAccesssorTrait {
+impl WarpMemoryAccessor of WarpMemoryAccessorTrait {
     fn store<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>>(ref self: WarpMemory, position: felt252, value: T) {
         let mut serialization_array: Array<felt252> = ArrayTrait::<felt252>::new();
         TSerde::serialize(@value, ref serialization_array);
