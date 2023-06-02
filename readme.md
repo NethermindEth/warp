@@ -9,31 +9,16 @@ smart contracts to Starknet Cairo Contracts.
 
 ## Quickstart
 
-Docker compose provides a ready to use environment featuring warp and devnet.
-
 > **Note:**
-> Executing Warp using Docker works only for x86 architecture, ARM architectures (such as Apple's M1) will be supported soon.
+> Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
 
-### Build and run containers
+The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
-```bash
-docker-compose up
+```
+docker run --rm -v "$PWD:/dapp" nethermind/warp transpile <contract-path>
 ```
 
-### Transpile
-
-```bash
-docker-compose exec warp warp transpile exampleContracts/ERC20.sol
-```
-
-It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `exampleContracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
-
-### Deploy to devnet
-
-```bash
-docker-compose exec warp warp compile warp_output/example__contracts/ERC20__WC__WARP.cairo
-docker-compose exec warp starknet deploy --no_wallet --contract warp_output/example__contracts/ERC20__WC__WARP_compiled.json --gateway_url http://devnet:5050
-```
+You can find docker installation guide [here](https://docs.docker.com/get-docker/).
 
 ## Documentation 📖
 
