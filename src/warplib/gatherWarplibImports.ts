@@ -13,19 +13,23 @@ export const warplibImportInfo = glob
 
     const importPath = [
       'warplib',
-      path.relative(WARP_ROOT, pathToFile).slice('warplib/src/'.length, -'.cairo'.length),
-    ].join('/');
+      path.relative(WARP_ROOT, pathToFile).slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
+    ];
 
     const fileMap: Map<string, Implicits[]> =
       warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
 
-    if (!warplibMap.has(importPath)) {
-      warplibMap.set(importPath, fileMap);
+    // TODO: Add encodePath here. Importing encodePath cause circular
+    // dependency error. Suggested solution is to relocate all import
+    // related scripts (including this, and the ones in src/utils)
+    const key = importPath.join('/');
+    const fileMap: Map<string, Implicits[]> = warplibMap.get(key) ?? new Map<string, Implicits[]>();
+    if (!warplibMap.has(key)) {
+      warplibMap.set(key, fileMap);
     }
 
     parseMultipleRawCairoFunctions(rawCairoCode).forEach((cairoFunc) =>
       fileMap.set(cairoFunc.name, cairoFunc.implicits),
     );
-
     return warplibMap;
   }, new Map<string, Map<string, Implicits[]>>());

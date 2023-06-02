@@ -46,7 +46,6 @@ export const GET_CONTRACT_ADDRESS: [string[], string] = [
 
 //------------------------------------------------------
 
-export const WARPLIB_MEMORY = ['warplib', 'memory'];
 export const WARPLIB_KECCAK = ['warplib', 'keccak'];
 export const WARPLIB_MATHS = ['warplib', 'maths'];
 export const WARPLIB_CONVERSIONS = ['warplib', 'conversions'];
@@ -79,23 +78,15 @@ export const FIXED_BYTES256_TO_FELT_DYNAMIC_ARRAY_SPL: [string[], string] = [
   [...DYNAMIC_ARRAYS_UTIL],
   'fixed_bytes256_to_felt_dynamic_array_spl',
 ];
-export const NARROW_SAFE: [string[], string] = [[...WARPLIB_MATHS, 'utils'], 'narrow_safe'];
-export const PACK_BYTES_FELT: [string[], string] = [[...WARPLIB_KECCAK], 'pack_bytes_felt'];
+export const PACK_BYTES_FELT: [string[], string] = [WARPLIB_KECCAK, 'pack_bytes_felt'];
 export const STRING_HASH: [string[], string] = [['warplib', 'string_hash'], 'string_hash'];
-export const WARP_KECCAK: [string[], string] = [[...WARPLIB_KECCAK], 'warp_keccak'];
-export const WARP_UINT256: [string[], string] = [[...INT_CONVERSIONS], 'warp_uint256'];
-export const WM_DYN_ARRAY_LENGTH: [string[], string] = [[...WARPLIB_MEMORY], 'wm_dyn_array_length'];
-export const WM_INDEX_DYN: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_dyn'];
-export const WM_INDEX_STATIC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_index_static'];
-export const WM_NEW: [string[], string] = [[...WARPLIB_MEMORY], 'wm_new'];
-export const WM_READ_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_felt'];
-export const WM_READ_ID: [string[], string] = [[...WARPLIB_MEMORY], 'wm_read_id'];
-export const WM_TO_FELT_ARRAY: [string[], string] = [[...WARPLIB_MEMORY], 'wm_to_felt_array'];
-export const WM_ALLOC: [string[], string] = [[...WARPLIB_MEMORY], 'wm_alloc'];
-export const WM_WRITE_FELT: [string[], string] = [[...WARPLIB_MEMORY], 'wm_write_felt'];
+export const WARP_KECCAK: [string[], string] = [WARPLIB_KECCAK, 'warp_keccak'];
+export const WARP_UINT256: [string[], string] = [INT_CONVERSIONS, 'warp_uint256'];
 export const ARRAY: [string[], string] = [['array'], 'Array'];
 export const ARRAY_TRAIT: [string[], string] = [['array'], 'ArrayTrait'];
-export const U256_FROM_FELTS: [string[], string] = [[...INTEGER_CONVERSIONS], 'u256_from_felts'];
+
+export const U256_FROM_FELTS: [string[], string] = [INTEGER_CONVERSIONS, 'u256_from_felts'];
+export const U256_TO_FELT252: [string[], string] = [INTEGER_CONVERSIONS, 'u256_to_felt252'];
 export const FELT252_INTO_BOOL: [string[], string] = [
   [...INTEGER_CONVERSIONS],
   'felt252_into_bool',
@@ -249,11 +240,60 @@ export const UNSAFE_CONTRACT_ADDRESS_FROM_U256: [string[], string] = [
 export const INTO: [string[], string] = [['traits'], 'Into'];
 export const OPTION_TRAIT: [string[], string] = [['option'], 'OptionTrait'];
 
-export const MEMORY_MODULE = ['warplib', 'warp_memory'];
+const MEMORY_MODULE = ['warplib', 'warp_memory'];
+
 export const WARP_MEMORY: [string[], string] = [MEMORY_MODULE, 'WarpMemory'];
-export const WARP_MEMORY_TRAIT: [string[], string] = [MEMORY_MODULE, 'WarpMemoryTrait'];
-export const WARP_MEMORY_IMPL: [string[], string] = [MEMORY_MODULE, 'WarpMemoryImpl'];
-export const ACCESSOR: [string[], string] = [MEMORY_MODULE, 'WarpMemoryAccesssor'];
-export const ACCESSOR_TRAIT: [string[], string] = [MEMORY_MODULE, 'WarpMemoryAccesssorTrait'];
+const WARP_MEMORY_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryTrait'];
+export const WM_READ: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.read'];
+export const WM_WRITE: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.write'];
+export const WM_ALLOC: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.alloc'];
+export const WM_UNSAFE_READ: [string[], string] = [
+  [...WARP_MEMORY_TRAIT],
+  'warp_memory.unsafe_read',
+];
+export const WM_UNSAFE_WRITE: [string[], string] = [
+  [...WARP_MEMORY_TRAIT],
+  'warp_memory.unsafe_write',
+];
+export const WM_UNSAFE_ALLOC: [string[], string] = [
+  [...WARP_MEMORY_TRAIT],
+  'warp_memory.unsafe_alloc',
+];
+
+const WARP_MEMORY_ARRAYS_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryArraysTrait'];
+export const WM_DYN_ARRAY_LENGTH: [string[], string] = [
+  WARP_MEMORY_ARRAYS_TRAIT,
+  'warp_memory.length_dyn',
+];
+export const WM_INDEX_DYN: [string[], string] = [WARP_MEMORY_ARRAYS_TRAIT, 'warp_memory.index_dyn'];
+export const WM_INDEX_STATIC: [string[], string] = [
+  WARP_MEMORY_ARRAYS_TRAIT,
+  'warp_memory.index_static',
+];
+export const WM_NEW: [string[], string] = [
+  WARP_MEMORY_ARRAYS_TRAIT,
+  'warp_memory.new_dynamic_array',
+];
+export const WM_GET_ID: [string[], string] = [
+  WARP_MEMORY_ARRAYS_TRAIT,
+  'warp_memory.get_or_create_id',
+];
+
+const MULTICELL_ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryMultiCellAccessorTrait'];
+export const WM_WRITE_MULTIPLE: [string[], string] = [
+  MULTICELL_ACCESSOR_TRAIT,
+  'warp_memory.write_multiple',
+];
+export const WM_READ_MULTIPLE: [string[], string] = [
+  MULTICELL_ACCESSOR_TRAIT,
+  'warp_memory.read_multiple',
+];
+
+const ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'accessors', 'WarpMemoryAccessorTrait'];
+export const WM_RETRIEVE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.retrieve'];
+export const WM_STORE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.store'];
+export const WM_CREATE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.create'];
+
+export const WM_TO_FELT_ARRAY: [string[], string] = [['not set yet'], 'wm_to_felt_array'];
 
 export const SUPER: string[] = ['super'];

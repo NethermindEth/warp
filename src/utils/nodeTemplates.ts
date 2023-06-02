@@ -32,6 +32,14 @@ import { safeGetNodeTypeInCtx, specializeType } from './nodeTypeProcessing';
 import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
 
+// We use `uint252` to give an internal representantion of a cairo felt
+// Since `uint252` does not exist in solidity we are safe from clashes
+// with other types.
+// We cannot use `felt252` or other type strings because we need to use
+// a type known to solc-typed-ast. In this case `uint252` is parseable
+// but `felt252` or other made up name would crash.
+const FELT_TYPESTRING = 'uint252';
+
 export function createCairoTempVar(name: string, ast: AST) {
   const node = new CairoTempVarStatement(ast.reserveId(), '', name);
   ast.setContextRecursive(node);
@@ -190,6 +198,10 @@ export function createNumberLiteral(
   return node;
 }
 
+export function createFeltLiteral(value: number | bigint | string, ast: AST) {
+  return createNumberLiteral(value, ast, FELT_TYPESTRING);
+}
+
 export function createNumberTypeName(width: number, signed: boolean, ast: AST): ElementaryTypeName {
   const typestring = `${signed ? '' : 'u'}int${width}`;
   const typeName = new ElementaryTypeName(ast.reserveId(), '', typestring, typestring);
@@ -257,6 +269,12 @@ export function createUint256TypeName(ast: AST): ElementaryTypeName {
 
 export function createUint8TypeName(ast: AST): ElementaryTypeName {
   const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint8', 'uint8');
+  ast.setContextRecursive(typeName);
+  return typeName;
+}
+
+export function createFeltTypeName(ast: AST): ElementaryTypeName {
+  const typeName = new ElementaryTypeName(ast.reserveId(), '', FELT_TYPESTRING, FELT_TYPESTRING);
   ast.setContextRecursive(typeName);
   return typeName;
 }

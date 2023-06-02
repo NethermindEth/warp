@@ -33,16 +33,18 @@ interface AsyncTestCluster {
   dependencies: Map<string, string[]>;
 }
 
-const accountDir = '.starknet_accounts_devnet';
-fs.mkdirSync(accountDir, { recursive: true });
-fs.writeFileSync(path.join(BASE_PATH, accountDir, 'starknet_open_zeppelin_accounts.json'), '{}');
-const address = execSync(`${starknetCliCall('new_account', '')} | awk 'NR==1 {printf $3}'`);
+fs.writeFileSync(path.join(BASE_PATH, 'tests', 'cli', 'starknet_open_zeppelin_accounts.json'), '{}');
+const new_account = `${starknetCliCall('new_account', '')} | awk 'NR==1 {printf $3}'`;
+console.log(new_account);
+const address = execSync(new_account);
 console.log(`New address: ${address}`);
-const addFunds = `curl ${DEVNET_URL}/mint -H "Content-Type: application/json" -d '{"address": "${address}", "amount": 1000000000000000000}'`;
+const addFunds = `curl ${DEVNET_URL}/mint -H "Content-Type: application/json" -d '{"address": "${address}", "amount": 1000000000000000000000000}'`;
 console.log(addFunds);
 console.log(execSync(addFunds).toString());
 console.log('Deploying account:');
-const account_deployed = execSync(starknetCliCall('deploy_account', ''));
+const deployAcc = starknetCliCall('deploy_account', '')
+console.log(deployAcc)
+const account_deployed = execSync(deployAcc);
 console.log(account_deployed.toString());
 
 // Transpiling the solidity files using the `bin/warp transpile` CLI command.

@@ -19,13 +19,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  ALLOC,
-  NARROW_SAFE,
-  U128_FROM_FELT,
-  U32_FROM_FELT,
-  WARPLIB_MEMORY,
-} from '../../utils/importPaths';
+import { ARRAY_TRAIT, WM_READ } from '../../utils/importPaths';
 import {
   getElementType,
   getSize,
@@ -34,7 +28,6 @@ import {
   safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 import { MemoryReadGen } from './memoryRead';
@@ -119,14 +112,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}(mem_loc : felt) -> (ret_data: ${outputType.toString()}){
-          alloc_locals;
+        #[implicit(warp_memory: WarpMemory)]
+        fn ${funcName}(mem_loc: felt252) -> ${outputType.toString()} {
           ${code.join('\n')}
-          return (${outputType.toString()}(${mapRange(
-        structDef.vMembers.length,
-        (n) => `member${n}`,
-      )}),);
+          ${outputType.toString()}(${mapRange(structDef.vMembers.length, (n) => `member${n}`)})
         }
       `,
       functionsCalled: funcCalls,
@@ -158,10 +147,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
+        #[implicit(warp_memory: WarpMemory)]
         fn ${funcName}(mem_loc : felt) -> ${outputType.toString()} {
           ${copyCode.join('\n')}
-          return (${mapRange(length, (n) => `member${n}`)});
+          (${mapRange(length, (n) => `member${n}`).join(', ')})
         }`,
       functionsCalled: funcCalls,
     };
@@ -191,20 +180,15 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: endent`
         ${dynArrayReaderInfo.code}
-        #[implicit(warp_memory)]
-        func ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}){
-            alloc_locals;
-            let (len_256) = wm_read_256(mem_loc);
-            let (ptr : ${outputType.vPtr.toString()}) = alloc();
-            let (len_felt) = narrow_safe(len_256);
-            ${dynArrayReaderInfo.name}(len_felt, ptr, mem_loc + 2);
-            return (${calldataDynArrayStruct.name}(len=len_felt, ptr=ptr),);
+        #[implicit(warp_memory: WarpMemory)]
+        func ${funcName}(mem_loc: felt252) -> ${outputType.toString()} {
+            let length = warp_memory.read(mem_loc);
+            ${dynArrayReaderInfo.name}(length, ArrayTrait::new(), mem_loc + 1)
         }
         `,
       functionsCalled: [
-        this.requireImport(...ALLOC),
-        this.requireImport(...NARROW_SAFE),
-        this.requireImport([...WARPLIB_MEMORY], 'wm_read_256'),
+        this.requireImport(...ARRAY_TRAIT),
+        this.requireImport(...WM_READ),
         calldataDynArrayStruct,
         ...dynArrayReaderInfo.functionsCalled,
       ],
@@ -217,40 +201,39 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     const cairoType = CairoType.fromSol(elementT, this.ast, TypeConversionContext.CallDataRef);
     const memWidth = CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
-    const ptrString = `${cairoType.toString()}`;
+    const cairoElementT = `${cairoType.toString()}`;
 
     const readFunc = this.memoryReadGen.getOrCreateFuncDef(elementT);
-    let code: string[];
+    let code: string;
     let funcCalls: CairoFunctionDefinition[];
     if (isReferenceType(elementT)) {
       const allocSize = isDynamicArray(elementT)
-        ? 2
+        ? 1
         : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
 
       const auxFunc = this.getOrCreateFuncDef(elementT);
-      code = [
-        `let (mem_read0) = ${readFunc.name}(mem_loc, ${uint256(allocSize)});`,
-        `let (mem_read1) = ${auxFunc.name}(mem_read0);`,
-        `assert ptr[0] = mem_read1;`,
-      ];
-      funcCalls = [this.requireImport(...U128_FROM_FELT), auxFunc, readFunc];
+      code = endent`
+        let mem_id_location = ${readFunc.name}(mem_loc, ${allocSize});
+        let mem_value = ${auxFunc.name}(mem_id_location);
+        result.append(mem_value);`;
+      funcCalls = [auxFunc, readFunc];
     } else {
-      code = [`let (mem_read0) = ${readFunc.name}(mem_loc);`, 'assert ptr[0] = mem_read0;'];
+      code = endent`
+        let mem_value = ${readFunc.name}(mem_loc);
+        result.append(mem_value);`;
       funcCalls = [readFunc];
     }
 
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
-        func ${funcName}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){
-            alloc_locals;
-            if (len == 0){
-                 return ();
+        #[implicit(warp_memory: WarpMemory)]
+        func ${funcName}(result: Array<${cairoElementT}>, index: felt252, length: felt252 mem_loc: felt252) {
+            if index == length {
+                 return result;
             }
-            ${code.join('\n')}
-            ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth});
-            return ();
+            ${code}
+            ${funcName}(result, index + 1, len, mem_loc + ${memWidth})
         }
       `,
       functionsCalled: funcCalls,
@@ -266,22 +249,22 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     if (isReferenceType(type)) {
       const memberGetterFunc = this.getOrCreateFuncDef(type);
       const allocSize = isDynamicArray(type)
-        ? 2
+        ? 1
         : CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
       return [
         [
-          `let read_${index} = ${readFunc.name}(${add('mem_loc', offset)}, ${uint256(allocSize)});`,
+          `let read_${index} = ${readFunc.name}(${add('mem_loc', offset)}, ${allocSize}));`,
           `let member${index}= ${memberGetterFunc.name}(read_${index});`,
         ],
-        [this.requireImport(...U128_FROM_FELT), memberGetterFunc, readFunc],
+        [memberGetterFunc, readFunc],
         offset + 1,
       ];
     }
 
     const memberFeltSize = CairoType.fromSol(type, this.ast).width;
     return [
-      [`let member${index} = *warp_memory.at(u32_from_felt252(${add('mem_loc', offset)}));`],
-      [this.requireImport(...U32_FROM_FELT)],
+      [`let member${index} = ${readFunc}(${add('mem_loc', offset)});`],
+      [readFunc],
       offset + memberFeltSize,
     ];
   }
