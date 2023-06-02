@@ -264,7 +264,7 @@ export const WM_UNSAFE_ALLOC: [string[], string] = [
   'warp_memory.unsafe_alloc',
 ];
 
-const WARP_MEMORY_ARRAYS_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryArraysTrait'];
+const WARP_MEMORY_ARRAYS_TRAIT: string[] = [...MEMORY_MODULE, 'arrays', 'WarpMemoryArraysTrait'];
 export const WM_DYN_ARRAY_LENGTH: [string[], string] = [
   WARP_MEMORY_ARRAYS_TRAIT,
   'warp_memory.length_dyn',

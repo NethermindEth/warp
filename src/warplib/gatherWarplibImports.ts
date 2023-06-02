@@ -71,7 +71,7 @@ function gatherWarpMemoryFuncs(
         currentBody = '';
         return;
       }
-      currentBody += '\n' + l;
+      currentBody += '\n' + l.trim();
     });
 
   // Store each trait import path with each function prefixed with "warp_memory."

@@ -12,7 +12,7 @@ export type RawCairoFunctionInfo = {
  *  @returns A list of each function information
  */
 export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFunctionInfo[] {
-  const functions = [...rawFunctions.matchAll(/#\[implicit\((.+)\)\](\s+)fn (\w+)|fn (\w+)/gims)];
+  const functions = [...rawFunctions.matchAll(/#\[implicit\((.+)\)\](\s+)fn (\w+)|^fn (\w+)/gims)];
 
   return [...functions].map((func) => getRawCairoFunctionInfo(func[0]));
 }
@@ -25,7 +25,7 @@ export function parseMultipleRawCairoFunctions(rawFunctions: string): RawCairoFu
 export function getRawCairoFunctionInfo(rawFunction: string): RawCairoFunctionInfo {
   const funcSignature =
     rawFunction.match(/#\[implicit\((?<implicits>.+)\)\](\s+)fn (?<name>\w+)/) ??
-    rawFunction.match(/fn (?<name>\w+)/m);
+    rawFunction.match(/^fn (?<name>\w+)/m);
 
   assert(
     funcSignature !== null && funcSignature.groups !== undefined,
