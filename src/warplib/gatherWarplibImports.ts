@@ -11,11 +11,10 @@ export const warplibImportInfo = glob
   .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
-    const importPath = path
-      .relative(WARP_ROOT, pathToFile)
-      .split('/')
-      .join('.')
-      .slice(0, -'.cairo'.length);
+    const importPath = [
+      'warplib',
+      path.relative(WARP_ROOT, pathToFile).slice('warplib/src/'.length, -'.cairo'.length),
+    ].join('/');
 
     const fileMap: Map<string, Implicits[]> =
       warplibMap.get(importPath) ?? new Map<string, Implicits[]>();
