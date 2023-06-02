@@ -30,7 +30,6 @@ export const warplibImportInfo = glob
     // dependency error. Suggested solution is to relocate all import
     // related scripts (including this, and the ones in src/utils)
     const key = importPath.join('/');
-
     const fileMap: Map<string, Implicits[]> = warplibMap.get(key) ?? new Map<string, Implicits[]>();
     if (!warplibMap.has(key)) {
       warplibMap.set(key, fileMap);
@@ -39,7 +38,6 @@ export const warplibImportInfo = glob
     parseMultipleRawCairoFunctions(rawCairoCode).forEach((cairoFunc) =>
       fileMap.set(cairoFunc.name, cairoFunc.implicits),
     );
-
     return warplibMap;
   }, new Map<string, Map<string, Implicits[]>>());
 
