@@ -29,6 +29,7 @@ fn get_u128_try_from_felt_result(value: felt252) -> u128 {
     return resp.unwrap();
 }
 
+
 /// Conversions.
 fn felt252_into_bool(val: felt252) -> bool {
     if val == 0 {
