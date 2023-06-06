@@ -319,11 +319,6 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     this.visitStatement(node, ast);
   }
 
-  visitCairoAssert(node: FunctionCall, ast: AST): void {
-    this.expectedLocations.set(node.vExpression, DataLocation.Default);
-    this.visitExpression(node, ast);
-  }
-
   visitIfStatement(node: IfStatement, ast: AST): void {
     this.expectedLocations.set(node.vCondition, DataLocation.Default);
     this.visitStatement(node, ast);
