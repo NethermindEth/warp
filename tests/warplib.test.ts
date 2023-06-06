@@ -1,31 +1,18 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { findCairoSourceFilePaths } from '../src/io';
-import { cleanupSync, SafePromise, starknetCompile, wrapPromise } from './util';
+import path from 'path';
+import { BASE_PATH } from '../src/export';
+import { cairoTest, SafePromise, wrapPromise } from './util';
 
-const paths = findCairoSourceFilePaths('warplib', true);
-describe('Warplib files should compile', function () {
+describe('Warplib files should compile and execute correctly', function () {
   this.timeout(1800000);
 
-  let compileResults: SafePromise<{ stderr: string }>[];
-
-  before(function () {
-    compileResults = paths.map((file) => wrapPromise(starknetCompile(file, `${file}.json`)));
+  it('warplib unit test', async function () {
+    const compileResult: SafePromise<{ stderr: string }> = wrapPromise(
+      cairoTest(path.resolve(BASE_PATH, 'warplib')),
+    );
+    const { success, result } = await compileResult;
+    expect(result, 'starknet-compile printed errors').to.include({ stderr: '' });
+    expect(success);
   });
-
-  for (let i = 0; i < paths.length; ++i) {
-    it(paths[i], async function () {
-      try {
-        const { success, result } = await compileResults[i];
-        expect(result, 'starknet-compile printed errors').to.include({ stderr: '' });
-        expect(success).to.be.true;
-      } catch (e) {
-        expect(false, `${e}`).to.be.true;
-      }
-    });
-
-    after(function () {
-      cleanupSync(`${paths[i]}.json`);
-    });
-  }
 });
