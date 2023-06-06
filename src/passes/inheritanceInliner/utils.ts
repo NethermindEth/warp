@@ -71,7 +71,7 @@ export function updateReferencedDeclarations(
   });
 }
 
-export function updateReferenceEmitStatemets(
+export function updateReferenceEmitStatements(
   node: ASTNode,
   idRemapping: Map<number, EventDefinition>,
   ast: AST,

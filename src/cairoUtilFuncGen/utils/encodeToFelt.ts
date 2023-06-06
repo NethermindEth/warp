@@ -204,7 +204,7 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
   }
 
   /**
-   * Given a type it generates the appropiate auxiliar encoding function for this specific type.
+   * Given a type it generates the appropriate auxiliar encoding function for this specific type.
    * @param type to encode (only arrays and structs allowed)
    * @returns name of the generated function
    */
@@ -236,8 +236,8 @@ export class EncodeAsFelt extends StringIndexedFuncGenWithAuxiliar {
   }
 
   /**
-   * Generates caior code depending on the type. If it is a value type it generates
-   * the appropiate instructions. If it is a an array or struct, it generates a function
+   * Generates cairo code depending on the type. If it is a value type it generates
+   * the appropriate instructions. If it is a an array or struct, it generates a function
    * call
    * @param type type to generate encoding code
    * @param currentElementName cairo variable to encode to felt

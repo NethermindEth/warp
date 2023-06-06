@@ -5,33 +5,20 @@
 Warp brings Solidity to Starknet, making it possible to transpile Ethereum
 smart contracts to Starknet Cairo Contracts.
 
+:warning: **Note**: Cairo 1 support is being developed at this [branch](https://github.com/NethermindEth/warp/tree/cairo-1.0).
+
 ## Quickstart
 
-Docker compose provides a ready to use environment featuring warp and devnet.
-
 > **Note:**
-> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
+> Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
 
-### Build and run containers
+The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
-```bash
-docker-compose up
+```
+docker run --rm -v "$PWD:/dapp" nethermind/warp transpile <contract-path>
 ```
 
-### Transpile
-
-```bash
-docker-compose exec warp warp transpile exampleContracts/ERC20.sol
-```
-
-It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `exampleContracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
-
-### Deploy to devnet
-
-```bash
-docker-compose exec warp warp compile warp_output/example__contracts/ERC20__WC__WARP.cairo
-docker-compose exec warp starknet deploy --no_wallet --contract warp_output/example__contracts/ERC20__WC__WARP_compiled.json --gateway_url http://devnet:5050
-```
+You can find docker installation guide [here](https://docs.docker.com/get-docker/).
 
 ## Documentation 📖
 
@@ -39,138 +26,9 @@ You can read the documentation [here](https://nethermindeth.github.io/warp/).
 
 ## Installation :gear:
 
-### Dependencies
+To install Warp follow the installation instructions [here](installation.md).
 
-<hr> 
- 
-1. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
-   installed to use Warp.
-  
-- Install command on macOS:
-```bash
-brew install z3 gmp
-```
-
-If you're on an arm based Apple machine (m1/m2 mac) you'll need to install `gmp` and export some
-environment variables
-
-```
-export CFLAGS=-I`brew --prefix gmp`/include
-export LDFLAGS=-L`brew --prefix gmp`/lib
-```
-
-- Install command on Ubuntu:
-
-```bash
-sudo apt install libz3-dev libgmp3-dev
-```
-
-2. Install Python3.9 with dev dependencies (`python3.9 python3.9-venv python3.9-dev`) into your base env.
-   If you do not have the dev dependencies installed the installation will fail.
-   <br>
-
-- Install commands on MacOS:
-
-```bash
-brew install python@3.9
-```
-
-With python3.9 already installed you have venv covered:
-
-> If you are using Python 3.3 or newer (...) venv is included in the Python standard library and requires no additional installation.
-
-Then you can install dev package using pip:
-
-```bash
-pip install python-dev-tools
-```
-
-- Install commands on Ubuntu:
-
-```bash
-sudo apt install python3.9 python3.9-venv python3.9-dev
-```
-
-Or you can just install python3.9 and then install python-dev-tools using pip.
-
-### Warp Installation Method 1:
-
-<hr> 
-Without any virtual environment activated perform the following in order:
-
-1. Add the warp package from npm.
-
-```bash
-yarn global add @nethermindeth/warp
-```
-
-2. Ensure the package was added by checking the version number:
-
-```bash
-warp version
-```
-
-3. Install the dependencies:
-
-```bash
-warp install --verbose
-```
-
-Use the `--python` flag to pass the path to `python3.9` binary, if the above command complains.
-
-```bash
-warp install --python <path/to/python3.9> --verbose
-```
-
-4. Test the installation worked by transpiling an example ERC20 contract:
-
-```bash
-warp transpile exampleContracts/ERC20.sol
-```
-
-<br>
-
-### Warp Installation Method 2 (from source/for devs):
-
-<hr>
-
-Make sure you have the [dependencies](#dependencies) installed first.
-
-With a virtual environment (recommended Python3.9) activated:
-
-1. Clone this repo and change directory into the `warp` folder.
-
-2. Install the JavaScript dependencies:
-
-```bash
-yarn
-```
-
-3. Install the Python dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
-
-```bash
-CFLAGS=-I`brew --prefix gmp`/include LDFLAGS=-L`brew --prefix gmp`/lib pip install ecdsa fastecdsa sympy
-```
-
-Then run the pip command above again.
-
-4. Compile the project:
-
-```bash
-yarn warplib
-```
-
-5. Test the installation worked by transpiling an example ERC20 contract:
-
-```bash
-bin/warp transpile exampleContracts/ERC20.sol
-```
+To build Warp for development see the [contributing guidelines](contributing.md).
 
 ## Usage :computer:
 
@@ -280,7 +138,7 @@ Note: We have changed the return of `ecrecover` to be `uint160` because we use t
 ## Docker :whale:
 
 > **Note:**
-> Execute Warp using Docker works only for x86 architecture, x64 architectures will be supported soon.
+> Executing Warp using Docker works only for x86 architecture, ARM architectures (such as Apple's M1) will be supported soon.
 
 Build the image from source:
 
@@ -296,81 +154,8 @@ docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile exampleCon
 
 ## Contributing
 
-### First steps :feet:
-
-If you like to contribute, the first step is to install Warp from source for devs [steps here](#warp-installation-method-2-from-sourcefor-devs)
-
-To look what features we are currently working on or tasks that are pending to do, please checkout the project on github [here](https://github.com/orgs/NethermindEth/projects/30/views/3)
-
-Also, please take a look through our [Contribution Guidelines](CONTRIBUTING.md)
-
-### Developing tips :honey_pot:
-
-While developing your code, remembering to compile the project every time some minor changes are applied could be annoying. You could start a process that watch for changes and automatically recompile it.
-
-In a separate terminal execute:
-
-```bash
-yarn dev
-```
-
-Developers could run warp instructions using docker. This is an example using `transpile` command:
-
-```bash
-docker-compose exec warp npx ts-node src transpile exampleContracts/ERC20.sol
-```
-
-### Testing for contributors :stethoscope:
-
-To test that your contribution doesn't break any features you can test that all previous example contracts transpile and then cairo compile by running the following:
-
-```bash
-yarn test:examples
-```
-
-For this to work, you must have the cairo-lang package installed.
-To test try:
-
-```bash
-starknet-compile -v
-```
-
-Instructions to set this up can be found at
-https://www.cairo-lang.org/docs/quickstart.html
-
-Then to see that your contribution doesn't break the behaviour tests follow these steps:
-
-1. Run the setup script:
-
-```bash
-tests/behaviour/setup.sh
-```
-
-2. In a separate terminal, start a Starknet testnet server (in an environment with cairo-lang installed):
-
-```bash
-yarn testnet
-```
-
-3. Run the tests:
-
-```bash
-yarn test
-```
-
-To generate benchmarks locally during development:
-
-```bash
-yarn testnet:benchmark
-yarn test
-```
-
-```python
-python starknet-testnet/generateMarkdown.py
-```
-
-This saves the benchmarks at `benchmark/stats/data.md`
+You can read about contributing, first steps, development tips and testing for contributors [here](contributing.md)
 
 ## Contact Us :phone:
 
-If you run into any problems please raise an issue or contact us on our Nethermind discord server: https://discord.com/invite/PaCMRFdvWT
+[![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT) [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/nethermindeth)

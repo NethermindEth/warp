@@ -123,7 +123,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     }
 
     // Update the expected location of the node to be equal to its
-    // actual location, now that any discrepency has been handled
+    // actual location, now that any discrepancy has been handled
 
     if (copyFunc) {
       this.replace(node, copyFunc, parent, expectedLoc, expectedLoc, ast);
@@ -162,7 +162,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       } else if (fromLoc === DataLocation.Memory) {
         const [convert, result] = ast
           .getUtilFuncGen(node)
-          .memory.convert.genIfNecesary(
+          .memory.convert.genIfNecessary(
             node.vLeftHandSide,
             safeGetNodeType(node.vRightHandSide, ast.inference),
           );

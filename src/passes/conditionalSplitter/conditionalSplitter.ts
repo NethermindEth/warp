@@ -115,7 +115,7 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
     `visitFunctionCall` has a different strategy to compute the data location of the variable 
     that will store the call, so its definition is overwritten.
 
-    3. TUPLE ASSINGMENT SPLITTING:
+    3. TUPLE ASSIGNMENT SPLITTING:
     Converts a non-declaration tuple assignment into a declaration of temporary variables,
     and piecewise assignments (x,y) = (y,x) -> (int a, int b) = (y,x); x = a; y = b;
 
