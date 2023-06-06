@@ -3,8 +3,12 @@ import { ArrayType, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-a
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { WM_INDEX_STATIC } from '../../utils/importPaths';
-import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
+import { U256_TO_FELT252, WM_INDEX_STATIC } from '../../utils/importPaths';
+import {
+  createFeltLiteral,
+  createFeltTypeName,
+  createUint256TypeName,
+} from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
 
@@ -30,20 +34,28 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       ...WM_INDEX_STATIC,
       [
         ['arr', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Memory],
-        ['index', createUint256TypeName(this.ast)],
-        ['width', createUint256TypeName(this.ast)],
-        ['length', createUint256TypeName(this.ast)],
+        ['index', createFeltTypeName(this.ast)],
+        ['width', createFeltTypeName(this.ast)],
+        ['length', createFeltTypeName(this.ast)],
       ],
       [['child', typeNameFromTypeNode(arrayType.elementT, this.ast), DataLocation.Memory]],
     );
+
+    const u256ToFelt252 = this.ast.registerImport(
+      indexAccess,
+      ...U256_TO_FELT252,
+      [['x', createUint256TypeName(this.ast)]],
+      [['r', createFeltTypeName(this.ast)]],
+    );
+
     const width = CairoType.fromSol(arrayType.elementT, this.ast).width;
     return createCallToFunction(
       importFunc,
       [
         indexAccess.vBaseExpression,
-        indexAccess.vIndexExpression,
-        createNumberLiteral(width, this.ast, 'uint256'),
-        createNumberLiteral(arrayType.size, this.ast, 'uint256'),
+        createCallToFunction(u256ToFelt252, [indexAccess.vIndexExpression], this.ast),
+        createFeltLiteral(width, this.ast),
+        createFeltLiteral(arrayType.size, this.ast),
       ],
       this.ast,
     );

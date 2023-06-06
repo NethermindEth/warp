@@ -13,7 +13,12 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { CairoImportFunctionDefinition } from '../../ast/cairoNodes';
-import { createBytesTypeName, createStringTypeName } from '../../export';
+import {
+  createBytesTypeName,
+  createFeltLiteral,
+  createFeltTypeName,
+  createStringTypeName,
+} from '../../export';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
@@ -25,14 +30,13 @@ import {
 import {
   DYNAMIC_ARRAYS_UTIL,
   FELT_TO_UINT256,
-  NARROW_SAFE,
   U128_FROM_FELT,
-  WM_DYN_ARRAY_LENGTH,
   WM_NEW,
+  WM_UNSAFE_READ,
 } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
-import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
+import { getIntOrFixedByteBitWidth } from '../../warplib/utils';
 import { GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayConcat extends StringIndexedFuncGen {
@@ -40,8 +44,17 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const argTypes = concat.vArguments.map(
       (expr) => generalizeType(safeGetNodeType(expr, this.ast.inference))[0],
     );
-
     const funcDef = this.getOrCreateFuncDef(argTypes);
+
+    // Concat of nothing returns an empty byte/string array
+    if (argTypes.length === 0) {
+      return createCallToFunction(
+        funcDef,
+        [createFeltLiteral(0, this.ast), createFeltLiteral(1, this.ast)],
+        this.ast,
+      );
+    }
+
     return createCallToFunction(funcDef, concat.vArguments, this.ast);
   }
 
@@ -60,8 +73,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const key = argTypes
       // TODO: Wouldn't type.pp() work here?
       .map((type) => {
-        if (isReferenceType(type)) return 'A';
-        return `B${getIntOrFixedByteBitWidth(type)}`;
+        isReferenceType(type) ? 'A' : `B${getIntOrFixedByteBitWidth(type)}`;
       })
       .join('');
     const value = this.generatedFunctionsDef.get(key);
@@ -80,7 +92,19 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       : createBytesTypeName(this.ast);
     const output: ParameterInfo = ['res_loc', outputTypeName, DataLocation.Memory];
 
-    const funcInfo = this.getOrCreate(argTypes);
+    // Concat of nothing returns an empty byte/string array
+    if (argTypes.length === 0) {
+      return this.requireImport(
+        ...WM_NEW,
+        [
+          ['length', createFeltTypeName(this.ast)],
+          ['elem_size', createFeltTypeName(this.ast)],
+        ],
+        [output],
+      );
+    }
+
+    const funcInfo = this.generateBytesConcat(argTypes);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       inputs,
@@ -92,29 +116,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(argTypes: TypeNode[]): GeneratedFunctionInfo {
-    const funcInfo = this.generateBytesConcat(argTypes);
-    return funcInfo;
-  }
-
   private generateBytesConcat(argTypes: TypeNode[]): GeneratedFunctionInfo {
     const argAmount = argTypes.length;
     const funcName = `concat${this.generatedFunctionsDef.size}_${argAmount}`;
 
-    if (argAmount === 0) {
-      return {
-        name: funcName,
-        code: endent`
-          #[implicit(warp_memory)]
-          func ${funcName}() -> (res_loc : felt){
-             alloc_locals;
-             let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});
-             return (res_loc,);
-          }
-        `,
-        functionsCalled: [this.requireImport(...U128_FROM_FELT), this.requireImport(...WM_NEW)],
-      };
-    }
+    assert(argAmount > 0, 'Cannot generate bytes concat function for 0 arguments');
 
     const cairoArgs = argTypes.map((type, index) => {
       const cairoType = CairoType.fromSol(type, this.ast).toString();
@@ -149,18 +155,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     );
 
     const code = endent`
-      #[implicit(warp_memory)]
-      func ${funcName}(${cairoArgs}) -> (res_loc : felt){
-          alloc_locals;
+      #[implicit(warp_memory: WarpMemory)]
+      fn ${funcName}(${cairoArgs}) -> felt252 {
           // Get all sizes
           ${argSizes}
           let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};
-          let (total_length256) = felt_to_uint256(total_length);
-          let (res_loc) = wm_new(total_length256, ${uint256(1)});
+          let res_loc = warp_memory.new_dynamic_array(total_length, 1);
           // Copy values
           let start_loc = 0;
           ${concatCode.join('\n')}
-          return (res_loc,);
+          res_loc
       }
       `;
 
@@ -181,10 +185,9 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     if (type instanceof StringType || type instanceof BytesType) {
       return [
         endent`
-          let (size256_${index}) = wm_dyn_array_length(arg_${index});
-          let (size_${index}) = narrow_safe(size256_${index});
+          let size_${index} = warp_memory.unsafe_read(arg_${index});
         `,
-        [this.requireImport(...WM_DYN_ARRAY_LENGTH), this.requireImport(...NARROW_SAFE)],
+        [this.requireImport(...WM_UNSAFE_READ)],
       ];
     }
 
@@ -197,10 +200,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     }
 
     throw new TranspileFailedError(
-      `Attempted to get size for unexpected type ${printTypeNode(type)} in concat`,
+      `Attempted to get size for unexpected type ${printTypeNode(type)} during concat`,
     );
   }
 
+  // TODO: Implmenet utils
   private getCopyFunctionCall(
     type: TypeNode,
     index: number,

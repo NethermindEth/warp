@@ -1,9 +1,10 @@
 import assert from 'assert';
 import chalk from 'chalk';
+import * as pathLib from 'path';
+
 export const cyan = chalk.cyan.bold;
 export const error = chalk.red.bold;
 export const warning = chalk.yellow.bold;
-import * as pathLib from 'path';
 
 export function underline(text: string): string {
   return `${text}\n${'-'.repeat(text.length)}`;

@@ -4,6 +4,7 @@ import {
   BytesType,
   DataLocation,
   FunctionCall,
+  FunctionDefinition,
   generalizeType,
   Literal,
   LiteralKind,
@@ -14,15 +15,16 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
-import { CairoType } from '../../utils/cairoTypeSystem';
+import { CairoFelt, CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoGeneratedFunction, createCallToFunction } from '../../utils/functionGeneration';
 import {
   ARRAY,
   ARRAY_TRAIT,
-  MEMORY_TRAIT,
-  U32_TO_FELT,
   WARP_MEMORY,
+  WM_WRITE,
+  WM_UNSAFE_ALLOC,
+  WM_STORE,
 } from '../../utils/importPaths';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import {
@@ -33,7 +35,6 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { uint256 } from '../../warplib/utils';
 import { add, GeneratedFunctionInfo, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import endent from 'endent';
 
@@ -96,11 +97,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     }
 
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
-    const funcInfo = this.getOrCreate(
-      baseType,
-      size,
-      isDynamicArray(type) || type instanceof StringLiteralType,
-    );
+    const funcInfo = this.getOrCreate(baseType, size);
     const funcDef = createCairoGeneratedFunction(
       funcInfo,
       mapRange(size, (n) => [
@@ -116,41 +113,57 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return funcDef;
   }
 
-  private getOrCreate(type: TypeNode, size: number, dynamic: boolean): GeneratedFunctionInfo {
-    const elementCairoType = CairoType.fromSol(type, this.ast);
+  private getOrCreate(elementType: TypeNode, arraySize: number): GeneratedFunctionInfo {
+    const elementCairoType = CairoType.fromSol(elementType, this.ast);
+    const dynamic = isDynamicArray(elementType) || elementType instanceof StringLiteralType;
+
     const funcName = `wm${this.generatedFunctionsDef.size}_${dynamic ? 'dynamic' : 'static'}_array`;
+    const argString = mapRange(arraySize, (n) => `e${n}: ${elementCairoType.toString()}`).join(
+      ', ',
+    );
 
-    const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
+    const alloc_len: number = dynamic
+      ? arraySize * elementCairoType.width + 1
+      : arraySize * elementCairoType.width;
 
-    // If it's dynamic we need to include the length at the start
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
+    const funcCall =
+      elementCairoType instanceof CairoFelt
+        ? this.requireImport(...WM_WRITE)
+        : this.requireImport(...WM_STORE);
+
+    const maybeWriteLength = dynamic ? `warp_memory.write(start, ${arraySize});` : '';
+
     const writes = [
-      ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`] : []),
-      ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
+      maybeWriteLength,
+      ...mapRange(arraySize, (n) => elementCairoType.serialiseMembers(`e${n}`))
         .flat()
         .map(
-          (name, index) => `warp_memory.insert(
-            ${add('start', dynamic ? index + 2 : index)},
+          (name, index) => `warp_memory.store(
+            ${add('start', index)},
             ${name}
           );`,
         ),
     ];
+
+    const calledFuncs: FunctionDefinition[] = dynamic
+      ? [this.requireImport(...WM_WRITE), funcCall]
+      : [funcCall];
+
     return {
       name: funcName,
       code: endent`
-        #[implicit(warp_memory)]
+        #[implicit(warp_memory: WarpMemory)]
         fn ${funcName}(${argString}) -> felt252 {
-          let start = warp_memory.pointer;
+          let start = warp_memory.unsafe_alloc(${alloc_len});
           ${writes.join('\n')}
-          return start;
+          start
         }`,
       functionsCalled: [
         this.requireImport(...ARRAY),
         this.requireImport(...ARRAY_TRAIT),
-        this.requireImport(...U32_TO_FELT),
         this.requireImport(...WARP_MEMORY),
-        this.requireImport(...MEMORY_TRAIT),
+        this.requireImport(...WM_UNSAFE_ALLOC),
+        ...calledFuncs,
       ],
     };
   }

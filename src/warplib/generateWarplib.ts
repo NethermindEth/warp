@@ -19,9 +19,12 @@ import path from 'path';
 import * as fs from 'fs';
 import endent from 'endent';
 import { glob } from 'glob';
-import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
+import { parseCairoTraitsAndStructs, parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
+import { fixed_bytes_types } from './implementations/types/bytes';
+import { warp_memory_fixed_bytes } from './implementations/warp_memory/bytes';
+import { pow2_constants } from './implementations/maths/pow2';
 
-const warplibFunctions: WarplibFunctionInfo[] = [
+const mathWarplibFunctions: WarplibFunctionInfo[] = [
   add(),
   add_unsafe(),
   add_signed(),
@@ -40,6 +43,7 @@ const warplibFunctions: WarplibFunctionInfo[] = [
   div_signed_unsafe(),
   // mod - handwritten
   mod_signed(),
+  pow2_constants(),
   exp(),
   exp_signed(),
   exp_unsafe(),
@@ -61,34 +65,64 @@ const warplibFunctions: WarplibFunctionInfo[] = [
   // bitwise_and - handwritten
   // bitwise_or - handwritten
   bitwise_not(),
-  // ---conversions---
-  int_conversions(),
-  // ---external_input_checks---
+];
+const conversionWarplibFunctions: WarplibFunctionInfo[] = [int_conversions()];
+const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
   external_input_check_ints(),
   // external_input_check_address - handwritten
 ];
-warplibFunctions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc));
+const warplibTypes: WarplibFunctionInfo[] = [fixed_bytes_types()];
+const warp_memory: WarplibFunctionInfo[] = [warp_memory_fixed_bytes()];
 
-const mathsContent: string = glob
-  .sync(path.join(PATH_TO_WARPLIB, 'maths', '*.cairo'))
-  .map((pathToFile) => {
-    const fileName = path.basename(pathToFile, '.cairo');
-    const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
-    const funcNames = parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
-    return { fileName, funcNames };
-  })
-  // TODO: Remove this filter once all warplib modules use cairo1
-  .filter(({ funcNames }) => funcNames.length > 0)
-  .map(({ fileName, funcNames }) => {
-    const useFuncNames = funcNames.map((name) => `use ${fileName}::${name};`).join('\n');
-    return `mod ${fileName};\n${useFuncNames}`;
-  })
-  .join('\n\n');
+generateWarplibFor('maths', mathWarplibFunctions, true);
+generateWarplibFor('conversions', conversionWarplibFunctions, true);
+generateWarplibFor('external_input_check', inputCheckWarplibFunctions, true);
+generateWarplibFor('types', warplibTypes, true);
+generateWarplibFor('warp_memory', warp_memory, false);
 
-fs.writeFileSync(
-  path.join(PATH_TO_WARPLIB, 'maths.cairo'),
-  endent`
-    // AUTO-GENERATED
-    ${mathsContent}
-  `,
-);
+function generateWarplibFor(
+  folderName: string,
+  functions: WarplibFunctionInfo[],
+  writeExportFile: boolean,
+) {
+  functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
+  if (writeExportFile) {
+    const content: string = folderContent(folderName);
+    writeExportedFunctions(`${folderName}.cairo`, content);
+  }
+}
+
+function folderContent(folderName: string): string {
+  return (
+    glob
+      .sync(path.join(PATH_TO_WARPLIB, folderName, '*.cairo'))
+      .map((pathToFile) => {
+        const fileName = path.basename(pathToFile, '.cairo');
+        const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
+        const traitsAndStructs = parseCairoTraitsAndStructs(rawCairoCode).map((name) => name);
+        const toExport =
+          traitsAndStructs.length !== 0
+            ? traitsAndStructs
+            : parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
+
+        return { fileName, toExport };
+      })
+      // TODO: Remove this filter once all warplib modules use cairo1
+      .filter(({ toExport }) => toExport.length > 0)
+      .map(({ fileName, toExport }) => {
+        const useExported = toExport.map((name) => `use ${fileName}::${name};`).join('\n');
+        return `mod ${fileName};\n${useExported}`;
+      })
+      .join('\n\n')
+  );
+}
+
+function writeExportedFunctions(fileToWrite: string, folderContent: string) {
+  fs.writeFileSync(
+    path.join(PATH_TO_WARPLIB, fileToWrite),
+    endent`
+      // AUTO-GENERATED
+      ${folderContent}
+    `,
+  );
+}

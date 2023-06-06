@@ -60,10 +60,11 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       )
         decorators.push('#[view]');
       else decorators.push('#[external]');
-    }
-
-    if (node.implicits.has('warp_memory')) {
-      decorators.push('#[implicit(warp_memory)]');
+      // External functions should not print the warp_memory  even
+      // if they use them internally. Instead their contents are wrapped
+      // in code to initialise them
+    } else if (node.implicits.has('warp_memory')) {
+      decorators.push('#[implicit(warp_memory: WarpMemory)]');
     }
 
     return decorators;
@@ -88,8 +89,9 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     return [
       this.getConstructorStorageAllocation(node),
-      endent`let mut warp_memory: WarpMemory = MemoryTrait::initialize();
-      ${writer.write(node.vBody)}
+      endent`
+        let mut warp_memory: WarpMemory = WarpMemoryTrait::initialize();
+        ${writer.write(node.vBody)}
       `,
     ]
       .flat()
