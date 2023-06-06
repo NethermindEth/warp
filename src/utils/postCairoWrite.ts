@@ -54,7 +54,7 @@ export async function postProcessCairoFile(
   return contractPath;
 }
 
-function hashDependencies(
+async function hashDependencies(
   contractPath: string,
   outputDir: string,
   debugInfo: boolean,
