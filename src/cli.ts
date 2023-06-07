@@ -155,9 +155,13 @@ export function createCairoProject(filePath: string): void {
     version = "1.0.0"
 
     [dependencies]
-    warplib = { path = "${warplib}" }
+    starknet = ">=1.1.0"
 
-    [[target.warp]]
+    # Get the plugin from github because scarb 0.4 does not support taking the plugin from the compiled bin \`warp\`
+    # If supported in the future, it should be safe to do: warp_plugin = ">=0.1"
+    warp_plugin = { git = "https://github.com/NethermindEth/warp-plugin", crate = "warp-plugin" }
+
+    warplib = { path = "${warplib}" }
     `,
   );
   // create lib.cairo
