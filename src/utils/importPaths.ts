@@ -298,3 +298,7 @@ export const WM_CREATE: [string[], string] = [ACCESSOR_TRAIT, 'warp_memory.creat
 export const WM_TO_FELT_ARRAY: [string[], string] = [['not set yet'], 'wm_to_felt_array'];
 
 export const SUPER: string[] = ['super'];
+
+export const SIGNED_UPCAST: [string[], string] = [INTEGER_CONVERSIONS, 'signed_upcast'];
+export const UPCAST: [string[], string] = [['integer'], 'upcast'];
+export const CUTOFF_DOWNCAST: [string[], string] = [INTEGER_CONVERSIONS, 'cutoff_downcast'];
