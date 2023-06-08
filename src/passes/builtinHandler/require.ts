@@ -27,6 +27,7 @@ export class Require extends ASTMapper {
       return;
     }
 
+    // Since cairoAssert is not null, this is a require/revert/assert function call
     assert(expressionNode instanceof FunctionCall);
 
     ast.replaceNode(node, cairoAssert);

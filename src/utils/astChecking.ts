@@ -71,7 +71,7 @@ import { InsaneASTError } from './errors';
 import { safeGetNodeType } from './nodeTypeProcessing';
 import { isNameless } from './utils';
 
-// This is the solc-typed-ast AST checking code, with additions for CairoAssert and CairoContract
+// This is the solc-typed-ast AST checking code, with additions for CairoContract
 
 /**
  * Helper function to check if the node/nodes `arg` is in the `ASTContext` `ctx`.

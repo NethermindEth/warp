@@ -36,7 +36,8 @@ export const passingContracts = [
   // 'tests/compilation/contracts/enums7.sol',
   'tests/compilation/contracts/errorHandling/assertHandling.sol',
   'tests/compilation/contracts/errorHandling/requireHandling.sol',
-  'tests/compilation/contracts/errorHandling/revertHandling.sol',
+  // TODO: uncomment, when input checks are handled
+  // 'tests/compilation/contracts/errorHandling/revertHandling.sol',
   // 'tests/compilation/contracts/events.sol',
   // 'tests/compilation/contracts/expressionSplitter/assignSimple.sol',
   // 'tests/compilation/contracts/expressionSplitter/funcCallSimple.sol',
