@@ -1,7 +1,7 @@
 import { BigNumberish } from 'ethers';
 import { ParamType, Result } from 'ethers/lib/utils';
 import { CLIError } from '../utils/errors';
-import { readFileSync } from 'fs';
+import fs from 'fs/promises';
 import prompts from 'prompts';
 import { divmod } from '../utils/utils';
 
@@ -146,8 +146,8 @@ function validateParam(param: unknown) {
   throw new CLIError('Input invalid');
 }
 
-export function parseSolAbi(filePath: string): [] {
-  const abiString = readFileSync(filePath, 'utf-8');
+export async function parseSolAbi(filePath: string): Promise<any[]> {
+  const abiString = await fs.readFile(filePath, 'utf-8');
   const solAbi = JSON.parse(abiString);
   return solAbi;
 }

@@ -1,22 +1,39 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { findCairoSourceFilePaths } from '../src/io';
-import { cleanupSync, SafePromise, starknetCompile, wrapPromise } from './util';
+import glob from 'glob';
+import { cleanup, starknetCompile } from './util';
 
-const paths = findCairoSourceFilePaths('warplib', true);
+const paths = glob.sync('warplib/**/*.cairo');
+
 describe('Warplib files should compile', function () {
   this.timeout(1800000);
 
-  let compileResults: SafePromise<{ stderr: string }>[];
+  let compileResults: Array<{ success: boolean; result: { stdout: string; stderr: string } }>;
 
-  before(function () {
-    compileResults = paths.map((file) => wrapPromise(starknetCompile(file, `${file}.json`)));
+  before(async function () {
+    compileResults = await Promise.all(
+      paths.map(async (file) => {
+        try {
+          return { success: true, result: await starknetCompile(file, `${file}.json`) };
+        } catch (err) {
+          if (!!err && typeof err === 'object' && 'stdout' in err && 'stderr' in err) {
+            const errorData = err as { stdout: string; stderr: string };
+            return {
+              success: false,
+              result: { stdout: errorData.stdout, stderr: errorData.stderr },
+            };
+          }
+
+          throw err;
+        }
+      }),
+    );
   });
 
-  for (let i = 0; i < paths.length; ++i) {
-    it(paths[i], async function () {
+  paths.forEach((path, i) => {
+    it(path, async function () {
       try {
-        const { success, result } = await compileResults[i];
+        const { success, result } = compileResults[i];
         expect(result, 'starknet-compile printed errors').to.include({ stderr: '' });
         expect(success).to.be.true;
       } catch (e) {
@@ -24,8 +41,8 @@ describe('Warplib files should compile', function () {
       }
     });
 
-    after(function () {
-      cleanupSync(`${paths[i]}.json`);
+    after(async function () {
+      await cleanup(`${path}.json`);
     });
-  }
+  });
 });

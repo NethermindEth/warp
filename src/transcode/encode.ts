@@ -22,7 +22,7 @@ export async function encodeInputs(
     return [func, inputs];
   }
 
-  const solABI = parseSolAbi(filePath);
+  const solABI = await parseSolAbi(filePath);
   const funcSignature = await selectSignature(solABI, func);
 
   let funcName = func;

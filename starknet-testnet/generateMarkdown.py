@@ -11,14 +11,14 @@ from starkware.starknet.business_logic.execution.objects import (
 WARP_ROOT = Path(__file__).parents[1]
 TMP = WARP_ROOT / "benchmark" / "json"
 FILE_NAME = "data"
+JSON_PATH = os.path.abspath(TMP / (FILE_NAME + ".json"))
 
 contract_name_map = {}
 
 
 def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInfo):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
-    if os.path.exists(json_path):
-        with open(json_path, "r") as json_file:
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
             benchmark_data = json.load(json_file)
     else:
         benchmark_data = {}
@@ -27,14 +27,13 @@ def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInf
         "steps"
     ] = result.call_info.execution_resources.n_steps
 
-    with open(json_path, "w") as json_file:
+    with open(JSON_PATH, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
 
 
 def steps_in_function_invoke(function_name: str, result: CallInfo):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
-    if os.path.exists(json_path):
-        with open(json_path, "r") as json_file:
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
             benchmark_data = json.load(json_file)
     else:
         benchmark_data = {}
@@ -44,14 +43,13 @@ def steps_in_function_invoke(function_name: str, result: CallInfo):
         function_name
     ] = result.execution_resources.n_steps
 
-    with open(json_path, "w") as json_file:
+    with open(JSON_PATH, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
 
 
 def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
-    if os.path.exists(json_path):
-        with open(json_path, "r") as json_file:
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
             benchmark_data = json.load(json_file)
     else:
         benchmark_data = {}
@@ -60,14 +58,13 @@ def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo)
         "builtin_instances"
     ] = result.call_info.execution_resources.builtin_instance_counter
 
-    with open(json_path, "w") as json_file:
+    with open(JSON_PATH, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
 
 
 def json_size_count(file_path: str):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
-    if os.path.exists(json_path):
-        with open(json_path, "r") as json_file:
+    if os.path.exists(JSON_PATH):
+        with open(JSON_PATH, "r") as json_file:
             benchmark_data = json.load(json_file)
     else:
         benchmark_data = {}
@@ -76,14 +73,12 @@ def json_size_count(file_path: str):
         "json_size"
     ] = f"{os.path.getsize(file_path)/1024} KB"
 
-    with open(json_path, "w") as json_file:
+    with open(JSON_PATH, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
 
 
 def create_markdown():
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
-
-    with open(json_path, "r") as json_file:
+    with open(JSON_PATH, "r") as json_file:
         benchmark_data = json.load(json_file)
 
     os.makedirs("benchmark/stats", exist_ok=True)

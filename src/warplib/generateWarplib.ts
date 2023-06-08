@@ -63,4 +63,10 @@ export const warplibFunctions: WarplibFunctionInfo[] = [
   // external_input_check_address - handwritten
 ];
 
-warplibFunctions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc));
+async function generateWarplib() {
+  await Promise.all(warplibFunctions.map((warpFunc) => generateFile(warpFunc)));
+}
+
+generateWarplib().catch((err) => {
+  throw err;
+});
