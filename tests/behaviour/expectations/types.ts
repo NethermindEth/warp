@@ -33,7 +33,7 @@ export class AsyncTest {
         this.name + '.sol',
         'target',
         'release',
-        this.name.split(path.sep).pop() + '.sierra',
+        this.name.split(path.sep).pop() + '_' + this.contract + '.json',
       )}`,
     );
   }
