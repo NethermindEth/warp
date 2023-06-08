@@ -15,6 +15,8 @@ import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing'
 import { isExternalCall } from '../../utils/utils';
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation } from '../utils';
+import endent from 'endent';
+import { CairoType } from '../../export';
 
 export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
   gapVarCounter = 0;
@@ -67,16 +69,17 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         return [writer.write(getDeclarationForId(id))];
       }
     });
+    const solTyp = safeGetNodeType(node.vInitialValue, this.ast.inference);
+    const cairoTyp = CairoType.fromSol(solTyp, this.ast).toString();
+    let namePortion: string;
     if (declarations.length > 1) {
-      return [
-        [
-          documentation,
-          `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)};`,
-        ].join('\n'),
-      ];
+      namePortion = '(' + declarations.map((decl) => `mut ${decl}`).join(', ') + ')';
+    } else {
+      namePortion = `mut ${declarations[0]}`;
     }
     return [
-      [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)};`].join('\n'),
+      endent`${documentation}
+      let ${namePortion}: ${cairoTyp} = ${writer.write(node.vInitialValue)};`,
     ];
   }
 }

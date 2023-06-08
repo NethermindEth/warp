@@ -4,6 +4,8 @@ import { OutputOptions, TranspilationOptions } from './cli';
 import { TranspileFailedError, logError } from './utils/errors';
 import { AST } from './ast/ast';
 import { outputFileSync } from './utils/fs';
+import { execSync } from 'child_process';
+import { CAIRO1_BINS } from './starknetCli';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
@@ -87,11 +89,10 @@ export function outputResult(
 
     const codeOutPath = path.join(outputLocation.dir, outputLocation.base);
     outputFileSync(codeOutPath, code);
-    // Cairo-format is disabled, as it has a bug
-    // if (options.formatCairo || options.dev) {
-    //   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-    //   execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
-    // }
+    if (options.formatCairo || options.dev) {
+      const formatBin = path.join(CAIRO1_BINS, 'cairo-format');
+      execSync(`${formatBin} ${codeOutPath} --print-parsing-errors`);
+    }
   } else {
     console.log(`//--- ${outputPath} ---\n${code}\n//---`);
   }

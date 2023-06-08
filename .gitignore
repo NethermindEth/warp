@@ -153,6 +153,9 @@ warp_venv
 # ignored files if the ignore is not in the root
 
 warplib/src/maths.cairo
+warplib/src/external_input_check.cairo
+warplib/src/conversions.cairo
+warplib/src/types.cairo
 
 warplib/src/maths/add.cairo
 warplib/src/maths/add_unsafe.cairo
@@ -175,6 +178,8 @@ warplib/src/maths/div_signed_unsafe.cairo
 
 # mod - handwritten
 warplib/src/maths/mod_signed.cairo
+
+warplib/src/maths/pow2.cairo
 
 warplib/src/maths/exp.cairo
 warplib/src/maths/exp_unsafe.cairo
@@ -205,14 +210,16 @@ warplib/src/maths/lt_signed.cairo
 # bitwise_or - handwritten
 warplib/src/maths/bitwise_not.cairo
 
-# ---conversions---
-warplib/src/maths/int_conversions.cairo
-
 # ---external-input-input-checks---
-warplib/src/maths/external_input_check_ints.cairo
+warplib/src/external_input_check/external_input_check_ints.cairo
 # external_input_check_address.cairo - handwritten
 # external_input_check_bool.cairo - handwritten
 
+# ---types---
+warplib/src/types/fixed_bytes.cairo
+
+# ---warp_memory---
+warplib/src/warp_memory/bytes.cairo
+
 tests/cli/starknet_open_zeppelin_accounts.json
 tests/cli/starknet_open_zeppelin_accounts.json.backup
-

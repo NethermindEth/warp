@@ -21,6 +21,7 @@ import {
 import { CairoASTNodeWriter } from '../base';
 import { getDocumentation, getInterfaceNameForContract } from '../utils';
 import { interfaceNameMappings } from './sourceUnitWriter';
+import endent from 'endent';
 
 export class FunctionCallWriter extends CairoASTNodeWriter {
   writeInner(node: FunctionCall, writer: ASTWriter): SrcDesc {
@@ -52,15 +53,13 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
               isDelegateCall = true;
               firstArg = classHashTextLets[1];
             }
-            return [
-              `${getInterfaceNameForContract(
-                nodeType.definition.name,
-                node,
-                interfaceNameMappings,
-              )}.${(isDelegateCall ? 'library_call_' : '') + memberName}(${firstArg}${
-                args ? ', ' : ''
-              }${args})`,
-            ];
+            const interfaceName = getInterfaceNameForContract(
+              nodeType.definition.name,
+              node,
+              interfaceNameMappings,
+              isDelegateCall,
+            );
+            return [endent`${interfaceName}{contract_address: ${firstArg}}.${memberName}(${args})`];
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoGeneratedFunctionDefinition &&

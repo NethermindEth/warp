@@ -67,8 +67,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
     const [reads, pack, requiredImports] = serialiseReads(typeToRead, readFelt, readId);
 
     requiredImports.map((i) => {
-      const funcDef = this.requireImport(...i);
-      if (!functionsCalled.includes(funcDef)) functionsCalled.push(funcDef);
+      functionsCalled.push(this.requireImport(...i.import, [], [], { isTrait: i.isTrait }));
     });
 
     const funcInfo: GeneratedFunctionInfo = {

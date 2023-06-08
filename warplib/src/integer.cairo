@@ -1,35 +1,83 @@
-use integer::u128_try_from_felt252;
-use serde::BoolSerde;
-use array::ArrayImpl;
+// FIXME: merge imports using "use bla::{foo, bar}" syntax, when
+// updated to Cairo 1.1
+use integer::BoundedInt;
+use integer::downcast;
+use integer::u256;
+use integer::upcast;
 use option::OptionTrait;
-use option::OptionTraitImpl;
 
-fn u256_from_felts(low_felt: felt252, high_felt: felt252) -> u256 {
-    let low_u128: u128 = get_u128_try_from_felt_result(low_felt);
-    let high_u128: u128 = get_u128_try_from_felt_result(high_felt);
-    return u256{ low: low_u128, high: high_u128 };
+trait Integer<T> {
+    // basically, 2^(width - 1), but precomputed, because there is no
+    // way to compute that efficiently at the moment
+    fn signed_upper_bound() -> T;
 }
 
-fn get_u128_try_from_felt_result(value: felt252) -> u128 {
-    let resp = u128_try_from_felt252(value);
-    assert(resp.is_some(), 'Felts too large for u256');
-    return resp.unwrap();
+impl Integer8 of Integer<u8> {
+    fn signed_upper_bound() -> u8 {
+        0x80
+    }
 }
 
-/// Conversions.
-fn felt252_into_bool(val: felt252) -> bool {
-    let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
-    ArrayImpl::<felt252>::append(ref serialization_array, val);
-    let mut span_serialization_array = ArrayImpl::<felt252>::span(@serialization_array);
-    let resp_option = BoolSerde::deserialize(ref span_serialization_array);
-    let resp = OptionTraitImpl::<bool>::unwrap(resp_option);
-    resp
+impl Integer16 of Integer<u16> {
+    fn signed_upper_bound() -> u16 {
+        0x8000
+    }
 }
 
-fn bool_into_felt252(val: bool) -> felt252 {
-    let mut serialization_array: Array<felt252> = ArrayImpl::<felt252>::new();
-    BoolSerde::serialize(ref serialization_array, val);
-    let resp_option = ArrayImpl::pop_front(ref serialization_array);
-    let resp = OptionTraitImpl::<felt252>::unwrap(resp_option);
-    resp
+impl Integer32 of Integer<u32> {
+    fn signed_upper_bound() -> u32 {
+        0x80000000
+    }
+}
+
+impl Integer64 of Integer<u64> {
+    fn signed_upper_bound() -> u64 {
+        0x8000000000000000
+    }
+}
+
+impl Integer128 of Integer<u128> {
+    fn signed_upper_bound() -> u128 {
+        0x80000000000000000000000000000000
+    }
+}
+
+impl Integer256 of Integer<u256> {
+    fn signed_upper_bound() -> u256 {
+        u256 { low: 0, high: Integer::signed_upper_bound() }
+    }
+}
+
+// FIXME: remove, when we update to Cairo 1.1, use builtin BitNot instead
+fn bitnot<T, impl BoundedIntT: BoundedInt<T>, impl SubT: Sub<T>>(x: T) -> T {
+    BoundedInt::max() - x
+}
+
+// FIXME: remove, when core implementations are available
+impl U8BitAnd of BitAnd<u8> {
+    #[inline(always)]
+    fn bitand(lhs: u8, rhs: u8) -> u8 {
+        downcast(upcast::<u8, u128>(lhs) & upcast(rhs)).unwrap()
+    }
+}
+
+impl U16BitAnd of BitAnd<u16> {
+    #[inline(always)]
+    fn bitand(lhs: u16, rhs: u16) -> u16 {
+        downcast(upcast::<u16, u128>(lhs) & upcast(rhs)).unwrap()
+    }
+}
+
+impl U32BitAnd of BitAnd<u32> {
+    #[inline(always)]
+    fn bitand(lhs: u32, rhs: u32) -> u32 {
+        downcast(upcast::<u32, u128>(lhs) & upcast(rhs)).unwrap()
+    }
+}
+
+impl U64BitAnd of BitAnd<u64> {
+    #[inline(always)]
+    fn bitand(lhs: u64, rhs: u64) -> u64 {
+        downcast(upcast::<u64, u128>(lhs) & upcast(rhs)).unwrap()
+    }
 }

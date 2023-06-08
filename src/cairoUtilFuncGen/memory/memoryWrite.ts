@@ -1,3 +1,4 @@
+import endent from 'endent';
 import { Expression, FunctionCall, TypeNode, DataLocation, PointerType } from 'solc-typed-ast';
 import { CairoFelt, CairoType, CairoUint } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -6,7 +7,7 @@ import {
   createCallToFunction,
   ParameterInfo,
 } from '../../utils/functionGeneration';
-import { DICT_WRITE, WARPLIB_MEMORY, WM_WRITE_FELT } from '../../utils/importPaths';
+import { WM_STORE, WM_UNSAFE_WRITE, WM_WRITE } from '../../utils/importPaths';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, GeneratedFunctionInfo, StringIndexedFuncGen } from '../base';
@@ -48,16 +49,11 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
 
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
     if (cairoTypeToWrite instanceof CairoFelt) {
-      return this.requireImport(...WM_WRITE_FELT, inputs, outputs);
+      return this.requireImport(...WM_WRITE, inputs, outputs);
     }
 
     if (cairoTypeToWrite instanceof CairoUint) {
-      return this.requireImport(
-        [...WARPLIB_MEMORY],
-        `wm_write_${cairoTypeToWrite.nBits}`,
-        inputs,
-        outputs,
-      );
+      return this.requireImport(...WM_STORE, inputs, outputs);
     }
 
     const funcInfo = this.getOrCreate(typeToWrite);
@@ -74,25 +70,27 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
 
   private getOrCreate(typeToWrite: TypeNode): GeneratedFunctionInfo {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
-
     const cairoTypeString = cairoTypeToWrite.toString();
-    const funcName = `WM_WRITE${this.generatedFunctionsDef.size}`;
+
+    const writeInstructions = cairoTypeToWrite
+      .serialiseMembers('value')
+      .map((name, index) => `${write(index, name)};`);
+
+    const funcName = `wm_write${this.generatedFunctionsDef.size}`;
     const funcInfo: GeneratedFunctionInfo = {
       name: funcName,
-      code: [
-        `func ${funcName}{warp_memory : DictAccess*}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
-        ...cairoTypeToWrite
-          .serialiseMembers('value')
-          .map((name, index) => `    ${write(index, name)};`),
-        '    return (value,);',
-        '}',
-      ].join('\n'),
-      functionsCalled: [this.requireImport(...DICT_WRITE)],
+      code: endent`
+        fn ${funcName}(mem_loc: felt252, value: ${cairoTypeString}) -> ${cairoTypeString} {
+          ${writeInstructions}
+          value
+        }
+      `,
+      functionsCalled: [this.requireImport(...WM_UNSAFE_WRITE)],
     };
     return funcInfo;
   }
 }
 
 function write(offset: number, value: string): string {
-  return `dict_write{dict_ptr=warp_memory}(${add('loc', offset)}, ${value});`;
+  return `warp_memory.unsafe_write(${add('loc', offset)}, ${value});`;
 }
