@@ -64,7 +64,9 @@ export type DeclareResponse =
 export async function declare(jsonPath: string): Promise<DeclareResponse> {
   let hash;
   try {
-    const buffer = await execSync(starknetCliCall('declare', `--contract ${jsonPath}`));
+    const buffer = await execSync(
+      starknetCliCall('declare', `--contract ${jsonPath} --deprecated`),
+    );
     const result = buffer.toString();
     const regex = /Contract class hash: (.*)\n/g;
     hash = regex.exec(result);

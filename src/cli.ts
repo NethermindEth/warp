@@ -162,6 +162,8 @@ export function createCairoProject(filePath: string): void {
     warp_plugin = { git = "https://github.com/NethermindEth/warp-plugin", crate = "warp-plugin" }
 
     warplib = { path = "${warplib}" }
+
+    [[target.warp]]
     `,
   );
   // create lib.cairo
