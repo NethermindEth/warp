@@ -85,6 +85,7 @@ const FUNCTION_IMPORTS = [
   Paths.U240_TO_FELT,
   Paths.U248_TO_FELT,
   Paths.U256_FROM_FELTS,
+  Paths.UPCAST,
   Paths.ARRAY,
   Paths.ARRAY_TRAIT,
   Paths.BOOL_INTO_FELT252,

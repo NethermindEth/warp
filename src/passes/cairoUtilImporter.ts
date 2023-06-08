@@ -1,6 +1,7 @@
 import {
   AddressType,
   ElementaryTypeName,
+  FunctionCall,
   IntType,
   Literal,
   MemberAccess,
@@ -11,8 +12,16 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { requireNonNullish } from '../export';
 import { createImport } from '../utils/importFuncGenerator';
-import { INTO, U256_FROM_FELTS, U128_FROM_FELT, CONTRACT_ADDRESS } from '../utils/importPaths';
+import {
+  INTO,
+  U256_FROM_FELTS,
+  U128_FROM_FELT,
+  CONTRACT_ADDRESS,
+  CUTOFF_DOWNCAST,
+  WARPLIB_INTEGER,
+} from '../utils/importPaths';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, primitiveTypeToCairo } from '../utils/utils';
 
@@ -39,6 +48,17 @@ export class CairoUtilImporter extends ASTMapper {
     } else if (cairoType === 'ContractAddress') {
       createImport(...CONTRACT_ADDRESS, this.dummySourceUnit ?? node, ast);
     }
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    // FIXME: remove when BitAnd is available for integer types in
+    // corelib
+    if (node.vFunctionName === CUTOFF_DOWNCAST[1]) {
+      const path = WARPLIB_INTEGER.slice(0, -1);
+      const name = requireNonNullish(WARPLIB_INTEGER.at(-1));
+      createImport(path, name, this.dummySourceUnit ?? node, ast);
+    }
+    super.visitFunctionCall(node, ast);
   }
 
   visitLiteral(node: Literal, ast: AST): void {
