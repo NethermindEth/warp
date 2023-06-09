@@ -64,15 +64,13 @@ export type DeclareResponse =
 export async function declare(jsonPath: string): Promise<DeclareResponse> {
   let hash;
   try {
-    const buffer = await execSync(
-      starknetCliCall('declare', `--contract ${jsonPath} --deprecated`),
-    );
+    const buffer = execSync(starknetCliCall('declare', `--contract ${jsonPath}`));
     const result = buffer.toString();
     const regex = /Contract class hash: (.*)\n/g;
     hash = regex.exec(result);
   } catch (e: any) {
     const regexAlreadyDeclared =
-      /\{"code":"StarknetErrorCode.CLASS_ALREADY_DECLARED","message":"Class with hash (.*) is already declared./g;
+      /\{"code":"StarknetErrorCode.CLASS_ALREADY_DECLARED","message":"Class with hash [0-9a-fA-F]+ is already declared./g;
     hash = regexAlreadyDeclared.exec(e.stderr);
   }
 

@@ -163,7 +163,7 @@ export function createCairoProject(filePath: string): void {
 
     warplib = { path = "${warplib}" }
 
-    [[target.warp]]
+    [[target.starknet-contract]]
     `,
   );
   // create lib.cairo
