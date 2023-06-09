@@ -5,6 +5,7 @@ use starknet::ContractAddress;
 use traits::{Into, TryInto};
 
 use warplib::integer::{bitnot, Integer};
+use integer::{u256_from_felt252, u128_to_felt252};
 
 fn u256_from_felts(low_felt: felt252, high_felt: felt252) -> u256 {
     let low_u128: u128 = get_u128_try_from_felt_result(low_felt);
