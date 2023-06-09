@@ -106,7 +106,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     const funcName = `wm_to_storage_struct_${def.name}`;
 
     const [copyInstructions, funcsCalled] = this.generateTupleCopyInstructions(
-      def.vMembers.map((decl) => safeGetNodeType(decl, this.ast.inference)),
+      def.vMembers.map((decl) => generalizeType(safeGetNodeType(decl, this.ast.inference))[0]),
     );
     return {
       name: funcName,

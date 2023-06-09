@@ -25,7 +25,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { createBlock } from '../utils/nodeTemplates';
 import { createImport } from '../utils/importFuncGenerator';
-import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { safeGetNodeType, WarpInferType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternalCall } from '../utils/utils';
 import { CairoImportFunctionDefinition } from './cairoNodes';
 import { ParameterInfo } from '../export';
@@ -73,7 +73,7 @@ export class AST {
       'All contexts should be the same, otherwise they are from separate solc-typed-ast compiles and they will have no relationship to each other.',
     );
     this.context = roots[0].requiredContext;
-    this.inference = new InferType(compilerVersion);
+    this.inference = new WarpInferType(compilerVersion);
     assert(
       this.context.locate(this.tempId) === undefined,
       `Attempted to create an AST with a context that already has ${this.tempId} registered`,

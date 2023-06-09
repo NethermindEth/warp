@@ -2,7 +2,7 @@ import assert from 'assert';
 import { BinaryOperation, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode } from '../../../utils/astPrinter';
-import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
+import { literalToValueType, safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import {
   forAllWidths,
   bound,
@@ -144,7 +144,7 @@ export function sub_signed_unsafe(): WarplibFunctionInfo {
 //func warp_sub256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):
 
 export function functionaliseSub(node: BinaryOperation, unsafe: boolean, ast: AST): void {
-  const typeNode = safeGetNodeType(node, ast.inference);
+  const typeNode = literalToValueType(safeGetNodeType(node, ast.inference));
   assert(
     typeNode instanceof IntType,
     `Expected IntType for subtraction, got ${printTypeNode(typeNode)}`,

@@ -2,7 +2,6 @@ export * from './abiBuiltins';
 export * from './annotateImplicits';
 export * from './argBoundChecker';
 export * from './builtinHandler/export';
-export * from './bytesConverter';
 export * from './cairoStubProcessor';
 export * from './cairoUtilImporter';
 export * from './conditionalSplitter/export';

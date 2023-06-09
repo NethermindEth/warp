@@ -28,7 +28,7 @@ import {
 import { AST } from '../ast/ast';
 import { CairoTempVarStatement } from '../ast/cairoNodes';
 import { generateExpressionTypeString, generateLiteralTypeString } from './getTypeString';
-import { safeGetNodeTypeInCtx, specializeType } from './nodeTypeProcessing';
+import { safeGetNodeTypeInCtx } from './nodeTypeProcessing';
 import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
 
@@ -164,10 +164,7 @@ export function createIdentifier(
   dataLocation?: DataLocation,
   lookupNode?: ASTNode,
 ): Identifier {
-  const type = specializeType(
-    safeGetNodeTypeInCtx(variable, ast.inference, lookupNode ?? variable),
-    dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
-  );
+  const type = safeGetNodeTypeInCtx(variable, ast.inference, lookupNode ?? variable);
   const node = new Identifier(
     ast.reserveId(),
     '',

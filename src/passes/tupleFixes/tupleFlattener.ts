@@ -1,6 +1,7 @@
-import { TupleExpression } from 'solc-typed-ast';
+import { TupleExpression, TypeNameType } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { safeGetNodeType } from '../../export';
 import { WillNotSupportError } from '../../utils/errors';
 
 export class TupleFlattener extends ASTMapper {
@@ -18,6 +19,9 @@ export class TupleFlattener extends ASTMapper {
       node.vOriginalComponents[0].typeString === node.typeString &&
       !node.isInlineArray
     ) {
+      if (safeGetNodeType(node.vOriginalComponents[0], ast.inference) instanceof TypeNameType) {
+        return this.commonVisit(node, ast);
+      }
       const parent = node.parent;
       ast.replaceNode(node, node.vOriginalComponents[0], parent);
       this.dispatchVisit(node.vOriginalComponents[0], ast);

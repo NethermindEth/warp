@@ -129,7 +129,9 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   }
 
   private createStructCopyFunction(def: StructDefinition): GeneratedFunctionInfo {
-    const members = def.vMembers.map((decl) => safeGetNodeType(decl, this.ast.inference));
+    const members = def.vMembers.map(
+      (decl) => generalizeType(safeGetNodeType(decl, this.ast.inference))[0],
+    );
     const [copyCode, funcsCalled] = members.reduce(
       ([copyCode, funcsCalled, offset], memberType) => {
         const width = CairoType.fromSol(

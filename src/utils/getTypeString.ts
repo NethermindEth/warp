@@ -12,6 +12,7 @@ import {
   ContractKind,
   DataLocation,
   EnumDefinition,
+  EventType,
   Expression,
   FixedBytesType,
   FunctionDefinition,
@@ -240,9 +241,9 @@ export function generateExpressionTypeString(type: TypeNode): string {
   if (type instanceof PointerType) {
     if (type.to instanceof MappingType) return generateExpressionTypeString(type.to);
     else
-      return `${generateExpressionTypeString(type.to)} ${type.location}${
-        type.kind !== undefined ? ' ' + type.kind : ''
-      }`;
+      return `${generateExpressionTypeString(type.to)} 
+      ${type.location === DataLocation.Default ? '' : type.location}
+      ${type.kind !== undefined ? ' ' + type.kind : ''}`;
   } else if (type instanceof FunctionType) {
     const mapper = (node: TypeNode) => generateExpressionTypeString(node);
 
@@ -258,6 +259,10 @@ export function generateExpressionTypeString(type: TypeNode): string {
     return `function ${
       type.name !== undefined ? type.name : ''
     }(${argStr})${mutStr}${visStr}${retStr}`;
+  } else if (type instanceof EventType) {
+    const mapper = (node: TypeNode) => generateExpressionTypeString(node);
+    const argStr = type.parameters.map(mapper).join(',');
+    return `function ${type.name !== undefined ? type.name : ''}(${argStr})`;
   } else if (type instanceof ArrayType) {
     return `${generateExpressionTypeString(type.elementT)}[${
       type.size !== undefined ? type.size : ''

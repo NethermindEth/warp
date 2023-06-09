@@ -16,9 +16,11 @@ import {
   FunctionLikeType,
   generalizeType,
   InferType,
+  IntLiteralType,
   IntType,
   Literal, // eslint-disable-line
   MappingType,
+  MemberAccess,
   PackedArrayType,
   PointerType,
   StringType,
@@ -59,9 +61,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
 
     case FunctionCallKind.StructConstructorCall: {
       assert(
-        functionType instanceof TypeNameType &&
-          functionType.type instanceof PointerType &&
-          functionType.type.to instanceof UserDefinedType,
+        functionType instanceof TypeNameType && functionType.type instanceof UserDefinedType,
         error(
           `TypeNode for ${printNode(
             functionCall.vExpression,
@@ -71,7 +71,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
           )}`,
         ),
       );
-      const structDef = functionType.type.to.definition;
+      const structDef = functionType.type.definition;
       assert(structDef instanceof StructDefinition);
       return structDef.vMembers.map(ast.inference.variableDeclarationToTypeNode, ast.inference);
     }
@@ -168,6 +168,15 @@ export function intTypeForLiteral(typestring: string): IntType {
     const width = 8 * Math.ceil(binaryLength / 8);
     return new IntType(width, true);
   }
+}
+
+export function literalToValueType(literal: TypeNode) {
+  if (literal instanceof IntLiteralType) {
+    const intType = literal.smallestFittingType();
+    assert(intType !== undefined);
+    return intType;
+  }
+  return literal;
 }
 
 export function isDynamicArray(type: TypeNode): boolean {
@@ -290,25 +299,50 @@ export function isStorageSpecificType(
   return false;
 }
 
+export class WarpInferType extends InferType {
+  typeOfMemberAccess(node: MemberAccess): TypeNode {
+    // The way infertype compute the type of a member access is by looking the member name inside the base type
+    // (eg: if we had A.B.C it will look for C inside of whatever is A.B).
+    //
+    // Doing this approach if we have an access to a contract 'C.access'
+    // it will look for a function or property with name 'access' inside 'C'. If it match a function with that name it will
+    // compute its signature, encoding its parameters.
+    // In inheritanceInliner, more specificly constructorInheritance, we create a function for each constructor from parent contracts
+    // and call those generated functions inside the constructor. With this approach constructors become functions definitions and
+    // therefore their signatures will be computed, abi-encoding their arguments. This will lead to errors. To see an example that
+    // break check: tests/behaviour/contracts/abstractContracts/mappingInConstructor.sol
+    //
+    // If we look at warp generated functions (like the ones to treat dynamic arrays) they are lack of an ast meaning, therefore
+    // properties access like 'len' will fail
+    //
+    // Until those troubles are solved the best idea is to compute type using the typeString.
+    try {
+      return super.typeOfMemberAccess(node);
+    } catch {
+      return getNodeType(node, this);
+    }
+  }
+  typeOfLiteral(node: Literal): TypeNode {
+    return getNodeType(node, this);
+  }
+}
+
 export function safeGetNodeType(
   node: Expression | VariableDeclaration,
   inference: InferType,
 ): TypeNode {
   getContainingSourceUnit(node);
-  // if (node instanceof Literal) {
-  //   return getNodeType(node, inference);
-  // }
-  // if (node instanceof CairoAssert){
-  //   return new TupleType([]);
-  // }
-  // if (node instanceof VariableDeclaration) {
-  //   return inference.variableDeclarationToTypeNode(node);
-  // }
-  // if (node instanceof TypeName) {
-  //   return inference.typeNameToTypeNode(node)
-  // }
-  // return inference.typeOf(node);
-  return getNodeType(node, inference);
+  if (node instanceof CairoAssert) {
+    return new TupleType([]);
+  }
+  if (node instanceof VariableDeclaration) {
+    return inference.variableDeclarationToTypeNode(node);
+  }
+  if (node instanceof TypeName) {
+    return inference.typeNameToTypeNode(node);
+  }
+  return inference.typeOf(node);
+  // return getNodeType(node, inference);
 }
 
 export function safeGetNodeTypeInCtx(
@@ -420,7 +454,7 @@ export function getByteSize(type: TypeNode, inference: InferType): number | bigi
       'Struct byte size calculation requires compiler version',
     );
     return type.definition.vMembers
-      .map((varDecl) => safeGetNodeType(varDecl, inference))
+      .map((varDecl) => generalizeType(safeGetNodeType(varDecl, inference))[0])
       .reduce(sumMemberSize, 0n);
   }
 

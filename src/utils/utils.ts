@@ -69,7 +69,12 @@ import {
   createBytesTypeName,
   createNumberLiteral,
 } from './nodeTemplates';
-import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
+import {
+  isDynamicArray,
+  isDynamicCallDataArray,
+  literalToValueType,
+  safeGetNodeType,
+} from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 import { TranspilationOptions } from '../cli';
 import { warning } from './formatting';
@@ -306,7 +311,7 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   } else if (node instanceof FixedBytesType) {
     result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof IntLiteralType) {
-    throw new TranspileFailedError(`Attempted to create typename for int literal`);
+    result = typeNameFromTypeNode(literalToValueType(node), ast);
   } else if (node instanceof IntType) {
     result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof PointerType) {

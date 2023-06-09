@@ -200,7 +200,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
 
     const [copyCode, funcCalls] = structDef.vMembers.reduce(
       ([copyCode, funcCalls, offset], decl) => {
-        const type = safeGetNodeType(decl, this.ast.inference);
+        const type = generalizeType(safeGetNodeType(decl, this.ast.inference))[0];
 
         if (isReferenceType(type)) {
           const recursiveFunc = this.getOrCreateFuncDef(type);
