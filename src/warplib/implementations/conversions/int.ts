@@ -1,103 +1,12 @@
 import assert from 'assert';
 import { FunctionCall, generalizeType, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
+import { createCallToFunction, createNumberTypeName, requireNonNullish } from '../../../export';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
+import { CUTOFF_DOWNCAST, SIGNED_UPCAST, UPCAST } from '../../../utils/importPaths';
 import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
-import {
-  bound,
-  forAllWidths,
-  IntFunction,
-  mask,
-  msb,
-  uint256,
-  WarplibFunctionInfo,
-} from '../../utils';
 
-export function int_conversions(): WarplibFunctionInfo {
-  return {
-    fileName: 'int_conversions',
-    imports: [
-      'from starkware.cairo.common.bitwise import bitwise_and',
-      'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
-      'from starkware.cairo.common.math import split_felt',
-      'from starkware.cairo.common.uint256 import Uint256, uint256_add',
-    ],
-    functions: [
-      ...forAllWidths((from) => {
-        const x = forAllWidths((to) => {
-          if (from < to) {
-            if (to === 256) {
-              return [
-                `func warp_int${from}_to_int256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : Uint256){`,
-                `    let (msb) = bitwise_and(op, ${msb(from)});`,
-                `    let (high, low) = split_felt(op);`,
-                `    let naiveExtension = Uint256(low, high);`,
-                `    if (msb == 0){`,
-                `        return (naiveExtension,);`,
-                `    }else{`,
-                `        let (res, _) = uint256_add(naiveExtension, ${uint256(
-                  sign_extend_value(from, to),
-                )});`,
-                `        return (res,);`,
-                `    }`,
-                '}',
-              ];
-            } else {
-              return [
-                `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : felt){`,
-                `    let (msb) = bitwise_and(op, ${msb(from)});`,
-                `    if (msb == 0){`,
-                `        return (op,);`,
-                `    }else{`,
-                `        return (op + 0x${sign_extend_value(from, to).toString(16)},);`,
-                `    }`,
-                '}',
-              ];
-            }
-          } else if (from === to) {
-            return [];
-          } else {
-            if (from === 256) {
-              if (to > 128) {
-                return [
-                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt){`,
-                  `    let (high) = bitwise_and(op.high,${mask(to - 128)});`,
-                  `    return (op.low + ${bound(128)} * high,);`,
-                  `}`,
-                ];
-              } else {
-                return [
-                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt){`,
-                  `    let (res) = bitwise_and(op.low, ${mask(to)});`,
-                  `    return (res,);`,
-                  `}`,
-                ];
-              }
-            } else {
-              return [
-                `func warp_int${from}_to_int${to}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt){`,
-                `    let (res) = bitwise_and(op, ${mask(to)});`,
-                `    return (res,);`,
-                `}`,
-              ];
-            }
-          }
-        });
-        return x.map((f) => f.join('\n')).join('\n');
-      }),
-      [
-        'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256){',
-        '    let split = split_felt(op);',
-        '    return (Uint256(low=split.low, high=split.high),);',
-        '}',
-      ].join('\n'),
-    ],
-  };
-}
-
-function sign_extend_value(from: number, to: number): bigint {
-  return 2n ** BigInt(to) - 2n ** BigInt(from);
-}
+const cairoWidths = [8, 16, 32, 64, 128, 256];
 
 export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): void {
   const arg = conversion.vArguments[0];
@@ -116,19 +25,24 @@ export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): 
     )}`,
   );
 
-  if (fromType.nBits < 256 && toType.nBits === 256 && !fromType.signed && !toType.signed) {
-    IntFunction(conversion, conversion.vArguments[0], 'uint', 'int_conversions', ast);
-    return;
-  } else if (
-    fromType.nBits === toType.nBits ||
-    (fromType.nBits < toType.nBits && !fromType.signed && !toType.signed)
-  ) {
-    arg.typeString = conversion.typeString;
-    ast.replaceNode(conversion, arg);
-    return;
-  } else {
-    const name = `${fromType.pp().startsWith('u') ? fromType.pp().slice(1) : fromType.pp()}_to_int`;
-    IntFunction(conversion, conversion.vArguments[0], name, 'int_conversions', ast);
+  const fromCairoWidth = requireNonNullish(cairoWidths.find((x) => x >= fromType.nBits));
+  const toCairoWidth = requireNonNullish(cairoWidths.find((x) => x >= toType.nBits));
+
+  if (fromCairoWidth === toCairoWidth) {
     return;
   }
+  let functionPath: [string[], string];
+  if (fromCairoWidth < toCairoWidth) {
+    functionPath = fromType.signed ? SIGNED_UPCAST : UPCAST;
+  } else {
+    functionPath = CUTOFF_DOWNCAST;
+  }
+  const functionDef = ast.registerImport(
+    conversion,
+    ...functionPath,
+    [['from', createNumberTypeName(fromType.nBits, fromType.signed, ast)]],
+    [['to', createNumberTypeName(toType.nBits, toType.signed, ast)]],
+  );
+  const functionCall = createCallToFunction(functionDef, conversion.vArguments, ast);
+  ast.replaceNode(conversion, functionCall);
 }

@@ -82,3 +82,13 @@ export interface ExecSyncError {
 export function instanceOfExecSyncError(object: any): object is ExecSyncError {
   return 'stderr' in object;
 }
+
+export function requireNonNullish<T>(x: T | null | undefined): T {
+  if (x === null) {
+    throw new Error('Unexpected null');
+  }
+  if (x === undefined) {
+    throw new Error('Unexpected undefined');
+  }
+  return x as T;
+}

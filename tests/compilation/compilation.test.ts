@@ -157,6 +157,7 @@ const expectedResults = new Map<string, ResultType>(
     ['tryCatch.sol', 'WillNotSupport'],
     ['tupleAssignment7.sol', 'Success'],
     ['tupleAssignment8.sol', 'SolCompileFailed'],
+    ['typeConversion/explicitIntConversion.sol', 'Success'],
     ['typeConversion/explicitTypeConversion.sol', 'Success'],
     ['typeConversion/implicitReturnConversion.sol', 'Success'],
     ['typeConversion/implicitTypeConv.sol', 'Success'],

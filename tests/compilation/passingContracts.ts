@@ -161,6 +161,7 @@ export const passingContracts = [
   // 'tests/compilation/contracts/tryCatch.sol',
   // 'tests/compilation/contracts/tupleAssignment7.sol',
   // 'tests/compilation/contracts/tupleAssignment8.sol',
+  'tests/compilation/contracts/typeConversion/explicitIntConversion.sol',
   'tests/compilation/contracts/typeConversion/explicitTypeConversion.sol',
   // 'tests/compilation/contracts/typeConversion/implicitReturnConversion.sol',
   // 'tests/compilation/contracts/typeConversion/implicitTypeConv.sol',
