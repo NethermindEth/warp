@@ -25,7 +25,9 @@ You can find docker installation guide [here](https://docs.docker.com/get-docker
 <div align="center">
 
 ### 📖 [Documentation](https://nethermindeth.github.io/warp/)
-### ⚙️ [Contribution](https://nethermindeth.github.io/warp/docs/category/contribution-guidelines/)
+### 📦 [Installation](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation)
+### ⚙️ [Installation for contributors](https://nethermindeth.github.io/warp/docs/category/contribution-guidelines/)
+### ✍️ [Developing warp](https://nethermindeth.github.io/warp/docs/contribution_guidelines/implementation-and-testing)
 ### [![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT)
 ### [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/nethermindeth)
 
@@ -85,7 +87,3 @@ Please see the list below:
 |              nested tuple assignments               |    :question:     |
 
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for Starknet addresses.
-
-## Contact Us :phone:
-
-
