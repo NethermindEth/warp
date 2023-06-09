@@ -20,17 +20,14 @@ docker run --rm -v "$PWD:/dapp" nethermind/warp transpile <contract-path>
 
 You can find docker installation guide [here](https://docs.docker.com/get-docker/).
 
-<p align="center">
-### 📖 [Documentation](https://nethermindeth.github.io/warp/)
-</p>
+<div align="center">
 
-## Quick links
-<span align="center" markdown="1">
 ### 📖 [Documentation](https://nethermindeth.github.io/warp/)
 ### ⚙️ [Contribution](https://nethermindeth.github.io/warp/docs/category/contribution-guidelines/)
 ### [![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT)
 ### [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/nethermindeth)
-</span>
+
+</div>
 
 ### Libraries
 
