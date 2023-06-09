@@ -1,10 +1,10 @@
 mod traits;
 use traits::{
-    Add, AddEq, BitAnd, BitOr, BitXor, Copy, Div, DivEq, Drop, Mul, MulEq, PartialEq, PartialOrd,
-    Rem, RemEq, Sub, SubEq, TupleSize0Copy, TupleSize0Drop, TupleSize0PartialEq, TupleSize1Copy,
-    TupleSize1Drop, TupleSize1PartialEq, TupleSize2Copy, TupleSize2Drop, TupleSize3Copy,
-    TupleSize3Drop, TupleSize4Copy, TupleSize4Drop, Not, Neg, Into, TryInto, Index, IndexView,
-    Destruct, Default, Felt252DictValue
+    Add, AddEq, BitAnd, BitNot, BitOr, BitXor, Copy, Div, DivEq, DivRem, Drop, Mul, MulEq,
+    PartialEq, PartialOrd, Rem, RemEq, Sub, SubEq, TupleSize0Copy, TupleSize0Drop,
+    TupleSize0PartialEq, TupleSize1Copy, TupleSize1Drop, TupleSize1PartialEq, TupleSize2Copy,
+    TupleSize2Drop, TupleSize3Copy, TupleSize3Drop, TupleSize4Copy, TupleSize4Drop, Not, Neg, Into,
+    TryInto, Index, IndexView, Destruct, Default, Felt252DictValue
 };
 
 #[derive(Copy, Drop)]
@@ -59,6 +59,14 @@ impl BoolPartialEq of PartialEq<bool> {
     #[inline(always)]
     fn ne(lhs: bool, rhs: bool) -> bool {
         !(lhs == rhs)
+    }
+}
+
+/// Default values for felt252_dict values.
+impl BoolFelt252DictValue of Felt252DictValue<bool> {
+    #[inline(always)]
+    fn zero_default() -> bool nopanic {
+        false
     }
 }
 
@@ -161,20 +169,15 @@ extern fn drop<T>(obj: T) nopanic;
 
 // Boxes.
 mod box;
-use box::Box;
-use box::BoxTrait;
+use box::{Box, BoxTrait};
 
 // Nullable
 mod nullable;
-use nullable::Nullable;
-use nullable::match_nullable;
-use nullable::null;
-use nullable::nullable_from_box;
+use nullable::{Nullable, match_nullable, null, nullable_from_box};
 
 // Arrays.
 mod array;
-use array::Array;
-use array::ArrayTrait;
+use array::{Array, ArrayTrait};
 type usize = u32;
 
 // Span.
@@ -183,11 +186,9 @@ use array::Span;
 
 // Dictionary.
 mod dict;
-use dict::Felt252Dict;
-use dict::SquashedFelt252Dict;
-use dict::felt252_dict_new;
-use dict::felt252_dict_squash;
-use dict::Felt252DictTrait;
+use dict::{
+    Felt252Dict, SquashedFelt252Dict, felt252_dict_new, felt252_dict_squash, Felt252DictTrait
+};
 
 // Result.
 mod result;
@@ -203,53 +204,25 @@ use clone::Clone;
 
 // EC.
 mod ec;
-use ec::EcOp;
-use ec::EcPoint;
-use ec::EcState;
+use ec::{EcOp, EcPoint, EcState};
 
 mod ecdsa;
 
 // Integer.
 mod integer;
-use integer::NumericLiteral;
-use integer::u128;
-use integer::u128_const;
-use integer::u128_sqrt;
-use integer::u128_is_zero;
-use integer::u8;
-use integer::u8_const;
-use integer::u16;
-use integer::u16_const;
-use integer::u32;
-use integer::u32_const;
-use integer::u64;
-use integer::u64_const;
-use integer::u256;
-use integer::u256_sqrt;
-use integer::Felt252TryIntoU8;
-use integer::U8IntoFelt252;
-use integer::Felt252TryIntoU16;
-use integer::U16IntoFelt252;
-use integer::Felt252TryIntoU32;
-use integer::U32IntoFelt252;
-use integer::Felt252TryIntoU64;
-use integer::U64IntoFelt252;
-use integer::Felt252TryIntoU128;
-use integer::U128IntoFelt252;
-use integer::U16TryIntoU8;
-use integer::U32TryIntoU16;
-use integer::U64TryIntoU32;
-use integer::U128TryIntoU64;
-use integer::Felt252IntoU256;
-use integer::Bitwise;
+use integer::{
+    NumericLiteral, u128, u128_const, u128_sqrt, u128_is_zero, u8, u8_const, u16, u16_const, u32,
+    u32_const, u64, u64_const, u256, u256_sqrt, Felt252TryIntoU8, U8IntoFelt252, Felt252TryIntoU16,
+    U16IntoFelt252, Felt252TryIntoU32, U32IntoFelt252, Felt252TryIntoU64, U64IntoFelt252,
+    Felt252TryIntoU128, U128IntoFelt252, U16TryIntoU8, U32TryIntoU16, U64TryIntoU32, U128TryIntoU64,
+    Felt252IntoU256, Bitwise
+};
 
 mod cmp;
 
 // Gas.
 mod gas;
-use gas::BuiltinCosts;
-use gas::GasBuiltin;
-use gas::get_builtin_costs;
+use gas::{BuiltinCosts, GasBuiltin, get_builtin_costs};
 
 
 // Panics.
@@ -267,6 +240,7 @@ fn panic_with_felt252(err_code: felt252) -> never {
     panic(data)
 }
 
+#[inline(always)]
 fn assert(cond: bool, err_code: felt252) {
     if !cond {
         panic_with_felt252(err_code)
@@ -278,8 +252,7 @@ mod serde;
 
 // Hash functions.
 mod hash;
-use hash::pedersen;
-use hash::Pedersen;
+use hash::{pedersen, Pedersen};
 
 mod keccak;
 
@@ -299,8 +272,7 @@ mod internal;
 
 // Zeroable.
 mod zeroable;
-use zeroable::Zeroable;
-use zeroable::NonZero;
+use zeroable::{Zeroable, NonZero};
 
 #[cfg(test)]
 mod test;

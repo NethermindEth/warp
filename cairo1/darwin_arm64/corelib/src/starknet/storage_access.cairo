@@ -1,15 +1,10 @@
-use traits::Into;
-use traits::TryInto;
+use traits::{Into, TryInto};
 use option::OptionTrait;
-use starknet::SyscallResult;
-use starknet::syscalls::storage_read_syscall;
-use starknet::syscalls::storage_write_syscall;
-use starknet::contract_address::ContractAddress;
-use starknet::contract_address::Felt252TryIntoContractAddress;
-use starknet::contract_address::ContractAddressIntoFelt252;
-use starknet::class_hash::ClassHash;
-use starknet::class_hash::Felt252TryIntoClassHash;
-use starknet::class_hash::ClassHashIntoFelt252;
+use starknet::{
+    SyscallResult, syscalls::{storage_read_syscall, storage_write_syscall},
+    contract_address::{ContractAddress, Felt252TryIntoContractAddress, ContractAddressIntoFelt252},
+    class_hash::{ClassHash, Felt252TryIntoClassHash, ClassHashIntoFelt252}
+};
 use serde::Serde;
 
 #[derive(Copy, Drop)]
@@ -90,9 +85,9 @@ impl StorageAccessBool of StorageAccess<bool> {
 impl StorageAccessU8 of StorageAccess<u8> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<u8> {
         Result::Ok(
-            StorageAccess::<felt252>::read(
-                address_domain, base
-            )?.try_into().expect('StorageAccessU8 - non u8')
+            StorageAccess::<felt252>::read(address_domain, base)?
+                .try_into()
+                .expect('StorageAccessU8 - non u8')
         )
     }
     #[inline(always)]
@@ -104,9 +99,9 @@ impl StorageAccessU8 of StorageAccess<u8> {
 impl StorageAccessU16 of StorageAccess<u16> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<u16> {
         Result::Ok(
-            StorageAccess::<felt252>::read(
-                address_domain, base
-            )?.try_into().expect('StorageAccessU16 - non u16')
+            StorageAccess::<felt252>::read(address_domain, base)?
+                .try_into()
+                .expect('StorageAccessU16 - non u16')
         )
     }
     #[inline(always)]
@@ -118,9 +113,9 @@ impl StorageAccessU16 of StorageAccess<u16> {
 impl StorageAccessU32 of StorageAccess<u32> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<u32> {
         Result::Ok(
-            StorageAccess::<felt252>::read(
-                address_domain, base
-            )?.try_into().expect('StorageAccessU32 - non u32')
+            StorageAccess::<felt252>::read(address_domain, base)?
+                .try_into()
+                .expect('StorageAccessU32 - non u32')
         )
     }
     #[inline(always)]
@@ -132,9 +127,9 @@ impl StorageAccessU32 of StorageAccess<u32> {
 impl StorageAccessU64 of StorageAccess<u64> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<u64> {
         Result::Ok(
-            StorageAccess::<felt252>::read(
-                address_domain, base
-            )?.try_into().expect('StorageAccessU64 - non u64')
+            StorageAccess::<felt252>::read(address_domain, base)?
+                .try_into()
+                .expect('StorageAccessU64 - non u64')
         )
     }
     #[inline(always)]
@@ -146,9 +141,9 @@ impl StorageAccessU64 of StorageAccess<u64> {
 impl StorageAccessU128 of StorageAccess<u128> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<u128> {
         Result::Ok(
-            StorageAccess::<felt252>::read(
-                address_domain, base
-            )?.try_into().expect('StorageAccessU128 - non u128')
+            StorageAccess::<felt252>::read(address_domain, base)?
+                .try_into()
+                .expect('StorageAccessU128 - non u128')
         )
     }
     #[inline(always)]
@@ -164,7 +159,9 @@ impl StorageAccessU256 of StorageAccess<u256> {
                 low: StorageAccess::<u128>::read(address_domain, base)?,
                 high: storage_read_syscall(
                     address_domain, storage_address_from_base_and_offset(base, 1_u8)
-                )?.try_into().expect('StorageAccessU256 - non u256')
+                )?
+                    .try_into()
+                    .expect('StorageAccessU256 - non u256')
             }
         )
     }
@@ -179,9 +176,9 @@ impl StorageAccessU256 of StorageAccess<u256> {
 impl StorageAccessStorageAddress of StorageAccess<StorageAddress> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<StorageAddress> {
         Result::Ok(
-            StorageAccess::<felt252>::read(
-                address_domain, base
-            )?.try_into().expect('Non StorageAddress')
+            StorageAccess::<felt252>::read(address_domain, base)?
+                .try_into()
+                .expect('Non StorageAddress')
         )
     }
     #[inline(always)]
@@ -195,9 +192,9 @@ impl StorageAccessStorageAddress of StorageAccess<StorageAddress> {
 impl StorageAccessContractAddress of StorageAccess<ContractAddress> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<ContractAddress> {
         Result::Ok(
-            StorageAccess::<felt252>::read(
-                address_domain, base
-            )?.try_into().expect('Non ContractAddress')
+            StorageAccess::<felt252>::read(address_domain, base)?
+                .try_into()
+                .expect('Non ContractAddress')
         )
     }
     #[inline(always)]

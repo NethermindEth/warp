@@ -1,5 +1,5 @@
 use box::BoxTrait;
-use dict::{felt252_dict_entry_finalize, Felt252DictTrait};
+use dict::{Felt252DictTrait, Felt252DictEntryTrait};
 use nullable::NullableTrait;
 use traits::Index;
 
@@ -42,7 +42,7 @@ fn test_dict_entry() {
     dict.insert(10, 110);
     let (entry, value) = dict.entry(10);
     assert(value == 110, 'dict[10] == 110');
-    let mut dict = felt252_dict_entry_finalize(entry, 11);
+    let mut dict = entry.finalize(11);
     assert(dict[10] == 11, 'dict[10] == 11');
 }
 
@@ -51,7 +51,7 @@ fn test_dict_entry_uninitialized() {
     let mut dict: Felt252Dict<felt252> = Felt252DictTrait::new();
     let (entry, value) = dict.entry(10);
     assert(value == 0_felt252, 'dict[10] == 0');
-    let mut dict = felt252_dict_entry_finalize(entry, 110);
+    let mut dict = entry.finalize(110);
     assert(dict[10] == 110, 'dict[10] == 110');
 }
 
@@ -61,17 +61,17 @@ fn test_dict_update_twice() {
     dict.insert(10, 110);
     let (entry, value) = dict.entry(10);
     assert(value == 110, 'dict[10] == 110');
-    dict = felt252_dict_entry_finalize(entry, 11);
+    dict = entry.finalize(11);
     assert(dict[10] == 11, 'dict[10] == 11');
     let (entry, value) = dict.entry(10);
     assert(value == 11, 'dict[10] == 11');
-    dict = felt252_dict_entry_finalize(entry, 12);
+    dict = entry.finalize(12);
     assert(dict[10] == 12, 'dict[10] == 12');
 }
 
 
-/// Tests the destruction of a non-finalized `Felt252DictEntry`. 
-/// 
+/// Tests the destruction of a non-finalized `Felt252DictEntry`.
+///
 /// Calls the destructor of the entry, which in turn calls the destructor of the `Felt252Dict`.
 #[test]
 fn test_dict_entry_destruct() {
@@ -128,3 +128,15 @@ fn test_dict_of_nullable() {
         'default_val == null'
     );
 }
+// TODO(lior): Re-enable the test once Dict of bools are supported.
+// #[test]
+// fn test_bool_dict() {
+//     let mut bool_dict: Felt252Dict<bool> = Felt252DictTrait::new();
+//     let squashed_dict = bool_dict.squash();
+//     let mut bool_dict: Felt252Dict<bool> = Felt252DictTrait::new();
+//     assert(!bool_dict.get(0), 'default_val != false');
+//     bool_dict.insert(1, true);
+//     assert(bool_dict.get(1), 'bool_dict[1] != true');
+// }
+
+

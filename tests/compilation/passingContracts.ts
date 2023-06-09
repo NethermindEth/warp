@@ -1,5 +1,6 @@
 export const passingContracts = [
-  'tests/compilation/contracts/ERC20.sol',
+  // FIXME: uncomment, when storage is ready for Cairo 1
+  // 'tests/compilation/contracts/ERC20.sol',
   // 'tests/compilation/contracts/ERC20Storage.sol',
   'tests/compilation/contracts/address/7/160NotAllowed.sol',
   // 'tests/compilation/contracts/address/7/256Address.sol',
@@ -121,11 +122,12 @@ export const passingContracts = [
   // 'tests/compilation/contracts/mutableReferences/scalarStorage.sol',
   // 'tests/compilation/contracts/namedArgs/constructor.sol',
   // 'tests/compilation/contracts/namedArgs/eventsAndErrors.sol',
-  'tests/compilation/contracts/namedArgs/function.sol',
-  // 'tests/compilation/contracts/warpMemorySystems/nestedStaticArrayStruct.sol',
-  // 'tests/compilation/contracts/warpMemorySystems/nestedStructStaticArray.sol',
-  'tests/compilation/contracts/warpMemorySystems/nestedStructs.sol',
-  // 'tests/compilation/contracts/warpMemorySystems/nestedTuple.sol',
+  // FIXME: uncomment, when storage is ready for Cairo 1
+  // 'tests/compilation/contracts/namedArgs/function.sol',
+  // 'tests/compilation/contracts/nestedStaticArrayStruct.sol',
+  // 'tests/compilation/contracts/nestedStructStaticArray.sol',
+  'tests/compilation/contracts/nestedStructs.sol',
+  // 'tests/compilation/contracts/nestedTuple.sol',
   // 'tests/compilation/contracts/oldCodeGenErr.sol',
   // 'tests/compilation/contracts/oldCodeGenErr7.sol',
   // 'tests/compilation/contracts/payableFunction.sol',

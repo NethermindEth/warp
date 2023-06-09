@@ -5,14 +5,19 @@ import { glob } from 'glob';
 import path from 'path';
 import assert from 'assert';
 
+import { WARP_ROOT } from '../config';
+
 export const warplibImportInfo = glob
-  .sync('warplib/src/**/*.cairo')
+  .sync(path.join(WARP_ROOT, 'warplib/src/**/*.cairo'))
   .reduce((warplibMap, pathToFile) => {
     const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
 
     const importPath = [
       'warplib',
-      ...pathToFile.slice('warplib/src/'.length, -'.cairo'.length).split(path.sep),
+      ...path
+        .relative(WARP_ROOT, pathToFile)
+        .slice('warplib/src/'.length, -'.cairo'.length)
+        .split(path.sep),
     ];
 
     // Handle WarpMemory function gathering differently
@@ -25,7 +30,6 @@ export const warplibImportInfo = glob
 
       return warplibMap;
     }
-
     // TODO: Add encodePath here. Importing encodePath cause circular
     // dependency error. Suggested solution is to relocate all import
     // related scripts (including this, and the ones in src/utils)

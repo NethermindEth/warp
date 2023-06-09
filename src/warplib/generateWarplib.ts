@@ -19,7 +19,10 @@ import path from 'path';
 import * as fs from 'fs';
 import endent from 'endent';
 import { glob } from 'glob';
-import { parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
+import { parseCairoTraitsAndStructs, parseMultipleRawCairoFunctions } from '../utils/cairoParsing';
+import { fixed_bytes_types } from './implementations/types/bytes';
+import { warp_memory_fixed_bytes } from './implementations/warp_memory/bytes';
+import { pow2_constants } from './implementations/maths/pow2';
 
 const mathWarplibFunctions: WarplibFunctionInfo[] = [
   add(),
@@ -40,6 +43,7 @@ const mathWarplibFunctions: WarplibFunctionInfo[] = [
   div_signed_unsafe(),
   // mod - handwritten
   mod_signed(),
+  pow2_constants(),
   exp(),
   exp_signed(),
   exp_unsafe(),
@@ -67,15 +71,25 @@ const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
   external_input_check_ints(),
   // external_input_check_address - handwritten
 ];
+const warplibTypes: WarplibFunctionInfo[] = [fixed_bytes_types()];
+const warp_memory: WarplibFunctionInfo[] = [warp_memory_fixed_bytes()];
 
-generateWarplibFor('maths', mathWarplibFunctions);
-generateWarplibFor('conversions', conversionWarplibFunctions);
-generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
+generateWarplibFor('maths', mathWarplibFunctions, true);
+generateWarplibFor('conversions', conversionWarplibFunctions, true);
+generateWarplibFor('external_input_check', inputCheckWarplibFunctions, true);
+generateWarplibFor('types', warplibTypes, true);
+generateWarplibFor('warp_memory', warp_memory, false);
 
-function generateWarplibFor(folderName: string, functions: WarplibFunctionInfo[]) {
+function generateWarplibFor(
+  folderName: string,
+  functions: WarplibFunctionInfo[],
+  writeExportFile: boolean,
+) {
   functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
-  const content: string = folderContent(folderName);
-  writeExportedFunctions(`${folderName}.cairo`, content);
+  if (writeExportFile) {
+    const content: string = folderContent(folderName);
+    writeExportedFunctions(`${folderName}.cairo`, content);
+  }
 }
 
 function folderContent(folderName: string): string {
@@ -85,14 +99,19 @@ function folderContent(folderName: string): string {
       .map((pathToFile) => {
         const fileName = path.basename(pathToFile, '.cairo');
         const rawCairoCode = fs.readFileSync(pathToFile, { encoding: 'utf8' });
-        const funcNames = parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
-        return { fileName, funcNames };
+        const traitsAndStructs = parseCairoTraitsAndStructs(rawCairoCode).map((name) => name);
+        const toExport =
+          traitsAndStructs.length !== 0
+            ? traitsAndStructs
+            : parseMultipleRawCairoFunctions(rawCairoCode).map(({ name }) => name);
+
+        return { fileName, toExport };
       })
       // TODO: Remove this filter once all warplib modules use cairo1
-      .filter(({ funcNames }) => funcNames.length > 0)
-      .map(({ fileName, funcNames }) => {
-        const useFuncNames = funcNames.map((name) => `use ${fileName}::${name};`).join('\n');
-        return `mod ${fileName};\n${useFuncNames}`;
+      .filter(({ toExport }) => toExport.length > 0)
+      .map(({ fileName, toExport }) => {
+        const useExported = toExport.map((name) => `use ${fileName}::${name};`).join('\n');
+        return `mod ${fileName};\n${useExported}`;
       })
       .join('\n\n')
   );

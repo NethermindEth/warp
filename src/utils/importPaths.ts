@@ -50,6 +50,7 @@ export const WARPLIB_KECCAK = ['warplib', 'keccak'];
 export const WARPLIB_MATHS = ['warplib', 'maths'];
 export const WARPLIB_CONVERSIONS = ['warplib', 'conversions'];
 export const WARPLIB_EXT_INPUT_CHK = ['warplib', 'external_input_check'];
+export const WARPLIB_INTEGER = ['warplib', 'integer'];
 
 export const DYNAMIC_ARRAYS_UTIL = ['warplib', 'dynamic_arrays_util'];
 export const BYTES_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'bytes_conversions'];
@@ -57,10 +58,8 @@ export const INT_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'int_conversions'];
 // Integer_conversions holds the functions used in Cairo1, once int_conversions is translated they both can be merged
 export const INTEGER_CONVERSIONS = [...WARPLIB_CONVERSIONS, 'integer_conversions'];
 
-export const BYTE256_AT_INDEX: [string[], string] = [
-  [...WARPLIB_MATHS, 'bytes_access'],
-  'byte256_at_index',
-];
+export const BYTES_ACCESS = [...WARPLIB_MATHS, 'maths'];
+export const BYTE256_AT_INDEX: [string[], string] = [BYTES_ACCESS, 'byte256_at_index'];
 export const BYTE_ARRAY_TO_FELT_VALUE: [string[], string] = [
   [...DYNAMIC_ARRAYS_UTIL],
   'byte256_at_index',
