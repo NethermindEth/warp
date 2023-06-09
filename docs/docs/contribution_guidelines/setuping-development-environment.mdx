@@ -1,0 +1,78 @@
+---
+title: Setuping development environment
+---
+
+Development environment may be setup manually or via docker-compose.
+
+## Docker
+
+> **Note:**
+> Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
+
+1. Clone repository and `cd warp/`
+2. Build docker containers:
+```
+docker-compose up
+```
+3. Install javascript dependencies :
+```
+docker-compose exec warp yarn
+```
+4. Compile the project:
+```
+docker-compose exec warp yarn build
+```
+5. Build warplib:
+```
+docker-compose exec warp yarn warplib
+```
+6. Test the installation worked by transpiling an example ERC20 contract:
+```
+bin/warp transpile exampleContracts/ERC20.sol
+```
+
+## Manually
+
+First, please make sure you have all the required external [dependencies](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation#dependencies) installed.
+
+Then, with a Python3.9 virtual environment activated, perform the following instructions:
+
+1. Clone this repo and change directory into the `warp` folder.
+
+2. Install the JavaScript dependencies:
+
+```bash
+yarn
+```
+
+3. Install the Python dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
+
+```bash
+CFLAGS=-I`brew --prefix gmp`/include LDFLAGS=-L`brew --prefix gmp`/lib pip install ecdsa fastecdsa sympy
+```
+
+Then run the pip command above again.
+
+4. Compile the project:
+
+```bash
+yarn build
+```
+
+5. Compile Warp libraries
+
+```bash
+yarn warplib
+```
+
+6. Test the installation worked by transpiling an example ERC20 contract:
+
+```bash
+bin/warp transpile exampleContracts/ERC20.sol
+```
