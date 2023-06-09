@@ -40,26 +40,6 @@ fn bool_into_felt252(val: bool) -> felt252 {
     }
 }
 
-// Cairo-1.1 corelib code from the RC
-// FIXME: remove, when updated
-impl U256TryIntoFelt252 of TryInto<u256, felt252> {
-    fn try_into(self: u256) -> Option<felt252> {
-        let FELT252_PRIME_HIGH = 0x8000000000000110000000000000000_u128;
-        if self.high > FELT252_PRIME_HIGH {
-            return Option::None(());
-        }
-        if self.high == FELT252_PRIME_HIGH {
-            // since FELT252_PRIME_LOW is 1.
-            if self.low != 0 {
-                return Option::None(());
-            }
-        }
-        Option::Some(
-            self.high.into() * 0x100000000000000000000000000000000_felt252 + self.low.into()
-        )
-    }
-}
-
 fn unsafe_contract_address_from_u256(x: u256) -> ContractAddress {
     match x.try_into() {
         Option::Some(felt_x) =>
