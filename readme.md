@@ -9,91 +9,34 @@ smart contracts to Starknet Cairo Contracts.
 
 ## Quickstart
 
-Docker compose provides a ready to use environment featuring warp and devnet.
-
 > **Note:**
-> Executing Warp using Docker works only for x86 architecture, ARM architectures (such as Apple's M1) will be supported soon.
+> Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
 
-### Build and run containers
-
-```bash
-docker-compose up
-```
-
-### Transpile
-
-```bash
-docker-compose exec warp warp transpile exampleContracts/ERC20.sol
-```
-
-It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `exampleContracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above command.
-
-### Deploy to devnet
-
-```bash
-docker-compose exec warp warp compile warp_output/example__contracts/ERC20__WC__WARP.cairo
-docker-compose exec warp starknet deploy --no_wallet --contract warp_output/example__contracts/ERC20__WC__WARP_compiled.json --gateway_url http://devnet:5050
-```
-
-## Documentation 📖
-
-You can read the documentation [here](https://nethermindeth.github.io/warp/).
-
-## Installation :gear:
-
-To install Warp follow the installation instructions [here](installation.md).
-
-To build Warp for development see the [contributing guidelines](contributing.md).
-
-## Usage :computer:
-
-If you have used installation method 1 you can use the `warp` command in any folder. If you have used installation method 2, you will have to specify the path to the warp directory followed by `bin/warp` e.g `path_to_warp_repo/bin/warp ...`
-
-### Starknet setup
-
-Select your network and wallet types. It's recommended to set these as
-environment variables but they can also be passed as explicit arguments to the
-Warp CLI and the Starknet CLI.
+The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
 ```
-export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
-export STARKNET_NETWORK=alpha-goerli
+docker run --rm -v "$PWD:/dapp" nethermind/warp transpile <contract-path>
 ```
 
-Make sure you have a Starknet account set up, if you have not done so yet
-please:
+You can find docker installation guide [here](https://docs.docker.com/get-docker/).
 
-```
-warp deploy_account
-```
+## Quick links
 
-### CLI Commands
+<div align="center">
 
-<hr> 
-To transpile a Solidity contract:
+### 📖 [Documentation](https://nethermindeth.github.io/warp/)
 
-```bash
-warp transpile <path to Solidity contract>
-```
+### 📦 [Installation](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation)
 
-To declare a Starknet contract:
+### ⚙️ [Installation for contributors](https://nethermindeth.github.io/warp/docs/category/contribution-guidelines/)
 
-```bash
-warp declare <path to Starknet contract>
-```
+### ✍️ [Developing warp](https://nethermindeth.github.io/warp/docs/contribution_guidelines/implementation-and-testing)
 
-_Please note to deploy a contract you will first have to declare it._
+### [![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT)
 
-To deploy a Starknet contract:
+### [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/nethermindeth)
 
-```bash
-warp deploy <path to Starknet contract>
-```
-
-The deploy command will generate the compiled json file as well as the abi json
-file. Use `warp deploy --help` command to see more deployment options.
-
-<br>
+</div>
 
 ### Libraries
 
@@ -149,28 +92,3 @@ Please see the list below:
 |              nested tuple assignments               |    :question:     |
 
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for Starknet addresses.
-
-## Docker :whale:
-
-> **Note:**
-> Executing Warp using Docker works only for x86 architecture, ARM architectures (such as Apple's M1) will be supported soon.
-
-Build the image from source:
-
-```bash
-docker build -t warp .
-```
-
-Run the container with the same options and arguments as the Warp binary:
-
-```bash
-docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile exampleContracts/ERC20.sol
-```
-
-## Contributing
-
-You can read about contributing, first steps, development tips and testing for contributors [here](contributing.md)
-
-## Contact Us :phone:
-
-[![Discord](https://img.shields.io/badge/discord-0A66C2?style=for-the-badge&logo=Discord&logoColor=white)](https://discord.com/invite/PaCMRFdvWT) [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/nethermindeth)

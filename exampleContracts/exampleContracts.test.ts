@@ -13,8 +13,8 @@ const expectedResults = new Map<string, ResultType>(
   }),
 );
 
-describe('Compilation tests execution started', () =>
-  runTests(
+describe('Compilation tests execution started', async () =>
+  await runTests(
     expectedResults,
     WARP_TEST,
     WARP_TEST_FOLDER,

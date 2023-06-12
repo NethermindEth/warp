@@ -3,7 +3,7 @@ import { CompileFailedError } from 'solc-typed-ast';
 import { describe } from 'mocha';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from '../src/io';
 import { compileSolFiles } from '../src/solCompile';
-import { compileCairo1 } from '../src/starknetCli';
+import { enqueueCompileCairo1 } from '../src/starknetCli';
 import { transpile } from '../src/transpiler';
 import {
   NotSupportedYetError,
@@ -11,12 +11,14 @@ import {
   WillNotSupportError,
 } from '../src/utils/errors';
 import { groupBy, printCompileErrors } from '../src/utils/utils';
-import * as fs from 'fs';
-import { outputFileSync } from '../src/utils/fs';
+import * as fs from 'fs/promises';
+import Bottleneck from 'bottleneck';
+import { outputFile, pathExists } from '../src/utils/fs';
 import { error } from '../src/utils/formatting';
 
 import { expect } from 'chai';
 import { createCairoProject } from '../src/export';
+import { PARALLEL_COUNT } from './config';
 
 export const solCompileResultTypes = [
   'SolCompileFailed',
@@ -52,34 +54,42 @@ export function preTestChecks(warpTestFolder: string): boolean {
     console.log('Please remove warpTest/exampleContracts, or run with --force to delete it');
     return false;
   }
+
   if (!checkNoJson('warplib')) {
     console.log('Please remove all json files from warplib, or run with --force to delete them');
     return false;
   }
+
   return true;
 }
 
-export function runSolFileTest(
+async function runSolFileTest(
   warpTest: string,
   file: string,
   results: Map<string, ResultType>,
   onlyResults: boolean,
   unsafe: boolean,
-): { cairoProjects: Set<string>; result: ResultType } {
+): Promise<{ cairoProjects: Set<string>; result: ResultType }> {
   const mangledPath = path.join(warpTest, file);
   const cairoProjects: Set<string> = new Set();
 
   try {
-    transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
-      ([fileName, cairoCode]) => {
+    await Promise.all(
+      (
+        await transpile(await compileSolFiles([file], { warnings: false }), {
+          strict: true,
+          dev: true,
+        })
+      ).map(([fileName, cairoCode]) => {
         const testLocation = path.join(warpTest, fileName);
-        outputFileSync(testLocation, cairoCode);
+        outputFile(testLocation, cairoCode);
         createCairoProject(testLocation);
 
         const baseDir = path.dirname(path.dirname(testLocation));
         cairoProjects.add(baseDir);
-      },
+      }),
     );
+
     results.set(mangledPath, 'Success');
     return {
       cairoProjects: cairoProjects,
@@ -128,14 +138,14 @@ export function runSolFileTest(
   }
 }
 
-export function runCairoFileTest(
+export async function runCairoFileTest(
   cairoProject: string,
   results: Map<string, ResultType>,
   onlyResults: boolean,
   throwError = false,
-): ResultType {
+): Promise<ResultType> {
   if (!onlyResults) console.log(`Compiling ${cairoProject}`);
-  if (compileCairo1(cairoProject, !onlyResults).success) {
+  if ((await enqueueCompileCairo1(cairoProject, !onlyResults)).success) {
     results.set(cairoProject, 'Success');
     return 'Success';
   } else {
@@ -207,29 +217,34 @@ export function printResults(
   }
 }
 
-function checkNoCairo(path: string): boolean {
-  return !fs.existsSync(path) || findCairoSourceFilePaths(path, true).length === 0;
+async function checkNoCairo(path: string): Promise<boolean> {
+  if (!(await pathExists(path))) {
+    return true;
+  }
+
+  return (await findCairoSourceFilePaths(path, true)).length === 0;
 }
 
-function checkNoJson(path: string): boolean {
-  return (
-    !fs.existsSync(path) ||
-    findAllFiles(path, true).filter((file) => file.endsWith('.json')).length === 0
-  );
+async function checkNoJson(path: string): Promise<boolean> {
+  if (!(await pathExists(path))) {
+    return true;
+  }
+
+  return (await findAllFiles(path, true)).filter((file) => file.endsWith('.json')).length === 0;
 }
 
-export function postTestCleanup(warpTestFolder: string): void {
-  deleteJson('warplib');
-  fs.rmSync(warpTestFolder, { recursive: true, force: true });
+export async function postTestCleanup(warpTestFolder: string): Promise<void> {
+  await deleteJson('warplib');
+  await fs.rm(warpTestFolder, { recursive: true, force: true });
 }
 
-function deleteJson(path: string): void {
-  findAllFiles(path, true)
-    .filter((file) => file.endsWith('.json'))
-    .forEach((file) => fs.unlinkSync(file));
+async function deleteJson(path: string): Promise<void> {
+  const jsonFiles = (await findAllFiles(path, true)).filter((file) => file.endsWith('.json'));
+
+  await Promise.all(jsonFiles.map((file) => fs.unlink(file)));
 }
 
-export function runTests(
+export async function runTests(
   expectedResults: Map<string, ResultType>,
   warpTest: string,
   warpTestFolder: string,
@@ -245,58 +260,77 @@ export function runTests(
 
     const results = new Map<string, ResultType>();
 
-    this.beforeAll(() => {
+    this.beforeAll(async () => {
       onlyResults = process.argv.includes('--only-results');
       unsafe = process.argv.includes('--unsafe');
       force = process.argv.includes('--force');
       exact = process.argv.includes('--exact');
       if (force) {
-        postTestCleanup(warpTestFolder);
+        await postTestCleanup(warpTestFolder);
       } else {
         if (!preTestChecks(warpTestFolder)) return;
       }
     });
 
     describe(`Running warp compilation tests on ${contractsFolder} solidity files`, async function () {
-      findSolSourceFilePaths(warpCompilationTestPath, true).forEach((file) => {
-        let complexFiltering = filter === undefined && preFilters === undefined;
-        // if FILTER argument is passed, then only run tests that include the filter
-        // and preFilters are ignored, otherwise run tests that are in preFilters
-        if (filter !== undefined) {
-          complexFiltering = file.includes(filter);
-        } else if (preFilters !== undefined) {
-          complexFiltering = preFilters.includes(file);
-        }
-        if (complexFiltering) {
-          let compileResult: { result: ResultType; cairoProjects?: Set<string> };
-          const expectedResult: ResultType | undefined = expectedResults.get(
-            path.join(warpTest, file),
-          );
+      await Promise.all(
+        (
+          await findSolSourceFilePaths(warpCompilationTestPath, true)
+        ).map(async (file) => {
+          let complexFiltering = filter === undefined && preFilters === undefined;
+          // if FILTER argument is passed, then only run tests that include the filter
+          // and preFilters are ignored, otherwise run tests that are in preFilters
+          if (filter !== undefined) {
+            complexFiltering = file.includes(filter);
+          } else if (preFilters !== undefined) {
+            complexFiltering = preFilters.includes(file);
+          }
+          if (complexFiltering) {
+            let compileResult: { result: ResultType; cairoProjects?: Set<string> };
+            const expectedResult: ResultType | undefined = expectedResults.get(
+              path.join(warpTest, file),
+            );
 
-          describe(`Running compilation test on ${file}`, async function () {
-            it(`Running warp compile on ${file}`, async () => {
-              compileResult = runSolFileTest(warpTest, file, results, onlyResults, unsafe);
-              expect(expectedResult).to.not.be.undefined;
-              if (expectedResult === 'Success') {
-                expect(compileResult.result).to.equal('Success');
-              }
-              if (expectedResult !== undefined && solCompileResultTypes.includes(expectedResult)) {
-                expect(compileResult.result).to.equal(expectedResult);
-              }
-            });
-            if (expectedResult !== undefined && cairoCompileResultTypes.includes(expectedResult)) {
-              it(`Running cairo compile on project ${file}`, async () => {
-                if (compileResult.cairoProjects !== undefined) {
-                  compileResult.cairoProjects.forEach((cairoProject) => {
-                    const cairoCompileResult = runCairoFileTest(cairoProject, results, onlyResults);
-                    expect(cairoCompileResult).to.equal(expectedResult);
-                  });
+            describe(`Running compilation test on ${file}`, async function () {
+              it(`Running warp compile on ${file}`, async () => {
+                compileResult = await runSolFileTest(warpTest, file, results, onlyResults, unsafe);
+                expect(expectedResult).to.not.be.undefined;
+                if (expectedResult === 'Success') {
+                  expect(compileResult.result).to.equal('Success');
+                }
+                if (
+                  expectedResult !== undefined &&
+                  solCompileResultTypes.includes(expectedResult)
+                ) {
+                  expect(compileResult.result).to.equal(expectedResult);
                 }
               });
-            }
-          });
-        }
-      });
+              if (
+                expectedResult !== undefined &&
+                cairoCompileResultTypes.includes(expectedResult)
+              ) {
+                it(`Running cairo compile on project ${file}`, async () => {
+                  if (compileResult.cairoProjects !== undefined) {
+                    const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
+                    await Promise.all(
+                      Array.from(compileResult.cairoProjects).map((cairoProject) =>
+                        bottleneck.schedule(async () => {
+                          const cairoCompileResult = runCairoFileTest(
+                            cairoProject,
+                            results,
+                            onlyResults,
+                          );
+                          expect(cairoCompileResult).to.equal(expectedResult);
+                        }),
+                      ),
+                    );
+                  }
+                });
+              }
+            });
+          }
+        }),
+      );
     });
 
     this.afterAll(() => {

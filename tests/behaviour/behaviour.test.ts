@@ -1,20 +1,15 @@
 /* eslint-disable */
-import * as fs from 'fs';
 
-import {
-  SafePromise,
-  cleanupSync,
-  transpile,
-  batchPromises,
-  processArgs,
-  compileCluster,
-  removeOutputDir,
-} from '../util';
+import * as fs from 'fs/promises';
+import { writeFileSync } from 'fs';
+import { cleanup, transpile, processArgs, removeOutputDir } from '../util';
 import { deploy, ensureTestnetContactable, invoke, starknetCliCall } from '../testnetInterface';
 
 import { describe } from 'mocha';
-import { expect } from 'chai';
-import { expectations } from './expectations';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import Bottleneck from 'bottleneck';
+import { getExpectations } from './expectations';
 import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
@@ -22,10 +17,12 @@ import { EventItem } from '../../src/utils/event';
 import { BASE_PATH, compileCairo1 } from '../../src/starknetCli';
 import path from 'path';
 import { execSync } from 'child_process';
-import { DEVNET_URL } from '../config';
+import { DEVNET_URL, PARALLEL_COUNT } from '../config';
+import { pathExists } from '../../src/utils/fs';
+
+chai.use(chaiAsPromised);
 
 const PRINT_STEPS = false;
-const PARALLEL_COUNT = 8;
 const TIME_LIMIT = 2 * 60 * 60 * 1000;
 
 interface AsyncTestCluster {
@@ -33,7 +30,7 @@ interface AsyncTestCluster {
   dependencies: Map<string, string[]>;
 }
 
-fs.writeFileSync(path.join(BASE_PATH, 'tests', 'cli', 'starknet_open_zeppelin_accounts.json'), '{}');
+writeFileSync(path.join(BASE_PATH, 'tests', 'cli', 'starknet_open_zeppelin_accounts.json'), '{}');
 const new_account = `${starknetCliCall('new_account', '')} | awk 'NR==1 {printf $3}'`;
 console.log(new_account);
 const address = execSync(new_account);
@@ -42,91 +39,125 @@ const addFunds = `curl ${DEVNET_URL}/mint -H "Content-Type: application/json" -d
 console.log(addFunds);
 console.log(execSync(addFunds).toString());
 console.log('Deploying account:');
-const deployAcc = starknetCliCall('deploy_account', '')
-console.log(deployAcc)
+const deployAcc = starknetCliCall('deploy_account', '');
+console.log(deployAcc);
 const account_deployed = execSync(deployAcc);
 console.log(account_deployed.toString());
+
+const expectations = getExpectations();
 
 // Transpiling the solidity files using the `bin/warp transpile` CLI command.
 describe('Transpile solidity', function () {
   this.timeout(TIME_LIMIT);
 
-  let transpileResults: SafePromise<{ stderr: string }>[];
+  let transpileResults: Array<{ success: boolean; result: { stderr: string; stdout: string } }>;
 
   before(async function () {
-    for (const fileTest of expectations) {
-      if (fileTest.encodingError === undefined) {
-        cleanupSync(fileTest.cairo);
-        cleanupSync(fileTest.compiled);
-      }
-    }
+    await Promise.all(
+      expectations.flatMap((fileTest) => {
+        return fileTest.encodingError === undefined
+          ? [cleanup(fileTest.cairo), cleanup(fileTest.compiled)]
+          : [];
+      }),
+    );
 
-    transpileResults = batchPromises(
-      expectations.map((e) =>
-        e.encodingError === undefined ? e.sol : { stderr: e.encodingError },
+    const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
+
+    transpileResults = await Promise.all(
+      expectations.map((expectation) =>
+        bottleneck.schedule(async () => {
+          if (expectation.encodingError === undefined) {
+            try {
+              return { success: true, result: await transpile(expectation.sol) };
+            } catch (err) {
+              if (!!err && typeof err === 'object' && 'stdout' in err && 'stderr' in err) {
+                const errorData = err as { stdout: string; stderr: string };
+                return {
+                  success: false,
+                  result: { stdout: errorData.stdout, stderr: errorData.stderr },
+                };
+              }
+
+              throw err;
+            }
+          } else {
+            return {
+              success: false,
+              result: { stdout: '', stderr: expectation.encodingError },
+            };
+          }
+        }),
       ),
-      PARALLEL_COUNT,
-      (input) => (typeof input === 'string' ? transpile(input) : Promise.resolve(input)),
     );
   });
 
-  for (let i = 0; i < expectations.length; ++i) {
-    it(expectations[i].name, async function () {
-      const res = await transpileResults[i];
-      expect(res.result, `warp-ts printed errors: ${res.result}`).to.include({ stderr: '' });
+  expectations.forEach((expectation, i) => {
+    it(expectation.name, async function () {
+      const res = transpileResults[i];
+
+      expect(res.success, `warp execution was not successful: ${JSON.stringify(res.result)}`);
       expect(
-        fs.existsSync(expectations[i].cairo),
+        res.result.stderr,
+        `warp-ts stderr was not empty: ${JSON.stringify(res.result)}`,
+      ).to.be.empty;
+      await expect(
+        fs.access(expectations[i].cairo),
         `Transpilation failed, cannot find output file. Is the file's contract named WARP or specified in the expectations?`,
-      ).to.be.true;
-      expect(res.success, `${res.result}`);
+      ).to.not.be.rejected;
     });
-  }
+  });
 });
 
 // Compiling the transpiled contracts using the Starknet CLI.
 describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
-  let compileResults: SafePromise<{ stderr: string } | null>[];
+  let compileResults: Array<{ stderr: string } | null>;
   let processedExpectations: (AsyncTestCluster | null)[];
 
-  before(function () {
-    processedExpectations = expectations.map((test: AsyncTest): AsyncTestCluster | null => {
-      if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) {
-        return null;
-      }
-      const dependencyGraph = getDependencyGraph(removeOutputDir(test.cairo), OUTPUT_DIR);
-      return { asyncTest: test, dependencies: dependencyGraph };
-    });
-
-    compileResults = batchPromises(
-      processedExpectations,
-      PARALLEL_COUNT,
-      (test: AsyncTestCluster | null): Promise<{ stderr: string } | null> => {
-        if (test === null) {
-          return Promise.resolve(null);
+  before(async function () {
+    processedExpectations = await Promise.all(
+      expectations.map(async (test: AsyncTest): Promise<AsyncTestCluster | null> => {
+        if (test.encodingError !== undefined || !(await pathExists(test.cairo))) {
+          return null;
         }
-        // This is will compile the test and declare all of the dependencies that it needs.
-        let compiled = compileCairo1(test.asyncTest.projectRoot);
-        return Promise.resolve({ stderr: compiled.success ? '' : 'Compilation failed' });
-      },
+
+        const dependencyGraph = await getDependencyGraph(removeOutputDir(test.cairo), OUTPUT_DIR);
+
+        return { asyncTest: test, dependencies: dependencyGraph };
+      }),
+    );
+
+    const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
+
+    compileResults = await Promise.all(
+      processedExpectations.map((test) =>
+        bottleneck.schedule(async () => {
+          if (test === null) return null;
+
+          const compiled = await compileCairo1(test.asyncTest.projectRoot);
+          return { stderr: compiled.success ? '' : 'Compilation failed' };
+        }),
+      ),
     );
   });
 
-  for (let i = 0; i < expectations.length; ++i) {
-    it(expectations[i].name, async function () {
-      const res = await compileResults[i];
-      if (res.result === null) {
+  expectations.forEach((expectation, i) => {
+    it(expectation.name, async function () {
+      const res = compileResults[i];
+
+      if (res === null) {
         this.skip();
-      } else {
-        expect(res.result, `starknet-compile printed errors: ${res.result}`).to.include({
-          stderr: '',
-        });
-        expect(fs.existsSync(expectations[i].compiled), 'Compilation failed').to.be.true;
-        expect(res.success, `${res.result}`);
+        return;
       }
+
+      expect(res.stderr, `starknet-compile printed errors: ${res.stderr}`).to.be.empty;
+      await expect(
+        fs.access(expectation.compiled),
+        'Compilation failed, cannot find output file.',
+      ).to.not.be.rejected;
     });
-  }
+  });
 });
 
 const deployedAddresses: Map<string, { address: string; hash: string }> = new Map();
@@ -143,32 +174,40 @@ describe('Compiled contracts are deployable', function () {
     const testnetContactable = await ensureTestnetContactable(60000);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
 
-    for (const fileTest of expectations) {
-      const fileSize = fs.statSync(fileTest.compiled, { throwIfNoEntry: false })?.size;
-      if (fileSize !== undefined && fileSize > 0) {
-        deployResults.push(await deploy(fileTest.compiled, await fileTest.constructorArgs));
-      } else {
+    for (const expectation of expectations) {
+      try {
+        if ((await fs.stat(expectation.compiled)).size === 0) {
+          deployResults.push(null);
+          continue;
+        }
+      } catch {
         deployResults.push(null);
+        continue;
       }
+
+      deployResults.push(await deploy(expectation.compiled, await expectation.constructorArgs));
     }
   });
 
-  for (let i = 0; i < expectations.length; ++i) {
-    it(expectations[i].name, async function () {
+  expectations.forEach((expectation, i) => {
+    it(expectation.name, async function () {
       const response = deployResults[i];
+
       if (response === null) {
         this.skip();
-      } else {
-        expect(response.threw, 'Deploy request failed').to.be.false;
-        if (!response.threw) {
-          deployedAddresses.set(`${expectations[i].name}.${expectations[i].contract}`, {
-            address: response.contract_address,
-            hash: response.class_hash,
-          });
-        }
+        return;
+      }
+
+      expect(response.threw, 'Deploy request failed').to.be.false;
+
+      if (!response.threw) {
+        deployedAddresses.set(`${expectation.name}.${expectation.contract}`, {
+          address: response.contract_address,
+          hash: response.class_hash,
+        });
       }
     });
-  }
+  });
 });
 
 /*
@@ -179,38 +218,50 @@ describe('Compiled contracts are deployable', function () {
 describe('Deployed contracts have correct behaviour', function () {
   this.timeout(TIME_LIMIT);
 
-  for (const fileTest of expectations) {
-    if (fileTest.expectations instanceof Promise) {
-      it(fileTest.name, async function () {
-        const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`)?.address;
-        if (address === undefined) this.skip();
-        const expects = await fileTest.expectations;
-        for (let i = 0; i < expects.length; ++i) {
-          await behaviourTest(expects[i], fileTest, address);
+  expectations.forEach((expectation) => {
+    let expects = expectation.expectations;
+
+    if (expects instanceof Promise) {
+      it(expectation.name, async function () {
+        const address = deployedAddresses.get(
+          `${expectation.name}.${expectation.contract}`,
+        )?.address;
+
+        if (address === undefined) {
+          this.skip();
+          return;
+        }
+
+        expects = await expects;
+
+        for (const expect of expects) {
+          await behaviourTest(deployedAddresses, expect, expectation, address);
         }
       });
     } else {
-      const expects = fileTest.expectations;
-      describe(fileTest.name, async function () {
-        for (const functionExpectation of expects) {
-          it(functionExpectation.name, async function () {
-            const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`)?.address;
+      describe(expectation.name, function () {
+        (expects as Expect[]).forEach((expect) => {
+          it(expect.name, async function () {
+            const address = deployedAddresses.get(
+              `${expectation.name}.${expectation.contract}`,
+            )?.address;
+
             if (address === undefined) this.skip();
-            await behaviourTest(functionExpectation, fileTest, address);
+
+            await behaviourTest(deployedAddresses, expect, expectation, address);
           });
-        }
+        });
       });
     }
-  }
+  });
 
-  after(function () {
-    for (const fileTest of expectations) {
-      cleanupSync(fileTest.compiled);
-    }
+  after(async function () {
+    await Promise.all(expectations.map((fileTest) => cleanup(fileTest.compiled)));
   });
 });
 
 async function behaviourTest(
+  deployedAddresses: Map<string, { address: string; hash: string }>,
   functionExpectation: Expect,
   fileTest: AsyncTest,
   address: string,
@@ -225,7 +276,7 @@ async function behaviourTest(
   ] of functionExpectation.steps) {
     const name = functionExpectation.name;
     const mangledFuncName =
-      funcName !== 'constructor' ? findMethod(funcName, fileTest.compiled) : 'constructor';
+      funcName !== 'constructor' ? await findMethod(funcName, fileTest.compiled) : 'constructor';
     const replaced_inputs = processArgs(name, inputs, deployedAddresses);
     const replaced_expectedResult =
       expectedResult !== null ? processArgs(name, expectedResult, deployedAddresses) : null;
@@ -281,12 +332,12 @@ type CompiledCairo = {
   }[];
 };
 
-function findMethod(functionName: string, fileName: string): string | null {
-  if (!fs.existsSync(fileName)) {
+async function findMethod(functionName: string, fileName: string): Promise<string | null> {
+  if (!(await pathExists(fileName))) {
     throw new Error(`Couldn't find compiled contract ${fileName}`);
   }
 
-  const data: CompiledCairo = JSON.parse(fs.readFileSync(fileName, 'utf-8'));
+  const data: CompiledCairo = JSON.parse(await fs.readFile(fileName, 'utf-8'));
   const functions = data.abi.filter((abiEntry) => abiEntry.type === 'function');
   const exactMatches = functions.filter((func) => func.name === functionName);
   if (exactMatches.length > 1) {

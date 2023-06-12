@@ -1,11 +1,21 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 
-export function outputFileSync(file: string, data: string) {
-  const dir = path.dirname(file);
-  if (fs.existsSync(dir)) {
-    return fs.writeFileSync(file, data);
+export async function pathExists(path: string): Promise<boolean> {
+  try {
+    await fs.access(path);
+    return true;
+  } catch {
+    return false;
   }
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, data);
+}
+
+export async function outputFile(file: string, data: string) {
+  const dir = path.dirname(file);
+
+  if (!(await pathExists(dir))) {
+    await fs.mkdir(dir, { recursive: true });
+  }
+
+  await fs.writeFile(file, data);
 }

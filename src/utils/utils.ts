@@ -1,7 +1,7 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import assert from 'assert';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import execa from 'execa';
 import {
   AddressType,
   ArrayType,
@@ -57,7 +57,7 @@ import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printNode, printTypeNode } from './astPrinter';
 import {
-  instanceOfExecSyncError,
+  instanceOfExecaError,
   logError,
   NotSupportedYetError,
   TranspileFailedError,
@@ -73,6 +73,7 @@ import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeT
 import { Class } from './typeConstructs';
 import { TranspilationOptions } from '../cli';
 import { warning } from './formatting';
+import { WARP_ROOT } from '../config';
 
 export type Implicits = 'warp_memory';
 
@@ -614,14 +615,13 @@ export function getSourceFromLocations(
   return filteredLines.join('');
 }
 
-export function runStarknetClassHash(filePath: string): string {
-  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+export async function runStarknetClassHash(filePath: string): Promise<string> {
   const command = 'starknet-class-hash';
 
   try {
-    return execSync(`${warpVenvPrefix} ${command} ${filePath}`).toString().trim();
+    return (await execFileAsync(command, [filePath])).stdout.toString().trim();
   } catch (e) {
-    throw new TranspileFailedError(catchExecSyncError(e, command));
+    throw new TranspileFailedError(catchExecaError(e, command));
   }
 }
 
@@ -651,12 +651,12 @@ function markerExists(files: string[], markers: string[]) {
   });
 }
 
-export function traverseParent(
+export async function traverseParent(
   directory: string,
   levels: number,
   markers: string[],
-): string | null {
-  const files = fs.readdirSync(directory);
+): Promise<string | null> {
+  const files = await fs.readdir(directory);
   if (levels === 0) {
     return null;
   } else if (markerExists(files, markers)) {
@@ -666,12 +666,12 @@ export function traverseParent(
   }
 }
 
-export function traverseChildren(
+export async function traverseChildren(
   directory: string,
   levels: number,
   markers: string[],
-): string | null {
-  const files = fs.readdirSync(directory);
+): Promise<string | null> {
+  const files = await fs.readdir(directory);
   if (levels === 0) {
     return null;
   } else if (markerExists(files, markers)) {
@@ -680,7 +680,7 @@ export function traverseChildren(
     for (const file of files) {
       const child = path.join(directory, file);
 
-      if (fs.statSync(child).isDirectory()) {
+      if ((await fs.stat(child)).isDirectory()) {
         const result = traverseChildren(child, levels - 1, markers);
         if (result !== null) {
           return result;
@@ -691,15 +691,15 @@ export function traverseChildren(
   }
 }
 
-export function defaultBasePathAndIncludePath() {
+export async function defaultBasePathAndIncludePath() {
   const currentDirectory = process.cwd();
 
-  const parentNodeModules = traverseParent(currentDirectory, 4, NODE_MODULES_MARKER);
+  const parentNodeModules = await traverseParent(currentDirectory, 4, NODE_MODULES_MARKER);
   if (parentNodeModules !== null) {
     return [currentDirectory, path.resolve(parentNodeModules, 'node_modules')];
   }
 
-  const childNodeModules = traverseChildren(currentDirectory, 4, NODE_MODULES_MARKER);
+  const childNodeModules = await traverseChildren(currentDirectory, 4, NODE_MODULES_MARKER);
   if (childNodeModules !== null) {
     return [currentDirectory, path.resolve(childNodeModules, 'node_modules')];
   }
@@ -707,18 +707,32 @@ export function defaultBasePathAndIncludePath() {
   return [null, null];
 }
 
-export function execSyncAndLog(command: string, commandName: string) {
+const warpVenvPath = path.join(WARP_ROOT, 'warp_venv', 'bin');
+export async function execFileAsync(
+  file: string,
+  args?: string[],
+): Promise<execa.ExecaChildProcess> {
+  return await execa(file, args, {
+    cleanup: true,
+    stripFinalNewline: false,
+    env: { PATH: `${warpVenvPath}:$PATH` },
+  });
+}
+
+export async function execFileAsyncAndLog(file: string, args?: string[]) {
   try {
-    const output = execSync(command, { encoding: 'utf8' });
-    console.log(output);
+    const result = await execFileAsync(file, args);
+
+    process.stdout.write(result.stdout);
+    process.stderr.write(result.stderr);
   } catch (e) {
-    logError(catchExecSyncError(e, commandName));
+    logError(catchExecaError(e, file));
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function catchExecSyncError(e: any, commandExecuted: string) {
-  if (!instanceOfExecSyncError(e)) {
+export function catchExecaError(e: any, commandExecuted: string) {
+  if (!instanceOfExecaError(e)) {
     // If is not an error from the execSync instruction then it could be anything else, like call stack
     // limit exceed. In those unpredicted cases we should stop and throw the error.
     throw e;
