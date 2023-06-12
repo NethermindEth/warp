@@ -32,8 +32,8 @@ export class AsyncTest {
       `${path.join(
         this.name + '.sol',
         'target',
-        'dev',
-        this.name.split(path.sep).pop() + '_' + this.contract + '.json',
+        'release',
+        this.name.split(path.sep).pop() + '_' + this.contract + '.sierra.json',
       )}`,
     );
   }

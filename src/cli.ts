@@ -164,9 +164,15 @@ export async function createCairoProject(filePath: string): Promise<void> {
     version = "1.0.0"
 
     [dependencies]
+    starknet = ">=1.1.0"
+
+    # Get the plugin from github because scarb 0.4 does not support taking the plugin from the compiled bin \`warp\`
+    # If supported in the future, it should be safe to do: warp_plugin = ">=0.1"
+    warp_plugin = { git = "https://github.com/NethermindEth/warp-plugin", crate = "warp-plugin" }
+
     warplib = { path = "${warplib}" }
 
-    [[target.warp]]
+    [[target.starknet-contract]]
     `,
   );
   // create lib.cairo
