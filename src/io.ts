@@ -43,7 +43,7 @@ export async function findCairoSourceFilePaths(
 export async function findAllFiles(targetPath: string, recurse: boolean): Promise<string[]> {
   const targetInformation = await fs.lstat(targetPath);
   if (targetInformation.isDirectory()) {
-    return evaluateDirectory(targetPath, recurse);
+    return await evaluateDirectory(targetPath, recurse);
   } else if (targetInformation.isFile()) {
     return [targetPath];
   } else {
