@@ -87,7 +87,7 @@ export async function compileCairo1(
 
   try {
     if (debug) console.log(`Running cairo1 compile`);
-    execa(CAIRO1_COMPILE_BIN, ['build', cairoProjectPath], {
+    await execa(CAIRO1_COMPILE_BIN, ['build', cairoProjectPath], {
       cleanup: true,
       stripFinalNewline: false,
       stdio: 'inherit',

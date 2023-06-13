@@ -113,14 +113,13 @@ async function runTranspile(files: string[], options: CliOptions) {
   try {
     const contractToHashMap = new Map<string, Promise<string>>();
     const transpiledContracts = await transpile(ast, options);
-    const filenames = await Promise.all(
-      transpiledContracts.map(async ([fileName, cairoCode]) => {
-        outputResult(path.parse(fileName).name, fileName, cairoCode, options, ast);
-        return fileName;
-      }),
+    await Promise.all(
+      transpiledContracts.map(async ([fileName, cairoCode]) =>
+        outputResult(path.parse(fileName).name, fileName, cairoCode, options, ast),
+      ),
     );
     const postProcessed = await Promise.all(
-      filenames.map((file) =>
+      transpiledContracts.map(([file, _]) =>
         postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
       ),
     );

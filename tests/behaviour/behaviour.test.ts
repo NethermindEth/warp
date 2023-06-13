@@ -55,9 +55,10 @@ describe('Transpile solidity', function () {
   before(async function () {
     await Promise.all(
       expectations.flatMap((fileTest) => {
-        return fileTest.encodingError === undefined
-          ? [cleanup(fileTest.cairo), cleanup(fileTest.compiled)]
-          : [];
+        if (fileTest.encodingError === undefined) {
+          cleanup(fileTest.cairo);
+          cleanup(fileTest.compiled);
+        }
       }),
     );
 
@@ -152,6 +153,7 @@ describe('Transpiled contracts are valid cairo', function () {
       }
 
       expect(res.stderr, `starknet-compile printed errors: ${res.stderr}`).to.be.empty;
+      const a = await fs.access(expectation.compiled);
       await expect(
         fs.access(expectation.compiled),
         'Compilation failed, cannot find output file.',
