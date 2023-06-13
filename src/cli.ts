@@ -136,7 +136,7 @@ async function runTranspile(files: string[], options: CliOptions) {
 
           if (!success) {
             if (outputDir !== undefined) {
-              fs.unlink(outputDir);
+              await fs.unlink(outputDir);
             }
             //if (abiPath !== undefined) {
             //  fs.unlinkSync(abiPath);
@@ -155,29 +155,32 @@ export async function createCairoProject(filePath: string): Promise<void> {
   const packageName = path.basename(outputRoot, '.sol').replace('-', '_');
   const scarbConfigPath = path.join(outputRoot, 'Scarb.toml');
   const warplib = path.join(BASE_PATH, 'warplib');
-  outputFile(
-    scarbConfigPath,
-    endent`
-    [package]
-    name = "${packageName}"
-    version = "1.0.0"
 
-    [dependencies]
-    starknet = ">=1.1.0"
-
-    # Get the plugin from github because scarb 0.4 does not support taking the plugin from the compiled bin \`warp\`
-    # If supported in the future, it should be safe to do: warp_plugin = ">=0.1"
-    warp_plugin = { git = "https://github.com/NethermindEth/warp-plugin", crate = "warp-plugin" }
-
-    warplib = { path = "${warplib}" }
-
-    [[target.starknet-contract]]
-    `,
-  );
   // create lib.cairo
   const libPath = path.join(path.dirname(filePath), 'lib.cairo');
   const contractName = path.parse(filePath).name;
-  outputFile(libPath, `mod ${contractName};`);
+  await Promise.all([
+    outputFile(libPath, `mod ${contractName};`),
+    outputFile(
+      scarbConfigPath,
+      endent`
+      [package]
+      name = "${packageName}"
+      version = "1.0.0"
+  
+      [dependencies]
+      starknet = ">=1.1.0"
+  
+      # Get the plugin from github because scarb 0.4 does not support taking the plugin from the compiled bin \`warp\`
+      # If supported in the future, it should be safe to do: warp_plugin = ">=0.1"
+      warp_plugin = { git = "https://github.com/NethermindEth/warp-plugin", crate = "warp-plugin" }
+  
+      warplib = { path = "${warplib}" }
+  
+      [[target.starknet-contract]]
+      `,
+    ),
+  ]);
 }
 
 program

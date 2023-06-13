@@ -72,22 +72,19 @@ const inputCheckWarplibFunctions: WarplibFunctionInfo[] = [
 const warplibTypes: WarplibFunctionInfo[] = [fixed_bytes_types()];
 const warp_memory: WarplibFunctionInfo[] = [warp_memory_fixed_bytes()];
 
-const warplibFunctions = [
-  ...mathWarplibFunctions,
-  ...inputCheckWarplibFunctions,
-  ...warplibTypes,
-  ...warp_memory,
-];
-
 async function generateWarplibFor(
   folderName: string,
   functions: WarplibFunctionInfo[],
   writeExportFile = true,
 ) {
-  functions.forEach((warpFunc: WarplibFunctionInfo) => generateFile(warpFunc, folderName));
+  await Promise.all(
+    functions.map(
+      async (warpFunc: WarplibFunctionInfo) => await generateFile(warpFunc, folderName),
+    ),
+  );
   if (writeExportFile) {
     const content: string = await folderContent(folderName);
-    writeExportedFunctions(`${folderName}.cairo`, content);
+    await writeExportedFunctions(`${folderName}.cairo`, content);
   }
 }
 
@@ -116,7 +113,7 @@ async function folderContent(folderName: string): Promise<string> {
 }
 
 async function writeExportedFunctions(fileToWrite: string, folderContent: string) {
-  fs.writeFile(
+  await fs.writeFile(
     path.join(PATH_TO_WARPLIB, fileToWrite),
     endent`
       // AUTO-GENERATED
@@ -124,16 +121,15 @@ async function writeExportedFunctions(fileToWrite: string, folderContent: string
     `,
   );
 }
+
 async function generateWarplib() {
-  await Promise.all(
-    warplibFunctions.map((warpFunc) => {
-      generateWarplibFor('maths', mathWarplibFunctions);
-      generateWarplibFor('conversions', []);
-      generateWarplibFor('external_input_check', inputCheckWarplibFunctions);
-      generateWarplibFor('types', warplibTypes);
-      generateWarplibFor('warp_memory', warp_memory, false);
-    }),
-  );
+  await Promise.all([
+    generateWarplibFor('maths', mathWarplibFunctions),
+    generateWarplibFor('conversions', []),
+    generateWarplibFor('external_input_check', inputCheckWarplibFunctions),
+    generateWarplibFor('types', warplibTypes),
+    generateWarplibFor('warp_memory', warp_memory, false),
+  ]);
 }
 
 generateWarplib().catch((err) => {

@@ -80,10 +80,9 @@ async function runSolFileTest(
           strict: true,
           dev: true,
         })
-      ).map(([fileName, cairoCode]) => {
+      ).map(async ([fileName, cairoCode]) => {
         const testLocation = path.join(warpTest, fileName);
-        outputFile(testLocation, cairoCode);
-        createCairoProject(testLocation);
+        await Promise.all([outputFile(testLocation, cairoCode), createCairoProject(testLocation)]);
 
         const baseDir = path.dirname(path.dirname(testLocation));
         cairoProjects.add(baseDir);
@@ -253,7 +252,7 @@ export async function runTests(
   filter: string | undefined = undefined,
   preFilters: string[] | undefined = undefined, // this argument should be removed when all tests are passing
 ) {
-  describe('Running compilation tests', function () {
+  describe('Running compilation tests', async function () {
     this.timeout(TIME_LIMIT);
 
     let onlyResults: boolean, unsafe: boolean, force: boolean, exact: boolean;
@@ -333,10 +332,10 @@ export async function runTests(
       );
     });
 
-    this.afterAll(() => {
+    this.afterAll(async () => {
       const testsWithUnexpectedResults = getTestsWithUnexpectedResults(expectedResults, results);
       printResults(expectedResults, results, testsWithUnexpectedResults);
-      postTestCleanup(warpTestFolder);
+      await postTestCleanup(warpTestFolder);
       if (exact) {
         if (testsWithUnexpectedResults.length > 0) {
           throw new Error(
