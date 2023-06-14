@@ -1,12 +1,30 @@
 import { describe } from 'mocha';
-import { ResultType, runTests } from '../testing';
+import {
+  cairoCompileResultTypes,
+  getTestsWithUnexpectedResults,
+  postTestCleanup,
+  preTestChecks,
+  printResults,
+  ResultType,
+  runCairoFileTest,
+  runTests,
+  solCompileResultTypes,
+  runSolFileTest,
+} from '../testing';
 
 import path from 'path';
 
-const WARP_TEST = 'warpTest';
+import { passingContracts } from './passingContracts';
+import { expect } from 'chai';
+import { findSolSourceFilePaths } from '../../src/io';
+import Bottleneck from 'bottleneck';
+import { PARALLEL_COUNT } from '../config';
+import { error } from '../../src/utils/formatting';
+
+const WARP_TEST = 'WARP_TEST';
 const WARP_COMPILATION_TEST_PATH = 'tests/compilation/contracts';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, WARP_COMPILATION_TEST_PATH);
-import { passingContracts } from './passingContracts';
+const TIME_LIMIT = 2 * 60 * 60 * 1000;
 
 const expectedResults = new Map<string, ResultType>(
   [
@@ -219,13 +237,94 @@ const expectedResults = new Map<string, ResultType>(
   }),
 );
 
-describe('Compilation tests execution started', async () =>
-  await runTests(
-    expectedResults,
-    WARP_TEST,
-    WARP_TEST_FOLDER,
-    WARP_COMPILATION_TEST_PATH,
-    'tests/compilation/contracts',
-    process.env.FILTER,
-    passingContracts,
-  ));
+const contractsFolder = 'tests/compilation/contracts';
+const filter = process.env.FILTER;
+const preFilters = passingContracts;
+
+describe('Running compilation tests', function () {
+  this.timeout(TIME_LIMIT);
+
+  let onlyResults: boolean, unsafe: boolean, force: boolean, exact: boolean;
+
+  const results = new Map<string, ResultType>();
+
+  this.beforeAll(async () => {
+    onlyResults = process.argv.includes('--only-results');
+    unsafe = process.argv.includes('--unsafe');
+    force = process.argv.includes('--force');
+    exact = process.argv.includes('--exact');
+    if (force) {
+      await postTestCleanup(WARP_TEST_FOLDER);
+    } else {
+      if (!preTestChecks(WARP_TEST_FOLDER)) return;
+    }
+  });
+
+  it(`Running warp compilation tests on ${contractsFolder} solidity files`, async function () {
+    const filePaths = await findSolSourceFilePaths(WARP_COMPILATION_TEST_PATH, true);
+    await Promise.all(
+      filePaths.map(async (file) => {
+        let complexFiltering = filter === undefined && preFilters === undefined;
+        // if FILTER argument is passed, then only run tests that include the filter
+        // and preFilters are ignored, otherwise run tests that are in preFilters
+        if (filter !== undefined) {
+          complexFiltering = file.includes(filter);
+        } else if (preFilters !== undefined) {
+          complexFiltering = preFilters.includes(file);
+        }
+        if (complexFiltering) {
+          let compileResult: { result: ResultType; cairoProjects?: Set<string> };
+          const expectedResult: ResultType | undefined = expectedResults.get(
+            path.join(WARP_TEST, file),
+          );
+
+          describe(`Running compilation test on ${file}`, async function () {
+            this.timeout(TIME_LIMIT);
+            it(`Running warp compile on ${file}`, async () => {
+              compileResult = await runSolFileTest(WARP_TEST, file, results, onlyResults, unsafe);
+              expect(expectedResult).to.not.be.undefined;
+              if (expectedResult === 'Success') {
+                expect(compileResult.result).to.equal('Success');
+              }
+              if (expectedResult !== undefined && solCompileResultTypes.includes(expectedResult)) {
+                expect(compileResult.result).to.equal(expectedResult);
+              }
+            });
+            if (expectedResult !== undefined && cairoCompileResultTypes.includes(expectedResult)) {
+              it(`Running cairo compile on project ${file}`, async () => {
+                if (compileResult.cairoProjects !== undefined) {
+                  const bottleneck = new Bottleneck({ maxConcurrent: PARALLEL_COUNT });
+                  await Promise.all(
+                    Array.from(compileResult.cairoProjects).map((cairoProject) =>
+                      bottleneck.schedule(async () => {
+                        const cairoCompileResult = await runCairoFileTest(
+                          cairoProject,
+                          results,
+                          onlyResults,
+                        );
+                        expect(cairoCompileResult).to.equal(expectedResult);
+                      }),
+                    ),
+                  );
+                }
+              });
+            }
+          });
+        }
+      }),
+    );
+  });
+
+  this.afterAll(async () => {
+    const testsWithUnexpectedResults = getTestsWithUnexpectedResults(expectedResults, results);
+    printResults(expectedResults, results, testsWithUnexpectedResults);
+    await postTestCleanup(WARP_TEST_FOLDER);
+    if (exact) {
+      if (testsWithUnexpectedResults.length > 0) {
+        throw new Error(
+          error(`${testsWithUnexpectedResults.length} test(s) had unexpected outcome(s)`),
+        );
+      }
+    }
+  });
+});
