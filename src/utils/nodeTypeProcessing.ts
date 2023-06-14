@@ -297,9 +297,6 @@ export function safeGetNodeType(
   // if (node instanceof Literal) {
   //   return getNodeType(node, inference);
   // }
-  // if (node instanceof CairoAssert){
-  //   return new TupleType([]);
-  // }
   // if (node instanceof VariableDeclaration) {
   //   return inference.variableDeclarationToTypeNode(node);
   // }
