@@ -1,7 +1,6 @@
 import path from 'path';
 import { CompileFailedError } from 'solc-typed-ast';
-import { describe } from 'mocha';
-import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from '../src/io';
+import { findAllFiles, findCairoSourceFilePaths } from '../src/io';
 import { compileSolFiles } from '../src/solCompile';
 import { enqueueCompileCairo1 } from '../src/starknetCli';
 import { transpile } from '../src/transpiler';
@@ -15,7 +14,6 @@ import * as fs from 'fs/promises';
 import { outputFile, pathExists } from '../src/utils/fs';
 import { error } from '../src/utils/formatting';
 
-import { expect } from 'chai';
 import { createCairoProject } from '../src/export';
 
 export const solCompileResultTypes = [
@@ -238,13 +236,3 @@ async function deleteJson(path: string): Promise<void> {
 
   await Promise.all(jsonFiles.map((file) => fs.unlink(file)));
 }
-
-export async function runTests(
-  expectedResults: Map<string, ResultType>,
-  warpTest: string,
-  warpTestFolder: string,
-  warpCompilationTestPath: string,
-  contractsFolder: string,
-  filter: string | undefined = undefined,
-  preFilters: string[] | undefined = undefined, // this argument should be removed when all tests are passing
-) {}

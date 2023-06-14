@@ -7,7 +7,6 @@ import {
   printResults,
   ResultType,
   runCairoFileTest,
-  runTests,
   solCompileResultTypes,
   runSolFileTest,
 } from '../testing';
