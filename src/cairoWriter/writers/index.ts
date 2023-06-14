@@ -1,7 +1,6 @@
 export * from './assignmentWriter';
 export * from './binaryOperationWriter';
 export * from './blockWriter';
-export * from './cairoAssertWriter';
 export * from './cairoContractWriter';
 export * from './cairoFunctionDefinitionWriter';
 export * from './cairoGeneratedFunctionDefinitionWriter';

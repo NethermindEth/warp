@@ -38,7 +38,6 @@ import { TranspileFailedError } from './errors';
 import { error } from './formatting';
 import { getContainingSourceUnit } from './utils';
 import { getNodeType, getNodeTypeInCtx } from './typeStrings/typeStringParser';
-import { CairoAssert } from '../ast/cairoNodes'; // eslint-disable-line
 
 /*
 Normal function calls and struct constructors require different methods for
@@ -297,9 +296,6 @@ export function safeGetNodeType(
   getContainingSourceUnit(node);
   // if (node instanceof Literal) {
   //   return getNodeType(node, inference);
-  // }
-  // if (node instanceof CairoAssert){
-  //   return new TupleType([]);
   // }
   // if (node instanceof VariableDeclaration) {
   //   return inference.variableDeclarationToTypeNode(node);

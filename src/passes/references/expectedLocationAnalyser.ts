@@ -24,7 +24,6 @@ import {
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoAssert } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
@@ -139,9 +138,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
     const parameterTypes = getParameterTypes(node, ast);
     // When calling `push`, the function receives two parameters nonetheless the argument is just one
-    // This does not explode because javascript does not gives an index out of range exception
+    // This does not explode because javascript does not give an index out of range exception
     node.vArguments.forEach((arg, index) => {
-      // Solc 0.7.0 types push and pop as you would expect, 0.8.0 adds an extra initial argument
+      // Solc 0.7.0 types push and pop as expected, 0.8.0 adds an extra initial argument
       const paramIndex = index + parameterTypes.length - node.vArguments.length;
       const t = parameterTypes[paramIndex];
       if (t instanceof PointerType) {
@@ -318,11 +317,6 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     }
 
     this.visitStatement(node, ast);
-  }
-
-  visitCairoAssert(node: CairoAssert, ast: AST): void {
-    this.expectedLocations.set(node.vExpression, DataLocation.Default);
-    this.visitExpression(node, ast);
   }
 
   visitIfStatement(node: IfStatement, ast: AST): void {
