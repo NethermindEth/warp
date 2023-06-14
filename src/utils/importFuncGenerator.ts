@@ -90,6 +90,7 @@ const FUNCTION_IMPORTS = [
   Paths.ARRAY_TRAIT,
   Paths.BOOL_INTO_FELT252,
   Paths.FELT252_INTO_BOOL,
+  Paths.WARPLIB_INTEGER,
 ];
 
 export function createImport(
