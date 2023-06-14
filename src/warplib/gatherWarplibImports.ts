@@ -27,9 +27,15 @@ export const warplibImportInfo = glob
         warplibMap.set(importPath.join('/'), new Map([['WarpMemory', []]]));
       }
       gatherWarpMemoryFuncs(rawCairoCode, importPath, warplibMap);
-
       return warplibMap;
     }
+
+    if (importPath[importPath.length - 1] == 'integer') {
+      console.log('Gather int conversion');
+      gatherIntegerConversion(rawCairoCode, importPath, warplibMap);
+      return warplibMap;
+    }
+
     // TODO: Add encodePath here. Importing encodePath cause circular
     // dependency error. Suggested solution is to relocate all import
     // related scripts (including this, and the ones in src/utils)
@@ -45,6 +51,27 @@ export const warplibImportInfo = glob
     return warplibMap;
   }, new Map<string, Map<string, Implicits[]>>());
 
+function gatherIntegerConversion(
+  rawCairoCode: string,
+  importPath: string[],
+  warplibMap: Map<string, Map<string, Implicits[]>>,
+) {
+  const integerTraitInfo = traitFunctionExtractor(rawCairoCode);
+  console.log(integerTraitInfo);
+
+  integerTraitInfo.forEach(({ trait, code }) => {
+    const traitImportPath = [...importPath, trait];
+    const key = traitImportPath.join('/');
+
+    const fileMap: Map<string, Implicits[]> = warplibMap.get(key) ?? new Map<string, Implicits[]>();
+    if (!warplibMap.has(key)) {
+      warplibMap.set(key, fileMap);
+    }
+
+    parseMultipleRawCairoFunctions(code).forEach((cairoFunc) => fileMap.set(cairoFunc.name, []));
+  });
+}
+
 // Functions that stored warp memory functions accordingly
 function gatherWarpMemoryFuncs(
   rawCairoCode: string,
@@ -52,7 +79,27 @@ function gatherWarpMemoryFuncs(
   warplibMap: Map<string, Map<string, Implicits[]>>,
 ) {
   // Get the body for each trait
-  const warpMemoryInfo: { traitName: string; body: string }[] = [];
+  const warpMemoryTraitInfo = traitFunctionExtractor(rawCairoCode);
+
+  // Store each trait import path with each function prefixed with "warp_memory."
+  warpMemoryTraitInfo.forEach(({ trait, code }) => {
+    const traitImportPath = [...importPath, trait];
+    const key = traitImportPath.join('/');
+
+    const fileMap: Map<string, Implicits[]> = warplibMap.get(key) ?? new Map<string, Implicits[]>();
+    if (!warplibMap.has(key)) {
+      warplibMap.set(key, fileMap);
+    }
+
+    parseMultipleRawCairoFunctions(code).forEach((cairoFunc) =>
+      fileMap.set(`warp_memory.${cairoFunc.name}`, ['warp_memory']),
+    );
+  });
+}
+
+type TraitInfo = { trait: string; code: string };
+function traitFunctionExtractor(rawCairoCode: string): TraitInfo[] {
+  const warpMemoryInfo: TraitInfo[] = [];
   let currentTrait = '';
   let currentBody = '';
   rawCairoCode
@@ -61,7 +108,7 @@ function gatherWarpMemoryFuncs(
     .forEach((l) => {
       if (l.trim().startsWith('trait')) {
         if (currentTrait !== '') {
-          warpMemoryInfo.push({ traitName: currentTrait, body: currentBody });
+          warpMemoryInfo.push({ trait: currentTrait, code: currentBody });
         }
         currentTrait = extractName('trait', l);
         currentBody = '';
@@ -69,7 +116,7 @@ function gatherWarpMemoryFuncs(
       }
       if (l.trim().startsWith('impl')) {
         if (currentTrait !== '') {
-          warpMemoryInfo.push({ traitName: currentTrait, body: currentBody });
+          warpMemoryInfo.push({ trait: currentTrait, code: currentBody });
         }
         currentTrait = '';
         currentBody = '';
@@ -78,20 +125,7 @@ function gatherWarpMemoryFuncs(
       currentBody += '\n' + l.trim();
     });
 
-  // Store each trait import path with each function prefixed with "warp_memory."
-  warpMemoryInfo.forEach(({ traitName, body }) => {
-    const traitImportPath = [...importPath, traitName];
-    const key = traitImportPath.join('/');
-
-    const fileMap: Map<string, Implicits[]> = warplibMap.get(key) ?? new Map<string, Implicits[]>();
-    if (!warplibMap.has(key)) {
-      warplibMap.set(key, fileMap);
-    }
-
-    parseMultipleRawCairoFunctions(body).forEach((cairoFunc) =>
-      fileMap.set(`warp_memory.${cairoFunc.name}`, ['warp_memory']),
-    );
-  });
+  return warpMemoryInfo;
 }
 
 function extractName(keyword: string, line: string) {
