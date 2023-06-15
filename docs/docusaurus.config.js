@@ -13,7 +13,7 @@ const config = {
   baseUrl: '/warp/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/warp.svg',
+  favicon: 'img/warp.png',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -67,7 +67,7 @@ const config = {
         title: 'Warp',
         logo: {
           alt: 'Warp Logo',
-          src: 'img/warp.svg',
+          src: 'img/warp.png',
         },
         items: [
           {
