@@ -1,13 +1,18 @@
 import assert from 'assert';
 import { createHash } from 'crypto';
-import { readFileSync, writeFileSync } from 'fs';
+import fs from 'fs/promises';
 import * as path from 'path';
-import { compileCairo } from '../starknetCli';
+import { Mutex } from 'async-mutex';
+import { enqueueCompileCairo } from '../starknetCli';
 import { CLIError } from './errors';
 import { runStarknetClassHash } from './utils';
 
 export const HASH_SIZE = 8;
 export const HASH_OPTION = 'sha256';
+
+// Async mutex to restrict access to the class hash map, ensuring there's no duplicate class hash
+// computation
+const classHashMutex = new Mutex();
 
 /**
   Is used post transpilation to insert the class hash for any contract that can deploy another.
@@ -22,14 +27,14 @@ export const HASH_OPTION = 'sha256';
     it to the contracts class hash.
   @returns cairoFilePath: The path to the cairo File that was processed.
  */
-export function postProcessCairoFile(
+export async function postProcessCairoFile(
   contractPath: string,
   outputDir: string,
   debugInfo: boolean,
-  contractHashToClassHash: Map<string, string>,
-): string {
+  contractHashToClassHash: Map<string, Promise<string>>,
+): Promise<string> {
   // Creates a dependency graph for the file
-  const dependencyGraph = getDependencyGraph(contractPath, outputDir);
+  const dependencyGraph = await getDependencyGraph(contractPath, outputDir);
   // Gets the files that are dependant on the hash.
   // const fullPath = path.join(outputDir, contractPath);
   const filesToHash = dependencyGraph.get(contractPath);
@@ -39,54 +44,66 @@ export function postProcessCairoFile(
   }
   // If the file does have dependencies then we need to make sure that the dependencies of
   // those files have been calculated and inserted.
-  filesToHash.forEach((file) => {
-    hashDependencies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
-  });
-  setDeclaredAddresses(path.join(outputDir, contractPath), contractHashToClassHash);
+  await Promise.all(
+    filesToHash.map((file) =>
+      hashDependencies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash),
+    ),
+  );
+
+  await setDeclaredAddresses(path.join(outputDir, contractPath), contractHashToClassHash);
   return contractPath;
 }
 
-function hashDependencies(
+async function hashDependencies(
   contractPath: string,
   outputDir: string,
   debugInfo: boolean,
   dependencyGraph: Map<string, string[]>,
-  contractHashToClassHash: Map<string, string>,
-): void {
+  contractHashToClassHash: Map<string, Promise<string>>,
+): Promise<void> {
   const filesToHash = dependencyGraph.get(contractPath);
   // Base case: If the file has no dependencies to hash then we hash the compiled file
   // and add it to the contractHashToClassHash map
   if (filesToHash === undefined || filesToHash.length === 0) {
-    addClassHash(contractPath, outputDir, debugInfo, contractHashToClassHash);
+    // chain dependency compiles
+    await addClassHash(contractPath, outputDir, debugInfo, contractHashToClassHash);
     return;
   }
 
-  filesToHash
-    .map((file) => {
-      hashDependencies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
-      return file;
-    })
-    .forEach((file) => {
-      setDeclaredAddresses(path.join(outputDir, file), contractHashToClassHash);
-    });
-  addClassHash(contractPath, outputDir, debugInfo, contractHashToClassHash);
+  await Promise.all(
+    filesToHash.map(async (file) => {
+      await hashDependencies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
+      await setDeclaredAddresses(path.join(outputDir, file), contractHashToClassHash);
+    }),
+  );
+
+  await addClassHash(contractPath, outputDir, debugInfo, contractHashToClassHash);
 }
 
 /**
  * Hashes the contract at `contractPath` and stores it in `contractHashToClassHash`
  */
-function addClassHash(
+async function addClassHash(
   contractPath: string,
   outputDir: string,
   debugInfo: boolean,
-  contractHashToClassHash: Map<string, string>,
-): void {
+  contractHashToClassHash: Map<string, Promise<string>>,
+): Promise<void> {
   const fileUniqueId = hashFilename(path.resolve(contractPath));
-  let classHash = contractHashToClassHash.get(fileUniqueId);
-  if (classHash === undefined) {
-    classHash = computeClassHash(path.join(outputDir, contractPath), debugInfo);
-    contractHashToClassHash.set(fileUniqueId, classHash);
+  let classHash: Promise<string> | undefined;
+
+  const release = await classHashMutex.acquire();
+  try {
+    classHash = contractHashToClassHash.get(fileUniqueId);
+    if (classHash === undefined) {
+      classHash = computeClassHash(path.join(outputDir, contractPath), debugInfo);
+      contractHashToClassHash.set(fileUniqueId, classHash);
+    }
+  } finally {
+    release();
   }
+
+  await classHash;
 }
 
 /**
@@ -95,15 +112,19 @@ function addClassHash(
  * @param debugInfo compile cairo file for debug
  * @returns the class hash of the cairo file
  */
-function computeClassHash(contractPath: string, debugInfo: boolean): string {
-  const { success, resultPath } = compileCairo(contractPath, path.resolve(__dirname, '..', '..'), {
-    debugInfo,
-  });
+async function computeClassHash(contractPath: string, debugInfo: boolean): Promise<string> {
+  const { success, resultPath } = await enqueueCompileCairo(
+    contractPath,
+    path.resolve(__dirname, '..', '..'),
+    {
+      debugInfo,
+    },
+  );
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${contractPath} failed`);
   } else {
     assert(resultPath !== undefined && success);
-    const classHash = runStarknetClassHash(resultPath);
+    const classHash = await runStarknetClassHash(resultPath);
     return classHash;
   }
 }
@@ -112,42 +133,44 @@ function computeClassHash(contractPath: string, debugInfo: boolean): string {
  *  if `name` is of the form   `<contractName>_<contractId>` then it corresponds
  *  to a placeholder waiting to be filled with the corresponding contract class hash
  *  @param contractPath location of cairo file
- *  @param declarationAddresses mapping of: (placeholder hash) => (starknet class hash)
+ *  @param declarationAddresses mapping of: (placeholder hash) => (promise of starknet class hash)
  */
-export function setDeclaredAddresses(
+export async function setDeclaredAddresses(
   contractPath: string,
-  declarationAddresses: Map<string, string>,
+  declarationAddresses: Map<string, Promise<string>>,
 ) {
-  const plainCairoCode = readFileSync(contractPath, 'utf8');
+  const plainCairoCode = await fs.readFile(contractPath, 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 
   let update = false;
-  const newCairoCode = cairoCode.map((codeLine) => {
-    const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
-    // if (constant === '//' && fullName === '@declare') return '';
-    if (constant !== 'const') return codeLine;
+  const newCairoCode = await Promise.all(
+    cairoCode.map(async (codeLine) => {
+      const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
+      // if (constant === '//' && fullName === '@declare') return '';
+      if (constant !== 'const') return codeLine;
 
-    assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
+      assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
-    const name = fullName.slice(0, -HASH_SIZE - 1);
-    const uniqueId = fullName.slice(-HASH_SIZE);
+      const name = fullName.slice(0, -HASH_SIZE - 1);
+      const uniqueId = fullName.slice(-HASH_SIZE);
 
-    const declaredAddress = declarationAddresses.get(uniqueId);
-    assert(
-      declaredAddress !== undefined,
-      `Cannot find declared address for ${name} with hash ${uniqueId}`,
-    );
+      const declaredAddress = await declarationAddresses.get(uniqueId);
+      assert(
+        declaredAddress !== undefined,
+        `Cannot find declared address for ${name} with hash ${uniqueId}`,
+      );
 
-    // Flag that there are changes that need to be rewritten
-    update = true;
-    const newLine = [constant, fullName, equal, declaredAddress, ';'].join(' ');
-    return newLine;
-  });
+      // Flag that there are changes that need to be rewritten
+      update = true;
+      const newLine = [constant, fullName, equal, declaredAddress, ';'].join(' ');
+      return newLine;
+    }),
+  );
 
   if (!update) return;
 
   const plainNewCairoCode = newCairoCode.join('\n');
-  writeFileSync(contractPath, plainNewCairoCode);
+  await fs.writeFile(contractPath, plainNewCairoCode);
 }
 
 /**
@@ -159,19 +182,23 @@ export function setDeclaredAddresses(
  * @param outputDir directory where cairo files are stored
  * @returns a map from string to list of strings, where the key is a file and the value are all the dependencies
  */
-export function getDependencyGraph(root: string, outputDir: string): Map<string, string[]> {
-  const filesToDeclare = extractContractsToDeclare(root, outputDir);
+export async function getDependencyGraph(
+  root: string,
+  outputDir: string,
+): Promise<Map<string, string[]>> {
+  const filesToDeclare = await extractContractsToDeclare(root, outputDir);
   const graph = new Map<string, string[]>([[root, filesToDeclare]]);
 
   const pending = [...filesToDeclare];
   let count = 0;
+
   while (count < pending.length) {
     const fileSource = pending[count];
     if (graph.has(fileSource)) {
       count++;
       continue;
     }
-    const newFilesToDeclare = extractContractsToDeclare(fileSource, outputDir);
+    const newFilesToDeclare = await extractContractsToDeclare(fileSource, outputDir);
     graph.set(fileSource, newFilesToDeclare);
     pending.push(...newFilesToDeclare);
     count++;
@@ -187,8 +214,11 @@ export function getDependencyGraph(root: string, outputDir: string): Map<string,
  * @param outputDir filepath may be different during transpilation and after transpilation. This parameter is appended at the beginning to make them equal
  * @returns list of locations
  */
-function extractContractsToDeclare(contractPath: string, outputDir: string): string[] {
-  const plainCairoCode = readFileSync(path.join(outputDir, contractPath), 'utf8');
+async function extractContractsToDeclare(
+  contractPath: string,
+  outputDir: string,
+): Promise<string[]> {
+  const plainCairoCode = await fs.readFile(path.join(outputDir, contractPath), 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 
   const contractsToDeclare = cairoCode

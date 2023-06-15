@@ -233,7 +233,6 @@ export class InlineAssemblyTransformer extends ASTMapper {
   visitInlineAssembly(node: InlineAssembly, ast: AST): void {
     this.verify(node, ast);
     this.transform(node, ast);
-
-    return this.visitStatement(node, ast);
+    this.visitStatement(node, ast);
   }
 }

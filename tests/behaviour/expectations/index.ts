@@ -21,6 +21,7 @@ function getSyncTestFromPath(path: string): File {
       matches[0][3] === 'FAILURE' ? null : [matches[0][3]],
     );
   });
+
   return File.Simple(path, expects, lastContract);
 }
 
@@ -36,6 +37,7 @@ function filterTests(
   const newSyncTests = asyncTests.filter((test) => exceptions.includes(test.name));
 
   syncTests = [...syncTests, ...newSyncTests.map((test) => getSyncTestFromPath(test.name))];
+
   const tests = [...syncTests.map(AsyncTest.fromSync), ...newAsyncTests];
   if (filter === undefined) {
     return tests;
@@ -45,4 +47,4 @@ function filterTests(
   return tests.filter((test) => test.name.includes(filter));
 }
 
-export const expectations = filterTests(behaviour, semantic);
+export const getExpectations = () => filterTests(behaviour, semantic);

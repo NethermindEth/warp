@@ -3,21 +3,19 @@ title: Welcome
 sidebar_position: 1
 ---
 
-# Welcome to Warp 2.0
+# Welcome to Warp!
 
-We are excited to announce the second version of Warp, now designed to transpile your Solidity code directly into Cairo.
+Warp is a transpiler from Solidity to Cairo. It allows you to deploy your Solidity contracts on Starknet.
 
-Warp 1 set out to show that compiling Solidity code into Cairo was possible, and paved the way for developers to access the benefits of Starknet without needing to master Cairo. Using everything we learned from Warp 1, we have written a new version adding vast improvements to contract efficiency and user experience. In this blog, we will talk through the improvements made to Warp, transpile OpenZeppelin’s ERC20 contract, and describe future plans for the project.
+# Quickstart
 
-### Warp 2 vs Warp 1
+> **Note:**
+> Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
 
-Warp 2 improves on the prior version by transpiling directly from Solidity to Cairo. In Warp 1, the Solidity smart contract was first compiled into YUL (Solidity’s intermediate representation) and then transpiled to Cairo. Skipping the YUL intermediary means we don’t have to transpile many low-level calls and rather transpile the higher-level Solidity. Sounds interesting, but what does this mean for users?
+The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
-- Reduced code size
-- Smaller step count when calling functions (functions require less computation)
-- Improved Cairo readability
-- Unsupported feature messages to know which features in Solidity are not supported
-- Reduced code size & smaller step count
-- YUL will always have more instructions than the Solidity it is generated from. As an example, the simple 1-line function in Solidity grows to 6 lines of YUL with additional function calls.
+```
+docker run --rm -v "$PWD:/dapp" nethermind/warp transpile <contract-path>
+```
 
-#### Want to know more on Warp 2.0? Read the blog [here](https://medium.com/nethermind-eth/warp-2-0-transpiling-directly-from-solidity-to-cairo-9bf41a6d26ee).
+You can find docker installation guide [here](https://docs.docker.com/get-docker/).
