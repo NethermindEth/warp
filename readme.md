@@ -45,50 +45,15 @@ Libraries are bundled into the point of use, therefore if you try transpile a st
 
 <br>
 
-### Unsupported Solidity Features
+### Supported features
+Solidity: Warp supports Solidity 0.8 and 0.7. In order to support newer versions [nethersolc](https://github.com/NethermindEth/nethersolc) has to be updated, and [nethersolc binaries](https://github.com/NethermindEth/warp/tree/develop/nethersolc) within warp repository have to be updated.
 
-<hr>
-Several features of Solidity are not supported/do not have analogs in Starknet yet.
-We will try our best to add these features as Starknet supports them, but some may not be
-possible due to fundamental differences in the platforms.
+Cairo: The latest version of Cairo compiler supported by warp  is 1.1. You can find compiler binaries together with warp plugin executable [in cairo1 directory](cairo1/). Warp plugin repository is located [here](https://github.com/NethermindEth/warp-plugin).
 
-Please see the list below:
+Warp doesn't support all features of Cairo 1 yet. You can find an example contract supported by warp in [tests/behaviour/contracts/if/localVariables.sol](tests/behaviour/contracts/if/localVariables.sol):
 
-|           Support Status            |      Symbol       |
-| :---------------------------------: | :---------------: |
-|   Will likely never be supported    |        :x:        |
-|    Being developed/investigated     | :hammer_and_pick: |
-| Currently Unknown/If added in Cairo |    :question:     |
+https://github.com/NethermindEth/warp/blob/321bfe76b27790327e5574c0d5c86c2acf95d750/tests/behaviour/contracts/if/localVariables.sol#L5-L25
 
-|                      Solidity                       |  Support Status   |
-| :-------------------------------------------------: | :---------------: |
-|            fallback functions with args             | :hammer_and_pick: |
-|                   delegate calls                    | :hammer_and_pick: |
-|               indexed arrays in event               | :hammer_and_pick: |
-|                   low level calls                   |        :x:        |
-|              nested tuple expressions               |    :question:     |
-|                      gasleft()                      |    :question:     |
-|                      msg.value                      |    :question:     |
-|                       msg.sig                       |    :question:     |
-|                      msg.data                       |    :question:     |
-|                     tx.gasprice                     |    :question:     |
-|                      tx.origin                      |    :question:     |
-|                      try/catch                      |    :question:     |
-|                   block.coinbase                    |    :question:     |
-|                   block.gaslimit                    |    :question:     |
-|                    block.basefee                    |    :question:     |
-|                    block.chainid                    |    :question:     |
-|                  block.difficulty                   |        :x:        |
-|         precompiles (apart from ecrecover)          |    :question:     |
-|                    selfdestruct                     |    :question:     |
-|                      blockhash                      |    :question:     |
-|            functions pointers in storage            |    :question:     |
-|           sha256 (use keccak256 instead)            |        :x:        |
-|                       receive                       |    :question:     |
-|  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
-|                 user defined errors                 |    :question:     |
-|   function call options e.g x.f{gas: 10000}(arg1)   |    :question:     |
-| member access of address object e.g address.balance |    :question:     |
-|              nested tuple assignments               |    :question:     |
+For more fully working examples see [here](tests/behaviour/expectations/behaviour.ts). Uncommented lines are Solidity files that are passing tests. Those files are located in [tests/behaviour/contracts/](tests/behaviour/contracts/). There is also a list of compilation tests [here](tests/compilation/compilation.test.ts). It contains contracts that are partially working ie. they are compiling, but the code might not yield correct results in runtime.
 
-Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for Starknet addresses.
+You can find a list of missing features [here](github.com/NethermindEth/warp/issues/1083). Feel free to pick one of those and implement it yourself!
