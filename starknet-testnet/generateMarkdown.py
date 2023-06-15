@@ -10,13 +10,13 @@ from starkware.starknet.business_logic.execution.objects import (
 
 WARP_ROOT = Path(__file__).parents[1]
 TMP = WARP_ROOT / "benchmark" / "json"
-FILE_NAME = "data"
+file_name = "data"
 
 contract_name_map = {}
 
 
 def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInfo):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
+    json_path = os.path.abspath(TMP / (file_name + ".json"))
     if os.path.exists(json_path):
         with open(json_path, "r") as json_file:
             benchmark_data = json.load(json_file)
@@ -32,7 +32,7 @@ def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInf
 
 
 def steps_in_function_invoke(function_name: str, result: CallInfo):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
+    json_path = os.path.abspath(TMP / (file_name + ".json"))
     if os.path.exists(json_path):
         with open(json_path, "r") as json_file:
             benchmark_data = json.load(json_file)
@@ -49,7 +49,7 @@ def steps_in_function_invoke(function_name: str, result: CallInfo):
 
 
 def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
+    json_path = os.path.abspath(TMP / (file_name + ".json"))
     if os.path.exists(json_path):
         with open(json_path, "r") as json_file:
             benchmark_data = json.load(json_file)
@@ -65,7 +65,7 @@ def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo)
 
 
 def json_size_count(file_path: str):
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
+    json_path = os.path.abspath(TMP / (file_name + ".json"))
     if os.path.exists(json_path):
         with open(json_path, "r") as json_file:
             benchmark_data = json.load(json_file)
@@ -81,7 +81,7 @@ def json_size_count(file_path: str):
 
 
 def create_markdown():
-    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
+    json_path = os.path.abspath(TMP / (file_name + ".json"))
 
     with open(json_path, "r") as json_file:
         benchmark_data = json.load(json_file)
@@ -89,14 +89,14 @@ def create_markdown():
     os.makedirs("benchmark/stats", exist_ok=True)
 
     with open(
-        os.path.join(WARP_ROOT, f"benchmark/stats/{FILE_NAME}.md"), "w"
+        os.path.join(WARP_ROOT, f"benchmark/stats/{file_name}.md"), "w"
     ) as md_file:
         md_file.write("# Warp-ts status\n\n")
-        md_file.write(f"commit: {FILE_NAME}\n\n")
+        md_file.write(f"commit: {file_name}\n\n")
 
     for contract, data in benchmark_data.items():
         with open(
-            os.path.join(WARP_ROOT, f"benchmark/stats/{FILE_NAME}.md"), "a"
+            os.path.join(WARP_ROOT, f"benchmark/stats/{file_name}.md"), "a"
         ) as md_file:
             md_file.write(f"## {os.path.basename(contract)}:\n\n")
             md_file.write("| Metric | Value |\n")
@@ -110,7 +110,7 @@ def create_markdown():
 
         if "builtin_instances" in data:
             with open(
-                os.path.join(WARP_ROOT, f"benchmark/stats/{FILE_NAME}.md"), "a"
+                os.path.join(WARP_ROOT, f"benchmark/stats/{file_name}.md"), "a"
             ) as md_file:
                 md_file.write("| Builtin | Instances |\n")
                 md_file.write("| ----------- | ----------- |\n")
@@ -122,7 +122,7 @@ def create_markdown():
 
         if "function_steps" in data:
             with open(
-                os.path.join(WARP_ROOT, f"benchmark/stats/{FILE_NAME}.md"), "a"
+                os.path.join(WARP_ROOT, f"benchmark/stats/{file_name}.md"), "a"
             ) as md_file:
                 md_file.write("| Function | Steps |\n")
                 md_file.write("| ----------- | ----------- |\n")
@@ -135,7 +135,7 @@ def create_markdown():
 
 if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] != None:
-        FILE_NAME = sys.argv[1]
+        file_name = sys.argv[1]
         print(sys.argv[1])
-    print(FILE_NAME)
+    print(file_name)
     create_markdown()

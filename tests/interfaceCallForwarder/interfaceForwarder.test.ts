@@ -1,4 +1,5 @@
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { describe, it } from 'mocha';
 import { gen_interface, starknetCompile, transpile } from '../util';
 import path from 'path';
@@ -9,7 +10,9 @@ import {
   ensureTestnetContactable,
   invoke,
 } from '../testnetInterface';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
+
+chai.use(chaiAsPromised);
 
 const testPath = path.resolve(__dirname, '..', 'interfaceCallForwarder');
 const cairoFile = path.resolve(__dirname, '..', 'interfaceCallForwarder', 'contract.cairo');
@@ -90,10 +93,10 @@ describe('Interface solidity file should transpile', function () {
     const { stdout, stderr } = await transpile(interfaceSolFile);
     expect(stderr, 'warp printed errors').to.include('');
     expect(stdout, 'warp printed errors').to.include('');
-    expect(
-      fs.existsSync(interfaceTranspiledCairoFile),
+    await expect(
+      fs.access(interfaceTranspiledCairoFile),
       `Transpilation failed, cannot find transpiled cairo output file`,
-    ).to.be.true;
+    ).to.not.be.rejected;
   });
 });
 
@@ -281,15 +284,18 @@ describe('Interaction between two cairo contracts', function () {
 describe('Frivoulous file deletion', function () {
   this.timeout(TIME_LIMIT);
   it('should delete files', async function () {
-    const files = fs.readdirSync(testPath);
-    for (const file of files) {
-      if (
-        file !== 'contract.cairo' &&
-        file !== 'interfaceForwarder.test.ts' &&
-        file !== 'interact.sol'
-      ) {
-        fs.unlinkSync(`${testPath}/${file}`);
-      }
-    }
+    const files = await fs.readdir(testPath);
+
+    await Promise.all(
+      files.map(async (file) => {
+        if (
+          file !== 'contract.cairo' &&
+          file !== 'interfaceForwarder.test.ts' &&
+          file !== 'interact.sol'
+        ) {
+          await fs.unlink(`${testPath}/${file}`);
+        }
+      }),
+    );
   });
 });

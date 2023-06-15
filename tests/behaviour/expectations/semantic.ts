@@ -1,4 +1,3 @@
-import { readFileSync } from 'fs';
 import AbiCoder from 'web3-eth-abi';
 import {
   AddressType,
@@ -47,6 +46,7 @@ import { AST } from '../../../src/ast/ast';
 import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
 import { safeGetNodeType } from '../../../src/utils/nodeTypeProcessing';
 import { encodeString } from './utils';
+import { readFileSync } from 'fs';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -122,6 +122,7 @@ export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTe
         .join('\n')
         .matchAll(/contract (\w+)/g),
     ].map(([_, name]) => name);
+
     const lastContract = contractNames[contractNames.length - 1];
     const truncatedFileName = file.substring(0, file.length - '.sol'.length);
 
@@ -393,7 +394,7 @@ async function getContractAbiAndDefinition(
   lastContractName: string,
 ): Promise<[FunABI[], ContractDefinition, AST]> {
   // Get the abi of the contract for web3
-  const contracts: any = compileSolFilesAndExtractContracts(file);
+  const contracts = await compileSolFilesAndExtractContracts(file);
   const lastContract = contracts[lastContractName];
   if (lastContract === undefined) {
     throw new InvalidTestError(`Unable to find contract ${lastContractName} in file ${file}`);
@@ -402,7 +403,7 @@ async function getContractAbiAndDefinition(
 
   // Get the ast itself so we can resolve the types for our type conversion
   // later
-  const ast = compileSolFiles([file], { warnings: false });
+  const ast = await compileSolFiles([file], { warnings: false });
   const astRoot = ast.roots[ast.roots.length - 1];
   const [contractDef] = astRoot
     .getChildrenByType(ContractDefinition, true)

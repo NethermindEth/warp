@@ -1,5 +1,6 @@
 import assert from 'assert';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
+import { existsSync } from 'fs';
 import {
   BinaryOperation,
   Expression,
@@ -80,14 +81,18 @@ export function msbAndNext(width: number): string {
 // This is used along with the commented out code in generateFile to enable cairo-formatting
 // const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-export function generateFile(warpFunc: WarplibFunctionInfo, folderName: string): void {
+export async function generateFile(
+  warpFunc: WarplibFunctionInfo,
+  folderName: string,
+): Promise<void> {
   const pathToFolder = path.join(PATH_TO_WARPLIB, folderName);
   const pathToFile = path.join(pathToFolder, `${warpFunc.fileName}.cairo`);
 
-  if (!fs.existsSync(pathToFolder)) {
-    fs.mkdirSync(pathToFolder, { recursive: true });
+  if (!existsSync(pathToFolder)) {
+    await fs.mkdir(pathToFolder, { recursive: true });
   }
-  fs.writeFileSync(
+
+  await fs.writeFile(
     pathToFile,
     `//AUTO-GENERATED\n${warpFunc.imports.join('\n')}\n\n${warpFunc.functions.join('\n')}\n`,
   );
