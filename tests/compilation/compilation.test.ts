@@ -20,7 +20,7 @@ import Bottleneck from 'bottleneck';
 import { PARALLEL_COUNT } from '../config';
 import { error } from '../../src/utils/formatting';
 
-const WARP_TEST = 'WARP_TEST';
+const WARP_TEST = 'warpTest';
 const WARP_COMPILATION_TEST_PATH = 'tests/compilation/contracts';
 const WARP_TEST_FOLDER = path.join(WARP_TEST, WARP_COMPILATION_TEST_PATH);
 const TIME_LIMIT = 2 * 60 * 60 * 1000;
