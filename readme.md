@@ -12,6 +12,9 @@ smart contracts to Starknet Cairo Contracts.
 > **Note:**
 > Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
 
+> **Note:**
+> The method refers to warp for cairo 0. If you are looking for cairo 1 warp see [installing from source](https://nethermindeth.github.io/warp/docs/contribution_guidelines/a-installing-from-source).You might be also interested in [supported features in cairo 1 warp](https://github.com/NethermindEth/warp/tree/cairo-1.0#supported-features).
+
 The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
 ```
@@ -46,9 +49,10 @@ Libraries are bundled into the point of use, therefore if you try transpile a st
 <br>
 
 ### Supported features
+
 **Solidity**: Warp supports Solidity 0.8 and 0.7. In order to support newer versions [nethersolc](https://github.com/NethermindEth/nethersolc) has to be updated, and [nethersolc binaries](https://github.com/NethermindEth/warp/tree/develop/nethersolc) within warp repository have to be updated.
 
-**Cairo**: The latest version of Cairo compiler supported by warp  is 1.1. You can find compiler binaries together with warp plugin executable [in cairo1 directory](cairo1/). Warp plugin repository is located [here](https://github.com/NethermindEth/warp-plugin).
+**Cairo**: The latest version of Cairo compiler supported by warp is 1.1. You can find compiler binaries together with warp plugin executable [in cairo1 directory](cairo1/). Warp plugin repository is located [here](https://github.com/NethermindEth/warp-plugin).
 
 Warp doesn't support all features of Cairo 1 yet. You can find an example contract supported by warp in [tests/behaviour/contracts/if/localVariables.sol](tests/behaviour/contracts/if/localVariables.sol):
 
