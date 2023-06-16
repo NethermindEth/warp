@@ -2,6 +2,9 @@
 title: Implementation & testing
 ---
 
+> **Note:**
+> If you are using docker compose for development all commands have to be run within `warp` container.
+
 It can be tedious to manually recompile the project after every minor change. You can automate the process of recompiling by executing the following command in a separate terminal:
 
 ```bash
@@ -16,7 +19,7 @@ npx ts-node src transpile example_contracts/ERC20.sol
 
 To start developing warp you can pick a task from [project issues](https://github.com/NethermindEth/warp/issues).
 
-### Testing :stethoscope:
+## Testing :stethoscope:
 
 Once you've implemented a change you have to test it. Warp includes three sets of tests:
 
@@ -26,17 +29,51 @@ Once you've implemented a change you have to test it. Warp includes three sets o
 
 - Semantic Tests: These tests involve transpiling Solidity's semantic tests and checking that the runtime behaviour remains consistent.
 
+### Cairo 1
+
+Cairo 1 warp currently supports compilation and behaviour tests only.
+
 #### Compilation Tests
 
 Start by running the compilation tests to verify that your contribution doesn't break any fundamental features. These tests are also the quickest to execute.
 
 ```bash
-yarn test:examples
+yarn test:compilation
 ```
 
 #### Behaviour Tests
 
 Behaviour tests involve transpiling a set of Solidity contracts and deploying them to a testnet. Each deployed contract undergoes testing for all of its runtime functionality.
+
+##### Docker compose
+
+Within `warp` container run:
+
+```bash
+yarn test:behaviour
+```
+
+##### Manual setup
+
+1. First load environment variables from [development.env](https://github.com/NethermindEth/warp/blob/cairo-1-docs/development.env):
+
+```bash
+set -o allexport && source development.env && set +o allexport
+```
+
+2. Run devnet:
+
+```bash
+starknet-devnet &
+```
+
+3. Run behaviour tests:
+
+```bash
+yarn test:behaviour
+```
+
+### Cairo 0
 
 1. Run the setup script (Required only once):
 
