@@ -30,7 +30,7 @@ export const warplibImportInfo = glob
       return warplibMap;
     }
 
-    if (importPath[importPath.length - 1] == 'integer') {
+    if (importPath[importPath.length - 1] === 'integer') {
       console.log('Gather int conversion');
       gatherIntegerConversion(rawCairoCode, importPath, warplibMap);
       return warplibMap;
