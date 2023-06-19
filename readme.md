@@ -50,7 +50,7 @@ Libraries are bundled into the point of use, therefore if you try transpile a st
 
 ### Supported features
 
-**Solidity**: Warp supports Solidity 0.8 and. In order to support newer versions [nethersolc](https://github.com/NethermindEth/nethersolc) has to be updated, and [nethersolc binaries](https://github.com/NethermindEth/warp/tree/develop/nethersolc) within warp repository have to be updated.
+**Solidity**: Warp supports Solidity 0.8. In order to support newer versions [nethersolc](https://github.com/NethermindEth/nethersolc) has to be updated, and [nethersolc binaries](https://github.com/NethermindEth/warp/tree/develop/nethersolc) within warp repository have to be updated.
 
 **Cairo**: The latest version of Cairo compiler supported by warp is 1.1. You can find compiler binaries together with warp plugin executable [in cairo1 directory](cairo1/). Warp plugin repository is located [here](https://github.com/NethermindEth/warp-plugin).
 
