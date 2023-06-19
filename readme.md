@@ -5,12 +5,15 @@
 Warp brings Solidity to Starknet, making it possible to transpile Ethereum
 smart contracts to Starknet Cairo Contracts.
 
-:warning: **Note**: Cairo 1 support is being developed at this [branch](https://github.com/NethermindEth/warp/tree/cairo-1.0).
+:warning: **Note**: Cairo 0 implementation of warp can be found at this [tag](https://github.com/NethermindEth/warp/tree/cairo-0).
 
 ## Quickstart
 
 > **Note:**
 > Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
+
+> **Note:**
+> The method refers to warp for cairo 0. If you are looking for cairo 1 warp see [installing from source](https://nethermindeth.github.io/warp/docs/contribution_guidelines/a-installing-from-source).You might be also interested in [supported features in cairo 1 warp](https://github.com/NethermindEth/warp/tree/cairo-1.0#supported-features).
 
 The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
@@ -45,50 +48,16 @@ Libraries are bundled into the point of use, therefore if you try transpile a st
 
 <br>
 
-### Unsupported Solidity Features
+### Supported features
 
-<hr>
-Several features of Solidity are not supported/do not have analogs in Starknet yet.
-We will try our best to add these features as Starknet supports them, but some may not be
-possible due to fundamental differences in the platforms.
+**Solidity**: Warp supports Solidity 0.8 and. In order to support newer versions [nethersolc](https://github.com/NethermindEth/nethersolc) has to be updated, and [nethersolc binaries](https://github.com/NethermindEth/warp/tree/develop/nethersolc) within warp repository have to be updated.
 
-Please see the list below:
+**Cairo**: The latest version of Cairo compiler supported by warp is 1.1. You can find compiler binaries together with warp plugin executable [in cairo1 directory](cairo1/). Warp plugin repository is located [here](https://github.com/NethermindEth/warp-plugin).
 
-|           Support Status            |      Symbol       |
-| :---------------------------------: | :---------------: |
-|   Will likely never be supported    |        :x:        |
-|    Being developed/investigated     | :hammer_and_pick: |
-| Currently Unknown/If added in Cairo |    :question:     |
+Warp doesn't support all features of Cairo 1 yet. You can find an example contract supported by warp in [tests/behaviour/contracts/if/localVariables.sol](tests/behaviour/contracts/if/localVariables.sol):
 
-|                      Solidity                       |  Support Status   |
-| :-------------------------------------------------: | :---------------: |
-|            fallback functions with args             | :hammer_and_pick: |
-|                   delegate calls                    | :hammer_and_pick: |
-|               indexed arrays in event               | :hammer_and_pick: |
-|                   low level calls                   |        :x:        |
-|              nested tuple expressions               |    :question:     |
-|                      gasleft()                      |    :question:     |
-|                      msg.value                      |    :question:     |
-|                       msg.sig                       |    :question:     |
-|                      msg.data                       |    :question:     |
-|                     tx.gasprice                     |    :question:     |
-|                      tx.origin                      |    :question:     |
-|                      try/catch                      |    :question:     |
-|                   block.coinbase                    |    :question:     |
-|                   block.gaslimit                    |    :question:     |
-|                    block.basefee                    |    :question:     |
-|                    block.chainid                    |    :question:     |
-|                  block.difficulty                   |        :x:        |
-|         precompiles (apart from ecrecover)          |    :question:     |
-|                    selfdestruct                     |    :question:     |
-|                      blockhash                      |    :question:     |
-|            functions pointers in storage            |    :question:     |
-|           sha256 (use keccak256 instead)            |        :x:        |
-|                       receive                       |    :question:     |
-|  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
-|                 user defined errors                 |    :question:     |
-|   function call options e.g x.f{gas: 10000}(arg1)   |    :question:     |
-| member access of address object e.g address.balance |    :question:     |
-|              nested tuple assignments               |    :question:     |
+https://github.com/NethermindEth/warp/blob/321bfe76b27790327e5574c0d5c86c2acf95d750/tests/behaviour/contracts/if/localVariables.sol#L5-L25
 
-Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for Starknet addresses.
+For more fully working examples see [here](tests/behaviour/expectations/behaviour.ts). Uncommented lines are Solidity files that are passing tests. Those files are located in [tests/behaviour/contracts/](tests/behaviour/contracts/). There is also a list of compilation tests [here](tests/compilation/compilation.test.ts). It contains contracts that are partially working ie. they are compiling, but the code might not yield correct results in runtime.
+
+You can find a list of missing features [here](github.com/NethermindEth/warp/issues/1083). Feel free to pick one of those and implement it yourself!

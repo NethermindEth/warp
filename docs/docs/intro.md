@@ -12,6 +12,9 @@ Warp is a transpiler from Solidity to Cairo. It allows you to deploy your Solidi
 > **Note:**
 > Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
 
+> **Note:**
+> The method refers to warp for cairo 0. If you are looking for cairo 1 warp see [installing from source](https://nethermindeth.github.io/warp/docs/contribution_guidelines/a-installing-from-source). You might be also interested in [supported features in cairo 1 warp](https://github.com/NethermindEth/warp/tree/cairo-1.0#supported-features).
+
 The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
 ```
