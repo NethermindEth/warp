@@ -60,4 +60,4 @@ https://github.com/NethermindEth/warp/blob/321bfe76b27790327e5574c0d5c86c2acf95d
 
 For more fully working examples see [here](tests/behaviour/expectations/behaviour.ts). Uncommented lines are Solidity files that are passing tests. Those files are located in [tests/behaviour/contracts/](tests/behaviour/contracts/). There is also a list of compilation tests [here](tests/compilation/compilation.test.ts). It contains contracts that are partially working ie. they are compiling, but the code might not yield correct results in runtime.
 
-You can find a list of missing features [here](github.com/NethermindEth/warp/issues/1083). Feel free to pick one of those and implement it yourself!
+You can find a list of missing features [here](https://github.com/NethermindEth/warp/issues/1083). Feel free to pick one of those and implement it yourself!
