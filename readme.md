@@ -5,6 +5,8 @@
 Warp brings Solidity to Starknet, making it possible to transpile Ethereum
 smart contracts to Starknet Cairo Contracts.
 
+:warning: **Note**: Cairo 1 is not fully supported yet. For more details see [supported features](https://github.com/NethermindEth/warp#supported-features).
+
 :warning: **Note**: Cairo 0 implementation of warp can be found at this [tag](https://github.com/NethermindEth/warp/tree/cairo-0).
 
 ## Quickstart
@@ -13,7 +15,7 @@ smart contracts to Starknet Cairo Contracts.
 > Executing Warp using Docker works only for x86 architecture. If you're using ARM architecture (such as Apple's M1) you can find warp installation instructions [here](https://nethermindeth.github.io/warp/docs/getting_started/a-usage-and-installation).
 
 > **Note:**
-> The method refers to warp for cairo 0. If you are looking for cairo 1 warp see [installing from source](https://nethermindeth.github.io/warp/docs/contribution_guidelines/a-installing-from-source).You might be also interested in [supported features in cairo 1 warp](https://github.com/NethermindEth/warp/tree/cairo-1.0#supported-features).
+> The method refers to warp for cairo 0. If you are looking for cairo 1 warp see [installing from source](https://nethermindeth.github.io/warp/docs/contribution_guidelines/a-installing-from-source). You might be also interested in [supported features in cairo 1 warp](https://github.com/NethermindEth/warp/tree/cairo-1.0#supported-features).
 
 The easiest way to start with warp is using docker. To do that navigate to the directory where you store your contracts and run command:
 
