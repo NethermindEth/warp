@@ -24,17 +24,17 @@ export class CairoContractWriter extends CairoASTNodeWriter {
         `// This contract may be abstract, it may not implement an abstract parent's methods\n// completely or it may not invoke an inherited contract's constructor correctly.\n`,
       ];
 
-    const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
-      ([decl, loc]) => `const ${decl.name}: felt252 = ${loc};`,
-    );
     const staticVariables = [...node.staticStorageAllocations.entries()].map(
       ([decl, loc]) => `const ${decl.name}: felt252 = ${loc};`,
     );
+    const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
+      ([decl, loc]) => `const ${decl.name}: felt252 = ${loc};`,
+    );
     const variables = [
-      `// Dynamic variables - Arrays and Maps`,
-      ...dynamicVariables,
-      `// Static variables`,
+      staticVariables.length > 0 ? '// Static variables' : '',
       ...staticVariables,
+      dynamicVariables.length > 0 ? '// Dynamic variables - Arrays and Maps' : '',
+      ...dynamicVariables,
     ];
 
     let documentation = getDocumentation(node.documentation, writer);

@@ -5,11 +5,21 @@ use starknet::ContractAddress;
 use traits::{Into, TryInto};
 
 use warplib::integer::{bitnot, Integer};
+use integer::{u256_from_felt252, u128_to_felt252};
 
 fn u256_from_felts(low_felt: felt252, high_felt: felt252) -> u256 {
     let low_u128: u128 = get_u128_try_from_felt_result(low_felt);
     let high_u128: u128 = get_u128_try_from_felt_result(high_felt);
     return u256 { low: low_u128, high: high_u128 };
+}
+
+fn u256_to_felt252(x: u256) -> felt252 {
+    let MAX_FELT = u256_from_felt252(-1);
+    if x > MAX_FELT {
+        panic_with_felt252('Overflow in u256_to_felt252')
+    }
+    // hex is 2**128
+    u128_to_felt252(x.low) + 0x100000000000000000000000000000000 * u128_to_felt252(x.high)
 }
 
 fn get_u128_try_from_felt_result(value: felt252) -> u128 {

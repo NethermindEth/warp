@@ -96,7 +96,7 @@ export abstract class CairoType {
     } else if (tp instanceof FunctionType) {
       throw new NotSupportedYetError('Serialising FunctionType not supported yet');
     } else if (tp instanceof IntType) {
-      return new CairoUint(tp.nBits);
+      return tp.nBits === 252 ? new CairoFelt() : new CairoUint(tp.nBits);
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {

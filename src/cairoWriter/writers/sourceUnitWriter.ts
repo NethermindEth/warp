@@ -16,12 +16,12 @@ export class SourceUnitWriter extends CairoASTNodeWriter {
     this.generateInterfaceNameMappings(node);
 
     // Every sourceUnit should only define a single contract
-    const mainContract_ =
+    const mainContracts =
       node.vContracts.length >= 2
         ? node.vContracts.filter((cd) => !cd.name.endsWith(TEMP_INTERFACE_SUFFIX))
         : node.vContracts;
 
-    assert(mainContract_.length <= 1, 'Every SourceUnit should only define a single contract');
+    assert(mainContracts.length <= 1, 'Every SourceUnit should only define a single contract');
 
     structRemappings = new Map();
 

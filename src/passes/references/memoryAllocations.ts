@@ -17,9 +17,13 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
+import {
+  createFeltTypeName,
+  createNumberLiteral,
+  createUint256TypeName,
+} from '../../utils/nodeTemplates';
 import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { WM_NEW } from '../../utils/importPaths';
+import { U256_TO_FELT252, WM_NEW } from '../../utils/importPaths';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
@@ -83,8 +87,8 @@ export class MemoryAllocations extends ReferenceSubPass {
       node,
       ...WM_NEW,
       [
-        ['len', createUint256TypeName(ast)],
-        ['elemWidth', createUint256TypeName(ast)],
+        ['len', createFeltTypeName(ast)],
+        ['elem_size', createFeltTypeName(ast)],
       ],
       [['loc', node.vExpression.vTypeName, DataLocation.Memory]],
     );
@@ -102,9 +106,21 @@ export class MemoryAllocations extends ReferenceSubPass {
       TypeConversionContext.Ref,
     );
 
+    const uint256ToFeltDef = ast.registerImport(
+      node,
+      ...U256_TO_FELT252,
+      [['x_256', createUint256TypeName(ast)]],
+      [['x_252', createFeltTypeName(ast)]],
+    );
+    const uint256ToFeltConversion = createCallToFunction(
+      uint256ToFeltDef,
+      [node.vArguments[0]],
+      ast,
+    );
+
     const call = createCallToFunction(
       funcImport,
-      [node.vArguments[0], createNumberLiteral(elementCairoType.width, ast, 'uint256')],
+      [uint256ToFeltConversion, createNumberLiteral(elementCairoType.width, ast, 'uint252')],
       ast,
     );
 

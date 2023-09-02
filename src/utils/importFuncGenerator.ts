@@ -91,23 +91,6 @@ const FUNCTION_IMPORTS = [
   Paths.BOOL_INTO_FELT252,
   Paths.FELT252_INTO_BOOL,
   Paths.WARPLIB_INTEGER,
-  Paths.WARP_MEMORY,
-  Paths.WM_NEW,
-  Paths.WM_READ,
-  Paths.WM_ALLOC,
-  Paths.WM_STORE,
-  Paths.WM_WRITE,
-  Paths.WM_CREATE,
-  Paths.WM_GET_ID,
-  Paths.WM_RETRIEVE,
-  Paths.WM_INDEX_DYN,
-  Paths.WM_UNSAFE_READ,
-  Paths.WM_INDEX_STATIC,
-  Paths.WM_UNSAFE_ALLOC,
-  Paths.WM_UNSAFE_WRITE,
-  Paths.WM_READ_MULTIPLE,
-  Paths.WM_WRITE_MULTIPLE,
-  Paths.WM_DYN_ARRAY_LENGTH,
 ];
 
 export function createImport(
@@ -175,7 +158,7 @@ export function createImport(
     return createFuncImport();
   }
 
-  throw new TranspileFailedError(`Import ${name} from ${path} is not defined.`);
+  throw new TranspileFailedError(`Import ${name} from ${path.join('::')} is not defined.`);
 }
 
 function findExistingImport(

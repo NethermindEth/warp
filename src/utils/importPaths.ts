@@ -245,6 +245,8 @@ const MEMORY_MODULE = ['warplib', 'warp_memory'];
 
 export const WARP_MEMORY: [string[], string] = [MEMORY_MODULE, 'WarpMemory'];
 const WARP_MEMORY_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryTrait'];
+
+export const WM_INIT: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.initialize'];
 export const WM_READ: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.read'];
 export const WM_WRITE: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.write'];
 export const WM_ALLOC: [string[], string] = [WARP_MEMORY_TRAIT, 'warp_memory.alloc'];
@@ -261,7 +263,7 @@ export const WM_UNSAFE_ALLOC: [string[], string] = [
   'warp_memory.unsafe_alloc',
 ];
 
-const WARP_MEMORY_ARRAYS_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryArraysTrait'];
+const WARP_MEMORY_ARRAYS_TRAIT: string[] = [...MEMORY_MODULE, 'arrays', 'WarpMemoryArraysTrait'];
 export const WM_DYN_ARRAY_LENGTH: [string[], string] = [
   WARP_MEMORY_ARRAYS_TRAIT,
   'warp_memory.length_dyn',
@@ -280,7 +282,11 @@ export const WM_GET_ID: [string[], string] = [
   'warp_memory.get_or_create_id',
 ];
 
-const MULTICELL_ACCESSOR_TRAIT: string[] = [...MEMORY_MODULE, 'WarpMemoryMultiCellAccessorTrait'];
+const MULTICELL_ACCESSOR_TRAIT: string[] = [
+  ...MEMORY_MODULE,
+  'accessors',
+  'WarpMemoryMultiCellAccessorTrait',
+];
 export const WM_WRITE_MULTIPLE: [string[], string] = [
   MULTICELL_ACCESSOR_TRAIT,
   'warp_memory.write_multiple',
